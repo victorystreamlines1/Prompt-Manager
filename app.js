@@ -7,6 +7,148 @@ const STORAGE_KEYS = {
     FILE_MODE: 'reportPrompter_fileMode'
 };
 
+// ============ DEFAULT STATIC TEMPLATES (Cannot be deleted) ============
+const DEFAULT_TEMPLATES = [
+    {
+        id: 'static_1',
+        name: '🔍 Understand Codebase',
+        content: `Please read through this application/codebase carefully and thoroughly. I need you to:
+
+1. **Analyze the Architecture** - Understand the overall structure, file organization, and how components connect
+2. **Identify Core Functionality** - What does this application do? What are its main features?
+3. **Understand the Data Flow** - How does data move through the application?
+4. **Note Key Patterns** - What design patterns, conventions, or frameworks are being used?
+5. **Identify Dependencies** - What external libraries or APIs does it rely on?
+
+After your analysis, please explain back to me:
+- The purpose and concept behind this application
+- How the main functionality works
+- Any important architectural decisions you noticed
+- Potential areas of concern or improvement
+
+This will help us establish a shared understanding before we start working together.`,
+        isStatic: true
+    },
+    {
+        id: 'static_2',
+        name: '🐛 Debug & Fix Issue',
+        content: `I'm experiencing an issue that needs debugging. Please help me:
+
+**Problem Description:**
+[Describe the issue here]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What is actually happening]
+
+**Steps to Reproduce:**
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+**Error Messages (if any):**
+[Paste any error messages or logs]
+
+Please:
+1. Analyze the code to identify the root cause
+2. Explain why this issue is occurring
+3. Provide a clear solution with code fixes
+4. Suggest any preventive measures for similar issues`,
+        isStatic: true
+    },
+    {
+        id: 'static_3',
+        name: '✨ Code Review',
+        content: `Please review the following code for:
+
+1. **Bugs & Errors** - Any logical errors, potential crashes, or incorrect behavior
+2. **Security Issues** - Vulnerabilities, unsafe practices, or security risks
+3. **Performance** - Inefficient code, memory leaks, or optimization opportunities
+4. **Best Practices** - Adherence to coding standards and conventions
+5. **Readability** - Code clarity, naming conventions, and documentation
+6. **Maintainability** - Code structure, modularity, and ease of future changes
+
+For each issue found, please:
+- Explain what the problem is
+- Why it's a concern
+- Provide a recommended fix with code example
+
+Also highlight any positive aspects of the code worth keeping.`,
+        isStatic: true
+    },
+    {
+        id: 'static_4',
+        name: '🔧 Refactor Code',
+        content: `Please help me refactor this code to improve its quality. Focus on:
+
+1. **Clean Code Principles**
+   - Single Responsibility Principle
+   - DRY (Don't Repeat Yourself)
+   - KISS (Keep It Simple, Stupid)
+
+2. **Code Organization**
+   - Better file/folder structure
+   - Logical grouping of functions
+   - Separation of concerns
+
+3. **Readability Improvements**
+   - Clear variable and function names
+   - Proper commenting where needed
+   - Consistent formatting
+
+4. **Performance Optimization**
+   - Remove redundant operations
+   - Optimize loops and algorithms
+   - Better resource management
+
+5. **Modern Practices**
+   - Use modern language features
+   - Apply appropriate design patterns
+   - Follow framework conventions
+
+Please provide the refactored code with explanations for each major change.`,
+        isStatic: true
+    },
+    {
+        id: 'static_5',
+        name: '📝 Implement Feature',
+        content: `I need help implementing a new feature. Here are the details:
+
+**Feature Name:**
+[Feature name]
+
+**Description:**
+[Detailed description of what this feature should do]
+
+**Requirements:**
+- [ ] Requirement 1
+- [ ] Requirement 2
+- [ ] Requirement 3
+
+**User Story:**
+As a [type of user], I want to [action] so that [benefit].
+
+**Acceptance Criteria:**
+1. [Criteria 1]
+2. [Criteria 2]
+3. [Criteria 3]
+
+**Technical Considerations:**
+- Where should this be implemented?
+- What existing code needs to be modified?
+- Any dependencies or integrations needed?
+
+Please provide:
+1. A technical approach/plan
+2. Step-by-step implementation
+3. Complete code with comments
+4. Any necessary tests`,
+        isStatic: true
+    }
+];
+
 // ============ STATE ============
 let promptTemplates = [];
 let activePrompts = new Set();
@@ -39,9 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Load all data from localStorage
 function loadFromLocalStorage() {
-    // Load templates
+    // Load user templates from localStorage
     const templatesData = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
-    promptTemplates = templatesData ? JSON.parse(templatesData) : [];
+    const userTemplates = templatesData ? JSON.parse(templatesData) : [];
+    
+    // Merge static templates with user templates (static first)
+    promptTemplates = [...DEFAULT_TEMPLATES, ...userTemplates];
     
     // Load saved prompts
     const savedData = localStorage.getItem(STORAGE_KEYS.SAVED_PROMPTS);
@@ -66,7 +211,9 @@ function initFolderPath() {
 // ============ TEMPLATE FUNCTIONS (localStorage) ============
 
 function saveTemplatesToStorage() {
-    localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(promptTemplates));
+    // Only save user templates (not static ones) to localStorage
+    const userTemplates = promptTemplates.filter(t => !t.isStatic);
+    localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(userTemplates));
 }
 
 function generateId() {
@@ -97,27 +244,30 @@ function renderPromptList(searchTerm = '') {
         const isChecked = activePrompts.has(prompt.id);
         const highlightedName = searchLower ? highlightText(prompt.name, searchLower) : prompt.name;
         const contentPreview = prompt.content.replace(/\n/g, ' ').substring(0, 50) + '...';
+        const isStatic = prompt.isStatic === true;
 
         return `
-            <div class="prompt-item ${isChecked ? 'checked' : ''}" data-id="${prompt.id}">
+            <div class="prompt-item ${isChecked ? 'checked' : ''} ${isStatic ? 'static-template' : ''}" data-id="${prompt.id}">
                 <div class="prompt-item-checkbox" onclick="togglePrompt('${prompt.id}')">
                     <input type="checkbox" ${isChecked ? 'checked' : ''}>
                     <div class="checkbox-box"><i class="fas fa-check"></i></div>
                 </div>
                 <div class="prompt-item-content" onclick="openTemplatePreview('${prompt.id}')">
-                    <div class="prompt-item-name">${highlightedName}</div>
+                    <div class="prompt-item-name">${highlightedName} ${isStatic ? '<i class="fas fa-lock" style="font-size: 0.6rem; color: var(--accent-secondary); margin-left: 4px;" title="Built-in template"></i>' : ''}</div>
                     <div class="prompt-item-preview">${escapeHtml(contentPreview)}</div>
                 </div>
                 <div class="prompt-item-actions">
                     <button type="button" class="prompt-action-icon copy" onclick="copyTemplate('${prompt.id}')" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
+                    ${isStatic ? '' : `
                     <button type="button" class="prompt-action-icon edit" onclick="openEditTemplateModal('${prompt.id}')" title="Edit">
                         <i class="fas fa-edit"></i>
                     </button>
                     <button type="button" class="prompt-action-icon delete" onclick="confirmDeleteTemplate('${prompt.id}')" title="Delete">
                         <i class="fas fa-trash"></i>
                     </button>
+                    `}
                 </div>
             </div>
         `;
@@ -218,6 +368,12 @@ function saveTemplate() {
 function confirmDeleteTemplate(id) {
     const template = promptTemplates.find(t => t.id === id);
     if (!template) return;
+    
+    // Prevent deletion of static templates
+    if (template.isStatic) {
+        showToast('🔒 Built-in templates cannot be deleted', 'error');
+        return;
+    }
 
     showConfirmModal({
         title: 'Delete Template?',
@@ -232,6 +388,14 @@ function confirmDeleteTemplate(id) {
 
 // Delete Template - localStorage
 function deleteTemplate(id) {
+    const template = promptTemplates.find(t => t.id === id);
+    
+    // Prevent deletion of static templates
+    if (template && template.isStatic) {
+        showToast('Built-in templates cannot be deleted', 'error');
+        return;
+    }
+    
     const index = promptTemplates.findIndex(t => t.id === id);
     if (index !== -1) {
         promptTemplates.splice(index, 1);
