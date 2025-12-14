@@ -57,7 +57,7 @@ function showLoginPage($error = null) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Report Prompter</title>
+    <title>Admin Login - Prompt Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -258,7 +258,7 @@ function showLoginPage($error = null) {
             <div class="login-logo">
                 <i class="fas fa-terminal"></i>
             </div>
-            <h1>Report Prompter</h1>
+            <h1>Prompt Manager</h1>
             <p>Enter admin password to continue</p>
         </div>
         
@@ -621,7 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Prompter - AI Prompt Generator</title>
+    <title>Prompt Manager - AI Prompt Generator</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -3554,7 +3554,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fas fa-wand-magic-sparkles"></i> Report Prompter</h1>
+                <h1><i class="fas fa-wand-magic-sparkles"></i> Prompt Manager</h1>
             </div>
             
             <div class="sidebar-content">

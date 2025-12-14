@@ -1,7 +1,5 @@
-<!-- FILE:index.html:1765744182011 -->
-[📎 File Reference: index.html | Path: uploads/1765743885_index.html]
-<!-- /END  FILE:index.html:1765744182011 -->
+<!-- FILE:index.php:1765745385565 -->
+[📎 File Reference: index.php | Size: 244.23 KB | Type: unknown]
+<!-- /END  FILE:index.php:1765745385565 -->
 
-
-Now I want you to add a super admin, just one password and that's it. No need for username or anything. The super admin password is... GL_Admin
-The user will just post the password, this password and he will login. No need for any username or verification other than this. And make sure it has remember me and has the eye to see the password. 
+Change the upper left title in purple from report prompter to prompt manager. You'll find the title on the upper left, report prompter. No, change it to prompt manager. Thank you. 
