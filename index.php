@@ -1,6 +1,322 @@
 <?php
 session_start();
 
+// ============================================
+// SUPER ADMIN AUTHENTICATION
+// ============================================
+define('ADMIN_PASSWORD', 'GL_Admin');
+
+// Check for remember me cookie
+if (!isset($_SESSION['admin_logged_in']) && isset($_COOKIE['admin_remember'])) {
+    if ($_COOKIE['admin_remember'] === hash('sha256', ADMIN_PASSWORD . 'salt_key_2024')) {
+        $_SESSION['admin_logged_in'] = true;
+    }
+}
+
+// Handle login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
+    $inputPassword = $_POST['admin_password'] ?? '';
+    
+    if ($inputPassword === ADMIN_PASSWORD) {
+        $_SESSION['admin_logged_in'] = true;
+        
+        // Set remember me cookie (30 days)
+        if (isset($_POST['remember_me'])) {
+            setcookie('admin_remember', hash('sha256', ADMIN_PASSWORD . 'salt_key_2024'), time() + (86400 * 30), '/');
+        }
+        
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        $loginError = 'Invalid password. Please try again.';
+    }
+}
+
+// Handle logout
+if (isset($_GET['logout'])) {
+    $_SESSION['admin_logged_in'] = false;
+    setcookie('admin_remember', '', time() - 3600, '/');
+    session_destroy();
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// Check if logged in
+$isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+
+// If not logged in, show login page
+if (!$isLoggedIn) {
+    showLoginPage($loginError ?? null);
+    exit;
+}
+
+function showLoginPage($error = null) {
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Report Prompter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: rgba(30, 30, 60, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 100px rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .login-header h1 {
+            color: #fff;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            background: rgba(15, 15, 35, 0.8);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .password-wrapper input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        
+        .password-wrapper input::placeholder {
+            color: #6b7280;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+        
+        .toggle-password:hover {
+            color: #6366f1;
+        }
+        
+        .remember-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .remember-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+        
+        .remember-group label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .footer-text {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+        
+        .footer-text i {
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-terminal"></i>
+            </div>
+            <h1>Report Prompter</h1>
+            <p>Enter admin password to continue</p>
+        </div>
+        
+        <?php if ($error): ?>
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
+        
+        <form class="login-form" method="POST">
+            <div class="form-group">
+                <label for="admin_password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="admin_password" name="admin_password" placeholder="Enter admin password" required autofocus>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="remember-group">
+                <input type="checkbox" id="remember_me" name="remember_me">
+                <label for="remember_me">Remember me for 30 days</label>
+            </div>
+            
+            <button type="submit" name="admin_login" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Login
+            </button>
+        </form>
+        
+        <p class="footer-text">
+            <i class="fas fa-shield-alt"></i> Secured Admin Access
+        </p>
+    </div>
+    
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('admin_password');
+            const icon = document.getElementById('eyeIcon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
+<?php
+}
+
 // Database Connection Configuration
 $host = 'srv1788.hstgr.io';
 $dbname = 'u419999707_Mohamed';
@@ -1419,6 +1735,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .editor-title i {
             color: var(--accent-primary);
             font-size: 1.25rem;
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            padding: 0.4rem 0.6rem;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #ef4444;
         }
 
         .editor-actions {
@@ -3323,6 +3659,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="editor-title">
                         <i class="fas fa-terminal"></i>
                         <span>Prompt Editor</span>
+                        <a href="?logout=1" class="logout-btn" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
                     </div>
                     <div class="editor-actions">
                         <button class="btn btn-secondary" onclick="clearEditor()">
