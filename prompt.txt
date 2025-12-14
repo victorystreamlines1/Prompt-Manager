@@ -1,0 +1,5 @@
+<!-- FILE:index.html:1765743892041 -->
+[📎 File Reference: index.html | Size: 234.42 KB | Type: text/html]
+<!-- /END  FILE:index.html:1765743892041 -->
+
+I have transferred this file from another application. It was working fine in another application. I don't know why the PHP tags are not closing properly. And some text is showing on top of the application. In the other app, it's running perfectly fine. And the PHP is closing and everything is working properly. But in this, please check what's the problem. I think there is a tag or something when I transferred it, I copied and pasted it. The tag or something happens while I do this process. So please check what's the problem and fix the excessive amount of PHP that is not working properly or fix the file. Okay. 
