@@ -1912,6 +1912,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             animation: pulse-status 2s infinite;
         }
 
+        .btn-folder.needs-reconnect {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulse-reconnect 2s infinite;
+        }
+
+        .btn-folder.needs-reconnect:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-folder.needs-reconnect .folder-status {
+            background: #f59e0b;
+            animation: pulse-status 1s infinite;
+        }
+
+        @keyframes pulse-reconnect {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+        }
+
         @keyframes pulse-status {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.2); opacity: 0.8; }
@@ -2074,6 +2094,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .folder-path-indicator.disconnected {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        .folder-path-indicator.disconnected i {
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         /* Text Editor */
@@ -4875,11 +4910,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         async function initFolderConnection() {
             // Check if there's a saved folder path in localStorage
             const savedFolderName = localStorage.getItem('promptFolderName');
-            
+
             if (savedFolderName) {
                 // Show the saved folder name (connection needs to be re-established)
                 updateFolderUI(savedFolderName, false);
-                showToast(`📁 Last folder: ${savedFolderName} - Click Folder button to reconnect`, 'info');
             }
         }
         
@@ -4947,17 +4981,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (isConnected) {
                 btnFolder.classList.add('connected');
+                btnFolder.classList.remove('needs-reconnect');
                 btnFolder.title = `Connected to ${folderName}/prompt.txt`;
                 btnSend.disabled = false;
                 btnPull.disabled = false;
                 pathIndicator.classList.add('show');
+                pathIndicator.classList.remove('disconnected');
                 pathText.textContent = `${folderName}/prompt.txt`;
-            } else {
+            } else if (folderName) {
+                // Has saved folder but needs reconnection
                 btnFolder.classList.remove('connected');
-                btnFolder.title = `Last folder: ${folderName} - Click to reconnect`;
+                btnFolder.classList.add('needs-reconnect');
+                btnFolder.title = `Click to reconnect to ${folderName}`;
                 btnSend.disabled = true;
                 btnPull.disabled = true;
-                pathIndicator.classList.remove('show');
+                pathIndicator.classList.add('show', 'disconnected');
+                pathText.textContent = `${folderName}/prompt.txt (click Folder to reconnect)`;
+            } else {
+                // No saved folder
+                btnFolder.classList.remove('connected', 'needs-reconnect');
+                btnFolder.title = 'Select folder for prompt.txt';
+                btnSend.disabled = true;
+                btnPull.disabled = true;
+                pathIndicator.classList.remove('show', 'disconnected');
             }
         }
         
