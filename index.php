@@ -1,7266 +1,1855 @@
 <?php
+// ============================================
+// SUPER ADMIN AUTHENTICATION SYSTEM
+// ============================================
+
+// Suppress PHP errors/warnings for AJAX requests to prevent HTML in JSON responses
+if (isset($_POST['action'])) {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
+
 session_start();
 
-// ============================================
-// SUPER ADMIN AUTHENTICATION
-// ============================================
-define('ADMIN_PASSWORD', 'GL_Admin');
+// Super Admin Password
+define('SUPER_ADMIN_PASSWORD', 'GL_Admin');
+define('REMEMBER_ME_COOKIE', 'super_admin_remember');
+define('REMEMBER_ME_DURATION', 30 * 24 * 60 * 60); // 30 days
 
-// Check for remember me cookie
-if (!isset($_SESSION['admin_logged_in']) && isset($_COOKIE['admin_remember'])) {
-    if ($_COOKIE['admin_remember'] === hash('sha256', ADMIN_PASSWORD . 'salt_key_2024')) {
-        $_SESSION['admin_logged_in'] = true;
+// Check Remember Me Cookie
+if (!isset($_SESSION['super_admin_logged_in']) && isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+    $cookieValue = $_COOKIE[REMEMBER_ME_COOKIE];
+    $expectedCookie = md5(SUPER_ADMIN_PASSWORD . 'super_admin_salt');
+    
+    if ($cookieValue === $expectedCookie) {
+        $_SESSION['super_admin_logged_in'] = true;
+        $_SESSION['login_time'] = time();
+        $_SESSION['remembered'] = true;
     }
 }
 
-// Handle login
+// Handle Login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
-    $inputPassword = $_POST['admin_password'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $rememberMe = isset($_POST['remember_me']) && $_POST['remember_me'] === '1';
     
-    if ($inputPassword === ADMIN_PASSWORD) {
-        $_SESSION['admin_logged_in'] = true;
+    if ($password === SUPER_ADMIN_PASSWORD) {
+        $_SESSION['super_admin_logged_in'] = true;
+        $_SESSION['login_time'] = time();
         
-        // Set remember me cookie (30 days)
-        if (isset($_POST['remember_me'])) {
-            setcookie('admin_remember', hash('sha256', ADMIN_PASSWORD . 'salt_key_2024'), time() + (86400 * 30), '/');
+        // Set Remember Me Cookie
+        if ($rememberMe) {
+            $cookieValue = md5(SUPER_ADMIN_PASSWORD . 'super_admin_salt');
+            setcookie(REMEMBER_ME_COOKIE, $cookieValue, time() + REMEMBER_ME_DURATION, '/', '', false, true);
+            $_SESSION['remembered'] = true;
         }
         
-        header('Location: ' . $_SERVER['PHP_SELF']);
+        header('Location: index.php');
         exit;
     } else {
-        $loginError = 'Invalid password. Please try again.';
+        $login_error = 'Invalid password! Please try again.';
     }
 }
 
-// Handle logout
+// Handle Logout
 if (isset($_GET['logout'])) {
-    $_SESSION['admin_logged_in'] = false;
-    setcookie('admin_remember', '', time() - 3600, '/');
+    // Delete Remember Me Cookie
+    if (isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+        setcookie(REMEMBER_ME_COOKIE, '', time() - 3600, '/', '', false, true);
+        unset($_COOKIE[REMEMBER_ME_COOKIE]);
+    }
+    
     session_destroy();
-    header('Location: ' . $_SERVER['PHP_SELF']);
+    header('Location: index.php');
     exit;
 }
 
 // Check if logged in
-$isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+$isLoggedIn = isset($_SESSION['super_admin_logged_in']) && $_SESSION['super_admin_logged_in'] === true;
 
-// If not logged in, show login page
+// If not logged in, show login form
 if (!$isLoggedIn) {
-    showLoginPage($loginError ?? null);
+    showLoginForm($login_error ?? '');
     exit;
 }
 
-function showLoginPage($error = null) {
-?>
+// Load excluded pages list
+$excludedFile = __DIR__ . '/catalog_excluded.json';
+$excludedPages = [];
+if (file_exists($excludedFile)) {
+    $excludedPages = json_decode(file_get_contents($excludedFile), true) ?: [];
+}
+
+// ============================================
+// LOGIN FORM FUNCTION
+// ============================================
+function showLoginForm($error = '') {
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Prompt Manager</title>
-    <link rel="icon" type="image/png" href="logoPM.png">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Super Admin Login - Catalog</title>
+    <link rel="icon" type="image/png" href="FuturisticLogo.png">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated Background Particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            right: -150px;
+            animation: float 25s infinite ease-in-out reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.9); }
+            75% { transform: translate(40px, 50px) scale(1.05); }
         }
         
         .login-container {
-            background: rgba(30, 30, 60, 0.9);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 20px;
-            padding: 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 50px 45px;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 100px rgba(99, 102, 241, 0.1);
-            backdrop-filter: blur(10px);
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 0.6s ease-out;
+            position: relative;
+            z-index: 10;
         }
         
-        .login-header {
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo-container {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 35px;
+            animation: logoFloat 3s ease-in-out infinite;
         }
         
-        .login-logo {
-            width: 120px;
-            height: auto;
-            margin: 0 auto 1.5rem;
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
         
-        .login-logo img {
-            width: 100%;
-            height: auto;
-            filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
+        .logo-container img {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.4));
+            margin-bottom: 20px;
         }
         
-        .login-header h1 {
-            color: #fff;
-            font-size: 1.75rem;
+        .login-title {
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        .login-header p {
-            color: #9ca3af;
-            font-size: 0.95rem;
-        }
-        
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+        .login-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            margin-bottom: 35px;
         }
         
         .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .password-input-wrapper {
             position: relative;
         }
         
-        .form-group label {
-            display: block;
-            color: #9ca3af;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        
-        .password-wrapper {
-            position: relative;
-        }
-        
-        .password-wrapper input {
+        .form-input {
             width: 100%;
-            padding: 1rem 3rem 1rem 1rem;
-            background: rgba(15, 15, 35, 0.8);
-            border: 2px solid rgba(99, 102, 241, 0.2);
+            padding: 16px 50px 16px 18px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             color: #fff;
-            font-size: 1rem;
-            font-family: inherit;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Consolas', monospace;
+        }
+        
+        .form-input:focus {
             outline: none;
-            transition: all 0.3s;
+            border-color: #fbbf24;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
         }
         
-        .password-wrapper input:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-        
-        .password-wrapper input::placeholder {
-            color: #6b7280;
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .toggle-password {
             position: absolute;
-            right: 1rem;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
-            background: none;
+            background: rgba(255, 255, 255, 0.2);
             border: none;
-            color: #6b7280;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
             cursor: pointer;
-            padding: 0.25rem;
-            font-size: 1.1rem;
-            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
         }
         
         .toggle-password:hover {
-            color: #6366f1;
-        }
-        
-        .remember-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .remember-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #6366f1;
-            cursor: pointer;
-        }
-        
-        .remember-group label {
-            color: #9ca3af;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin: 0;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
         }
         
         .login-btn {
             width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            padding: 16px;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
             border: none;
             border-radius: 12px;
             color: white;
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: inherit;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 10px;
         }
         
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6);
         }
         
         .login-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
         
         .error-message {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-            padding: 1rem;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 25px;
+            color: #fca5a5;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
+            animation: shake 0.5s ease-in-out;
         }
         
-        .footer-text {
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-5px); }
+        }
+        
+        .security-badge {
             text-align: center;
-            margin-top: 2rem;
-            color: #6b7280;
-            font-size: 0.8rem;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .footer-text i {
-            color: #6366f1;
+        .security-badge-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34, 197, 94, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        /* Remember Me Checkbox Styles */
+        .remember-me-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .remember-me-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .remember-me-label:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .remember-me-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkbox-custom {
+            position: relative;
+            width: 22px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .remember-me-checkbox:checked ~ .checkbox-custom {
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-color: #22c55e;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
+        .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            display: none;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 11px;
+            border: solid white;
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+        
+        .remember-me-checkbox:checked ~ .checkbox-custom::after {
+            display: block;
+            animation: checkmark 0.3s ease-in-out;
+        }
+        
+        @keyframes checkmark {
+            0% { transform: rotate(45deg) scale(0); }
+            50% { transform: rotate(45deg) scale(1.2); }
+            100% { transform: rotate(45deg) scale(1); }
+        }
+        
+        .checkbox-text {
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .remember-me-label:hover .checkbox-custom {
+            border-color: rgba(251, 191, 36, 0.6);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <div class="login-header">
-            <div class="login-logo">
-                <img src="logoPM.png" alt="Prompt Manager">
-            </div>
-            <p>Enter admin password to continue</p>
+        <div class="logo-container">
+            <img src="FuturisticLogo.png" alt="Logo">
+            <div class="login-title">🔐 Super Admin</div>
+            <div class="login-subtitle">Enter password to access Catalog</div>
         </div>
         
         <?php if ($error): ?>
-        <div class="error-message">
-            <i class="fas fa-exclamation-circle"></i>
-            <?php echo htmlspecialchars($error); ?>
-        </div>
+            <div class="error-message">
+                <span style="font-size: 20px;">❌</span>
+                <span><?php echo htmlspecialchars($error); ?></span>
+            </div>
         <?php endif; ?>
         
-        <form class="login-form" method="POST">
+        <form method="POST" action="">
             <div class="form-group">
-                <label for="admin_password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="admin_password" name="admin_password" placeholder="Enter admin password" required autofocus>
-                    <button type="button" class="toggle-password" onclick="togglePassword()">
-                        <i class="fas fa-eye" id="eyeIcon"></i>
+                <label class="form-label">
+                    <span>🔑</span>
+                    <span>Admin Password</span>
+                </label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="passwordInput" name="password" class="form-input" placeholder="Enter super admin password..." required autofocus>
+                    <button type="button" class="toggle-password" onclick="togglePassword()" title="Show/Hide Password">
+                        <span id="toggleIcon">👁️</span>
                     </button>
                 </div>
             </div>
             
-            <div class="remember-group">
-                <input type="checkbox" id="remember_me" name="remember_me">
-                <label for="remember_me">Remember me for 30 days</label>
+            <!-- Remember Me Checkbox -->
+            <div class="remember-me-container" style="margin-bottom: 25px;">
+                <label class="remember-me-label">
+                    <input type="checkbox" id="rememberMeCheckbox" name="remember_me" value="1" class="remember-me-checkbox">
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">
+                        <span style="font-size: 16px; margin-right: 6px;">🔒</span>
+                        <span>Remember me for 30 days</span>
+                    </span>
+                </label>
             </div>
             
             <button type="submit" name="admin_login" class="login-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                Login
+                <span style="font-size: 20px;">🚀</span>
+                <span>Access Catalog</span>
             </button>
         </form>
         
-        <p class="footer-text">
-            <i class="fas fa-shield-alt"></i> Secured Admin Access
-        </p>
+        <div class="security-badge">
+            <div class="security-badge-content">
+                <span>🛡️</span>
+                <span>Secured by Super Admin Authentication</span>
+            </div>
+        </div>
     </div>
     
     <script>
         function togglePassword() {
-            const input = document.getElementById('admin_password');
-            const icon = document.getElementById('eyeIcon');
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('toggleIcon');
             
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+                icon.textContent = '🙈';
             } else {
                 input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                icon.textContent = '👁️';
             }
         }
+        
+        // Auto-focus on password input
+        document.getElementById('passwordInput').focus();
+        
+        // Add keyboard shortcut (Ctrl+Enter to submit)
+        document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                this.form.submit();
+            }
+        });
+        
+        // Remember Me checkbox animation
+        const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
+        const rememberMeLabel = document.querySelector('.remember-me-label');
+        
+        rememberMeCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                rememberMeLabel.style.background = 'rgba(34, 197, 94, 0.15)';
+                rememberMeLabel.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                
+                // Success animation
+                rememberMeLabel.style.animation = 'none';
+                setTimeout(() => {
+                    rememberMeLabel.style.animation = 'pulse 0.5s ease-in-out';
+                }, 10);
+            } else {
+                rememberMeLabel.style.background = 'rgba(255, 255, 255, 0.08)';
+                rememberMeLabel.style.borderColor = 'transparent';
+            }
+        });
+        
+        // Pulse animation for checkbox
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
-<?php
+    <?php
 }
 
-// Database Connection Configuration
-$host = 'srv1788.hstgr.io';
-$dbname = 'u419999707_Mohamed';
-$username = 'u419999707_Abuammar';
-$password = 'P@master5007';
-$port = '3306';
-
-$pdo = null;
-$dbError = null;
-
-try {
-    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    
-    // Delete old tables with generic names (cleanup - remove after first run)
-    $pdo->exec("DROP TABLE IF EXISTS saved_prompts");
-    $pdo->exec("DROP TABLE IF EXISTS uploaded_files");
-    
-    // Create tables if not exist (prefixed with reporter_prompt_ to avoid conflicts)
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_saved_prompts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
-    
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_uploaded_files (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        filename VARCHAR(255) NOT NULL,
-        filepath VARCHAR(500) NOT NULL,
-        filesize INT,
-        filetype VARCHAR(100),
-        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
-    
-    // Create prompt templates table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_templates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        sort_order INT DEFAULT 0,
-        is_active TINYINT(1) DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
-    
-    // Note: No auto-insertion of default templates
-    // User will add templates manually via the UI
-    
-} catch(PDOException $e) {
-    $dbError = $e->getMessage();
-}
-
-// Handle AJAX requests
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Handle toggle page visibility via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_visibility') {
+    // Prevent any output before JSON
+    ob_clean();
     header('Content-Type: application/json');
     
-    $action = $_POST['action'] ?? '';
-    
-    // Save prompt
-    if ($action === 'save_prompt') {
-        $title = $_POST['title'] ?? '';
-        $content = $_POST['content'] ?? '';
+    try {
+        $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+        $exclude = isset($_POST['exclude']) && $_POST['exclude'] === 'true';
         
-        if ($pdo && $title && $content) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_saved_prompts (title, content) VALUES (?, ?)");
-                $stmt->execute([$title, $content]);
-                echo json_encode(['success' => true, 'id' => $pdo->lastInsertId(), 'message' => 'Prompt saved successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Title and content are required']);
+        if (empty($filename)) {
+            echo json_encode(['success' => false, 'message' => 'Filename required']);
+            exit;
         }
-        exit;
-    }
-    
-    // Update prompt
-    if ($action === 'update_prompt') {
-        $id = $_POST['id'] ?? '';
-        $title = $_POST['title'] ?? '';
-        $content = $_POST['content'] ?? '';
         
-        if ($pdo && $id && $title && $content) {
-            try {
-                $stmt = $pdo->prepare("UPDATE reporter_prompt_saved_prompts SET title = ?, content = ? WHERE id = ?");
-                $stmt->execute([$title, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt updated successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-        }
-        exit;
-    }
-    
-    // Delete prompt
-    if ($action === 'delete_prompt') {
-        $id = $_POST['id'] ?? '';
+        // Define excluded file path
+        $excludedFile = __DIR__ . '/catalog_excluded.json';
         
-        if ($pdo && $id) {
-            try {
-                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_saved_prompts WHERE id = ?");
-                $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt deleted successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-        }
-        exit;
-    }
-    
-    // Get all prompts
-    if ($action === 'get_prompts') {
-        $search = $_POST['search'] ?? '';
-        
-        if ($pdo) {
-            try {
-                if ($search) {
-                    $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_saved_prompts WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC");
-                    $stmt->execute(["%$search%", "%$search%"]);
-                } else {
-                    $stmt = $pdo->query("SELECT * FROM reporter_prompt_saved_prompts ORDER BY created_at DESC");
+        // Load current excluded list
+        $excludedPages = [];
+        if (file_exists($excludedFile)) {
+            $content = @file_get_contents($excludedFile);
+            if ($content !== false) {
+                $decoded = @json_decode($content, true);
+                if (is_array($decoded)) {
+                    $excludedPages = $decoded;
                 }
-                $prompts = $stmt->fetchAll();
-                echo json_encode(['success' => true, 'prompts' => $prompts]);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
-        exit;
-    }
-    
-    // ============ PROMPT TEMPLATES CRUD ============
-    
-    // Get all templates
-    if ($action === 'get_templates') {
-        if ($pdo) {
-            try {
-                $stmt = $pdo->query("SELECT * FROM reporter_prompt_templates WHERE is_active = 1 ORDER BY sort_order ASC, id ASC");
-                $templates = $stmt->fetchAll();
-                echo json_encode(['success' => true, 'templates' => $templates]);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        
+        if ($exclude) {
+            // Add to excluded list
+            if (!in_array($filename, $excludedPages)) {
+                $excludedPages[] = $filename;
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Database not connected']);
+            // Remove from excluded list
+            $excludedPages = array_values(array_diff($excludedPages, [$filename]));
         }
-        exit;
-    }
-    
-    // Add new template
-    if ($action === 'add_template') {
-        $name = $_POST['name'] ?? '';
-        $content = $_POST['content'] ?? '';
         
-        if ($pdo && $name && $content) {
-            try {
-                // Get max sort_order
-                $stmt = $pdo->query("SELECT MAX(sort_order) as max_order FROM reporter_prompt_templates");
-                $maxOrder = $stmt->fetch()['max_order'] ?? 0;
-                
-                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_templates (name, content, sort_order) VALUES (?, ?, ?)");
-                $stmt->execute([$name, $content, $maxOrder + 1]);
-                $id = $pdo->lastInsertId();
-                
-                echo json_encode([
-                    'success' => true, 
-                    'id' => $id, 
-                    'message' => 'Template added successfully!',
-                    'template' => ['id' => $id, 'name' => $name, 'content' => $content]
-                ]);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
+        // Save updated list
+        $jsonContent = json_encode($excludedPages, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($jsonContent !== false && @file_put_contents($excludedFile, $jsonContent) !== false) {
+            echo json_encode([
+                'success' => true,
+                'message' => $exclude ? 'Page excluded from catalog' : 'Page included in catalog',
+                'excluded' => $exclude
+            ]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Name and content are required']);
+            echo json_encode(['success' => false, 'message' => 'Failed to update catalog. Check file permissions.']);
         }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// Handle file deletion via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $filepath = __DIR__ . '/' . basename($filename); // basename for security
+    
+    // Security check: don't allow deleting index.php or system files
+    $blockedFiles = ['index.php', 'catalog.html', 'default.php', 'backend.php'];
+    
+    if (in_array(basename($filename), $blockedFiles)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'This file is protected and cannot be deleted.'
+        ]);
         exit;
     }
     
-    // Update template
-    if ($action === 'update_template') {
-        $id = $_POST['id'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $content = $_POST['content'] ?? '';
-        
-        if ($pdo && $id && $name && $content) {
-            try {
-                $stmt = $pdo->prepare("UPDATE reporter_prompt_templates SET name = ?, content = ? WHERE id = ?");
-                $stmt->execute([$name, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Template updated successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
+    if (file_exists($filepath) && is_file($filepath)) {
+        if (unlink($filepath)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'File deleted successfully!'
+            ]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'ID, name and content are required']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to delete file. Permission denied.'
+            ]);
         }
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+    }
+    exit;
+}
+
+// ============================================
+// CHECK IF SUPER ADMIN EXISTS
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'check_super_admin') {
+    header('Content-Type: application/json');
+    
+    $filename = $_POST['filename'] ?? '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath)) {
+        echo json_encode(['exists' => false, 'error' => 'File not found']);
         exit;
     }
     
-    // Delete template
-    if ($action === 'delete_template') {
-        $id = $_POST['id'] ?? '';
-        
-        if ($pdo && $id) {
-            try {
-                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_templates WHERE id = ?");
-                $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Template deleted successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'ID is required']);
-        }
-        exit;
-    }
+    $content = file_get_contents($filepath);
+    $hasSuperAdmin = (strpos($content, 'SUPER_ADMIN_PASSWORD') !== false || 
+                      strpos($content, 'page_admin_logged_in') !== false);
     
-    // File upload
-    if ($action === 'upload_files') {
-        $uploadDir = 'uploads/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+    echo json_encode(['exists' => $hasSuperAdmin]);
+    exit;
+}
+
+// ============================================
+// REMOVE SUPER ADMIN FROM PAGE
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'remove_super_admin') { // OPEN 1
+    ob_clean();
+    header('Content-Type: application/json');
+    
+    try { // OPEN 2
+        $filename = $_POST['filename'] ?? '';
+        $filepath = __DIR__ . '/' . basename($filename);
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         
-        $uploadedFiles = [];
+        if (!in_array($extension, ['php', 'html'])) { // OPEN 3
+            echo json_encode(['success' => false, 'message' => 'Only PHP and HTML files are supported']);
+            exit;
+        } // CLOSE 3
         
-        if (isset($_FILES['files'])) {
-            $files = $_FILES['files'];
-            $fileCount = count($files['name']);
+        if (!file_exists($filepath)) { // OPEN 4
+            echo json_encode(['success' => false, 'message' => 'File not found']);
+            exit;
+        } // CLOSE 4
+        
+        // Read file content
+        $content = file_get_contents($filepath);
+        
+        // Check if Super Admin exists
+        $hasSuperAdmin = (strpos($content, 'SUPER_ADMIN_PASSWORD') !== false || strpos($content, 'page_admin_logged_in') !== false);
+        
+        if (!$hasSuperAdmin) { // OPEN 5
+            echo json_encode(['success' => false, 'message' => 'No Super Admin protection found in this file!']);
+            exit;
+        } // CLOSE 5
+        
+        // Remove Super Admin code - Pattern 1 (supports both old full format and new compact format)
+        $pattern1 = '/(<\?php\s*)(\/\/ ={40,}\s*\/\/ SUPER ADMIN AUTHENTICATION SYSTEM.*?(?:function showPageLoginForm.*?<\/html>|showPageLoginForm\(\);).*?\?>)/s';
+        $newContent = preg_replace($pattern1, '', $content);
+        
+        // Pattern 2: If still contains markers, try alternative removal
+        if (strpos($newContent, 'SUPER_ADMIN_PASSWORD') !== false) { // OPEN 6
+            $startPos = strpos($content, '// ============================================');
+            $endPos = strpos($content, '?>', $startPos);
             
-            for ($i = 0; $i < $fileCount; $i++) {
-                if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                    $filename = basename($files['name'][$i]);
-                    $filepath = $uploadDir . time() . '_' . $filename;
+            if ($startPos !== false && $endPos !== false) { // OPEN 7
+                $phpTagPos = strrpos(substr($content, 0, $startPos), '<?php');
+                
+                if ($phpTagPos !== false && $phpTagPos < $startPos) { // OPEN 8
+                    $beforeCode = substr($content, 0, $startPos);
+                    $afterCode = substr($content, $endPos + 2);
                     
-                    if (move_uploaded_file($files['tmp_name'][$i], $filepath)) {
-                        if ($pdo) {
-                            $stmt = $pdo->prepare("INSERT INTO reporter_prompt_uploaded_files (filename, filepath, filesize, filetype) VALUES (?, ?, ?, ?)");
-                            $stmt->execute([$filename, $filepath, $files['size'][$i], $files['type'][$i]]);
-                        }
-                        $uploadedFiles[] = [
-                            'name' => $filename,
-                            'path' => $filepath,
-                            'size' => $files['size'][$i],
-                            'type' => $files['type'][$i]
-                        ];
-                    }
+                    $betweenPhpAndCode = substr($content, $phpTagPos + 5, $startPos - $phpTagPos - 5);
+                    if (trim($betweenPhpAndCode) === '') { // OPEN 9
+                        $beforeCode = substr($content, 0, $phpTagPos);
+                    } // CLOSE 9
+                    
+                    $newContent = $beforeCode . $afterCode;
+                } // CLOSE 8
+            } // CLOSE 7
+        } // CLOSE 6
+        
+        // Clean up any remaining empty PHP tags
+        $newContent = preg_replace('/<\?php\s*\?>/s', '', $newContent);
+        
+        // Clean up multiple empty lines
+        $newContent = preg_replace('/\n{3,}/', "\n\n", $newContent);
+        
+        // Write back to file
+        if (file_put_contents($filepath, $newContent) !== false) { // OPEN 10
+            echo json_encode(['success' => true, 'message' => 'Super Admin protection removed successfully!']);
+        } else { // CLOSE 10, OPEN 11
+            echo json_encode(['success' => false, 'message' => 'Failed to write to file. Check permissions.']);
+        } // CLOSE 11
+        
+    } catch (Exception $e) { // CLOSE 2, OPEN 12
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    } // CLOSE 12
+    
+    exit;
+} // CLOSE 1
+
+// ============================================
+// BULK SUPER ADMIN OPERATIONS (ADD/REMOVE TO ALL)
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'bulk_super_admin') {
+    ob_clean();
+    header('Content-Type: application/json');
+    
+    try {
+        $operation = $_POST['operation'] ?? ''; // 'add' or 'remove'
+        $password = $_POST['password'] ?? 'GL_Admin';
+        
+        if (!in_array($operation, ['add', 'remove'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid operation']);
+            exit;
+        }
+        
+        // Get all PHP and HTML files
+        $allFiles = array_merge(glob(__DIR__ . '/*.php'), glob(__DIR__ . '/*.html'));
+        
+        // Load excluded list
+        $excludedFile = __DIR__ . '/catalog_excluded.json';
+        $excludedPages = [];
+        if (file_exists($excludedFile)) {
+            $content = @file_get_contents($excludedFile);
+            if ($content !== false) {
+                $decoded = @json_decode($content, true);
+                if (is_array($decoded)) {
+                    $excludedPages = $decoded;
                 }
             }
         }
         
-        echo json_encode(['success' => true, 'files' => $uploadedFiles]);
-        exit;
-    }
-    
-    // Get uploaded files
-    if ($action === 'get_files') {
-        if ($pdo) {
-            try {
-                $stmt = $pdo->query("SELECT * FROM reporter_prompt_uploaded_files ORDER BY uploaded_at DESC");
-                $files = $stmt->fetchAll();
-                echo json_encode(['success' => true, 'files' => $files]);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-        }
-        exit;
-    }
-    
-    // Delete file
-    if ($action === 'delete_file') {
-        $id = $_POST['id'] ?? '';
+        $results = [
+            'total' => 0,
+            'processed' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+            'details' => []
+        ];
         
-        if ($pdo && $id) {
-            try {
-                $stmt = $pdo->prepare("SELECT filepath FROM reporter_prompt_uploaded_files WHERE id = ?");
-                $stmt->execute([$id]);
-                $file = $stmt->fetch();
-                
-                if ($file && file_exists($file['filepath'])) {
-                    unlink($file['filepath']);
+        foreach ($allFiles as $filepath) {
+            $filename = basename($filepath);
+            
+            // Skip excluded files
+            if (in_array($filename, $excludedPages)) {
+                continue;
+            }
+            
+            // Skip index.php itself
+            if ($filename === 'index.php') {
+                continue;
+            }
+            
+            $results['total']++;
+            
+            // Check if file already has Super Admin
+            $content = @file_get_contents($filepath);
+            if ($content === false) {
+                $results['failed']++;
+                $results['details'][] = [
+                    'file' => $filename,
+                    'status' => 'failed',
+                    'reason' => 'Could not read file'
+                ];
+                continue;
+            }
+            
+            $hasSuperAdmin = (strpos($content, 'SUPER_ADMIN_PASSWORD') !== false || 
+                              strpos($content, 'page_admin_logged_in') !== false);
+            
+            if ($operation === 'add') {
+                if ($hasSuperAdmin) {
+                    $results['skipped']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'skipped',
+                        'reason' => 'Already has Super Admin'
+                    ];
+                    continue;
                 }
                 
-                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_uploaded_files WHERE id = ?");
-                $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'File deleted successfully!']);
-            } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
+                // Skip HTML files - they cannot execute PHP authentication
+                $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                $newFilepath = $filepath;
+                $newFilename = $filename;
+                $converted = false;
+                
+                if ($extension === 'html') {
+                    // HTML files cannot execute PHP code
+                    $results['skipped']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'skipped',
+                        'reason' => "HTML files not supported (cannot execute PHP). Rename to .php manually if needed."
+                    ];
+                    continue;
+                }
+                
+                // Generate Super Admin code (using proper function)
+                $superAdminCode = <<<'PHP_CODE'
+<?php
+// ============================================
+// SUPER ADMIN AUTHENTICATION SYSTEM
+// ============================================
+session_start();
+
+define('SUPER_ADMIN_PASSWORD', 'PASSWORD_PLACEHOLDER');
+define('REMEMBER_ME_COOKIE', 'page_admin_remember_PAGE_ID');
+define('REMEMBER_ME_DURATION', 30 * 24 * 60 * 60);
+
+if (!isset($_SESSION['page_admin_logged_in_PAGE_ID']) && isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+    $cookieValue = $_COOKIE[REMEMBER_ME_COOKIE];
+    $expectedCookie = md5(SUPER_ADMIN_PASSWORD . 'page_admin_salt');
+    if ($cookieValue === $expectedCookie) {
+        $_SESSION['page_admin_logged_in_PAGE_ID'] = true;
+        $_SESSION['page_login_time_PAGE_ID'] = time();
+        $_SESSION['page_remembered_PAGE_ID'] = true;
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['page_admin_login'])) {
+    $pwd = $_POST['password'] ?? '';
+    $remMe = isset($_POST['remember_me']) && $_POST['remember_me'] === '1';
+    if ($pwd === SUPER_ADMIN_PASSWORD) {
+        $_SESSION['page_admin_logged_in_PAGE_ID'] = true;
+        $_SESSION['page_login_time_PAGE_ID'] = time();
+        if ($remMe) {
+            $cookieValue = md5(SUPER_ADMIN_PASSWORD . 'page_admin_salt');
+            setcookie(REMEMBER_ME_COOKIE, $cookieValue, time() + REMEMBER_ME_DURATION, '/', '', false, true);
+            $_SESSION['page_remembered_PAGE_ID'] = true;
         }
+        header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     }
 }
+
+if (isset($_GET['page_logout'])) {
+    if (isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+        setcookie(REMEMBER_ME_COOKIE, '', time() - 3600, '/', '', false, true);
+    }
+    unset($_SESSION['page_admin_logged_in_PAGE_ID']);
+    unset($_SESSION['page_login_time_PAGE_ID']);
+    unset($_SESSION['page_remembered_PAGE_ID']);
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+$page_isLoggedIn = isset($_SESSION['page_admin_logged_in_PAGE_ID']) && $_SESSION['page_admin_logged_in_PAGE_ID'] === true;
+
+if (!$page_isLoggedIn) {
+    function showPageLoginForm() {
+        echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Login</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center}.login-box{background:rgba(255,255,255,0.95);padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:90%;max-width:400px}h2{color:#667eea;margin-bottom:20px;text-align:center}input{width:100%;padding:12px;margin:10px 0;border:2px solid #ddd;border-radius:8px;font-size:16px}input:focus{outline:none;border-color:#667eea}button{width:100%;padding:12px;background:linear-gradient(135deg,#22c55e 0%,#15803d 100%);color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px}button:hover{transform:translateY(-2px)}</style></head><body><div class="login-box"><h2>🔒 Protected Page</h2><form method="POST"><input type="password" name="password" placeholder="Enter password..." required autofocus><button type="submit" name="page_admin_login">Access Page</button></form></div></body></html>';
+    }
+    showPageLoginForm();
+    exit;
+}
 ?>
+PHP_CODE;
+                
+                // Replace placeholders
+                $pageId = preg_replace('/[^a-zA-Z0-9_]/', '_', pathinfo($filename, PATHINFO_FILENAME));
+                $superAdminCode = str_replace('PASSWORD_PLACEHOLDER', addslashes($password), $superAdminCode);
+                $superAdminCode = str_replace('PAGE_ID', $pageId, $superAdminCode);
+                
+                // Add code to content
+                if (!preg_match('/^\s*<\?php/', $content)) {
+                    $newContent = $superAdminCode . "\n" . $content;
+                } else {
+                    $newContent = preg_replace('/(<\?php\s*)/', '$1' . "\n" . substr($superAdminCode, 5) . "\n", $content, 1);
+                }
+                
+                // Write to file
+                if (@file_put_contents($newFilepath, $newContent) !== false) {
+                    // If converted, delete old HTML file
+                    if ($converted && $newFilepath !== $filepath) {
+                        @unlink($filepath);
+                    }
+                    
+                    $results['processed']++;
+                    $results['details'][] = [
+                        'file' => $converted ? "$filename → $newFilename" : $filename,
+                        'status' => 'success',
+                        'action' => $converted ? 'added & converted to PHP' : 'added'
+                    ];
+                } else {
+                    $results['failed']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'failed',
+                        'reason' => 'Could not write file'
+                    ];
+                }
+                
+            } else { // remove
+                if (!$hasSuperAdmin) {
+                    $results['skipped']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'skipped',
+                        'reason' => 'No Super Admin found'
+                    ];
+                    continue;
+                }
+                
+                // Remove Super Admin code (both old and new formats)
+                $pattern1 = '/(<\?php\s*)(\/\/ ={40,}\s*\/\/ SUPER ADMIN AUTHENTICATION SYSTEM.*?(?:function showPageLoginForm.*?<\/html>|showPageLoginForm\(\);).*?\?>)/s';
+                $newContent = preg_replace($pattern1, '', $content);
+                
+                // Alternative removal
+                if (strpos($newContent, 'SUPER_ADMIN_PASSWORD') !== false) {
+                    $startPos = strpos($content, '// ============================================');
+                    $endPos = strpos($content, '?>', $startPos);
+                    
+                    if ($startPos !== false && $endPos !== false) {
+                        $phpTagPos = strrpos(substr($content, 0, $startPos), '<?php');
+                        
+                        if ($phpTagPos !== false && $phpTagPos < $startPos) {
+                            $beforeCode = substr($content, 0, $startPos);
+                            $afterCode = substr($content, $endPos + 2);
+                            
+                            $betweenPhpAndCode = substr($content, $phpTagPos + 5, $startPos - $phpTagPos - 5);
+                            if (trim($betweenPhpAndCode) === '') {
+                                $beforeCode = substr($content, 0, $phpTagPos);
+                            }
+                            
+                            $newContent = $beforeCode . $afterCode;
+                        }
+                    }
+                }
+                
+                // Clean up
+                $newContent = preg_replace('/<\?php\s*\?>/s', '', $newContent);
+                $newContent = preg_replace('/\n{3,}/', "\n\n", $newContent);
+                
+                if (@file_put_contents($filepath, $newContent) !== false) {
+                    $results['processed']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'success',
+                        'action' => 'removed'
+                    ];
+                } else {
+                    $results['failed']++;
+                    $results['details'][] = [
+                        'file' => $filename,
+                        'status' => 'failed',
+                        'reason' => 'Could not write file'
+                    ];
+                }
+            }
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'operation' => $operation,
+            'results' => $results
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+// ============================================
+// GET ACTIVE DATABASE CONNECTIONS
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'get_active_connections') {
+    ob_clean();
+    header('Content-Type: application/json');
+    
+    try {
+        // Read latest connections file from store/
+        $storeDir = __DIR__ . '/store';
+        $files = glob($storeDir . '/hostinger_connections_*.json');
+        
+        if (empty($files)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'No connections file found'
+            ]);
+            exit;
+        }
+        
+        // Get latest file
+        usort($files, function($a, $b) {
+            return filemtime($b) - filemtime($a);
+        });
+        $latestFile = $files[0];
+        
+        $content = @file_get_contents($latestFile);
+        if ($content === false) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Could not read connections file'
+            ]);
+            exit;
+        }
+        
+        $data = json_decode($content, true);
+        if (!isset($data['connections'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid connections data'
+            ]);
+            exit;
+        }
+        
+        // Test each connection and return only active ones
+        $activeConnections = [];
+        $localhost = [
+            'id' => 'localhost',
+            'name' => 'Localhost (Laragon)',
+            'type' => 'local',
+            'host' => 'localhost',
+            'dbName' => '',
+            'username' => 'root',
+            'password' => '',
+            'port' => '3306'
+        ];
+        
+        // Test localhost first
+        try {
+            $pdo = new PDO("mysql:host={$localhost['host']};port={$localhost['port']}", $localhost['username'], $localhost['password']);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            // Get databases
+            $stmt = $pdo->query("SHOW DATABASES");
+            $databases = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            foreach ($databases as $db) {
+                if (!in_array($db, ['information_schema', 'performance_schema', 'mysql', 'sys'])) {
+                    $activeConnections[] = [
+                        'id' => 'localhost_' . $db,
+                        'name' => "🖥️ Localhost: $db",
+                        'type' => 'local',
+                        'host' => 'localhost',
+                        'dbName' => $db,
+                        'username' => 'root',
+                        'password' => '',
+                        'port' => '3306',
+                        'status' => 'connected'
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            // Localhost not available
+        }
+        
+        // Test Hostinger connections
+        foreach ($data['connections'] as $conn) {
+            try {
+                $password = ($conn['password'] === '' || $conn['password'] === null) ? null : $conn['password'];
+                
+                if ($password === null) {
+                    $pdo = new PDO("mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']}", $conn['username']);
+                } else {
+                    $pdo = new PDO("mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']}", $conn['username'], $password);
+                }
+                
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                
+                // Test query
+                $stmt = $pdo->query("SELECT 1");
+                
+                // Connection successful
+                $activeConnections[] = [
+                    'id' => $conn['id'],
+                    'name' => "🌐 Hostinger: {$conn['name']}",
+                    'type' => $conn['type'],
+                    'host' => $conn['host'],
+                    'dbName' => $conn['dbName'],
+                    'username' => $conn['username'],
+                    'password' => $conn['password'],
+                    'port' => $conn['port'],
+                    'status' => 'connected'
+                ];
+            } catch (Exception $e) {
+                // Connection failed, skip it
+            }
+        }
+        
+        echo json_encode([
+            'success' => true,
+            'connections' => $activeConnections,
+            'total' => count($activeConnections)
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+// Note: Super Admin code is now generated inline for better control and HTML->PHP conversion support
+
+// ============================================
+// ADD SUPER ADMIN TO PAGE
+// ============================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_super_admin') {
+    header('Content-Type: application/json');
+    
+    $filename = $_POST['filename'] ?? '';
+    $password = $_POST['password'] ?? 'GL_Admin';
+    
+    // Security: only allow .php or .html files
+    $filepath = __DIR__ . '/' . basename($filename);
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    
+    if (!in_array($extension, ['php', 'html'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Only PHP and HTML files are supported'
+        ]);
+        exit;
+    }
+    
+    if (!file_exists($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found'
+        ]);
+        exit;
+    }
+    
+    // Read file content
+    $content = file_get_contents($filepath);
+    
+    // Check if Super Admin already exists
+    if (strpos($content, 'SUPER_ADMIN_PASSWORD') !== false || strpos($content, 'super_admin_logged_in') !== false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Super Admin protection already exists in this file!'
+        ]);
+        exit;
+    }
+    
+    // Generate Super Admin code
+    $superAdminCode = <<<'PHP_CODE'
+<?php
+// ============================================
+// SUPER ADMIN AUTHENTICATION SYSTEM
+// ============================================
+session_start();
+
+// Super Admin Password
+define('SUPER_ADMIN_PASSWORD', 'PASSWORD_PLACEHOLDER');
+define('REMEMBER_ME_COOKIE', 'page_admin_remember_PAGE_ID');
+define('REMEMBER_ME_DURATION', 30 * 24 * 60 * 60); // 30 days
+
+// Check Remember Me Cookie
+if (!isset($_SESSION['page_admin_logged_in_PAGE_ID']) && isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+    $cookieValue = $_COOKIE[REMEMBER_ME_COOKIE];
+    $expectedCookie = md5(SUPER_ADMIN_PASSWORD . 'page_admin_salt');
+    
+    if ($cookieValue === $expectedCookie) {
+        $_SESSION['page_admin_logged_in_PAGE_ID'] = true;
+        $_SESSION['page_login_time_PAGE_ID'] = time();
+        $_SESSION['page_remembered_PAGE_ID'] = true;
+    }
+}
+
+// Handle Login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['page_admin_login'])) {
+    $password = $_POST['password'] ?? '';
+    $rememberMe = isset($_POST['remember_me']) && $_POST['remember_me'] === '1';
+    
+    if ($password === SUPER_ADMIN_PASSWORD) {
+        $_SESSION['page_admin_logged_in_PAGE_ID'] = true;
+        $_SESSION['page_login_time_PAGE_ID'] = time();
+        
+        if ($rememberMe) {
+            $cookieValue = md5(SUPER_ADMIN_PASSWORD . 'page_admin_salt');
+            setcookie(REMEMBER_ME_COOKIE, $cookieValue, time() + REMEMBER_ME_DURATION, '/', '', false, true);
+            $_SESSION['page_remembered_PAGE_ID'] = true;
+        }
+        
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        $page_login_error = 'Invalid password! Please try again.';
+    }
+}
+
+// Handle Logout
+if (isset($_GET['page_logout'])) {
+    if (isset($_COOKIE[REMEMBER_ME_COOKIE])) {
+        setcookie(REMEMBER_ME_COOKIE, '', time() - 3600, '/', '', false, true);
+        unset($_COOKIE[REMEMBER_ME_COOKIE]);
+    }
+    
+    unset($_SESSION['page_admin_logged_in_PAGE_ID']);
+    unset($_SESSION['page_login_time_PAGE_ID']);
+    unset($_SESSION['page_remembered_PAGE_ID']);
+    
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
+
+// Check if logged in
+$page_isLoggedIn = isset($_SESSION['page_admin_logged_in_PAGE_ID']) && $_SESSION['page_admin_logged_in_PAGE_ID'] === true;
+
+// If not logged in, show login form
+if (!$page_isLoggedIn) {
+    showPageLoginForm($page_login_error ?? '');
+    exit;
+}
+
+// ============================================
+// LOGIN FORM FUNCTION
+// ============================================
+function showPageLoginForm($error = '') {
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Manager - AI Prompt Generator</title>
-    <link rel="icon" type="image/png" href="logoPM.png">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Super Admin Login</title>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --bg-card: #15151f;
-            --border-color: #2a2a3a;
-            --border-glow: #4f46e5;
-            --text-primary: #f0f0f5;
-            --text-secondary: #a0a0b0;
-            --text-muted: #606070;
-            --accent-primary: #6366f1;
-            --accent-secondary: #8b5cf6;
-            --accent-tertiary: #a855f7;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --gradient-main: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-            --gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
-            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
-            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Background Effects */
-        .bg-effects {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
-        }
-
-        .bg-effects::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
-            animation: bgPulse 15s ease-in-out infinite;
-        }
-
-        @keyframes bgPulse {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-5%, -5%) scale(1.1); }
-        }
-
-        /* Main Layout */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 320px;
-            min-width: 320px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            overflow: hidden;
-        }
-
-        .sidebar-header {
-            padding: 0.75rem 1rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(6, 182, 212, 0.1) 100%);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
-            text-align: center;
-            position: relative;
-        }
-
-        .sidebar-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
-        }
-
-        .sidebar-header img {
-            max-width: 140px;
-            height: auto;
-            filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header img:hover {
-            transform: scale(1.05);
-        }
-
-        .sidebar-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .sidebar-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 3px;
-        }
-
-        /* Section Titles */
-        .section-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-title i {
-            color: var(--accent-primary);
-        }
-
-        /* File Mode Toggle - Big Visible Buttons */
-        .file-mode-toggle {
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-        }
-
-        .toggle-header {
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .toggle-header i {
-            color: var(--accent-secondary);
-        }
-
-        .toggle-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .toggle-btn {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.6rem 0.5rem;
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-muted);
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .toggle-btn i {
-            font-size: 1.1rem;
-        }
-
-        .toggle-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--text-secondary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .toggle-btn.active {
-            background: var(--gradient-main);
-            border-color: var(--accent-primary);
-            color: white;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-
-        .toggle-btn.active i {
-            color: white;
-        }
-
-        /* Reference button special styling when active */
-        .toggle-btn#btnReference.active {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            border-color: #f59e0b;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-        }
-
-        /* File Upload Area */
-        /* Two-Level File Picker */
-        .file-picker-container {
-            margin-bottom: 0.75rem;
-        }
-
-        /* Mini Drop Zone */
-        .drop-zone-mini {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            padding: 0.75rem;
-            background: var(--bg-card);
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .drop-zone-mini:hover,
-        .drop-zone-mini.dragover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.08);
-            border-style: solid;
-        }
-
-        .drop-zone-mini.dragover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
-        }
-
-        .drop-zone-mini i {
-            font-size: 1.1rem;
-            color: var(--accent-primary);
-        }
-
-        .drop-zone-mini span {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .drop-zone-mini:hover span {
-            color: var(--accent-primary);
-        }
-
-        /* Uploaded Files Header */
-        .uploaded-files-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px 8px 0 0;
-            margin-bottom: 0;
-        }
-
-        .files-count {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .files-count i {
-            color: var(--accent-secondary);
-        }
-
-        .btn-delete-all {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.35rem 0.7rem;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-delete-all:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn-delete-all i {
-            font-size: 0.75rem;
-        }
-
-        /* Uploaded Files List */
-        .uploaded-files {
-            margin-bottom: 1.5rem;
-        }
-
-        .uploaded-files-header + .uploaded-files {
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-        }
-
-        .file-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .file-item:hover {
-            border-color: var(--accent-primary);
-            transform: translateX(3px);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .file-item.checked {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .file-item-checkbox {
-            flex-shrink: 0;
-            cursor: pointer;
-        }
-
-        .file-item-checkbox input {
-            display: none;
-        }
-
-        .file-item-checkbox .checkbox-box {
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: var(--bg-tertiary);
-        }
-
-        .file-item-checkbox .checkbox-box i {
-            font-size: 0.7rem;
-            color: white;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.2s;
-        }
-
-        .file-item.checked .file-item-checkbox .checkbox-box {
-            background: linear-gradient(135deg, var(--success), #059669);
-            border-color: var(--success);
-        }
-
-        .file-item.checked .file-item-checkbox .checkbox-box i {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .file-item-icon {
-            color: var(--accent-secondary);
-            font-size: 1.25rem;
-        }
-
-        .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-name {
-            font-size: 0.85rem;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .file-size {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .file-delete {
-            background: none;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            padding: 0.25rem;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-
-        .file-delete:hover {
-            opacity: 1;
-        }
-
-        /* Prompt Search Box */
-        .prompt-search-box {
-            position: relative;
-            margin-bottom: 0.75rem;
-        }
-
-        .prompt-search-box input {
-            width: 100%;
-            padding: 0.7rem 2.5rem 0.7rem 2.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.85rem;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .prompt-search-box input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        .prompt-search-box input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .prompt-search-box > i {
-            position: absolute;
-            left: 0.9rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            pointer-events: none;
-        }
-
-        .prompt-search-clear {
-            position: absolute;
-            right: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--bg-tertiary);
-            border: none;
-            color: var(--text-muted);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .prompt-search-clear:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* Prompt Actions (Select All / Deselect All) */
-        .prompt-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-            align-items: center;
-        }
-
-        .prompt-action-btn {
-            flex: 1;
-            padding: 0.45rem 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-muted);
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
-        }
-
-        .prompt-action-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .prompt-action-btn i {
-            font-size: 0.75rem;
-        }
-
-        .prompt-counter {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.15);
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        /* Prompt No Results */
-        .prompt-no-results {
-            text-align: center;
-            padding: 1.5rem;
-            color: var(--text-muted);
-        }
-
-        .prompt-no-results i {
-            font-size: 2rem;
-            margin-bottom: 0.75rem;
-            opacity: 0.5;
-            display: block;
-        }
-
-        .prompt-no-results p {
-            font-size: 0.85rem;
-        }
-
-        /* Section Title Row */
-        .section-title-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-        }
-
-        .section-title-row .section-title {
-            margin-bottom: 0;
-        }
-
-        .btn-add-template {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .btn-add-template:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-
-        /* Template Loading */
-        .template-loading {
-            text-align: center;
-            padding: 1.5rem;
-            color: var(--text-muted);
-        }
-
-        .template-loading i {
-            font-size: 1.5rem;
-            margin-right: 0.5rem;
-            color: var(--accent-primary);
-        }
-
-        /* Prompt Checkboxes */
-        .prompt-list {
-            margin-top: 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        /* Prompt Item with Actions */
-        .prompt-item {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-            gap: 0.5rem;
-        }
-
-        .prompt-item:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .prompt-item.checked {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .prompt-item-checkbox {
-            flex-shrink: 0;
-        }
-
-        .prompt-item-checkbox input {
-            display: none;
-        }
-
-        .prompt-item-checkbox .checkbox-box {
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: var(--bg-tertiary);
-        }
-
-        .prompt-item-checkbox .checkbox-box i {
-            font-size: 0.7rem;
-            color: white;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.2s;
-        }
-
-        .prompt-item.checked .checkbox-box {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-color: var(--accent-primary);
-        }
-
-        .prompt-item.checked .checkbox-box i {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .prompt-item-content {
-            flex: 1;
-            min-width: 0;
-            cursor: pointer;
-        }
-
-        .prompt-item-name {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .prompt-item-preview {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 2px;
-        }
-
-        .prompt-item-actions {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-        }
-
-        .prompt-item:hover .prompt-item-actions {
-            opacity: 1;
-        }
-
-        .prompt-action-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            border: none;
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 0.7rem;
-        }
-
-        .prompt-action-icon:hover {
-            transform: scale(1.1);
-        }
-
-        .prompt-action-icon.copy:hover {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .prompt-action-icon.edit:hover {
-            background: rgba(99, 102, 241, 0.2);
-            color: var(--accent-primary);
-        }
-
-        .prompt-action-icon.delete:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-        }
-
-        /* Template Modal */
-        .template-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .template-modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .template-modal {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            width: 90%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow: hidden;
-            transform: scale(0.9) translateY(20px);
-            transition: all 0.3s ease;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
-        }
-
-        .template-modal-overlay.active .template-modal {
-            transform: scale(1) translateY(0);
-        }
-
-        .template-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-        }
-
-        .template-modal-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-        }
-
-        .template-modal-header h3 i {
-            color: var(--accent-primary);
-        }
-
-        .template-modal-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            border: none;
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .template-modal-close:hover {
-            background: var(--danger);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .template-modal-body {
-            padding: 1.5rem;
-            overflow-y: auto;
-            max-height: calc(85vh - 160px);
-        }
-
-        .template-form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .template-form-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .template-form-group label i {
-            color: var(--accent-primary);
-            font-size: 0.8rem;
-        }
-
-        .template-form-group input,
-        .template-form-group textarea {
-            width: 100%;
-            padding: 0.85rem 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .template-form-group input:focus,
-        .template-form-group textarea:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        .template-form-group textarea {
-            resize: vertical;
-            min-height: 150px;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
-        }
-
-        .template-modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-tertiary);
-        }
-
-        .template-btn {
-            padding: 0.7rem 1.25rem;
-            border-radius: 10px;
-            border: none;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .template-btn.cancel {
-            background: var(--bg-card);
-            color: var(--text-muted);
-            border: 1px solid var(--border-color);
-        }
-
-        .template-btn.cancel:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .template-btn.save {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: white;
-        }
-
-        .template-btn.save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
-        }
-
-        .template-btn.secondary {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-        }
-
-        .template-btn.secondary:hover {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: var(--success);
-            color: var(--success);
-        }
-
-        .template-btn.edit {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--accent-primary);
-            border: 1px solid var(--accent-primary);
-        }
-
-        .template-btn.edit:hover {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        /* Template Preview */
-        .template-preview-modal {
-            max-width: 650px;
-        }
-
-        .template-preview-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .template-preview-content {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        /* Highlight search match */
-        .prompt-label .highlight,
-        .prompt-item-name .highlight {
-            background: rgba(99, 102, 241, 0.3);
-            color: var(--accent-primary);
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-
-        .prompt-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.85rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .prompt-checkbox::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 3px;
-            background: var(--gradient-main);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .prompt-checkbox:hover {
-            border-color: var(--accent-primary);
-            transform: translateX(3px);
-        }
-
-        .prompt-checkbox:hover::before {
-            opacity: 1;
-        }
-
-        .prompt-checkbox.checked {
-            background: rgba(99, 102, 241, 0.1);
-            border-color: var(--accent-primary);
-        }
-
-        .prompt-checkbox.checked::before {
-            opacity: 1;
-        }
-
-        .prompt-checkbox input {
-            display: none;
-        }
-
-        .checkbox-custom {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .prompt-checkbox.checked .checkbox-custom {
-            background: var(--gradient-main);
-            border-color: var(--accent-primary);
-        }
-
-        .checkbox-custom i {
-            color: white;
-            font-size: 0.7rem;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.2s;
-        }
-
-        .prompt-checkbox.checked .checkbox-custom i {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .prompt-label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            flex: 1;
-        }
-
-        .prompt-number {
-            font-size: 0.7rem;
-            color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.15);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            gap: 1.5rem;
-            background: var(--gradient-dark);
-        }
-
-        /* Editor Container */
-        .editor-container {
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: visible;
-            box-shadow: var(--shadow-card);
-        }
-
-        .editor-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 1.5rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(6, 182, 212, 0.05) 100%);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
-            position: relative;
-        }
-
-        .editor-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
-            border-radius: 16px 16px 0 0;
-        }
-
-        .editor-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 600;
-        }
-
-        .editor-title i {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-size: 1.25rem;
-        }
-
-        .editor-title span {
-            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logout-btn {
-            margin-left: auto;
-            padding: 0.4rem 0.6rem;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            color: #f87171;
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-        }
-
-        .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.25);
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .editor-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--gradient-main);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-        }
-
-        .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #0ea572;
-            transform: translateY(-2px);
-        }
-
-        .btn-paste {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .btn-paste:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-        }
-
-        /* Folder Picker Group */
-        .folder-picker-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-left: 0.5rem;
-            padding-left: 1rem;
-            border-left: 2px solid var(--border-color);
-        }
-
-        .btn-folder {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
-            position: relative;
-        }
-
-        .btn-folder:hover {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-        }
-
-        .btn-folder.connected {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-
-        .btn-folder.connected:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-folder .folder-status {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--danger);
-            border: 2px solid var(--bg-card);
-        }
-
-        .btn-folder.connected .folder-status {
-            background: #22c55e;
-            animation: pulse-status 2s infinite;
-        }
-
-        .btn-folder.needs-reconnect {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            animation: pulse-reconnect 2s infinite;
-        }
-
-        .btn-folder.needs-reconnect:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-        }
-
-        .btn-folder.needs-reconnect .folder-status {
-            background: #f59e0b;
-            animation: pulse-status 1s infinite;
-        }
-
-        @keyframes pulse-reconnect {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-            50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
-        }
-
-        @keyframes pulse-status {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-        }
-
-        .btn-send {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
-        }
-
-        .btn-send:hover {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
-        }
-
-        .btn-send:disabled {
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-send.auto-active {
-            animation: pulse-send 1.5s infinite;
-        }
-
-        @keyframes pulse-send {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(6, 182, 212, 0); }
-        }
-
-        .btn-pull {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .btn-pull:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-pull:disabled {
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Clear Buttons */
-        .btn-clear-picker {
-            padding: 0.4rem 0.5rem;
-            background: transparent;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 6px;
-            color: #f87171;
-            cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            display: none;
-        }
-
-        .btn-clear-picker:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .btn-clear-picker.show {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Auto-Send Timer */
-        .auto-send-timer {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.6rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .auto-send-timer:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .auto-send-timer.active {
-            border-color: #06b6d4;
-            background: rgba(6, 182, 212, 0.1);
-        }
-
-        .auto-send-timer i {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .auto-send-timer.active i {
-            color: #06b6d4;
-            animation: spin-timer 2s linear infinite;
-        }
-
-        @keyframes spin-timer {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .timer-input {
-            width: 45px;
-            padding: 0.3rem 0.4rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .timer-input:focus {
-            outline: none;
-            border-color: #06b6d4;
-            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
-        }
-
-        .timer-input::-webkit-inner-spin-button,
-        .timer-input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .timer-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .auto-send-timer.active .timer-label {
-            color: #06b6d4;
-        }
-
-        .timer-countdown {
-            display: none;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #06b6d4;
-            min-width: 25px;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .auto-send-timer.active .timer-countdown {
-            display: inline-block;
-        }
-
-        .folder-path-indicator {
-            display: none;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: var(--success);
-            max-width: 200px;
-        }
-
-        .folder-path-indicator.show {
-            display: flex;
-        }
-
-        .folder-path-indicator i {
-            flex-shrink: 0;
-        }
-
-        .folder-path-indicator span {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .folder-path-indicator.disconnected {
-            background: rgba(245, 158, 11, 0.1);
-            border-color: rgba(245, 158, 11, 0.3);
-            color: #f59e0b;
-        }
-
-        .folder-path-indicator.disconnected i {
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        /* Text Editor */
-        .editor-body {
-            position: relative;
-            min-height: 200px;
-        }
-
-        #promptEditor {
-            width: 100%;
-            min-height: 200px;
-            max-height: 80vh;
-            height: 280px;
-            padding: 1.5rem;
-            padding-bottom: 2rem;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 0;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            resize: vertical;
-            outline: none;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        #promptEditor::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* Custom Resize Handle */
-        .resize-handle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 20px;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-            cursor: ns-resize;
-            user-select: none;
-            transition: all 0.2s ease;
-        }
-
-        .resize-handle:hover {
-            background: rgba(99, 102, 241, 0.2);
-        }
-
-        .resize-handle:active {
-            background: rgba(99, 102, 241, 0.3);
-        }
-
-        .resize-handle i {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            transition: color 0.2s;
-        }
-
-        .resize-handle:hover i {
-            color: var(--accent-primary);
-        }
-
-        /* File Transfer Section */
-        .file-transfer-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.6rem 1rem;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            gap: 1rem;
-        }
-
-        .file-transfer-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .file-transfer-group.right {
-            justify-content: flex-end;
-        }
-
-        .file-transfer-group .file-picker-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.7rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            max-width: 140px;
-            overflow: hidden;
-        }
-
-        .file-transfer-group .file-picker-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-        }
-
-        .file-transfer-group .file-picker-btn.has-file {
-            border-color: var(--accent-secondary);
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--accent-secondary);
-        }
-
-        .file-transfer-group .file-picker-btn.has-file.needs-reconnect {
-            border-color: rgba(245, 158, 11, 0.5);
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border-style: dashed;
-        }
-
-        .file-transfer-group .file-picker-btn.has-file.needs-reconnect:hover {
-            border-color: #f59e0b;
-            background: rgba(245, 158, 11, 0.15);
-        }
-
-        .file-transfer-group .file-picker-btn .file-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 80px;
-        }
-
-        .file-transfer-group .btn-file-action {
-            padding: 0.35rem 0.6rem;
-            font-size: 0.7rem;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .file-transfer-group .btn-file-pull {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .file-transfer-group .btn-file-pull:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-        }
-
-        .file-transfer-group .btn-file-push {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .file-transfer-group .btn-file-push:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-        }
-
-        .file-transfer-group .btn-file-action:disabled {
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .file-transfer-divider {
-            width: 1px;
-            height: 30px;
-            background: var(--border-color);
-        }
-
-        /* File Management Buttons (Create, Delete, Rename) */
-        .file-management-group {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0 0.5rem;
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-        }
-
-        .btn-file-manage {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.8rem;
-        }
-
-        .btn-file-manage:hover {
-            transform: translateY(-1px);
-        }
-
-        .btn-file-manage.btn-create {
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-file-manage.btn-create:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: #10b981;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-file-manage.btn-delete {
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-file-manage.btn-delete:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: #ef4444;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-file-manage.btn-rename {
-            color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        .btn-file-manage.btn-rename:hover {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: #f59e0b;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-        }
-
-        .editor-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .char-count {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .char-count i {
-            color: var(--accent-secondary);
-        }
-
-        /* Saved Prompts Section */
-        .saved-prompts-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            overflow: hidden;
-            max-height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .saved-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .saved-header h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .saved-header h3 i {
-            color: var(--success);
-        }
-
-        .search-box {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.85rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .search-box input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 0.85rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .saved-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.75rem;
-        }
-
-        .saved-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .saved-list::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-        }
-
-        .saved-list::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 3px;
-        }
-
-        .saved-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .saved-item:hover {
-            border-color: var(--accent-primary);
-            transform: translateX(5px);
-        }
-
-        .saved-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--gradient-main);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .saved-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .saved-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .saved-date {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .saved-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .saved-actions button {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.35rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .saved-actions button:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .saved-actions .edit-btn:hover {
-            color: var(--accent-primary);
-        }
-
-        .saved-actions .delete-btn:hover {
-            color: var(--danger);
-        }
-
-        /* Saved Prompts Actions Bar */
-        .saved-actions-bar {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-color);
-            align-items: center;
-        }
-
-        .saved-action-btn {
-            flex: 1;
-            padding: 0.4rem 0.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-muted);
-            font-family: inherit;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
-        }
-
-        .saved-action-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .saved-action-btn i {
-            font-size: 0.7rem;
-        }
-
-        .saved-counter {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--success);
-            background: rgba(16, 185, 129, 0.15);
-            padding: 0.3rem 0.6rem;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        .search-clear-btn {
-            position: absolute;
-            right: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--bg-tertiary);
-            border: none;
-            color: var(--text-muted);
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            transition: all 0.2s;
-        }
-
-        .search-clear-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* Updated Saved Item - Like Prompt Templates */
-        .saved-item {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-            gap: 0.5rem;
-        }
-
-        .saved-item:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-            transform: translateX(3px);
-        }
-
-        .saved-item.checked {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .saved-item-checkbox {
-            flex-shrink: 0;
-        }
-
-        .saved-item-checkbox input {
-            display: none;
-        }
-
-        .saved-item-checkbox .checkbox-box {
-            width: 22px;
-            height: 22px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: var(--bg-tertiary);
-        }
-
-        .saved-item-checkbox .checkbox-box i {
-            font-size: 0.7rem;
-            color: white;
-            opacity: 0;
-            transform: scale(0);
-            transition: all 0.2s;
-        }
-
-        .saved-item.checked .saved-item-checkbox .checkbox-box {
-            background: linear-gradient(135deg, var(--success), #059669);
-            border-color: var(--success);
-        }
-
-        .saved-item.checked .saved-item-checkbox .checkbox-box i {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .saved-item-content {
-            flex: 1;
-            min-width: 0;
-            cursor: pointer;
-        }
-
-        .saved-item-name {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .saved-item-preview {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 2px;
-        }
-
-        .saved-item-date {
-            font-size: 0.65rem;
-            color: var(--accent-secondary);
-            margin-top: 2px;
-        }
-
-        .saved-item-actions {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-            opacity: 0.5;
-            transition: opacity 0.2s;
-        }
-
-        .saved-item:hover .saved-item-actions {
-            opacity: 1;
-        }
-
-        .saved-action-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            border: none;
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 0.7rem;
-        }
-
-        .saved-action-icon:hover {
-            transform: scale(1.1);
-        }
-
-        .saved-action-icon.copy:hover {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .saved-action-icon.edit:hover {
-            background: rgba(99, 102, 241, 0.2);
-            color: var(--accent-primary);
-        }
-
-        .saved-action-icon.delete:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-        }
-
-        /* Saved Prompt Preview Modal */
-        .saved-preview-modal {
-            max-width: 650px;
-        }
-
-        .saved-preview-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .saved-preview-date {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .saved-preview-content {
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        /* Toast Notifications - Enhanced */
-        .toast-container {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            pointer-events: none;
-        }
-
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: rgba(30, 30, 60, 0.95);
-            border-radius: 14px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-            animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            min-width: 300px;
-            max-width: 420px;
-            backdrop-filter: blur(20px);
-            pointer-events: auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .toast::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            border-radius: 14px 0 0 14px;
-        }
-
-        .toast.success {
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-        .toast.success::before {
-            background: linear-gradient(180deg, #10b981, #059669);
-        }
-
-        .toast.error {
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-        .toast.error::before {
-            background: linear-gradient(180deg, #ef4444, #dc2626);
-        }
-
-        .toast.info {
-            border: 1px solid rgba(99, 102, 241, 0.3);
-        }
-        .toast.info::before {
-            background: linear-gradient(180deg, #6366f1, #8b5cf6);
-        }
-
-        .toast.warning {
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        .toast.warning::before {
-            background: linear-gradient(180deg, #f59e0b, #d97706);
-        }
-
-        .toast-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-        }
-
-        .toast.success .toast-icon {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
-        }
-
-        .toast.error .toast-icon {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
-        }
-
-        .toast.info .toast-icon {
-            background: rgba(99, 102, 241, 0.15);
-            color: #6366f1;
-        }
-
-        .toast.warning .toast-icon {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
-        }
-
-        .toast-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .toast-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #fff;
-            margin-bottom: 0.15rem;
-        }
-
-        .toast-message {
-            font-size: 0.85rem;
-            color: #a1a1aa;
-            line-height: 1.4;
-        }
-
-        .toast-close {
-            background: none;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .toast-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .toast-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.3);
-            animation: toastProgress 3s linear forwards;
-        }
-
-        @keyframes toastSlideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        @keyframes toastProgress {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            width: 90%;
-            max-width: 500px;
-            overflow: hidden;
-            transform: scale(0.9);
-            transition: transform 0.3s;
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.25rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-header h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.1rem;
-        }
-
-        .modal-header h3 i {
-            color: var(--accent-primary);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .modal-close:hover {
-            color: var(--danger);
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-            padding: 1.25rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* File Management Modal Styles */
-        .file-modal-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-            text-align: center;
-        }
-
-        .file-modal-icon.create { color: #10b981; }
-        .file-modal-icon.delete { color: #ef4444; }
-        .file-modal-icon.rename { color: #f59e0b; }
-
-        .file-modal-message {
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .file-list-container {
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-card);
-            margin-bottom: 1rem;
-        }
-
-        .file-list-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .file-list-item:last-child {
-            border-bottom: none;
-        }
-
-        .file-list-item:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .file-list-item.selected {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: var(--accent-primary);
-        }
-
-        .file-list-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--accent-primary);
-            cursor: pointer;
-        }
-
-        .file-list-item input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--accent-primary);
-            cursor: pointer;
-        }
-
-        .file-list-item .file-icon {
-            color: var(--accent-secondary);
-            font-size: 1rem;
-        }
-
-        .file-list-item .file-name {
-            flex: 1;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        .file-list-empty {
-            padding: 2rem;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        .file-count-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.6rem;
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-left: 0.5rem;
-        }
-
-        .modal-input-row {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-input-row input {
-            flex: 1;
-        }
-
-        .modal-input-row .btn {
-            white-space: nowrap;
-        }
-
-        .folder-select-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1rem;
-            background: var(--bg-card);
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 1rem;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .folder-select-btn:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        .folder-select-btn.selected {
-            border-style: solid;
-            border-color: var(--accent-secondary);
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--accent-secondary);
-        }
-
-        .content-option {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 0.5rem;
-        }
-
-        .content-option:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .content-option.selected {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .content-option input[type="radio"] {
-            accent-color: var(--accent-primary);
-        }
-
-        .content-option-label {
-            flex: 1;
-        }
-
-        .content-option-label strong {
-            display: block;
-            color: var(--text-primary);
-            margin-bottom: 0.2rem;
-        }
-
-        .content-option-label span {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* Empty States */
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-        }
-
-        .empty-state i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .empty-state p {
-            font-size: 0.9rem;
-        }
-
-        /* Custom Confirm Modal */
-        .confirm-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .confirm-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .confirm-box {
-            background: linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            transform: scale(0.8) translateY(20px);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
-                        0 0 100px rgba(239, 68, 68, 0.1);
-        }
-
-        .confirm-overlay.active .confirm-box {
-            transform: scale(1) translateY(0);
-        }
-
-        .confirm-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: iconPulse 2s ease-in-out infinite;
-            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
-        }
-
-        .confirm-icon i {
-            font-size: 2rem;
-            color: white;
-        }
-
-        .confirm-icon.warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
-        }
-
-        .confirm-icon.info {
-            background: var(--gradient-main);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-        }
-
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .confirm-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.75rem;
-        }
-
-        .confirm-message {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-
-        .confirm-details {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            display: none;
-        }
-
-        .confirm-details.show {
-            display: block;
-        }
-
-        .confirm-details .file-count {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--danger);
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-
-        .confirm-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .confirm-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .confirm-cancel {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-        }
-
-        .confirm-cancel:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--text-muted);
-            transform: translateY(-2px);
-        }
-
-        .confirm-delete {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        .confirm-delete:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-        }
-
-        /* DB Status */
-        .db-status {
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .db-status.connected {
-            color: var(--success);
-        }
-
-        .db-status.disconnected {
-            color: var(--danger);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .db-status.connected .status-dot {
-            background: var(--success);
-        }
-
-        .db-status.disconnected .status-dot {
-            background: var(--danger);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Work Distribution Section - Compact Version */
-        .distribution-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
-            position: relative;
-        }
-
-        .distribution-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .distribution-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .distribution-title i {
-            color: var(--accent-primary);
-            font-size: 0.9rem;
-        }
-
-        .distribution-value {
-            display: flex;
-            align-items: baseline;
-            gap: 0.25rem;
-            background: var(--gradient-main);
-            padding: 0.3rem 0.7rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
-        }
-
-        .value-number {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: white;
-            line-height: 1;
-        }
-
-        .value-label {
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 500;
-        }
-
-        /* Slider Container - Compact */
-        .slider-container {
-            margin-bottom: 0.5rem;
-        }
-
-        .slider-track {
-            position: relative;
-            height: 8px;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            margin-bottom: 0.4rem;
-            overflow: visible;
-        }
-
-        .slider-fill {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background: var(--gradient-main);
-            border-radius: 4px;
-            transition: width 0.15s ease;
-            pointer-events: none;
-        }
-
-        .slider-input {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            width: 100%;
-            height: 20px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: transparent;
-            cursor: pointer;
-            margin: 0;
-        }
-
-        .slider-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #ffffff, #e6e6e6);
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-            cursor: grab;
-            transition: all 0.2s ease;
-        }
-
-        .slider-input::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
-        }
-
-        .slider-input::-webkit-slider-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.1);
-        }
-
-        .slider-input::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #ffffff, #e6e6e6);
-            border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-            cursor: grab;
-        }
-
-        /* Slider Labels - Compact */
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            padding: 0;
-        }
-
-        .slider-label {
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .slider-label:hover {
-            color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .slider-label.active {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
-        /* Toggle Switch - Compact */
-        .distribution-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 36px;
-            height: 20px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            height: 14px;
-            width: 14px;
-            left: 2px;
-            bottom: 2px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--gradient-main);
-            border-color: var(--accent-primary);
-        }
-
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(16px);
-            background: white;
-        }
-
-        .toggle-text {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .distribution-toggle:has(input:checked) .toggle-text {
-            color: var(--accent-primary);
-        }
-
-        /* Distribution Active State */
-        .distribution-section.active {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 280px;
-                min-width: 280px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-width: 100%;
-                height: auto;
-                max-height: 50vh;
-                position: relative;
-            }
-
-            .main-content {
-                padding: 1rem;
-            }
-
-            .editor-actions {
-                flex-wrap: wrap;
-            }
-
-            .btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.8rem;
-            }
-
-            .folder-picker-group {
-                width: 100%;
-                margin-left: 0;
-                padding-left: 0;
-                border-left: none;
-                border-top: 1px solid var(--border-color);
-                padding-top: 0.75rem;
-                margin-top: 0.5rem;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .folder-path-indicator {
-                max-width: 150px;
-            }
-
-            .auto-send-timer {
-                order: 3;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden; }
+        body::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 70%); border-radius: 50%; top: -100px; left: -100px; animation: float 20s infinite ease-in-out; }
+        body::after { content: ''; position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(34,197,94,0.2) 0%, transparent 70%); border-radius: 50%; bottom: -150px; right: -150px; animation: float 25s infinite ease-in-out reverse; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 25% { transform: translate(50px, -50px) scale(1.1); } 50% { transform: translate(-30px, 30px) scale(0.9); } 75% { transform: translate(40px, 50px) scale(1.05); } }
+        .login-container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border-radius: 24px; padding: 50px 45px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.2); animation: slideInUp 0.6s ease-out; position: relative; z-index: 10; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-container { text-align: center; margin-bottom: 35px; animation: logoFloat 3s ease-in-out infinite; }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .login-title { font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 10px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .login-subtitle { text-align: center; color: rgba(255, 255, 255, 0.8); font-size: 15px; margin-bottom: 35px; }
+        .form-group { margin-bottom: 25px; }
+        .form-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #fff; font-weight: 600; font-size: 14px; }
+        .password-input-wrapper { position: relative; }
+        .form-input { width: 100%; padding: 16px 50px 16px 18px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; color: #fff; font-size: 16px; transition: all 0.3s ease; font-family: 'Consolas', monospace; }
+        .form-input:focus { outline: none; border-color: #fbbf24; background: rgba(255, 255, 255, 0.2); box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); }
+        .form-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.2); border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.3s ease; }
+        .toggle-password:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-50%) scale(1.1); }
+        .login-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: none; border-radius: 12px; color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .login-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(34, 197, 94, 0.6); }
+        .error-message { background: rgba(239, 68, 68, 0.2); border: 2px solid rgba(239, 68, 68, 0.5); border-radius: 12px; padding: 14px 18px; margin-bottom: 25px; color: #fca5a5; font-size: 14px; display: flex; align-items: center; gap: 10px; animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-5px); } }
+        .remember-me-container { display: flex; align-items: center; justify-content: center; margin-bottom: 25px; }
+        .remember-me-label { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; padding: 10px 16px; background: rgba(255, 255, 255, 0.08); border: 2px solid transparent; border-radius: 10px; transition: all 0.3s ease; }
+        .remember-me-label:hover { background: rgba(255, 255, 255, 0.12); }
+        .remember-me-checkbox { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .checkbox-custom { position: relative; width: 22px; height: 22px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 6px; transition: all 0.3s ease; flex-shrink: 0; }
+        .remember-me-checkbox:checked ~ .checkbox-custom { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border-color: #22c55e; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); }
+        .checkbox-custom::after { content: ''; position: absolute; display: none; left: 6px; top: 2px; width: 6px; height: 11px; border: solid white; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+        .remember-me-checkbox:checked ~ .checkbox-custom::after { display: block; animation: checkmark 0.3s ease-in-out; }
+        @keyframes checkmark { 0% { transform: rotate(45deg) scale(0); } 50% { transform: rotate(45deg) scale(1.2); } 100% { transform: rotate(45deg) scale(1); } }
+        .checkbox-text { display: flex; align-items: center; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
-    <div class="bg-effects"></div>
-    
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="logoPM.png" alt="Prompt Manager">
-            </div>
-            
-            <div class="sidebar-content">
-                <!-- File Upload -->
-                <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
-                
-                <!-- Toggle: Full Content vs Reference Only -->
-                <div class="file-mode-toggle">
-                    <div class="toggle-header">
-                        <i class="fas fa-sliders-h"></i> File Mode
-                    </div>
-                    <div class="toggle-buttons">
-                        <button type="button" class="toggle-btn" id="btnFullContent" onclick="setFileMode('content')">
-                            <i class="fas fa-file-code"></i>
-                            <span>Full Content</span>
-                        </button>
-                        <button type="button" class="toggle-btn active" id="btnReference" onclick="setFileMode('reference')">
-                            <i class="fas fa-link"></i>
-                            <span>Reference Only</span>
-                        </button>
-                    </div>
-                    <input type="hidden" id="fileContentToggle" value="reference">
-                </div>
-                
-                <!-- Drag & Drop Zone -->
-                <div class="file-picker-container">
-                    <input type="file" id="fileInput" multiple style="display: none;">
-                    <div class="drop-zone-mini" id="dropZone">
-                        <i class="fas fa-cloud-arrow-up"></i>
-                        <span>Drop files here</span>
-                    </div>
-                </div>
-                
-                <!-- Uploaded Files Header with Delete All -->
-                <div class="uploaded-files-header" id="uploadedFilesHeader" style="display: none;">
-                    <span class="files-count"><i class="fas fa-paperclip"></i> <span id="filesCount">0</span> file(s)</span>
-                    <button type="button" class="btn-delete-all" onclick="deleteAllFiles()" title="Delete all files">
-                        <i class="fas fa-trash-alt"></i> Delete All
-                    </button>
-                </div>
-                
-                <div class="uploaded-files" id="uploadedFiles">
-                    <!-- Files will be loaded here -->
-                </div>
-                
-                <!-- Prompt Templates -->
-                <div class="section-title-row">
-                    <div class="section-title"><i class="fas fa-list-check"></i> Prompt Templates</div>
-                    <button type="button" class="btn-add-template" onclick="openAddTemplateModal()">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-                
-                <!-- Search Prompt Templates -->
-                <div class="prompt-search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="promptSearchInput" placeholder="Search templates..." oninput="filterPromptTemplates()">
-                    <button type="button" class="prompt-search-clear" id="promptSearchClear" onclick="clearPromptSearch()" style="display: none;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <!-- Select/Deselect All -->
-                <div class="prompt-actions">
-                    <button type="button" class="prompt-action-btn" onclick="selectAllPrompts()">
-                        <i class="fas fa-check-double"></i> Select All
-                    </button>
-                    <button type="button" class="prompt-action-btn" onclick="deselectAllPrompts()">
-                        <i class="fas fa-square"></i> Deselect All
-                    </button>
-                    <span class="prompt-counter" id="promptCounter">0/0</span>
-                </div>
-                
-                <!-- Loading State -->
-                <div class="template-loading" id="templateLoading" style="display: none;">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Loading templates...</span>
-                </div>
-                
-                <div class="prompt-list" id="promptList">
-                    <!-- Prompts will be generated here -->
-                </div>
-                
-                <!-- No Results Message -->
-                <div class="prompt-no-results" id="promptNoResults" style="display: none;">
-                    <i class="fas fa-search"></i>
-                    <p>No templates found</p>
-                </div>
-            </div>
-            
-            <div class="db-status <?php echo $pdo ? 'connected' : 'disconnected'; ?>">
-                <span class="status-dot"></span>
-                <?php echo $pdo ? 'Database Connected' : 'Database Offline'; ?>
-            </div>
-        </aside>
+    <div class="login-container">
+        <div class="logo-container">
+            <div style="font-size: 64px; margin-bottom: 15px;">🔐</div>
+            <div class="login-title">Super Admin</div>
+            <div class="login-subtitle">This page is protected</div>
+        </div>
         
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Editor -->
-            <div class="editor-container">
-                <div class="editor-header">
-                    <div class="editor-title">
-                        <i class="fas fa-terminal"></i>
-                        <span>Prompt Editor</span>
-                        <a href="?logout=1" class="logout-btn" title="Logout">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </a>
-                    </div>
-                    <div class="editor-actions">
-                        <button class="btn btn-secondary" onclick="clearEditor()">
-                            <i class="fas fa-eraser"></i> Clear
-                        </button>
-                        <button class="btn btn-paste" onclick="pasteToEditor()">
-                            <i class="fas fa-paste"></i> Paste
-                        </button>
-                        <button class="btn btn-primary" onclick="copyPrompt()">
-                            <i class="fas fa-copy"></i> Copy
-                        </button>
-                        <button class="btn btn-success" onclick="openSaveModal()">
-                            <i class="fas fa-save"></i> Save
-                        </button>
-                        
-                        <!-- Folder Picker Group -->
-                        <div class="folder-picker-group">
-                            <button class="btn btn-folder" id="btnFolderPicker" onclick="selectPromptFolder()" title="Select folder for prompt.txt">
-                                <i class="fas fa-folder-open"></i> Folder
-                                <span class="folder-status"></span>
-                            </button>
-                            <button class="btn-clear-picker" id="btnClearFolder" onclick="clearFolderSelection()" title="Clear folder selection">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <button class="btn btn-send" id="btnSendToFile" onclick="sendToPromptFile()" disabled title="Send to prompt.txt">
-                                <i class="fas fa-paper-plane"></i> Send
-                            </button>
-                            <button class="btn btn-pull" id="btnPullFromFile" onclick="pullFromPromptFile()" disabled title="Pull from prompt.txt">
-                                <i class="fas fa-download"></i> Pull
-                            </button>
-                            
-                            <!-- Auto-Send Timer -->
-                            <div class="auto-send-timer" id="autoSendTimer" title="Auto-send interval (0 = disabled)">
-                                <i class="fas fa-sync-alt"></i>
-                                <input type="number" class="timer-input" id="timerInput" min="0" max="999" value="0" onchange="updateAutoSendTimer()" oninput="updateAutoSendTimer()">
-                                <span class="timer-label">sec</span>
-                                <span class="timer-countdown" id="timerCountdown">0</span>
-                            </div>
-                            
-                            <div class="folder-path-indicator" id="folderPathIndicator">
-                                <i class="fas fa-link"></i>
-                                <span id="folderPathText">No folder selected</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="editor-body">
-                    <textarea id="promptEditor" placeholder="Your generated prompt will appear here...&#10;&#10;Check the prompt templates on the left to build your prompt, or type directly."></textarea>
-                    <div class="resize-handle" id="resizeHandle" title="Drag to resize">
-                        <i class="fas fa-grip-lines"></i>
-                    </div>
-                </div>
-                
-                <!-- File Transfer Section -->
-                <div class="file-transfer-section">
-                    <!-- Left File Group -->
-                    <div class="file-transfer-group left">
-                        <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
-                            <i class="fas fa-file"></i>
-                            <span class="file-name" id="fileNameLeft">Select File</span>
-                        </button>
-                        <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
-                    </div>
-                    
-                    <!-- File Management Buttons -->
-                    <div class="file-management-group">
-                        <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
-                            <i class="fas fa-file-medical"></i>
-                        </button>
-                        <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete a file">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                        <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Right File Group -->
-                    <div class="file-transfer-group right">
-                        <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
-                        <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
-                            <i class="fas fa-file"></i>
-                            <span class="file-name" id="fileNameRight">Select File</span>
-                        </button>
-                        <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="editor-footer">
-                    <div class="char-count">
-                        <i class="fas fa-font"></i>
-                        <span id="charCount">0</span> characters
-                    </div>
-                    <div class="word-count">
-                        <i class="fas fa-text-width"></i>
-                        <span id="wordCount">0</span> words
-                    </div>
+        <?php if ($error): ?>
+            <div class="error-message">
+                <span style="font-size: 20px;">❌</span>
+                <span><?php echo htmlspecialchars($error); ?></span>
+            </div>
+        <?php endif; ?>
+        
+        <form method="POST" action="">
+            <div class="form-group">
+                <label class="form-label">
+                    <span>🔑</span>
+                    <span>Admin Password</span>
+                </label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="passwordInput" name="password" class="form-input" placeholder="Enter super admin password..." required autofocus>
+                    <button type="button" class="toggle-password" onclick="togglePassword()" title="Show/Hide Password">
+                        <span id="toggleIcon">👁️</span>
+                    </button>
                 </div>
             </div>
             
-            <!-- Work Distribution Slider -->
-            <div class="distribution-section">
-                <div class="distribution-header">
-                    <div class="distribution-title">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Work Distribution</span>
-                    </div>
-                    <div class="distribution-value" id="distributionValue">
-                        <span class="value-number" id="valueNumber">1</span>
-                        <span class="value-label">Part</span>
-                    </div>
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-track">
-                        <div class="slider-fill" id="sliderFill"></div>
-                        <input type="range" min="1" max="10" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
-                    </div>
-                    <div class="slider-labels">
-                        <span class="slider-label" onclick="setDistribution(1)">1</span>
-                        <span class="slider-label" onclick="setDistribution(2)">2</span>
-                        <span class="slider-label" onclick="setDistribution(3)">3</span>
-                        <span class="slider-label" onclick="setDistribution(4)">4</span>
-                        <span class="slider-label" onclick="setDistribution(5)">5</span>
-                        <span class="slider-label" onclick="setDistribution(6)">6</span>
-                        <span class="slider-label" onclick="setDistribution(7)">7</span>
-                        <span class="slider-label" onclick="setDistribution(8)">8</span>
-                        <span class="slider-label" onclick="setDistribution(9)">9</span>
-                        <span class="slider-label" onclick="setDistribution(10)">10</span>
-                    </div>
-                </div>
-                
-                <div class="distribution-toggle">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="distributionEnabled" onchange="toggleDistribution()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-text">Add distribution instruction to prompt</span>
-                </div>
+            <div class="remember-me-container">
+                <label class="remember-me-label">
+                    <input type="checkbox" id="rememberMeCheckbox" name="remember_me" value="1" class="remember-me-checkbox">
+                    <span class="checkbox-custom"></span>
+                    <span class="checkbox-text">
+                        <span style="font-size: 16px; margin-right: 6px;">🔒</span>
+                        <span>Remember me for 30 days</span>
+                    </span>
+                </label>
             </div>
             
-            <!-- Saved Prompts -->
-            <div class="saved-prompts-section">
-                <div class="saved-header">
-                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
-                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Select/Deselect All for Saved Prompts -->
-                <div class="saved-actions-bar">
-                    <button type="button" class="saved-action-btn" onclick="selectAllSavedPrompts()">
-                        <i class="fas fa-check-double"></i> Select All
-                    </button>
-                    <button type="button" class="saved-action-btn" onclick="deselectAllSavedPrompts()">
-                        <i class="fas fa-square"></i> Deselect All
-                    </button>
-                    <span class="saved-counter" id="savedCounter">0/0</span>
-                </div>
-                
-                <div class="saved-list" id="savedList">
-                    <!-- Saved prompts will be loaded here -->
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Save Modal -->
-    <div class="modal-overlay" id="saveModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-save"></i> Save Prompt</h3>
-                <button class="modal-close" onclick="closeModal('saveModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="promptTitle">Prompt Title</label>
-                    <input type="text" id="promptTitle" placeholder="Enter a title for your prompt...">
-                </div>
-                <div class="form-group">
-                    <label for="promptContent">Prompt Content</label>
-                    <textarea id="promptContent" placeholder="Prompt content will be auto-filled..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('saveModal')">Cancel</button>
-                <button class="btn btn-success" onclick="savePrompt()">
-                    <i class="fas fa-check"></i> Save Prompt
-                </button>
-            </div>
-            <input type="hidden" id="editPromptId" value="">
-        </div>
-    </div>
-    
-    <!-- Create File Modal -->
-    <div class="modal-overlay" id="createFileModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-file-medical" style="color: #10b981;"></i> Create New File</h3>
-                <button class="modal-close" onclick="closeModal('createFileModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <i class="fas fa-file-medical file-modal-icon create"></i>
-                <p class="file-modal-message">Create a new file in your selected folder</p>
-                
-                <button class="folder-select-btn" id="createFolderBtn" onclick="selectCreateFolder()">
-                    <i class="fas fa-folder-open"></i>
-                    <span id="createFolderName">Click to select folder</span>
-                </button>
-                
-                <div class="form-group">
-                    <label for="newFileName">File Name</label>
-                    <input type="text" id="newFileName" placeholder="Enter file name with extension (e.g., myfile.txt)">
-                </div>
-                
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-secondary);">Initial Content</label>
-                <div class="content-option" onclick="selectContentOption('empty')">
-                    <input type="radio" name="contentOption" id="contentEmpty" value="empty" checked>
-                    <div class="content-option-label">
-                        <strong>Empty File</strong>
-                        <span>Create an empty file</span>
-                    </div>
-                </div>
-                <div class="content-option" onclick="selectContentOption('editor')">
-                    <input type="radio" name="contentOption" id="contentEditor" value="editor">
-                    <div class="content-option-label">
-                        <strong>Editor Content</strong>
-                        <span>Use current prompt editor content</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('createFileModal')">Cancel</button>
-                <button class="btn btn-success" onclick="confirmCreateFile()">
-                    <i class="fas fa-plus"></i> Create File
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Delete Files Modal -->
-    <div class="modal-overlay" id="deleteFilesModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-trash-alt" style="color: #ef4444;"></i> Delete Files <span class="file-count-badge" id="deleteCountBadge"><i class="fas fa-file"></i> 0</span></h3>
-                <button class="modal-close" onclick="closeModal('deleteFilesModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <i class="fas fa-trash-alt file-modal-icon delete"></i>
-                <p class="file-modal-message">Select files to delete (multiple selection allowed)</p>
-                
-                <button class="folder-select-btn" id="deleteFolderBtn" onclick="selectDeleteFolder()">
-                    <i class="fas fa-folder-open"></i>
-                    <span id="deleteFolderName">Click to select folder</span>
-                </button>
-                
-                <div class="file-list-container" id="deleteFileList">
-                    <div class="file-list-empty">
-                        <i class="fas fa-folder-open"></i>
-                        <p>Select a folder to see files</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('deleteFilesModal')">Cancel</button>
-                <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteFiles()" disabled>
-                    <i class="fas fa-trash-alt"></i> Delete Selected
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Rename File Modal -->
-    <div class="modal-overlay" id="renameFileModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><i class="fas fa-edit" style="color: #f59e0b;"></i> Rename File</h3>
-                <button class="modal-close" onclick="closeModal('renameFileModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <i class="fas fa-edit file-modal-icon rename"></i>
-                <p class="file-modal-message">Select a file to rename</p>
-                
-                <button class="folder-select-btn" id="renameFolderBtn" onclick="selectRenameFolder()">
-                    <i class="fas fa-folder-open"></i>
-                    <span id="renameFolderName">Click to select folder</span>
-                </button>
-                
-                <div class="file-list-container" id="renameFileList">
-                    <div class="file-list-empty">
-                        <i class="fas fa-folder-open"></i>
-                        <p>Select a folder to see files</p>
-                    </div>
-                </div>
-                
-                <div class="form-group" id="newNameGroup" style="display: none;">
-                    <label for="renameNewName">New File Name</label>
-                    <input type="text" id="renameNewName" placeholder="Enter new file name">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('renameFileModal')">Cancel</button>
-                <button class="btn btn-warning" id="confirmRenameBtn" onclick="confirmRenameFile()" disabled>
-                    <i class="fas fa-check"></i> Rename
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-    
-    <!-- Custom Confirm Modal -->
-    <div class="confirm-overlay" id="confirmModal">
-        <div class="confirm-box">
-            <div class="confirm-icon" id="confirmIcon">
-                <i class="fas fa-trash-alt"></i>
-            </div>
-            <h3 class="confirm-title" id="confirmTitle">Delete All Files?</h3>
-            <p class="confirm-message" id="confirmMessage">This will remove all files from the list AND their content from the editor.</p>
-            <div class="confirm-details" id="confirmDetails"></div>
-            <div class="confirm-buttons">
-                <button type="button" class="confirm-btn confirm-cancel" onclick="closeConfirmModal(false)">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="button" class="confirm-btn confirm-delete" id="confirmDeleteBtn" onclick="closeConfirmModal(true)">
-                    <i class="fas fa-trash-alt"></i> Delete
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Template Edit/Add Modal -->
-    <div class="template-modal-overlay" id="templateModal">
-        <div class="template-modal">
-            <div class="template-modal-header">
-                <h3 id="templateModalTitle">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Add New Template</span>
-                </h3>
-                <button type="button" class="template-modal-close" onclick="closeTemplateModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="template-modal-body">
-                <div class="template-form-group">
-                    <label for="templateNameInput">
-                        <i class="fas fa-tag"></i> Template Name
-                    </label>
-                    <input type="text" id="templateNameInput" placeholder="Enter template name...">
-                </div>
-                <div class="template-form-group">
-                    <label for="templateContentInput">
-                        <i class="fas fa-align-left"></i> Template Content
-                    </label>
-                    <textarea id="templateContentInput" rows="10" placeholder="Enter your prompt content here..."></textarea>
-                </div>
-                <input type="hidden" id="templateEditId" value="">
-            </div>
-            <div class="template-modal-footer">
-                <button type="button" class="template-btn cancel" onclick="closeTemplateModal()">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button type="button" class="template-btn save" onclick="saveTemplate()">
-                    <i class="fas fa-save"></i> <span id="templateSaveText">Add Template</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Template Preview Modal -->
-    <div class="template-modal-overlay" id="templatePreviewModal">
-        <div class="template-modal template-preview-modal">
-            <div class="template-modal-header">
-                <h3 id="templatePreviewTitle">
-                    <i class="fas fa-eye"></i>
-                    <span>Template Preview</span>
-                </h3>
-                <button type="button" class="template-modal-close" onclick="closeTemplatePreview()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="template-modal-body">
-                <div class="template-preview-name" id="previewName"></div>
-                <div class="template-preview-content" id="previewContent"></div>
-            </div>
-            <div class="template-modal-footer">
-                <button type="button" class="template-btn secondary" onclick="copyTemplateContent()">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
-                <button type="button" class="template-btn edit" id="previewEditBtn">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button type="button" class="template-btn save" id="previewUseBtn">
-                    <i class="fas fa-plus"></i> Use Template
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Saved Prompt Preview Modal -->
-    <div class="template-modal-overlay" id="savedPreviewModal">
-        <div class="template-modal saved-preview-modal">
-            <div class="template-modal-header">
-                <h3>
-                    <i class="fas fa-bookmark"></i>
-                    <span>Saved Prompt Preview</span>
-                </h3>
-                <button type="button" class="template-modal-close" onclick="closeSavedPreview()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="template-modal-body">
-                <div class="saved-preview-name" id="savedPreviewName"></div>
-                <div class="saved-preview-date" id="savedPreviewDate"></div>
-                <div class="saved-preview-content" id="savedPreviewContent"></div>
-            </div>
-            <div class="template-modal-footer">
-                <button type="button" class="template-btn secondary" onclick="copySavedContent()">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
-                <button type="button" class="template-btn edit" id="savedPreviewEditBtn">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button type="button" class="template-btn save" id="savedPreviewUseBtn">
-                    <i class="fas fa-plus"></i> Use Prompt
-                </button>
-            </div>
-        </div>
+            <button type="submit" name="page_admin_login" class="login-btn">
+                <span style="font-size: 20px;">🚀</span>
+                <span>Access Page</span>
+            </button>
+        </form>
     </div>
     
     <script>
-        // Prompt Templates - loaded from database
-        let promptTemplates = [];
-        
-        // Active prompts tracking (for templates)
-        let activePrompts = new Set();
-        
-        // Current template being previewed
-        let currentPreviewTemplate = null;
-        
-        // Saved Prompts - loaded from database
-        let savedPromptsList = [];
-        
-        // Active saved prompts tracking
-        let activeSavedPrompts = new Set();
-        
-        // Current saved prompt being previewed
-        let currentPreviewSaved = null;
-        
-        // Distribution state
-        let distributionState = {
-            value: 1,
-            enabled: false,
-            startMarker: '═══ WORK DISTRIBUTION ═══',
-            endMarker: '═══════════════════════════'
-        };
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadPromptTemplates(); // Load from database
-            loadSavedPrompts();
-            loadUploadedFiles();
-            setupEventListeners();
-            initDistributionSlider(); // Initialize distribution slider
-        });
-        
-        // Load templates from database
-        async function loadPromptTemplates() {
-            const loading = document.getElementById('templateLoading');
-            const promptList = document.getElementById('promptList');
-            
-            loading.style.display = 'block';
-            promptList.innerHTML = '';
-            
-            try {
-                const formData = new FormData();
-                formData.append('action', 'get_templates');
-                
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    promptTemplates = data.templates.map(t => ({
-                        id: parseInt(t.id),
-                        name: t.name,
-                        content: t.content
-                    }));
-                    renderPromptList();
-                } else {
-                    showToast('Failed to load templates: ' + data.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error loading templates:', error);
-                showToast('Error loading templates', 'error');
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-
-        // Render prompt checkboxes
-        function renderPromptList(searchTerm = '') {
-            const container = document.getElementById('promptList');
-            const noResults = document.getElementById('promptNoResults');
-            const searchLower = searchTerm.toLowerCase().trim();
-            
-            // Filter templates based on search
-            const filteredTemplates = searchLower 
-                ? promptTemplates.filter(p => 
-                    p.name.toLowerCase().includes(searchLower) || 
-                    p.content.toLowerCase().includes(searchLower) ||
-                    `#${p.id}`.includes(searchLower)
-                )
-                : promptTemplates;
-            
-            if (filteredTemplates.length === 0) {
-                container.innerHTML = '';
-                noResults.style.display = 'block';
-                return;
-            }
-            
-            noResults.style.display = 'none';
-            
-            container.innerHTML = filteredTemplates.map(prompt => {
-                const isChecked = activePrompts.has(prompt.id);
-                const highlightedName = searchLower 
-                    ? highlightText(prompt.name, searchLower)
-                    : prompt.name;
-                const contentPreview = prompt.content.replace(/\n/g, ' ').substring(0, 50) + '...';
-                
-                return `
-                    <div class="prompt-item ${isChecked ? 'checked' : ''}" data-id="${prompt.id}">
-                        <div class="prompt-item-checkbox" onclick="togglePrompt(${prompt.id})">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="prompt-item-content" onclick="openTemplatePreview(${prompt.id})">
-                            <div class="prompt-item-name">${highlightedName}</div>
-                            <div class="prompt-item-preview">${escapeHtml(contentPreview)}</div>
-                        </div>
-                        <div class="prompt-item-actions">
-                            <button type="button" class="prompt-action-icon copy" onclick="copyTemplate(${prompt.id})" title="Copy">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button type="button" class="prompt-action-icon edit" onclick="openEditTemplateModal(${prompt.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="prompt-action-icon delete" onclick="confirmDeleteTemplate(${prompt.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            updatePromptCounter();
-        }
-        
-        // Escape HTML for safe display
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        // Highlight search text
-        function highlightText(text, search) {
-            if (!search) return text;
-            const regex = new RegExp(`(${escapeRegex(search)})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
-        }
-        
-        // Escape regex special characters
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-        
-        // Filter prompt templates (called on input)
-        function filterPromptTemplates() {
-            const searchInput = document.getElementById('promptSearchInput');
-            const clearBtn = document.getElementById('promptSearchClear');
-            const searchTerm = searchInput.value;
-            
-            // Show/hide clear button
-            clearBtn.style.display = searchTerm ? 'flex' : 'none';
-            
-            renderPromptList(searchTerm);
-        }
-        
-        // Clear prompt search
-        function clearPromptSearch() {
-            const searchInput = document.getElementById('promptSearchInput');
-            const clearBtn = document.getElementById('promptSearchClear');
-            
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            renderPromptList();
-            searchInput.focus();
-        }
-        
-        // Select all visible prompts
-        function selectAllPrompts() {
-            const searchTerm = document.getElementById('promptSearchInput').value.toLowerCase().trim();
-            const templatesToSelect = searchTerm 
-                ? promptTemplates.filter(p => 
-                    p.name.toLowerCase().includes(searchTerm) || 
-                    p.content.toLowerCase().includes(searchTerm)
-                )
-                : promptTemplates;
-            
-            const editor = document.getElementById('promptEditor');
-            let addedCount = 0;
-            
-            templatesToSelect.forEach(prompt => {
-                if (!activePrompts.has(prompt.id)) {
-                    activePrompts.add(prompt.id);
-                    
-                    // Append to editor
-                    if (editor.value.trim()) {
-                        editor.value += '\n\n';
-                    }
-                    editor.value += prompt.content;
-                    addedCount++;
-                }
-            });
-            
-            renderPromptList(searchTerm);
-            updateCounts();
-            
-            if (addedCount > 0) {
-                showToast(`✅ ${addedCount} template(s) added to editor`, 'success');
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('toggleIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '🙈';
             } else {
-                showToast('All visible templates already selected', 'info');
+                input.type = 'password';
+                icon.textContent = '👁️';
             }
         }
-        
-        // Deselect all visible prompts
-        function deselectAllPrompts() {
-            const searchTerm = document.getElementById('promptSearchInput').value.toLowerCase().trim();
-            const templatesToDeselect = searchTerm 
-                ? promptTemplates.filter(p => 
-                    p.name.toLowerCase().includes(searchTerm) || 
-                    p.content.toLowerCase().includes(searchTerm)
-                )
-                : promptTemplates;
-            
-            let removedCount = 0;
-            
-            templatesToDeselect.forEach(prompt => {
-                if (activePrompts.has(prompt.id)) {
-                    activePrompts.delete(prompt.id);
-                    removedCount++;
-                }
-            });
-            
-            rebuildEditor();
-            renderPromptList(searchTerm);
-            updateCounts();
-            
-            if (removedCount > 0) {
-                showToast(`🗑️ ${removedCount} template(s) removed from editor`, 'info');
-            } else {
-                showToast('No templates to deselect', 'info');
-            }
-        }
-        
-        // Update prompt counter
-        function updatePromptCounter() {
-            const counter = document.getElementById('promptCounter');
-            const total = promptTemplates.length;
-            const selected = activePrompts.size;
-            counter.textContent = `${selected}/${total}`;
-            
-            // Change color based on selection
-            if (selected === 0) {
-                counter.style.background = 'rgba(100, 100, 100, 0.15)';
-                counter.style.color = 'var(--text-muted)';
-            } else if (selected === total) {
-                counter.style.background = 'rgba(16, 185, 129, 0.15)';
-                counter.style.color = 'var(--success)';
-            } else {
-                counter.style.background = 'rgba(99, 102, 241, 0.15)';
-                counter.style.color = 'var(--accent-primary)';
-            }
-        }
-        
-        // ============ TEMPLATE CRUD OPERATIONS ============
-        
-        // Open Add Template Modal
-        function openAddTemplateModal() {
-            const modal = document.getElementById('templateModal');
-            const title = document.getElementById('templateModalTitle');
-            const saveText = document.getElementById('templateSaveText');
-            const nameInput = document.getElementById('templateNameInput');
-            const contentInput = document.getElementById('templateContentInput');
-            const editId = document.getElementById('templateEditId');
-            
-            title.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Add New Template</span>';
-            saveText.textContent = 'Add Template';
-            nameInput.value = '';
-            contentInput.value = '';
-            editId.value = '';
-            
-            modal.classList.add('active');
-            nameInput.focus();
-        }
-        
-        // Open Edit Template Modal
-        function openEditTemplateModal(id) {
-            const template = promptTemplates.find(t => t.id === id);
-            if (!template) return;
-            
-            const modal = document.getElementById('templateModal');
-            const title = document.getElementById('templateModalTitle');
-            const saveText = document.getElementById('templateSaveText');
-            const nameInput = document.getElementById('templateNameInput');
-            const contentInput = document.getElementById('templateContentInput');
-            const editId = document.getElementById('templateEditId');
-            
-            title.innerHTML = '<i class="fas fa-edit"></i> <span>Edit Template</span>';
-            saveText.textContent = 'Save Changes';
-            nameInput.value = template.name;
-            contentInput.value = template.content;
-            editId.value = id;
-            
-            modal.classList.add('active');
-            nameInput.focus();
-        }
-        
-        // Close Template Modal
-        function closeTemplateModal() {
-            const modal = document.getElementById('templateModal');
-            modal.classList.remove('active');
-        }
-        
-        // Save Template (Add or Update)
-        async function saveTemplate() {
-            const nameInput = document.getElementById('templateNameInput');
-            const contentInput = document.getElementById('templateContentInput');
-            const editId = document.getElementById('templateEditId');
-            
-            const name = nameInput.value.trim();
-            const content = contentInput.value.trim();
-            const id = editId.value;
-            
-            if (!name || !content) {
-                showToast('Please fill in both name and content', 'error');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('content', content);
-            
-            if (id) {
-                formData.append('action', 'update_template');
-                formData.append('id', id);
-            } else {
-                formData.append('action', 'add_template');
-            }
-            
-            try {
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    closeTemplateModal();
-                    await loadPromptTemplates();
-                } else {
-                    showToast(data.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error saving template:', error);
-                showToast('Error saving template', 'error');
-            }
-        }
-        
-        // Confirm Delete Template
-        function confirmDeleteTemplate(id) {
-            const template = promptTemplates.find(t => t.id === id);
-            if (!template) return;
-            
-            showConfirmModal({
-                title: 'Delete Template?',
-                message: `Are you sure you want to delete "${template.name}"?`,
-                icon: 'fa-trash-alt',
-                type: 'warning',
-                confirmText: 'Delete',
-                confirmIcon: 'fa-trash-alt',
-                details: `<div style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
-                    <strong>${template.name}</strong><br>
-                    ${escapeHtml(template.content.substring(0, 100))}...
-                </div>`,
-                onConfirm: () => deleteTemplate(id)
-            });
-        }
-        
-        // Delete Template
-        async function deleteTemplate(id) {
-            const formData = new FormData();
-            formData.append('action', 'delete_template');
-            formData.append('id', id);
-            
-            try {
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Remove from active prompts if selected
-                    if (activePrompts.has(id)) {
-                        activePrompts.delete(id);
-                        rebuildEditor();
-                    }
-                    
-                    showToast(data.message, 'success');
-                    await loadPromptTemplates();
-                } else {
-                    showToast(data.message, 'error');
-                }
-            } catch (error) {
-                console.error('Error deleting template:', error);
-                showToast('Error deleting template', 'error');
-            }
-        }
-        
-        // Copy Template Content
-        function copyTemplate(id) {
-            const template = promptTemplates.find(t => t.id === id);
-            if (!template) return;
-            
-            navigator.clipboard.writeText(template.content).then(() => {
-                showToast(`"${template.name}" copied to clipboard!`, 'success');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                showToast('Failed to copy template', 'error');
-            });
-        }
-        
-        // Open Template Preview Modal
-        function openTemplatePreview(id) {
-            const template = promptTemplates.find(t => t.id === id);
-            if (!template) return;
-            
-            currentPreviewTemplate = template;
-            
-            const modal = document.getElementById('templatePreviewModal');
-            const previewName = document.getElementById('previewName');
-            const previewContent = document.getElementById('previewContent');
-            const editBtn = document.getElementById('previewEditBtn');
-            const useBtn = document.getElementById('previewUseBtn');
-            
-            previewName.textContent = template.name;
-            previewContent.textContent = template.content;
-            
-            editBtn.onclick = () => {
-                closeTemplatePreview();
-                openEditTemplateModal(id);
-            };
-            
-            useBtn.onclick = () => {
-                if (!activePrompts.has(id)) {
-                    togglePrompt(id);
-                }
-                closeTemplatePreview();
-            };
-            
-            modal.classList.add('active');
-        }
-        
-        // Close Template Preview
-        function closeTemplatePreview() {
-            const modal = document.getElementById('templatePreviewModal');
-            modal.classList.remove('active');
-            currentPreviewTemplate = null;
-        }
-        
-        // Copy template content from preview
-        function copyTemplateContent() {
-            if (!currentPreviewTemplate) return;
-            
-            navigator.clipboard.writeText(currentPreviewTemplate.content).then(() => {
-                showToast('Content copied to clipboard!', 'success');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                showToast('Failed to copy content', 'error');
-            });
-        }
-
-        // Toggle prompt in editor
-        function togglePrompt(id) {
-            const prompt = promptTemplates.find(p => p.id === id);
-            if (!prompt) return;
-            
-            const promptItem = document.querySelector(`.prompt-item[data-id="${id}"]`);
-            const editor = document.getElementById('promptEditor');
-            
-            if (activePrompts.has(id)) {
-                activePrompts.delete(id);
-                if (promptItem) {
-                    promptItem.classList.remove('checked');
-                    const checkbox = promptItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = false;
-                }
-                rebuildEditor();
-                showToast(`${prompt.name} removed`, 'info');
-            } else {
-                activePrompts.add(id);
-                if (promptItem) {
-                    promptItem.classList.add('checked');
-                    const checkbox = promptItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = true;
-                }
-                
-                // Append to editor
-                if (editor.value.trim()) {
-                    editor.value += '\n\n' + prompt.content;
-                } else {
-                    editor.value = prompt.content;
-                }
-                
-                showToast(`${prompt.name} added`, 'success');
-            }
-            
-            updateCounts();
-            updatePromptCounter();
-        }
-
-        // Rebuild editor content from active prompts
-        function rebuildEditor() {
-            const editor = document.getElementById('promptEditor');
-            const contents = [];
-            
-            promptTemplates.forEach(prompt => {
-                if (activePrompts.has(prompt.id)) {
-                    contents.push(prompt.content);
-                }
-            });
-            
-            editor.value = contents.join('\n\n');
-        }
-
-        // Clear editor
-        function clearEditor() {
-            document.getElementById('promptEditor').value = '';
-            activePrompts.clear();
-            activeSavedPrompts.clear(); // Also clear saved prompts
-            editorFiles.clear(); // Also clear file references
-            
-            // Reset template checkboxes
-            document.querySelectorAll('.prompt-item').forEach(item => {
-                item.classList.remove('checked');
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox) checkbox.checked = false;
-            });
-            
-            // Reset saved prompts checkboxes
-            document.querySelectorAll('.saved-item').forEach(item => {
-                item.classList.remove('checked');
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox) checkbox.checked = false;
-            });
-            
-            // Reset file checkboxes
-            document.querySelectorAll('.file-item').forEach(item => {
-                item.classList.remove('checked');
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox) checkbox.checked = false;
-            });
-            
-            updateCounts();
-            updatePromptCounter();
-            updateSavedCounter();
-            showToast('Editor cleared', 'info');
-        }
-
-        // Copy prompt
-        async function copyPrompt() {
-            const editor = document.getElementById('promptEditor');
-            const text = editor.value;
-            
-            if (!text.trim()) {
-                showToast('Nothing to copy!', 'error');
-                return;
-            }
-            
-            try {
-                await navigator.clipboard.writeText(text);
-                showToast('Copied to clipboard!', 'success');
-            } catch (err) {
-                // Fallback
-                editor.select();
-                document.execCommand('copy');
-                showToast('Copied to clipboard!', 'success');
-            }
-        }
-        
-        // Paste from clipboard
-        async function pasteToEditor() {
-            const editor = document.getElementById('promptEditor');
-            
-            try {
-                const clipboardText = await navigator.clipboard.readText();
-                
-                if (!clipboardText) {
-                    showToast('Clipboard is empty!', 'error');
-                    return;
-                }
-                
-                // Get current cursor position or end of text
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                const currentText = editor.value;
-                
-                // Insert at cursor position or append with newline
-                if (currentText.trim() && start === end && start === currentText.length) {
-                    // Cursor at end, append with newlines
-                    editor.value = currentText + '\n\n' + clipboardText;
-                } else if (start !== end) {
-                    // Replace selected text
-                    editor.value = currentText.substring(0, start) + clipboardText + currentText.substring(end);
-                    editor.setSelectionRange(start + clipboardText.length, start + clipboardText.length);
-                } else {
-                    // Insert at cursor position
-                    editor.value = currentText.substring(0, start) + clipboardText + currentText.substring(start);
-                    editor.setSelectionRange(start + clipboardText.length, start + clipboardText.length);
-                }
-                
-                updateCounts();
-                showToast('Pasted from clipboard!', 'success');
-                editor.focus();
-            } catch (err) {
-                console.error('Paste failed:', err);
-                showToast('Unable to paste. Please use Ctrl+V', 'error');
-            }
-        }
-
-        // ============================================
-        // FOLDER PICKER & PROMPT.TXT SYSTEM
-        // ============================================
-        
-        // Store folder handle globally
-        let promptFolderHandle = null;
-        let promptFileHandle = null;
-        
-        // IndexedDB for storing file handles (allows auto-reconnect)
-        const DB_NAME = 'PromptManagerDB';
-        const DB_VERSION = 1;
-        const STORE_NAME = 'fileHandles';
-        
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result);
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    }
-                };
-            });
-        }
-        
-        async function saveHandleToDB(id, handle) {
-            try {
-                const db = await openDB();
-                const tx = db.transaction(STORE_NAME, 'readwrite');
-                tx.objectStore(STORE_NAME).put({ id, handle });
-                await new Promise(r => tx.oncomplete = r);
-                db.close();
-            } catch (err) {
-                console.log('DB save error:', err);
-            }
-        }
-        
-        async function getHandleFromDB(id) {
-            try {
-                const db = await openDB();
-                const tx = db.transaction(STORE_NAME, 'readonly');
-                const request = tx.objectStore(STORE_NAME).get(id);
-                return new Promise((resolve) => {
-                    request.onsuccess = () => { db.close(); resolve(request.result?.handle || null); };
-                    request.onerror = () => { db.close(); resolve(null); };
-                });
-            } catch (err) {
-                return null;
-            }
-        }
-        
-        // Initialize folder connection on page load
-        async function initFolderConnection() {
-            const savedFolderName = localStorage.getItem('promptFolderName');
-            
-            if (savedFolderName) {
-                updateFolderUI(savedFolderName, false);
-                
-                // Try auto-reconnect from IndexedDB
-                try {
-                    const savedHandle = await getHandleFromDB('promptFolder');
-                    if (savedHandle) {
-                        const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
-                        if (perm === 'granted') {
-                            promptFolderHandle = savedHandle;
-                            try {
-                                promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: false });
-                            } catch (e) {
-                                promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: true });
-                            }
-                            updateFolderUI(savedFolderName, true);
-                            showToast(`✅ Auto-connected to ${savedFolderName}`, 'success');
-                            
-                            const savedTimer = localStorage.getItem('autoSendTimer');
-                            if (savedTimer && parseInt(savedTimer) > 0) {
-                                document.getElementById('timerInput').value = savedTimer;
-                                updateAutoSendTimer();
-                            }
-                        }
-                    }
-                } catch (err) {
-                    console.log('Auto-reconnect failed:', err.message);
-                }
-            }
-        }
-        
-        // Select folder and setup prompt.txt connection
-        async function selectPromptFolder() {
-            try {
-                // Check if File System Access API is supported
-                if (!('showDirectoryPicker' in window)) {
-                    showToast('❌ Your browser does not support folder selection. Please use Chrome or Edge.', 'error');
-                    return;
-                }
-                
-                // Show folder picker dialog
-                promptFolderHandle = await window.showDirectoryPicker({
-                    mode: 'readwrite'
-                });
-                
-                const folderName = promptFolderHandle.name;
-                console.log('📁 Folder selected:', folderName);
-                
-                // Check if prompt.txt exists, if not create it
-                try {
-                    // Try to get existing prompt.txt
-                    promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: false });
-                    console.log('✅ prompt.txt found in folder');
-                    showToast(`✅ Connected to ${folderName}/prompt.txt`, 'success');
-                } catch (e) {
-                    // File doesn't exist, create it
-                    promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: true });
-                    console.log('📝 prompt.txt created in folder');
-                    showToast(`📝 Created prompt.txt in ${folderName}`, 'success');
-                }
-                
-                // Save folder name to localStorage
-                localStorage.setItem('promptFolderName', folderName);
-                await saveHandleToDB('promptFolder', promptFolderHandle);
-                
-                // Update UI
-                updateFolderUI(folderName, true);
-                
-                // Re-enable auto-send timer if it was set
-                const savedTimer = localStorage.getItem('autoSendTimer');
-                if (savedTimer && parseInt(savedTimer) > 0) {
-                    document.getElementById('timerInput').value = savedTimer;
-                    updateAutoSendTimer();
-                }
-                
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    // User cancelled the picker
-                    console.log('Folder selection cancelled');
-                } else {
-                    console.error('Folder selection error:', err);
-                    showToast('❌ Error selecting folder: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Update folder picker UI
-        function updateFolderUI(folderName, isConnected) {
-            const btnFolder = document.getElementById('btnFolderPicker');
-            const btnSend = document.getElementById('btnSendToFile');
-            const btnPull = document.getElementById('btnPullFromFile');
-            const btnClear = document.getElementById('btnClearFolder');
-            const pathIndicator = document.getElementById('folderPathIndicator');
-            const pathText = document.getElementById('folderPathText');
-            
-            if (isConnected) {
-                btnFolder.classList.add('connected');
-                btnFolder.classList.remove('needs-reconnect');
-                btnFolder.title = `Connected to ${folderName}/prompt.txt`;
-                btnSend.disabled = false;
-                btnPull.disabled = false;
-                btnClear.classList.add('show');
-                pathIndicator.classList.add('show');
-                pathIndicator.classList.remove('disconnected');
-                pathText.textContent = `${folderName}/prompt.txt`;
-            } else if (folderName) {
-                // Has saved folder but needs reconnection
-                btnFolder.classList.remove('connected');
-                btnFolder.classList.add('needs-reconnect');
-                btnFolder.title = `Click to reconnect to ${folderName}`;
-                btnSend.disabled = true;
-                btnPull.disabled = true;
-                btnClear.classList.add('show');
-                pathIndicator.classList.add('show', 'disconnected');
-                pathText.textContent = `${folderName}/prompt.txt (click Folder to reconnect)`;
-            } else {
-                // No saved folder
-                btnFolder.classList.remove('connected', 'needs-reconnect');
-                btnFolder.title = 'Select folder for prompt.txt';
-                btnSend.disabled = true;
-                btnPull.disabled = true;
-                btnClear.classList.remove('show');
-                pathIndicator.classList.remove('show', 'disconnected');
-            }
-        }
-        
-        // Clear folder selection
-        function clearFolderSelection() {
-            promptFolderHandle = null;
-            promptFileHandle = null;
-            localStorage.removeItem('promptFolderName');
-            localStorage.removeItem('autoSendTimer');
-            stopAutoSendTimer();
-            updateFolderUI(null, false);
-            showToast('📁 Folder selection cleared', 'info');
-        }
-        
-        // Send editor content to prompt.txt
-        async function sendToPromptFile() {
-            if (!promptFileHandle) {
-                showToast('❌ No folder connected. Please select a folder first.', 'error');
-                return;
-            }
-            
-            const editor = document.getElementById('promptEditor');
-            const content = editor.value;
-            
-            try {
-                // Create a writable stream
-                const writable = await promptFileHandle.createWritable();
-                
-                // Write the content (even if empty - perfect mirror)
-                await writable.write(content);
-                
-                // Close the stream
-                await writable.close();
-                
-                const folderName = localStorage.getItem('promptFolderName') || 'folder';
-                if (content.trim()) {
-                    showToast(`✅ Synced to ${folderName}/prompt.txt`, 'success');
-                } else {
-                    showToast(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
-                }
-                console.log('📤 Content synced to prompt.txt, length:', content.length);
-                
-            } catch (err) {
-                console.error('Error writing to prompt.txt:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showToast('❌ Permission denied. Please select the folder again.', 'error');
-                    // Reset connection
-                    promptFolderHandle = null;
-                    promptFileHandle = null;
-                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
-                    // Stop auto-send timer
-                    stopAutoSendTimer();
-                } else {
-                    showToast('❌ Error writing to file: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Pull content from prompt.txt into editor
-        async function pullFromPromptFile() {
-            if (!promptFileHandle) {
-                showToast('❌ No folder connected. Please select a folder first.', 'error');
-                return;
-            }
-            
-            try {
-                // Get read permission
-                const file = await promptFileHandle.getFile();
-                const content = await file.text();
-                
-                // Get editor
-                const editor = document.getElementById('promptEditor');
-                
-                if (content.trim() === '') {
-                    showToast('📄 prompt.txt is empty', 'info');
-                    return;
-                }
-                
-                // Set editor content
-                editor.value = content;
-                
-                // Update counts
-                updateCounts();
-                
-                // Show success message
-                showToast('✅ Content pulled from prompt.txt!', 'success');
-                console.log('📥 Content pulled from prompt.txt, length:', content.length);
-                
-            } catch (err) {
-                console.error('Error reading from prompt.txt:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showToast('❌ Permission denied. Please select the folder again.', 'error');
-                    // Reset connection
-                    promptFolderHandle = null;
-                    promptFileHandle = null;
-                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
-                } else {
-                    showToast('❌ Error reading file: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // ============================================
-        // FILE TRANSFER SYSTEM (Left/Right Files)
-        // ============================================
-        
-        let transferFileHandles = {
-            left: null,
-            right: null
-        };
-        
-        // Select a file for transfer
-        async function selectTransferFile(side) {
-            try {
-                const [fileHandle] = await window.showOpenFilePicker({
-                    types: [
-                        {
-                            description: 'Text Files',
-                            accept: {
-                                'text/*': ['.txt', '.md', '.json', '.xml', '.html', '.css', '.js', '.php', '.py', '.java', '.c', '.cpp', '.h', '.sql', '.yaml', '.yml', '.ini', '.cfg', '.log']
-                            }
-                        }
-                    ],
-                    multiple: false
-                });
-                
-                // Store the file handle
-                transferFileHandles[side] = fileHandle;
-                
-                // Update UI
-                const fileName = fileHandle.name;
-                const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
-                const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
-                const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
-                const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
-                const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
-                const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
-                
-                filePickerBtn.classList.remove('needs-reconnect');
-                filePickerBtn.classList.add('has-file');
-                fileNameSpan.textContent = fileName;
-                filePickerBtn.title = `${fileName} - Click to change`;
-                btnPull.disabled = false;
-                btnPush.disabled = false;
-                btnClear.classList.add('show');
-                
-                // Save to localStorage and IndexedDB
-                localStorage.setItem(`transferFile_${side}`, fileName);
-                await saveHandleToDB(`transferFile_${side}`, fileHandle);
-
-                showToast(`📄 Selected: ${fileName}`, 'success');
-                console.log(`📄 File selected (${side}):`, fileName);
-                
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    console.log('File selection cancelled');
-                } else {
-                    console.error('File selection error:', err);
-                    showToast('❌ Error selecting file: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Initialize saved file names and try auto-reconnect from IndexedDB
-        async function initSavedFileNames() {
-            for (const side of ['left', 'right']) {
-                const savedFileName = localStorage.getItem(`transferFile_${side}`);
-                if (savedFileName) {
-                    const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
-                    const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
-                    const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
-                    const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
-                    const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
-                    const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
-
-                    // Show as needs-reconnect first
-                    fileNameSpan.textContent = savedFileName;
-                    filePickerBtn.classList.add('has-file', 'needs-reconnect');
-                    filePickerBtn.title = `Last: ${savedFileName} - Click to reconnect`;
-                    btnClear.classList.add('show');
-                    
-                    // Try auto-reconnect from IndexedDB
-                    try {
-                        const savedHandle = await getHandleFromDB(`transferFile_${side}`);
-                        if (savedHandle) {
-                            const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
-                            if (perm === 'granted') {
-                                transferFileHandles[side] = savedHandle;
-                                filePickerBtn.classList.remove('needs-reconnect');
-                                filePickerBtn.title = `${savedFileName} - Click to change`;
-                                btnPull.disabled = false;
-                                btnPush.disabled = false;
-                            }
-                        }
-                    } catch (err) {
-                        console.log(`Auto-reconnect failed (${side}):`, err.message);
-                    }
-                }
-            }
-        }
-        
-        // Pull content from selected file into editor
-        async function pullFromTransferFile(side) {
-            const fileHandle = transferFileHandles[side];
-            
-            if (!fileHandle) {
-                showToast('❌ No file selected. Please select a file first.', 'error');
-                return;
-            }
-            
-            try {
-                const file = await fileHandle.getFile();
-                const content = await file.text();
-                
-                const editor = document.getElementById('promptEditor');
-                
-                if (content.trim() === '') {
-                    showToast(`📄 ${file.name} is empty`, 'info');
-                    return;
-                }
-                
-                editor.value = content;
-                updateCounts();
-                
-                showToast(`✅ Content pulled from ${file.name}!`, 'success');
-                console.log(`📥 Content pulled from ${file.name}, length:`, content.length);
-                
-            } catch (err) {
-                console.error('Error reading file:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showToast('❌ Permission denied. Please select the file again.', 'error');
-                    resetTransferFile(side);
-                } else {
-                    showToast('❌ Error reading file: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Push editor content to selected file
-        async function pushToTransferFile(side) {
-            const fileHandle = transferFileHandles[side];
-            
-            if (!fileHandle) {
-                showToast('❌ No file selected. Please select a file first.', 'error');
-                return;
-            }
-            
-            try {
-                const editor = document.getElementById('promptEditor');
-                const content = editor.value;
-                
-                // Get writable stream
-                const writable = await fileHandle.createWritable();
-                await writable.write(content);
-                await writable.close();
-                
-                const file = await fileHandle.getFile();
-                showToast(`✅ Content pushed to ${file.name}!`, 'success');
-                console.log(`📤 Content pushed to ${file.name}, length:`, content.length);
-                
-            } catch (err) {
-                console.error('Error writing to file:', err);
-                
-                if (err.name === 'NotAllowedError') {
-                    showToast('❌ Permission denied. Please select the file again.', 'error');
-                    resetTransferFile(side);
-                } else {
-                    showToast('❌ Error writing to file: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Reset transfer file state
-        function resetTransferFile(side, clearStorage = false) {
-            transferFileHandles[side] = null;
-
-            const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
-            const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
-            const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
-            const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
-            const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
-            const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
-
-            filePickerBtn.classList.remove('has-file', 'needs-reconnect');
-            fileNameSpan.textContent = 'Select File';
-            filePickerBtn.title = 'Select a file';
-            btnPull.disabled = true;
-            btnPush.disabled = true;
-            btnClear.classList.remove('show');
-
-            // Clear localStorage if requested
-            if (clearStorage) {
-                localStorage.removeItem(`transferFile_${side}`);
-            }
-        }
-        
-        // Clear file selection
-        function clearFileSelection(side) {
-            resetTransferFile(side, true);
-            showToast(`📄 File selection cleared (${side})`, 'info');
-        }
-        
-        // ============================================
-        // FILE MANAGEMENT (Create, Delete, Rename) - Modal Based
-        // ============================================
-        
-        // State for file management modals
-        let fileManagement = {
-            createFolder: null,
-            deleteFolder: null,
-            deleteFiles: [],
-            renameFolder: null,
-            renameSelectedFile: null,
-            renameFiles: []
-        };
-        
-        // Open Create File Modal
-        function createNewFile() {
-            fileManagement.createFolder = null;
-            document.getElementById('createFolderBtn').classList.remove('selected');
-            document.getElementById('createFolderName').textContent = 'Click to select folder';
-            document.getElementById('newFileName').value = '';
-            document.getElementById('contentEmpty').checked = true;
-            document.querySelectorAll('#createFileModal .content-option').forEach(opt => opt.classList.remove('selected'));
-            document.querySelector('#createFileModal .content-option').classList.add('selected');
-            openModal('createFileModal');
-        }
-        
-        // Select folder for creating file
-        async function selectCreateFolder() {
-            try {
-                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                fileManagement.createFolder = folderHandle;
-                document.getElementById('createFolderBtn').classList.add('selected');
-                document.getElementById('createFolderName').textContent = folderHandle.name;
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    showToast('❌ Error selecting folder: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Select content option for new file
-        function selectContentOption(option) {
-            document.querySelectorAll('#createFileModal .content-option').forEach(opt => opt.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-            document.getElementById('content' + option.charAt(0).toUpperCase() + option.slice(1)).checked = true;
-        }
-        
-        // Confirm and create the file
-        async function confirmCreateFile() {
-            if (!fileManagement.createFolder) {
-                showToast('❌ Please select a folder first', 'error');
-                return;
-            }
-            
-            const fileName = document.getElementById('newFileName').value.trim();
-            if (!fileName) {
-                showToast('❌ Please enter a file name', 'error');
-                return;
-            }
-            
-            try {
-                // Check if file exists
-                try {
-                    await fileManagement.createFolder.getFileHandle(fileName);
-                    showToast('❌ File already exists: ' + fileName, 'error');
-                    return;
-                } catch (e) {
-                    // Good, file doesn't exist
-                }
-                
-                // Create the file
-                const fileHandle = await fileManagement.createFolder.getFileHandle(fileName, { create: true });
-                const writable = await fileHandle.createWritable();
-                
-                const useEditorContent = document.getElementById('contentEditor').checked;
-                if (useEditorContent) {
-                    await writable.write(document.getElementById('promptEditor').value);
-                } else {
-                    await writable.write('');
-                }
-                await writable.close();
-                
-                closeModal('createFileModal');
-                showToast(`✅ File created: ${fileName}`, 'success');
-                
-            } catch (err) {
-                showToast('❌ Error creating file: ' + err.message, 'error');
-            }
-        }
-        
-        // Open Delete Files Modal
-        function deleteSelectedFile() {
-            fileManagement.deleteFolder = null;
-            fileManagement.deleteFiles = [];
-            document.getElementById('deleteFolderBtn').classList.remove('selected');
-            document.getElementById('deleteFolderName').textContent = 'Click to select folder';
-            document.getElementById('deleteFileList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>Select a folder to see files</p></div>';
-            document.getElementById('deleteCountBadge').innerHTML = '<i class="fas fa-file"></i> 0';
-            document.getElementById('confirmDeleteBtn').disabled = true;
-            openModal('deleteFilesModal');
-        }
-        
-        // Select folder for deleting files
-        async function selectDeleteFolder() {
-            try {
-                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                fileManagement.deleteFolder = folderHandle;
-                fileManagement.deleteFiles = [];
-                document.getElementById('deleteFolderBtn').classList.add('selected');
-                document.getElementById('deleteFolderName').textContent = folderHandle.name;
-                
-                // List files
-                const files = [];
-                for await (const entry of folderHandle.values()) {
-                    if (entry.kind === 'file') {
-                        files.push(entry.name);
-                    }
-                }
-                
-                if (files.length === 0) {
-                    document.getElementById('deleteFileList').innerHTML = '<div class="file-list-empty"><i class="fas fa-file-excel"></i><p>No files in this folder</p></div>';
-                    return;
-                }
-                
-                // Build file list HTML
-                let html = '';
-                files.sort().forEach(file => {
-                    html += `
-                        <div class="file-list-item" onclick="toggleDeleteFile(this, '${file.replace(/'/g, "\\'")}')">
-                            <input type="checkbox" onclick="event.stopPropagation(); toggleDeleteFile(this.parentElement, '${file.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-file file-icon"></i>
-                            <span class="file-name">${file}</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('deleteFileList').innerHTML = html;
-                
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    showToast('❌ Error selecting folder: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Toggle file selection for deletion
-        function toggleDeleteFile(element, fileName) {
-            const checkbox = element.querySelector('input[type="checkbox"]');
-            const isSelected = element.classList.toggle('selected');
-            checkbox.checked = isSelected;
-            
-            if (isSelected) {
-                if (!fileManagement.deleteFiles.includes(fileName)) {
-                    fileManagement.deleteFiles.push(fileName);
-                }
-            } else {
-                fileManagement.deleteFiles = fileManagement.deleteFiles.filter(f => f !== fileName);
-            }
-            
-            // Update badge and button
-            document.getElementById('deleteCountBadge').innerHTML = `<i class="fas fa-file"></i> ${fileManagement.deleteFiles.length}`;
-            document.getElementById('confirmDeleteBtn').disabled = fileManagement.deleteFiles.length === 0;
-        }
-        
-        // Confirm and delete selected files
-        async function confirmDeleteFiles() {
-            if (!fileManagement.deleteFolder || fileManagement.deleteFiles.length === 0) {
-                showToast('❌ No files selected', 'error');
-                return;
-            }
-            
-            let deleted = 0;
-            let errors = 0;
-            
-            for (const fileName of fileManagement.deleteFiles) {
-                try {
-                    await fileManagement.deleteFolder.removeEntry(fileName);
-                    deleted++;
-                } catch (err) {
-                    console.error(`Error deleting ${fileName}:`, err);
-                    errors++;
-                }
-            }
-            
-            closeModal('deleteFilesModal');
-            
-            if (errors > 0) {
-                showToast(`⚠️ Deleted ${deleted} file(s), ${errors} error(s)`, 'warning');
-            } else {
-                showToast(`✅ ${deleted} file(s) deleted successfully!`, 'success');
-            }
-        }
-        
-        // Open Rename File Modal
-        function renameSelectedFile() {
-            fileManagement.renameFolder = null;
-            fileManagement.renameSelectedFile = null;
-            fileManagement.renameFiles = [];
-            document.getElementById('renameFolderBtn').classList.remove('selected');
-            document.getElementById('renameFolderName').textContent = 'Click to select folder';
-            document.getElementById('renameFileList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>Select a folder to see files</p></div>';
-            document.getElementById('newNameGroup').style.display = 'none';
-            document.getElementById('renameNewName').value = '';
-            document.getElementById('confirmRenameBtn').disabled = true;
-            openModal('renameFileModal');
-        }
-        
-        // Select folder for renaming file
-        async function selectRenameFolder() {
-            try {
-                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                fileManagement.renameFolder = folderHandle;
-                fileManagement.renameSelectedFile = null;
-                fileManagement.renameFiles = [];
-                document.getElementById('renameFolderBtn').classList.add('selected');
-                document.getElementById('renameFolderName').textContent = folderHandle.name;
-                document.getElementById('newNameGroup').style.display = 'none';
-                document.getElementById('confirmRenameBtn').disabled = true;
-                
-                // List files
-                for await (const entry of folderHandle.values()) {
-                    if (entry.kind === 'file') {
-                        fileManagement.renameFiles.push(entry.name);
-                    }
-                }
-                
-                if (fileManagement.renameFiles.length === 0) {
-                    document.getElementById('renameFileList').innerHTML = '<div class="file-list-empty"><i class="fas fa-file-excel"></i><p>No files in this folder</p></div>';
-                    return;
-                }
-                
-                // Build file list HTML
-                let html = '';
-                fileManagement.renameFiles.sort().forEach(file => {
-                    html += `
-                        <div class="file-list-item" onclick="selectRenameFile(this, '${file.replace(/'/g, "\\'")}')">
-                            <input type="radio" name="renameFile" onclick="event.stopPropagation(); selectRenameFile(this.parentElement, '${file.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-file file-icon"></i>
-                            <span class="file-name">${file}</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('renameFileList').innerHTML = html;
-                
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    showToast('❌ Error selecting folder: ' + err.message, 'error');
-                }
-            }
-        }
-        
-        // Select a file to rename
-        function selectRenameFile(element, fileName) {
-            // Deselect all
-            document.querySelectorAll('#renameFileList .file-list-item').forEach(item => {
-                item.classList.remove('selected');
-                item.querySelector('input[type="radio"]').checked = false;
-            });
-            
-            // Select this one
-            element.classList.add('selected');
-            element.querySelector('input[type="radio"]').checked = true;
-            fileManagement.renameSelectedFile = fileName;
-            
-            // Show new name input
-            document.getElementById('newNameGroup').style.display = 'block';
-            document.getElementById('renameNewName').value = fileName;
-            document.getElementById('renameNewName').focus();
-            document.getElementById('confirmRenameBtn').disabled = false;
-        }
-        
-        // Confirm and rename the file
-        async function confirmRenameFile() {
-            if (!fileManagement.renameFolder || !fileManagement.renameSelectedFile) {
-                showToast('❌ Please select a file to rename', 'error');
-                return;
-            }
-            
-            const newName = document.getElementById('renameNewName').value.trim();
-            if (!newName) {
-                showToast('❌ Please enter a new file name', 'error');
-                return;
-            }
-            
-            if (newName === fileManagement.renameSelectedFile) {
-                showToast('❌ New name is the same as the old name', 'error');
-                return;
-            }
-            
-            try {
-                // Check if new name exists
-                try {
-                    await fileManagement.renameFolder.getFileHandle(newName);
-                    showToast('❌ A file with that name already exists', 'error');
-                    return;
-                } catch (e) {
-                    // Good, doesn't exist
-                }
-                
-                // Read old file
-                const oldHandle = await fileManagement.renameFolder.getFileHandle(fileManagement.renameSelectedFile);
-                const oldFile = await oldHandle.getFile();
-                const content = await oldFile.text();
-                
-                // Create new file
-                const newHandle = await fileManagement.renameFolder.getFileHandle(newName, { create: true });
-                const writable = await newHandle.createWritable();
-                await writable.write(content);
-                await writable.close();
-                
-                // Delete old file
-                await fileManagement.renameFolder.removeEntry(fileManagement.renameSelectedFile);
-                
-                closeModal('renameFileModal');
-                showToast(`✅ Renamed: ${fileManagement.renameSelectedFile} → ${newName}`, 'success');
-                
-            } catch (err) {
-                showToast('❌ Error renaming file: ' + err.message, 'error');
-            }
-        }
-        
-        // Open modal helper
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-        
-        // ============================================
-        // AUTO-SEND TIMER SYSTEM
-        // ============================================
-        
-        let autoSendInterval = null;
-        let countdownInterval = null;
-        let countdownValue = 0;
-        
-        // Update auto-send timer based on input
-        function updateAutoSendTimer() {
-            const timerInput = document.getElementById('timerInput');
-            const timerContainer = document.getElementById('autoSendTimer');
-            const btnSend = document.getElementById('btnSendToFile');
-            const countdownEl = document.getElementById('timerCountdown');
-            
-            const seconds = parseInt(timerInput.value) || 0;
-            
-            // Clear existing intervals
-            if (autoSendInterval) {
-                clearInterval(autoSendInterval);
-                autoSendInterval = null;
-            }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            
-            // Reset UI
-            timerContainer.classList.remove('active');
-            btnSend.classList.remove('auto-active');
-            countdownEl.textContent = '0';
-            
-            if (seconds > 0 && promptFileHandle) {
-                // Activate auto-send
-                timerContainer.classList.add('active');
-                btnSend.classList.add('auto-active');
-                countdownValue = seconds;
-                countdownEl.textContent = countdownValue;
-                
-                // Start countdown display
-                countdownInterval = setInterval(() => {
-                    countdownValue--;
-                    if (countdownValue <= 0) {
-                        countdownValue = seconds;
-                    }
-                    countdownEl.textContent = countdownValue;
-                }, 1000);
-                
-                // Start auto-send interval
-                autoSendInterval = setInterval(() => {
-                    if (promptFileHandle) {
-                        sendToPromptFile();
-                        console.log('🔄 Auto-send triggered');
-                    }
-                }, seconds * 1000);
-                
-                showToast(`🔄 Auto-send enabled: every ${seconds} second${seconds > 1 ? 's' : ''}`, 'success');
-            } else if (seconds > 0 && !promptFileHandle) {
-                showToast('⚠️ Please connect a folder first to enable auto-send', 'warning');
-                timerInput.value = 0;
-            } else {
-                // Timer disabled
-                if (timerInput.value !== '0' && timerInput.value !== '') {
-                    // User just set it to 0
-                } else {
-                    // Already at 0, no need for toast
-                }
-            }
-            
-            // Save timer value to localStorage
-            localStorage.setItem('autoSendTimer', seconds.toString());
-        }
-        
-        // Stop auto-send timer
-        function stopAutoSendTimer() {
-            const timerInput = document.getElementById('timerInput');
-            const timerContainer = document.getElementById('autoSendTimer');
-            const btnSend = document.getElementById('btnSendToFile');
-            const countdownEl = document.getElementById('timerCountdown');
-            
-            if (autoSendInterval) {
-                clearInterval(autoSendInterval);
-                autoSendInterval = null;
-            }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            
-            timerContainer.classList.remove('active');
-            btnSend.classList.remove('auto-active');
-            countdownEl.textContent = '0';
-            timerInput.value = 0;
-            localStorage.setItem('autoSendTimer', '0');
-        }
-        
-        // Initialize auto-send timer from localStorage
-        function initAutoSendTimer() {
-            const savedTimer = localStorage.getItem('autoSendTimer');
-            if (savedTimer && parseInt(savedTimer) > 0) {
-                document.getElementById('timerInput').value = savedTimer;
-                // Don't auto-start, just show the value - user needs to reconnect folder first
-            }
-        }
-        
-        // Initialize folder connection on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            initFolderConnection();
-            initAutoSendTimer();
-            initSavedFileNames();
-        });
-
-        // Update character and word counts
-        function updateCounts() {
-            const text = document.getElementById('promptEditor').value;
-            document.getElementById('charCount').textContent = text.length;
-            document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Editor input
-            document.getElementById('promptEditor').addEventListener('input', updateCounts);
-            
-            // File upload - Drop Zone
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('fileInput');
-            
-            // Drop zone click - opens file picker
-            dropZone.addEventListener('click', () => fileInput.click());
-            
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('dragover');
-            });
-            
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('dragover');
-            });
-            
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.remove('dragover');
-                console.log('📁 Files dropped:', e.dataTransfer.files.length);
-                if (e.dataTransfer.files.length > 0) {
-                    handleFiles(e.dataTransfer.files);
-                }
-            });
-            
-            // Single/Multiple file input
-            fileInput.addEventListener('change', (e) => {
-                console.log('📁 Files selected via file picker:', e.target.files.length);
-                if (e.target.files.length > 0) {
-                    handleFiles(e.target.files);
-                    fileInput.value = ''; // Reset for next selection
-                }
-            });
-
-            // Search saved prompts
-            document.getElementById('searchPrompts').addEventListener('input', (e) => {
-                const searchTerm = e.target.value;
-                const clearBtn = document.getElementById('savedSearchClear');
-                
-                // Show/hide clear button
-                if (clearBtn) {
-                    clearBtn.style.display = searchTerm ? 'flex' : 'none';
-                }
-                
-                // Re-render with filter (if prompts already loaded)
-                if (savedPromptsList.length > 0) {
-                    renderSavedPrompts(searchTerm);
-                } else {
-                    loadSavedPrompts(searchTerm);
-                }
-            });
-        }
-
-        // Track files added to editor
-        let editorFiles = new Map(); // filename -> {id, content, marker, isReference}
-        
-        // Current file mode: 'content' or 'reference'
-        let currentFileMode = 'reference';
-
-        // Check if we should send full content or just reference
-        function shouldSendFullContent() {
-            return currentFileMode === 'content';
-        }
-        
-        // Set file mode (called by toggle buttons)
-        function setFileMode(mode) {
-            currentFileMode = mode;
-            document.getElementById('fileContentToggle').value = mode;
-            
-            // Update button states
-            const btnContent = document.getElementById('btnFullContent');
-            const btnReference = document.getElementById('btnReference');
-            
-            if (mode === 'content') {
-                btnContent.classList.add('active');
-                btnReference.classList.remove('active');
-                showToast('📄 Mode: Full Content - Files will be added with full content', 'info');
-            } else {
-                btnContent.classList.remove('active');
-                btnReference.classList.add('active');
-                showToast('🔗 Mode: Reference Only - Files will be added as references', 'info');
-            }
-            
-            console.log('📁 File mode changed to:', mode);
-        }
-        
-        // Handle file upload - IMMEDIATELY reads and appends to editor
-        async function handleFiles(files) {
-            console.log('📂 handleFiles called with', files.length, 'files');
-            
-            if (!files || files.length === 0) {
-                console.log('No files to process');
-                return;
-            }
-            
-            const editor = document.getElementById('promptEditor');
-            const dropZone = document.getElementById('dropZone');
-            let filesProcessed = 0;
-            
-            // Show processing state
-            dropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Processing files...</p>';
-            
-            // Process each file immediately
-            for (const file of Array.from(files)) {
-                console.log('📄 Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
-                
-                try {
-                    const sendFullContent = shouldSendFullContent();
-                    let content = '';
-                    let isReference = false;
-                    
-                    if (sendFullContent) {
-                        // Read file content immediately
-                        content = await readFileAsText(file);
-                        console.log('✅ File read successfully, content length:', content.length);
-                    } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${file.name} | Size: ${formatFileSize(file.size)} | Type: ${file.type || 'unknown'}]`;
-                        isReference = true;
-                        console.log('✅ File reference created:', file.name);
-                    }
-                    
-                    // Create unique marker for this file
-                    const marker = `<!-- FILE:${file.name}:${Date.now()} -->`;
-                    
-                    // Append to editor with spacing
-                    let textToAdd = '';
-                    if (editor.value.trim()) {
-                        textToAdd = '\n\n';
-                    }
-                    
-                    if (isReference) {
-                        textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                    } else {
-                        textToAdd += `${marker}\n## 📄 ${file.name}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                    }
-                    
-                    editor.value += textToAdd;
-                    
-                    // Track this file
-                    editorFiles.set(file.name, {
-                        marker: marker,
-                        content: content,
-                        isReference: isReference,
-                        addedAt: Date.now()
-                    });
-                    
-                    filesProcessed++;
-                    
-                } catch (err) {
-                    console.error('❌ Error reading file:', file.name, err);
-                    showToast(`Error reading ${file.name}`, 'error');
-                }
-            }
-            
-            // Restore drop zone
-            dropZone.innerHTML = '<i class="fas fa-cloud-arrow-up"></i><span>Drop files here</span>';
-            
-            if (filesProcessed > 0) {
-                updateCounts();
-                const modeText = shouldSendFullContent() ? 'with full content' : 'as references';
-                showToast(`✅ ${filesProcessed} file(s) added ${modeText}!`, 'success');
-                
-                // Save to server in background
-                saveFilesToServer(files);
-            } else {
-                showToast('No files were processed', 'error');
-            }
-            
-            // Reset file input so same file can be selected again
-            document.getElementById('fileInput').value = '';
-        }
-        
-        // Read file as text - simple and direct
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    console.log('FileReader onload triggered');
-                    resolve(e.target.result);
-                };
-                
-                reader.onerror = function(e) {
-                    console.error('FileReader error:', e);
-                    reject(new Error('Failed to read file'));
-                };
-                
-                // Always try to read as text first
-                console.log('Starting to read file as text...');
-                reader.readAsText(file);
-            });
-        }
-        
-        // Save files to server (background)
-        async function saveFilesToServer(files) {
-            const formData = new FormData();
-            formData.append('action', 'upload_files');
-            
-            for (const file of Array.from(files)) {
-                formData.append('files[]', file);
-            }
-            
-            try {
-                const response = await fetch('', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (data.success) {
-                    loadUploadedFiles();
-                }
-            } catch (err) {
-                console.error('Server upload error:', err);
-            }
-        }
-        
-        // Remove file content from editor
-        function removeFileFromEditor(filename) {
-            const editor = document.getElementById('promptEditor');
-            const fileData = editorFiles.get(filename);
-            
-            if (fileData) {
-                // Remove the file section from editor
-                const startMarker = fileData.marker;
-                const endMarker = startMarker.replace('<!--', '<!-- /END ');
-                
-                const startIdx = editor.value.indexOf(startMarker);
-                if (startIdx !== -1) {
-                    const endIdx = editor.value.indexOf(endMarker);
-                    if (endIdx !== -1) {
-                        // Remove from start marker to end marker (including markers)
-                        const before = editor.value.substring(0, startIdx);
-                        const after = editor.value.substring(endIdx + endMarker.length);
-                        editor.value = (before + after).replace(/\n{3,}/g, '\n\n').trim();
-                    }
-                }
-                
-                editorFiles.delete(filename);
-                updateCounts();
-                showToast(`📄 ${filename} removed from editor`, 'info');
-            }
-        }
-
-        // Load uploaded files
-        async function loadUploadedFiles() {
-            try {
-                const formData = new FormData();
-                formData.append('action', 'get_files');
-                
-                const response = await fetch('', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                const container = document.getElementById('uploadedFiles');
-                const header = document.getElementById('uploadedFilesHeader');
-                const countSpan = document.getElementById('filesCount');
-                
-                if (data.success && data.files.length > 0) {
-                    // Show header and update count
-                    header.style.display = 'flex';
-                    countSpan.textContent = data.files.length;
-                    
-                    container.innerHTML = data.files.map(file => {
-                        const isChecked = editorFiles.has(file.filename);
-                        return `
-                        <div class="file-item ${isChecked ? 'checked' : ''}" data-filename="${escapeHtml(file.filename)}" data-filepath="${escapeHtml(file.filepath)}" data-fileid="${file.id}">
-                            <div class="file-item-checkbox" onclick="toggleFileCheckbox('${escapeHtml(file.filepath)}', '${escapeHtml(file.filename)}', ${file.filesize || 0})">
-                                <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                                <div class="checkbox-box"><i class="fas fa-check"></i></div>
-                            </div>
-                            <i class="fas fa-file-alt file-item-icon"></i>
-                            <div class="file-info">
-                                <div class="file-name">${escapeHtml(file.filename)}</div>
-                                <div class="file-size">${formatFileSize(file.filesize)}</div>
-                            </div>
-                            <button class="file-delete" onclick="event.stopPropagation(); deleteFile(${file.id}, '${escapeHtml(file.filename)}')" title="Delete file">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `}).join('');
-                } else {
-                    // Hide header when no files
-                    header.style.display = 'none';
-                    container.innerHTML = '';
-                }
-            } catch (err) {
-                console.error('Error loading files:', err);
-            }
-        }
-
-        // Load file content to editor (for previously uploaded files)
-        async function loadFileToEditor(filepath, filename, filesize = 0) {
-            console.log('📂 Loading file from server:', filename, filepath);
-            
-            // Check if already in editor
-            if (editorFiles.has(filename)) {
-                showToast(`${filename} is already in editor`, 'info');
-                return;
-            }
-            
-            const sendFullContent = shouldSendFullContent();
-            const editor = document.getElementById('promptEditor');
-            
-            try {
-                let content = '';
-                let isReference = false;
-                
-                if (sendFullContent) {
-                    const response = await fetch(filepath);
-                    
-                    if (response.ok) {
-                        content = await response.text();
-                    } else {
-                        showToast('Could not load file content', 'error');
-                        return;
-                    }
-                } else {
-                    // Just create a reference
-                    content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
-                    isReference = true;
-                }
-                
-                // Create unique marker
-                const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
-                
-                // Append with spacing
-                let textToAdd = '';
-                if (editor.value.trim()) {
-                    textToAdd = '\n\n';
-                }
-                
-                if (isReference) {
-                    textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                } else {
-                    textToAdd += `${marker}\n## 📄 ${filename}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                }
-                
-                editor.value += textToAdd;
-                
-                // Track this file
-                editorFiles.set(filename, {
-                    marker: marker,
-                    content: content,
-                    isReference: isReference,
-                    addedAt: Date.now()
-                });
-                
-                updateCounts();
-                const modeText = isReference ? '(reference)' : '(full content)';
-                showToast(`✅ ${filename} added ${modeText}!`, 'success');
-                
-            } catch (err) {
-                showToast('Error loading file', 'error');
-                console.error(err);
-            }
-        }
-
-        // Toggle file checkbox - adds or removes file from editor
-        async function toggleFileCheckbox(filepath, filename, filesize = 0) {
-            const fileItem = document.querySelector(`.file-item[data-filename="${filename}"]`);
-            const editor = document.getElementById('promptEditor');
-            
-            if (editorFiles.has(filename)) {
-                // File is in editor - remove it
-                removeFileFromEditor(filename);
-                
-                if (fileItem) {
-                    fileItem.classList.remove('checked');
-                    const checkbox = fileItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = false;
-                }
-                
-                showToast(`📄 ${filename} removed from editor`, 'info');
-            } else {
-                // File not in editor - add it
-                const sendFullContent = shouldSendFullContent();
-                
-                try {
-                    let content = '';
-                    let isReference = false;
-                    
-                    if (sendFullContent) {
-                        const response = await fetch(filepath);
-                        
-                        if (response.ok) {
-                            content = await response.text();
-                        } else {
-                            showToast('Could not load file content', 'error');
-                            return;
-                        }
-                    } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
-                        isReference = true;
-                    }
-                    
-                    // Create unique marker
-                    const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
-                    
-                    // Append with spacing
-                    let textToAdd = '';
-                    if (editor.value.trim()) {
-                        textToAdd = '\n\n';
-                    }
-                    
-                    if (isReference) {
-                        textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                    } else {
-                        textToAdd += `${marker}\n## 📄 ${filename}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                    }
-                    
-                    editor.value += textToAdd;
-                    
-                    // Track this file
-                    editorFiles.set(filename, {
-                        marker: marker,
-                        content: content,
-                        isReference: isReference,
-                        addedAt: Date.now()
-                    });
-                    
-                    if (fileItem) {
-                        fileItem.classList.add('checked');
-                        const checkbox = fileItem.querySelector('input[type="checkbox"]');
-                        if (checkbox) checkbox.checked = true;
-                    }
-                    
-                    updateCounts();
-                    const modeText = isReference ? '(reference)' : '(full content)';
-                    showToast(`✅ ${filename} added ${modeText}!`, 'success');
-                    
-                } catch (err) {
-                    showToast('Error loading file', 'error');
-                    console.error(err);
-                }
-            }
-            
-            updateCounts();
-        }
-
-        // Delete file - removes from server AND from editor
-        function deleteFile(id, filename) {
-            showConfirmModal({
-                title: 'Delete File?',
-                message: `Are you sure you want to delete "${filename}"?`,
-                details: `<span class="file-count">1</span> file will be removed from the list and editor`,
-                icon: 'fa-file-times',
-                type: 'warning',
-                confirmText: 'Delete File',
-                confirmIcon: 'fa-trash-alt',
-                onConfirm: async () => {
-                    // Remove from editor first (instant feedback)
-                    removeFileFromEditor(filename);
-                    
-                    // Then delete from server
-                    try {
-                        const formData = new FormData();
-                        formData.append('action', 'delete_file');
-                        formData.append('id', id);
-                        
-                        const response = await fetch('', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            showToast('✅ File deleted!', 'success');
-                            loadUploadedFiles();
-                        }
-                    } catch (err) {
-                        showToast('Delete from server failed!', 'error');
-                    }
-                }
-            });
-        }
-        
-        // Delete ALL files - removes all from server AND from editor
-        async function deleteAllFiles() {
-            // Get file count from the displayed list
-            const filesCountEl = document.getElementById('filesCount');
-            const displayedCount = parseInt(filesCountEl?.textContent || '0');
-            const editorCount = editorFiles.size;
-            const totalCount = Math.max(displayedCount, editorCount);
-            
-            if (totalCount === 0) {
-                showToast('No files to delete', 'info');
-                return;
-            }
-            
-            showConfirmModal({
-                title: 'Delete All Files?',
-                message: 'This action cannot be undone. All files will be permanently removed.',
-                details: `<span class="file-count">${totalCount}</span> file(s) will be deleted from the list<br>and their content removed from the editor`,
-                icon: 'fa-trash-alt',
-                type: 'danger',
-                confirmText: 'Delete All',
-                confirmIcon: 'fa-trash-alt',
-                onConfirm: async () => {
-                    // Remove all files from editor first (instant feedback)
-                    const filenames = Array.from(editorFiles.keys());
-                    for (const filename of filenames) {
-                        removeFileFromEditor(filename);
-                    }
-                    
-                    // Clear the editorFiles map
-                    editorFiles.clear();
-                    
-                    // Delete all from server
-                    try {
-                        const formData = new FormData();
-                        formData.append('action', 'get_files');
-                        
-                        const response = await fetch('', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success && data.files) {
-                            // Delete each file from server
-                            for (const file of data.files) {
-                                const deleteForm = new FormData();
-                                deleteForm.append('action', 'delete_file');
-                                deleteForm.append('id', file.id);
-                                await fetch('', { method: 'POST', body: deleteForm });
-                            }
-                        }
-                        
-                        showToast(`✅ All ${totalCount} file(s) deleted!`, 'success');
-                        loadUploadedFiles();
-                        
-                    } catch (err) {
-                        console.error('Delete all error:', err);
-                        showToast('Some files may not have been deleted from server', 'error');
-                        loadUploadedFiles();
-                    }
-                }
-            });
-        }
-
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // Open save modal
-        function openSaveModal(id = null, title = '', content = null) {
-            const modal = document.getElementById('saveModal');
-            const titleInput = document.getElementById('promptTitle');
-            const contentInput = document.getElementById('promptContent');
-            const editIdInput = document.getElementById('editPromptId');
-            
-            if (id) {
-                editIdInput.value = id;
-                titleInput.value = title;
-                contentInput.value = content;
-                document.querySelector('#saveModal h3').innerHTML = '<i class="fas fa-edit"></i> Edit Prompt';
-            } else {
-                editIdInput.value = '';
-                titleInput.value = '';
-                contentInput.value = document.getElementById('promptEditor').value;
-                document.querySelector('#saveModal h3').innerHTML = '<i class="fas fa-save"></i> Save Prompt';
-            }
-            
-            modal.classList.add('active');
-        }
-
-        // Close modal
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // Save prompt
-        async function savePrompt() {
-            const title = document.getElementById('promptTitle').value.trim();
-            const content = document.getElementById('promptContent').value.trim();
-            const editId = document.getElementById('editPromptId').value;
-            
-            if (!title || !content) {
-                showToast('Title and content required!', 'error');
-                return;
-            }
-            
-            try {
-                const formData = new FormData();
-                formData.append('action', editId ? 'update_prompt' : 'save_prompt');
-                formData.append('title', title);
-                formData.append('content', content);
-                if (editId) formData.append('id', editId);
-                
-                const response = await fetch('', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    closeModal('saveModal');
-                    loadSavedPrompts();
-                } else {
-                    showToast(data.message || 'Save failed!', 'error');
-                }
-            } catch (err) {
-                showToast('Save error!', 'error');
-            }
-        }
-
-        // Load saved prompts
-        async function loadSavedPrompts(search = '') {
-            try {
-                const formData = new FormData();
-                formData.append('action', 'get_prompts');
-                formData.append('search', search);
-                
-                const response = await fetch('', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                const container = document.getElementById('savedList');
-                const clearBtn = document.getElementById('savedSearchClear');
-                
-                // Show/hide clear button
-                if (clearBtn) {
-                    clearBtn.style.display = search ? 'flex' : 'none';
-                }
-                
-                if (data.success && data.prompts.length > 0) {
-                    // Store prompts in the global array
-                    savedPromptsList = data.prompts.map(p => ({
-                        id: parseInt(p.id),
-                        title: p.title,
-                        content: p.content,
-                        created_at: p.created_at
-                    }));
-                    
-                    renderSavedPrompts(search);
-                } else {
-                    savedPromptsList = [];
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No saved prompts yet</p>
-                        </div>
-                    `;
-                    updateSavedCounter();
-                }
-            } catch (err) {
-                console.error('Error loading prompts:', err);
-            }
-        }
-        
-        // Render saved prompts with checkbox style (like prompt templates)
-        function renderSavedPrompts(searchTerm = '') {
-            const container = document.getElementById('savedList');
-            const searchLower = searchTerm.toLowerCase().trim();
-            
-            // Filter prompts based on search
-            const filteredPrompts = searchLower 
-                ? savedPromptsList.filter(p => 
-                    p.title.toLowerCase().includes(searchLower) || 
-                    p.content.toLowerCase().includes(searchLower)
-                )
-                : savedPromptsList;
-            
-            if (filteredPrompts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <p>No prompts found</p>
-                    </div>
-                `;
-                updateSavedCounter();
-                return;
-            }
-            
-            container.innerHTML = filteredPrompts.map(prompt => {
-                const isChecked = activeSavedPrompts.has(prompt.id);
-                const highlightedTitle = searchLower 
-                    ? highlightText(prompt.title, searchLower)
-                    : prompt.title;
-                const contentPreview = prompt.content.replace(/\n/g, ' ').substring(0, 50) + '...';
-                
-                return `
-                    <div class="saved-item ${isChecked ? 'checked' : ''}" data-id="${prompt.id}">
-                        <div class="saved-item-checkbox" onclick="toggleSavedPrompt(${prompt.id})">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="saved-item-content" onclick="openSavedPreview(${prompt.id})">
-                            <div class="saved-item-name">${highlightedTitle}</div>
-                            <div class="saved-item-preview">${escapeHtmlDisplay(contentPreview)}</div>
-                            <div class="saved-item-date">${formatDate(prompt.created_at)}</div>
-                        </div>
-                        <div class="saved-item-actions">
-                            <button type="button" class="saved-action-icon copy" onclick="copySavedPrompt(${prompt.id})" title="Copy">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button type="button" class="saved-action-icon edit" onclick="editSavedPrompt(${prompt.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button type="button" class="saved-action-icon delete" onclick="deletePrompt(${prompt.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            updateSavedCounter();
-        }
-        
-        // Escape HTML for display (without breaking newlines)
-        function escapeHtmlDisplay(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-        
-        // Toggle saved prompt in editor
-        function toggleSavedPrompt(id) {
-            const prompt = savedPromptsList.find(p => p.id === id);
-            if (!prompt) return;
-            
-            const savedItem = document.querySelector(`.saved-item[data-id="${id}"]`);
-            const editor = document.getElementById('promptEditor');
-            
-            if (activeSavedPrompts.has(id)) {
-                activeSavedPrompts.delete(id);
-                if (savedItem) {
-                    savedItem.classList.remove('checked');
-                    const checkbox = savedItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = false;
-                }
-                rebuildEditorFromSaved();
-                showToast(`"${prompt.title}" removed`, 'info');
-            } else {
-                activeSavedPrompts.add(id);
-                if (savedItem) {
-                    savedItem.classList.add('checked');
-                    const checkbox = savedItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = true;
-                }
-                
-                // Append to editor
-                if (editor.value.trim()) {
-                    editor.value += '\n\n' + prompt.content;
-                } else {
-                    editor.value = prompt.content;
-                }
-                
-                showToast(`"${prompt.title}" added`, 'success');
-            }
-            
-            updateCounts();
-            updateSavedCounter();
-        }
-        
-        // Rebuild editor from active saved prompts
-        function rebuildEditorFromSaved() {
-            const editor = document.getElementById('promptEditor');
-            const contents = [];
-            
-            // First add active template prompts
-            promptTemplates.forEach(prompt => {
-                if (activePrompts.has(prompt.id)) {
-                    contents.push(prompt.content);
-                }
-            });
-            
-            // Then add active saved prompts
-            savedPromptsList.forEach(prompt => {
-                if (activeSavedPrompts.has(prompt.id)) {
-                    contents.push(prompt.content);
-                }
-            });
-            
-            editor.value = contents.join('\n\n');
-            updateCounts();
-        }
-        
-        // Update saved prompts counter
-        function updateSavedCounter() {
-            const counter = document.getElementById('savedCounter');
-            const total = savedPromptsList.length;
-            const selected = activeSavedPrompts.size;
-            counter.textContent = `${selected}/${total}`;
-            
-            // Change color based on selection
-            if (selected === 0) {
-                counter.style.background = 'rgba(100, 100, 100, 0.15)';
-                counter.style.color = 'var(--text-muted)';
-            } else if (selected === total && total > 0) {
-                counter.style.background = 'rgba(16, 185, 129, 0.15)';
-                counter.style.color = 'var(--success)';
-            } else {
-                counter.style.background = 'rgba(16, 185, 129, 0.15)';
-                counter.style.color = 'var(--success)';
-            }
-        }
-        
-        // Select all saved prompts
-        function selectAllSavedPrompts() {
-            const searchTerm = document.getElementById('searchPrompts').value.toLowerCase().trim();
-            const promptsToSelect = searchTerm 
-                ? savedPromptsList.filter(p => 
-                    p.title.toLowerCase().includes(searchTerm) || 
-                    p.content.toLowerCase().includes(searchTerm)
-                )
-                : savedPromptsList;
-            
-            const editor = document.getElementById('promptEditor');
-            let addedCount = 0;
-            
-            promptsToSelect.forEach(prompt => {
-                if (!activeSavedPrompts.has(prompt.id)) {
-                    activeSavedPrompts.add(prompt.id);
-                    
-                    // Append to editor
-                    if (editor.value.trim()) {
-                        editor.value += '\n\n';
-                    }
-                    editor.value += prompt.content;
-                    addedCount++;
-                }
-            });
-            
-            renderSavedPrompts(searchTerm);
-            updateCounts();
-            
-            if (addedCount > 0) {
-                showToast(`✅ ${addedCount} prompt(s) added to editor`, 'success');
-            } else {
-                showToast('All visible prompts already selected', 'info');
-            }
-        }
-        
-        // Deselect all saved prompts
-        function deselectAllSavedPrompts() {
-            const searchTerm = document.getElementById('searchPrompts').value.toLowerCase().trim();
-            const promptsToDeselect = searchTerm 
-                ? savedPromptsList.filter(p => 
-                    p.title.toLowerCase().includes(searchTerm) || 
-                    p.content.toLowerCase().includes(searchTerm)
-                )
-                : savedPromptsList;
-            
-            let removedCount = 0;
-            
-            promptsToDeselect.forEach(prompt => {
-                if (activeSavedPrompts.has(prompt.id)) {
-                    activeSavedPrompts.delete(prompt.id);
-                    removedCount++;
-                }
-            });
-            
-            rebuildEditorFromSaved();
-            renderSavedPrompts(searchTerm);
-            updateCounts();
-            
-            if (removedCount > 0) {
-                showToast(`🗑️ ${removedCount} prompt(s) removed from editor`, 'info');
-            } else {
-                showToast('No prompts to deselect', 'info');
-            }
-        }
-        
-        // Clear saved search
-        function clearSavedSearch() {
-            const searchInput = document.getElementById('searchPrompts');
-            const clearBtn = document.getElementById('savedSearchClear');
-            
-            searchInput.value = '';
-            clearBtn.style.display = 'none';
-            renderSavedPrompts();
-            searchInput.focus();
-        }
-        
-        // Copy saved prompt content
-        function copySavedPrompt(id) {
-            const prompt = savedPromptsList.find(p => p.id === id);
-            if (!prompt) return;
-            
-            navigator.clipboard.writeText(prompt.content).then(() => {
-                showToast(`"${prompt.title}" copied to clipboard!`, 'success');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                showToast('Failed to copy prompt', 'error');
-            });
-        }
-        
-        // Open saved prompt preview modal
-        function openSavedPreview(id) {
-            const prompt = savedPromptsList.find(p => p.id === id);
-            if (!prompt) return;
-            
-            currentPreviewSaved = prompt;
-            
-            const modal = document.getElementById('savedPreviewModal');
-            const previewName = document.getElementById('savedPreviewName');
-            const previewDate = document.getElementById('savedPreviewDate');
-            const previewContent = document.getElementById('savedPreviewContent');
-            const editBtn = document.getElementById('savedPreviewEditBtn');
-            const useBtn = document.getElementById('savedPreviewUseBtn');
-            
-            previewName.textContent = prompt.title;
-            previewDate.textContent = `Created: ${formatDate(prompt.created_at)}`;
-            previewContent.textContent = prompt.content;
-            
-            editBtn.onclick = () => {
-                closeSavedPreview();
-                editSavedPrompt(id);
-            };
-            
-            useBtn.onclick = () => {
-                if (!activeSavedPrompts.has(id)) {
-                    toggleSavedPrompt(id);
-                }
-                closeSavedPreview();
-            };
-            
-            modal.classList.add('active');
-        }
-        
-        // Close saved preview modal
-        function closeSavedPreview() {
-            const modal = document.getElementById('savedPreviewModal');
-            modal.classList.remove('active');
-            currentPreviewSaved = null;
-        }
-        
-        // Copy saved content from preview
-        function copySavedContent() {
-            if (!currentPreviewSaved) return;
-            
-            navigator.clipboard.writeText(currentPreviewSaved.content).then(() => {
-                showToast('Content copied to clipboard!', 'success');
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                showToast('Failed to copy content', 'error');
-            });
-        }
-        
-        // Edit saved prompt
-        function editSavedPrompt(id) {
-            const prompt = savedPromptsList.find(p => p.id === id);
-            if (!prompt) return;
-            
-            const modal = document.getElementById('saveModal');
-            const titleInput = document.getElementById('promptTitle');
-            const contentInput = document.getElementById('promptContent');
-            const editIdInput = document.getElementById('editPromptId');
-            
-            editIdInput.value = id;
-            titleInput.value = prompt.title;
-            contentInput.value = prompt.content;
-            document.querySelector('#saveModal h3').innerHTML = '<i class="fas fa-edit"></i> Edit Prompt';
-            
-            modal.classList.add('active');
-            titleInput.focus();
-        }
-
-        // Delete saved prompt - with fancy modal
-        function deletePrompt(id) {
-            const prompt = savedPromptsList.find(p => p.id === id);
-            const promptTitle = prompt ? prompt.title : 'this prompt';
-            
-            showConfirmModal({
-                title: 'Delete Saved Prompt?',
-                message: `Are you sure you want to delete this saved prompt?`,
-                icon: 'fa-trash-alt',
-                type: 'warning',
-                confirmText: 'Delete',
-                confirmIcon: 'fa-trash-alt',
-                details: `<div style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-bookmark" style="color: var(--success);"></i>
-                        <strong style="color: var(--text-primary);">${escapeHtmlDisplay(promptTitle)}</strong>
-                    </div>
-                </div>`,
-                onConfirm: async () => {
-                    try {
-                        const formData = new FormData();
-                        formData.append('action', 'delete_prompt');
-                        formData.append('id', id);
-                        
-                        const response = await fetch('', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            // Remove from active if selected
-                            if (activeSavedPrompts.has(id)) {
-                                activeSavedPrompts.delete(id);
-                                rebuildEditorFromSaved();
-                            }
-                            
-                            showToast('Prompt deleted successfully!', 'success');
-                            loadSavedPrompts();
-                        } else {
-                            showToast('Failed to delete prompt', 'error');
-                        }
-                    } catch (err) {
-                        showToast('Delete failed!', 'error');
-                    }
-                }
-            });
-        }
-
-        // Helper: Escape HTML
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"']/g, (m) => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": "\\'"
-            }[m])).replace(/\n/g, '\\n');
-        }
-
-        // Helper: Format date
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        // Custom Confirm Modal System
-        let confirmCallback = null;
-        
-        function showConfirmModal(options) {
-            const modal = document.getElementById('confirmModal');
-            const icon = document.getElementById('confirmIcon');
-            const title = document.getElementById('confirmTitle');
-            const message = document.getElementById('confirmMessage');
-            const details = document.getElementById('confirmDetails');
-            const deleteBtn = document.getElementById('confirmDeleteBtn');
-            
-            // Set content
-            title.textContent = options.title || 'Confirm Action';
-            message.textContent = options.message || 'Are you sure?';
-            
-            // Set icon
-            icon.className = 'confirm-icon';
-            if (options.type === 'warning') icon.classList.add('warning');
-            if (options.type === 'info') icon.classList.add('info');
-            icon.innerHTML = `<i class="fas ${options.icon || 'fa-question-circle'}"></i>`;
-            
-            // Set details
-            if (options.details) {
-                details.innerHTML = options.details;
-                details.classList.add('show');
-            } else {
-                details.classList.remove('show');
-            }
-            
-            // Set button text
-            deleteBtn.innerHTML = `<i class="fas ${options.confirmIcon || 'fa-check'}"></i> ${options.confirmText || 'Confirm'}`;
-            
-            // Store callback
-            confirmCallback = options.onConfirm;
-            
-            // Show modal
-            modal.classList.add('active');
-            
-            // Add escape key listener
-            document.addEventListener('keydown', handleConfirmEscape);
-        }
-        
-        function closeConfirmModal(confirmed) {
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('active');
-            
-            // Remove escape key listener
-            document.removeEventListener('keydown', handleConfirmEscape);
-            
-            // Execute callback if confirmed
-            if (confirmed && confirmCallback) {
-                confirmCallback();
-            }
-            
-            confirmCallback = null;
-        }
-        
-        function handleConfirmEscape(e) {
-            if (e.key === 'Escape') {
-                closeConfirmModal(false);
-            }
-        }
-
-        // Show toast notification - Enhanced
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-
-            const icons = {
-                success: 'fa-check-circle',
-                error: 'fa-times-circle',
-                info: 'fa-info-circle',
-                warning: 'fa-exclamation-triangle'
-            };
-
-            const titles = {
-                success: 'Success',
-                error: 'Error',
-                info: 'Info',
-                warning: 'Warning'
-            };
-
-            toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas ${icons[type]}"></i>
-                </div>
-                <div class="toast-content">
-                    <div class="toast-title">${titles[type]}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-                <div class="toast-progress"></div>
-            `;
-
-            container.appendChild(toast);
-
-            // Auto remove after 3.5 seconds
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%) scale(0.9)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-        
-        // ============ WORK DISTRIBUTION FUNCTIONS ============
-        
-        // Update distribution value and UI
-        function updateDistribution(value) {
-            value = parseInt(value);
-            distributionState.value = value;
-            
-            // Update value display
-            const valueNumber = document.getElementById('valueNumber');
-            const valueLabel = document.querySelector('.value-label');
-            valueNumber.textContent = value;
-            valueLabel.textContent = value === 1 ? 'Part' : 'Parts';
-            
-            // Update slider fill
-            const fill = document.getElementById('sliderFill');
-            const percentage = ((value - 1) / 9) * 100;
-            fill.style.width = `${percentage}%`;
-            
-            // Update active label
-            updateActiveLabel(value);
-            
-            // If enabled, update the editor
-            if (distributionState.enabled) {
-                updateEditorDistribution();
-            }
-        }
-        
-        // Set distribution from label click
-        function setDistribution(value) {
-            const slider = document.getElementById('distributionSlider');
-            slider.value = value;
-            updateDistribution(value);
-        }
-        
-        // Update active label styling
-        function updateActiveLabel(value) {
-            const labels = document.querySelectorAll('.slider-label');
-            labels.forEach((label, index) => {
-                if (index + 1 === value) {
-                    label.classList.add('active');
-                } else {
-                    label.classList.remove('active');
-                }
-            });
-        }
-        
-        // Get distribution messages based on value
-        function getDistributionMessages(value) {
-            if (value === 1) {
-                return {
-                    short: 'Complete this task in a single comprehensive response.',
-                    full: '📋 WORK DISTRIBUTION: Single Part\n\nPlease complete this entire task in ONE comprehensive response.\nProvide a complete and thorough solution without breaking it into parts.'
-                };
-            } else if (value === 2) {
-                return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:\n\n• Part 1/2: First half of the task\n• Part 2/2: Second half of the task\n\n✅ After completing each part, indicate "Part X Complete" before proceeding.`
-                };
-            } else {
-                let partsBreakdown = '';
-                for (let i = 1; i <= value; i++) {
-                    partsBreakdown += `\n• Part ${i}/${value}: ${getPartDescription(i, value)}`;
-                }
-                
-                return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:${partsBreakdown}\n\n✅ After completing each part, indicate "Part X Complete" before proceeding to the next.`
-                };
-            }
-        }
-        
-        // Get part description based on position
-        function getPartDescription(part, total) {
-            const percentage = Math.round((1 / total) * 100);
-            
-            if (part === 1) return `Initial setup & foundation (~${percentage}% of work)`;
-            if (part === total) return `Final completion & review (~${percentage}% of work)`;
-            if (part === Math.ceil(total / 2)) return `Core implementation (~${percentage}% of work)`;
-            
-            return `Section ${part} implementation (~${percentage}% of work)`;
-        }
-        
-        // Toggle distribution on/off
-        function toggleDistribution() {
-            const checkbox = document.getElementById('distributionEnabled');
-            const section = document.querySelector('.distribution-section');
-            
-            distributionState.enabled = checkbox.checked;
-            
-            if (checkbox.checked) {
-                section.classList.add('active');
-                addDistributionToEditor();
-                showToast(`✅ Distribution (${distributionState.value} parts) added to prompt`, 'success');
-            } else {
-                section.classList.remove('active');
-                removeDistributionFromEditor();
-                showToast('Distribution instruction removed', 'info');
-            }
-        }
-        
-        // Add distribution instruction to editor
-        function addDistributionToEditor() {
-            const editor = document.getElementById('promptEditor');
-            const messages = getDistributionMessages(distributionState.value);
-            
-            // Check if distribution marker already exists
-            if (editor.value.includes(distributionState.startMarker)) {
-                updateEditorDistribution();
-                return;
-            }
-            
-            // Add at the END of the editor (append, not prepend)
-            const distributionBlock = `${distributionState.startMarker}\n${messages.full}\n${distributionState.endMarker}`;
-            
-            if (editor.value.trim()) {
-                editor.value = editor.value.trim() + '\n\n' + distributionBlock;
-            } else {
-                editor.value = distributionBlock;
-            }
-            
-            // Scroll to bottom to show the new content
-            editor.scrollTop = editor.scrollHeight;
-            
-            updateCounts();
-        }
-        
-        // Update distribution instruction in editor
-        function updateEditorDistribution() {
-            const editor = document.getElementById('promptEditor');
-            const messages = getDistributionMessages(distributionState.value);
-            
-            const startIdx = editor.value.indexOf(distributionState.startMarker);
-            const endIdx = editor.value.indexOf(distributionState.endMarker);
-            
-            if (startIdx !== -1 && endIdx !== -1) {
-                // Replace existing distribution block
-                const before = editor.value.substring(0, startIdx);
-                const after = editor.value.substring(endIdx + distributionState.endMarker.length);
-                
-                const newBlock = `${distributionState.startMarker}\n${messages.full}\n${distributionState.endMarker}`;
-                editor.value = before + newBlock + after;
-                
-                updateCounts();
-            } else if (distributionState.enabled) {
-                // No existing block, add new one
-                addDistributionToEditor();
-            }
-        }
-        
-        // Remove distribution instruction from editor
-        function removeDistributionFromEditor() {
-            const editor = document.getElementById('promptEditor');
-            
-            const startIdx = editor.value.indexOf(distributionState.startMarker);
-            const endIdx = editor.value.indexOf(distributionState.endMarker);
-            
-            if (startIdx !== -1 && endIdx !== -1) {
-                const before = editor.value.substring(0, startIdx);
-                const after = editor.value.substring(endIdx + distributionState.endMarker.length);
-                
-                // Clean up extra newlines
-                editor.value = (before + after).replace(/^\n+/, '').replace(/\n{3,}/g, '\n\n').trim();
-                
-                updateCounts();
-            }
-        }
-        
-        // Initialize distribution slider on page load
-        function initDistributionSlider() {
-            updateDistribution(1);
-            updateActiveLabel(1);
-        }
-        
-        // ============ CUSTOM RESIZE HANDLE ============
-        
-        function initResizeHandle() {
-            const resizeHandle = document.getElementById('resizeHandle');
-            const editor = document.getElementById('promptEditor');
-            
-            if (!resizeHandle || !editor) return;
-            
-            let isResizing = false;
-            let startY = 0;
-            let startHeight = 0;
-            
-            resizeHandle.addEventListener('mousedown', (e) => {
-                isResizing = true;
-                startY = e.clientY;
-                startHeight = editor.offsetHeight;
-                
-                document.body.style.cursor = 'ns-resize';
-                document.body.style.userSelect = 'none';
-                
-                e.preventDefault();
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isResizing) return;
-                
-                const deltaY = e.clientY - startY;
-                const newHeight = Math.max(150, Math.min(startHeight + deltaY, window.innerHeight * 0.8));
-                
-                editor.style.height = newHeight + 'px';
-            });
-            
-            document.addEventListener('mouseup', () => {
-                if (isResizing) {
-                    isResizing = false;
-                    document.body.style.cursor = '';
-                    document.body.style.userSelect = '';
-                }
-            });
-            
-            // Touch support for mobile
-            resizeHandle.addEventListener('touchstart', (e) => {
-                isResizing = true;
-                startY = e.touches[0].clientY;
-                startHeight = editor.offsetHeight;
-                e.preventDefault();
-            });
-            
-            document.addEventListener('touchmove', (e) => {
-                if (!isResizing) return;
-                
-                const deltaY = e.touches[0].clientY - startY;
-                const newHeight = Math.max(150, Math.min(startHeight + deltaY, window.innerHeight * 0.8));
-                
-                editor.style.height = newHeight + 'px';
-            });
-            
-            document.addEventListener('touchend', () => {
-                isResizing = false;
-            });
-        }
-        
-        // Initialize resize handle on page load
-        document.addEventListener('DOMContentLoaded', initResizeHandle);
+        document.getElementById('passwordInput').focus();
     </script>
+</body>
+</html>
+    <?php
+}
+?>
+PHP_CODE;
+    
+    // Replace placeholders
+    $pageId = preg_replace('/[^a-zA-Z0-9_]/', '_', pathinfo($filename, PATHINFO_FILENAME));
+    $superAdminCode = str_replace('PASSWORD_PLACEHOLDER', addslashes($password), $superAdminCode);
+    $superAdminCode = str_replace('PAGE_ID', $pageId, $superAdminCode);
+    
+    // For HTML files, we cannot add PHP authentication
+    $newFilepath = $filepath;
+    $newFilename = $filename;
+    
+    if ($extension === 'html') {
+        // HTML files cannot execute PHP code
+        echo json_encode([
+            'success' => false,
+            'message' => "Cannot add Super Admin to HTML files!\n\nHTML files cannot execute PHP code. Please use one of these options:\n\n1. Manually rename '{$filename}' to a .php extension first\n2. Use the file as .php instead of .html\n3. Update references in other files (prompter.php, appmaker.php) to use the new .php filename\n\nNote: Automatic conversion has been disabled to prevent breaking links in other files.",
+            'reason' => 'html_not_supported',
+            'filename' => $filename,
+            'suggestion' => 'Rename to .php extension manually'
+        ]);
+        exit;
+    }
+    
+    // Add Super Admin code
+    if (!preg_match('/^\s*<\?php/', $content)) {
+        $newContent = $superAdminCode . "\n" . $content;
+    } else {
+        $newContent = preg_replace('/(<\?php\s*)/', '$1' . "\n" . substr($superAdminCode, 5) . "\n", $content, 1);
+    }
+    
+    // Write to file
+    if (file_put_contents($newFilepath, $newContent)) {
+        // If we converted HTML to PHP, delete the old HTML file
+        if ($extension === 'html' && $newFilepath !== $filepath) {
+            @unlink($filepath);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Super Admin added successfully!',
+                'password' => $password,
+                'filename' => $filename,
+                'converted' => true,
+                'old_file' => $filename,
+                'new_file' => $newFilename,
+                'note' => "File converted from .html to .php to support authentication"
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Super Admin protection added successfully!',
+                'password' => $password,
+                'filename' => $filename
+            ]);
+        }
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Check permissions.'
+        ]);
+    }
+    exit;
+}
+
+// Handle file rename via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'rename') {
+    header('Content-Type: application/json');
+    
+    $oldFilename = isset($_POST['old_filename']) ? $_POST['old_filename'] : '';
+    $newFilename = isset($_POST['new_filename']) ? $_POST['new_filename'] : '';
+    
+    $oldFilepath = __DIR__ . '/' . basename($oldFilename);
+    $newFilepath = __DIR__ . '/' . basename($newFilename);
+    
+    // Security check: don't allow renaming index.php or system files
+    $blockedFiles = ['index.php', 'catalog.html', 'default.php', 'backend.php'];
+    
+    if (in_array(basename($oldFilename), $blockedFiles)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'This file is protected and cannot be renamed.'
+        ]);
+        exit;
+    }
+    
+    // Validate new filename
+    if (empty($newFilename)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'New filename cannot be empty.'
+        ]);
+        exit;
+    }
+    
+    // Check if new filename already exists
+    if (file_exists($newFilepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'A file with this name already exists.'
+        ]);
+        exit;
+    }
+    
+    // Validate file extension (must be .html or .php)
+    $extension = strtolower(pathinfo($newFilename, PATHINFO_EXTENSION));
+    if (!in_array($extension, ['html', 'php'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File extension must be .html or .php'
+        ]);
+        exit;
+    }
+    
+    // Check if old file exists
+    if (!file_exists($oldFilepath) || !is_file($oldFilepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Original file not found.'
+        ]);
+        exit;
+    }
+    
+    // Attempt to rename
+    if (rename($oldFilepath, $newFilepath)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'File renamed successfully!',
+            'new_filename' => $newFilename
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to rename file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle file duplicate via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'duplicate') {
+    header('Content-Type: application/json');
+    
+    $sourceFilename = isset($_POST['source_filename']) ? $_POST['source_filename'] : '';
+    $newFilename = isset($_POST['new_filename']) ? $_POST['new_filename'] : '';
+    
+    $sourceFilepath = __DIR__ . '/' . basename($sourceFilename);
+    $newFilepath = __DIR__ . '/' . basename($newFilename);
+    
+    // Validate source filename
+    if (empty($sourceFilename)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Source filename cannot be empty.'
+        ]);
+        exit;
+    }
+    
+    // Validate new filename
+    if (empty($newFilename)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'New filename cannot be empty.'
+        ]);
+        exit;
+    }
+    
+    // Check if source file exists
+    if (!file_exists($sourceFilepath) || !is_file($sourceFilepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Source file not found.'
+        ]);
+        exit;
+    }
+    
+    // Check if new filename already exists
+    if (file_exists($newFilepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'A file with this name already exists.'
+        ]);
+        exit;
+    }
+    
+    // Validate file extension (must be .html or .php)
+    $extension = strtolower(pathinfo($newFilename, PATHINFO_EXTENSION));
+    if (!in_array($extension, ['html', 'php'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File extension must be .html or .php'
+        ]);
+        exit;
+    }
+    
+    // Attempt to copy file
+    if (copy($sourceFilepath, $newFilepath)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'File duplicated successfully!',
+            'new_filename' => $newFilename
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to duplicate file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle creating new file via AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_file') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $fileType = isset($_POST['file_type']) ? $_POST['file_type'] : 'html';
+    $template = isset($_POST['template']) ? $_POST['template'] : 'empty';
+    $pageTitle = isset($_POST['page_title']) ? $_POST['page_title'] : '';
+    $includeTitle = isset($_POST['include_title']) && $_POST['include_title'] === 'true';
+    
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    // Validate filename
+    if (empty($filename)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Filename cannot be empty.'
+        ]);
+        exit;
+    }
+    
+    // Check if file already exists
+    if (file_exists($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'A file with this name already exists.'
+        ]);
+        exit;
+    }
+    
+    // Validate file extension
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    if (!in_array($extension, ['html', 'php'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File extension must be .html or .php'
+        ]);
+        exit;
+    }
+    
+    // Handle file uploads (Favicon & Logo)
+    $faviconPath = null;
+    $logoPath = null;
+    
+    // Create assets directory if it doesn't exist
+    $assetsDir = __DIR__ . '/assets';
+    if (!is_dir($assetsDir)) {
+        mkdir($assetsDir, 0777, true);
+    }
+    
+    // Process Favicon upload
+    if (isset($_FILES['favicon']) && $_FILES['favicon']['error'] === UPLOAD_ERR_OK) {
+        $faviconTmpPath = $_FILES['favicon']['tmp_name'];
+        $faviconOriginalName = $_FILES['favicon']['name'];
+        $faviconExtension = strtolower(pathinfo($faviconOriginalName, PATHINFO_EXTENSION));
+        
+        // Validate image
+        $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'svg', 'webp'];
+        if (in_array($faviconExtension, $allowedImageExtensions)) {
+            // Generate unique filename
+            $faviconNewName = 'favicon_' . time() . '_' . uniqid() . '.' . $faviconExtension;
+            $faviconDestPath = $assetsDir . '/' . $faviconNewName;
+            
+            // Move uploaded file
+            if (move_uploaded_file($faviconTmpPath, $faviconDestPath)) {
+                $faviconPath = 'assets/' . $faviconNewName;
+            }
+        }
+    }
+    
+    // Process Logo upload
+    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        $logoTmpPath = $_FILES['logo']['tmp_name'];
+        $logoOriginalName = $_FILES['logo']['name'];
+        $logoExtension = strtolower(pathinfo($logoOriginalName, PATHINFO_EXTENSION));
+        
+        // Validate image
+        $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+        if (in_array($logoExtension, $allowedImageExtensions)) {
+            // Generate unique filename
+            $logoNewName = 'logo_' . time() . '_' . uniqid() . '.' . $logoExtension;
+            $logoDestPath = $assetsDir . '/' . $logoNewName;
+            
+            // Move uploaded file
+            if (move_uploaded_file($logoTmpPath, $logoDestPath)) {
+                $logoPath = 'assets/' . $logoNewName;
+            }
+        }
+    }
+    
+    // Load template generator
+    require_once __DIR__ . '/template_generator.php';
+    
+    // Generate content using template generator (with favicon and logo paths)
+    $content = generateTemplate($template, $pageTitle, $includeTitle, $fileType, $faviconPath, $logoPath);
+    
+    // Create the file
+    if (file_put_contents($filepath, $content) !== false) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'File created successfully!',
+            'filename' => $filename,
+            'favicon' => $faviconPath,
+            'logo' => $logoPath
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to create file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle editing page (regenerate with new settings)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_page') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $template = isset($_POST['template']) ? $_POST['template'] : 'empty';
+    $pageTitle = isset($_POST['page_title']) ? $_POST['page_title'] : '';
+    $includeTitle = isset($_POST['include_title']) && $_POST['include_title'] === 'true';
+    
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    // Validate filename
+    if (empty($filename)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Filename cannot be empty.'
+        ]);
+        exit;
+    }
+    
+    // Check if file exists
+    if (!file_exists($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    // Verify it's a catalog-generated page
+    $currentContent = file_get_contents($filepath);
+    if (strpos($currentContent, '<!-- CATALOG_GENERATED_PAGE -->') === false) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'This page was not created by catalog and cannot be edited.'
+        ]);
+        exit;
+    }
+    
+    // Determine file type
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $fileType = $extension === 'php' ? 'php' : 'html';
+    
+    // Extract current favicon and logo paths from content
+    $currentFaviconPath = null;
+    $currentLogoPath = null;
+    
+    if (preg_match('/href="(assets\/favicon_[^"]+)"/i', $currentContent, $matches)) {
+        $currentFaviconPath = $matches[1];
+    }
+    
+    if (preg_match('/src="(assets\/logo_[^"]+)"/i', $currentContent, $matches)) {
+        $currentLogoPath = $matches[1];
+    }
+    
+    // Handle file uploads (Favicon & Logo)
+    $faviconPath = $currentFaviconPath; // Keep current if not changed
+    $logoPath = $currentLogoPath; // Keep current if not changed
+    
+    // Create assets directory if it doesn't exist
+    $assetsDir = __DIR__ . '/assets';
+    if (!is_dir($assetsDir)) {
+        mkdir($assetsDir, 0777, true);
+    }
+    
+    // Process Favicon upload if provided
+    if (isset($_FILES['favicon']) && $_FILES['favicon']['error'] === UPLOAD_ERR_OK) {
+        $faviconTmpPath = $_FILES['favicon']['tmp_name'];
+        $faviconOriginalName = $_FILES['favicon']['name'];
+        $faviconExtension = strtolower(pathinfo($faviconOriginalName, PATHINFO_EXTENSION));
+        
+        $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'svg', 'webp'];
+        if (in_array($faviconExtension, $allowedImageExtensions)) {
+            $faviconNewName = 'favicon_' . time() . '_' . uniqid() . '.' . $faviconExtension;
+            $faviconDestPath = $assetsDir . '/' . $faviconNewName;
+            
+            if (move_uploaded_file($faviconTmpPath, $faviconDestPath)) {
+                // Delete old favicon if exists
+                if ($currentFaviconPath && file_exists(__DIR__ . '/' . $currentFaviconPath)) {
+                    unlink(__DIR__ . '/' . $currentFaviconPath);
+                }
+                $faviconPath = 'assets/' . $faviconNewName;
+            }
+        }
+    }
+    
+    // Process Logo upload if provided
+    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        $logoTmpPath = $_FILES['logo']['tmp_name'];
+        $logoOriginalName = $_FILES['logo']['name'];
+        $logoExtension = strtolower(pathinfo($logoOriginalName, PATHINFO_EXTENSION));
+        
+        $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+        if (in_array($logoExtension, $allowedImageExtensions)) {
+            $logoNewName = 'logo_' . time() . '_' . uniqid() . '.' . $logoExtension;
+            $logoDestPath = $assetsDir . '/' . $logoNewName;
+            
+            if (move_uploaded_file($logoTmpPath, $logoDestPath)) {
+                // Delete old logo if exists
+                if ($currentLogoPath && file_exists(__DIR__ . '/' . $currentLogoPath)) {
+                    unlink(__DIR__ . '/' . $currentLogoPath);
+                }
+                $logoPath = 'assets/' . $logoNewName;
+            }
+        }
+    }
+    
+    // Create backup of current file
+    $backupPath = $filepath . '.backup_' . time();
+    copy($filepath, $backupPath);
+    
+    // Load template generator
+    require_once __DIR__ . '/template_generator.php';
+    
+    // Generate new content using template generator
+    $content = generateTemplate($template, $pageTitle, $includeTitle, $fileType, $faviconPath, $logoPath);
+    
+    // Overwrite the file with new content
+    if (file_put_contents($filepath, $content) !== false) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Page updated successfully!',
+            'filename' => $filename,
+            'backup' => basename($backupPath)
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to update file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle toggling back button (add or remove)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_back_button') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    
+    // Check if back button already exists
+    $buttonExists = strpos($content, 'id="backToCatalogBtn"') !== false || strpos($content, 'catalog-back-btn') !== false;
+    
+    if ($buttonExists) {
+        // Remove the back button
+        // Remove everything from <!-- Back to Catalog Button --> to <!-- End Back to Catalog Button -->
+        $pattern = '/\n?<!--\s*Back to Catalog Button\s*-->.*?<!--\s*End Back to Catalog Button\s*-->\n?/s';
+        $content = preg_replace($pattern, '', $content);
+        
+        if (file_put_contents($filepath, $content)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Back button removed successfully!',
+                'action' => 'removed'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to write to file. Permission denied.'
+            ]);
+        }
+        exit;
+    }
+    
+    // Back button HTML with inline CSS
+    $backButtonCode = <<<'HTML'
 
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
@@ -7303,7 +1892,5746 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 </style>
 <!-- End Back to Catalog Button -->
+
+HTML;
+    
+    // Insert before closing </body> tag, or at the end if no </body>
+    if (stripos($content, '</body>') !== false) {
+        $content = str_ireplace('</body>', $backButtonCode . '</body>', $content);
+    } else {
+        // If no </body> tag, append at the end
+        $content .= $backButtonCode;
+    }
+    
+    // Write back to file
+    if (file_put_contents($filepath, $content)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Back button added successfully!',
+            'action' => 'added'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle toggling platform button (add or remove)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_platform_button') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    
+    // Check if platform button already exists
+    $buttonExists = strpos($content, 'id="backToPlatformBtn"') !== false || strpos($content, 'platform-back-btn') !== false;
+    
+    if ($buttonExists) {
+        // Remove the platform button
+        // Remove everything from <!-- Back to Platform Button --> to <!-- End Back to Platform Button -->
+        $pattern = '/\n?<!--\s*Back to Platform Button\s*-->.*?<!--\s*End Back to Platform Button\s*-->\n?/s';
+        $content = preg_replace($pattern, '', $content);
+        
+        if (file_put_contents($filepath, $content)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Platform button removed successfully!',
+                'action' => 'removed'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to write to file. Permission denied.'
+            ]);
+        }
+        exit;
+    }
+    
+    // Platform button HTML with inline CSS (positioned above catalog button)
+    // Build the platform URL with the current filename
+    $platformButtonCode = "\n\n<!-- Back to Platform Button -->
+<a href=\"platform_ai.php?file=" . urlencode(basename($filename)) . "\" id=\"backToPlatformBtn\" class=\"platform-back-btn\" style=\"position: fixed; bottom: 120px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: platform-pulse 2s infinite;\" title=\"Back to AI Platform\" onmouseover=\"this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(102, 126, 234, 0.7)';\" onmouseout=\"this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.5)';\">
+    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));\">
+        <rect x=\"2\" y=\"3\" width=\"20\" height=\"14\" rx=\"2\" ry=\"2\"></rect>
+        <line x1=\"8\" y1=\"21\" x2=\"16\" y2=\"21\"></line>
+        <line x1=\"12\" y1=\"17\" x2=\"12\" y2=\"21\"></line>
+    </svg>
+</a>
+<style>
+@keyframes platform-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5), 0 0 0 0 rgba(102, 126, 234, 0.4); }
+    50% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5), 0 0 0 10px rgba(102, 126, 234, 0); }
+}
+.platform-back-btn::after {
+    content: 'AI Platform';
+    position: absolute;
+    left: 85px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.platform-back-btn:hover::after {
+    opacity: 1;
+}
+</style>
+<!-- End Back to Platform Button -->
+
+";
+    
+    // Insert before closing </body> tag, or at the end if no </body>
+    if (stripos($content, '</body>') !== false) {
+        $content = str_ireplace('</body>', $platformButtonCode . '</body>', $content);
+    } else {
+        // If no </body> tag, append at the end
+        $content .= $platformButtonCode;
+    }
+    
+    // Write back to file
+    if (file_put_contents($filepath, $content)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Platform button added successfully!',
+            'action' => 'added'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle toggling code editor button (add or remove) - platform.php without AI
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_code_editor_button') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    
+    // Check if code editor button already exists
+    $buttonExists = strpos($content, 'id="backToCodeEditorBtn"') !== false || strpos($content, 'code-editor-back-btn') !== false;
+    
+    if ($buttonExists) {
+        // Remove the code editor button
+        // Remove everything from <!-- Back to Code Editor Button --> to <!-- End Back to Code Editor Button -->
+        $pattern = '/\n?<!--\s*Back to Code Editor Button\s*-->.*?<!--\s*End Back to Code Editor Button\s*-->\n?/s';
+        $content = preg_replace($pattern, '', $content);
+        
+        if (file_put_contents($filepath, $content)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Code Editor button removed successfully!',
+                'action' => 'removed'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to write to file. Permission denied.'
+            ]);
+        }
+        exit;
+    }
+    
+    // Code Editor button HTML with inline CSS (positioned above platform button)
+    // Build the code editor URL with the current filename
+    $codeEditorButtonCode = "\n\n<!-- Back to Code Editor Button -->
+<a href=\"platform.php?file=" . urlencode(basename($filename)) . "\" id=\"backToCodeEditorBtn\" class=\"code-editor-back-btn\" style=\"position: fixed; bottom: 210px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: code-editor-pulse 2s infinite;\" title=\"Back to Code Editor\" onmouseover=\"this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(56, 239, 125, 0.7)';\" onmouseout=\"this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(56, 239, 125, 0.5)';\">
+    <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"white\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));\">
+        <polyline points=\"16 18 22 12 16 6\"></polyline>
+        <polyline points=\"8 6 2 12 8 18\"></polyline>
+    </svg>
+</a>
+<style>
+@keyframes code-editor-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5), 0 0 0 0 rgba(56, 239, 125, 0.4); }
+    50% { box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5), 0 0 0 10px rgba(56, 239, 125, 0); }
+}
+.code-editor-back-btn::after {
+    content: 'Code Editor';
+    position: absolute;
+    left: 85px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.code-editor-back-btn:hover::after {
+    opacity: 1;
+}
+</style>
+<!-- End Back to Code Editor Button -->
+
+";
+    
+    // Insert before closing </body> tag, or at the end if no </body>
+    if (stripos($content, '</body>') !== false) {
+        $content = str_ireplace('</body>', $codeEditorButtonCode . '</body>', $content);
+    } else {
+        // If no </body> tag, append at the end
+        $content .= $codeEditorButtonCode;
+    }
+    
+    // Write back to file
+    if (file_put_contents($filepath, $content)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Code Editor button added successfully!',
+            'action' => 'added'
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Check Transfer Link Status
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'check_transfer_link') {
+    header('Content-Type: application/json');
+    
+    $filename = $_POST['filename'] ?? '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath)) {
+        echo json_encode(['exists' => false, 'error' => 'File not found']);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    $hasTransferLink = (strpos($content, 'id="autoTransferScript"') !== false || 
+                        strpos($content, 'auto-transfer-redirect') !== false);
+    
+    echo json_encode(['exists' => $hasTransferLink]);
+    exit;
+}
+
+// Handle toggling transfer link (add or remove redirect)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_transfer_link') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $targetUrl = isset($_POST['target_url']) ? $_POST['target_url'] : '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    
+    // Check if transfer link already exists
+    $transferExists = strpos($content, 'id="autoTransferScript"') !== false || strpos($content, 'auto-transfer-redirect') !== false;
+    
+    if ($transferExists) {
+        // Remove the transfer link script
+        $pattern = '/\n?<!--\s*Auto Transfer Script\s*-->.*?<!--\s*End Auto Transfer Script\s*-->\n?/s';
+        $content = preg_replace($pattern, '', $content);
+        
+        if (file_put_contents($filepath, $content)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Transfer link removed successfully!',
+                'action' => 'removed'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to write to file. Permission denied.'
+            ]);
+        }
+        exit;
+    }
+    
+    // Validate target URL
+    if (empty($targetUrl)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Target URL is required.'
+        ]);
+        exit;
+    }
+    
+    // Transfer link script code
+    $transferScriptCode = "\n\n<!-- Auto Transfer Script -->\n<script id=\"autoTransferScript\" class=\"auto-transfer-redirect\">\n    // Auto Transfer to: " . htmlspecialchars($targetUrl) . "\n    (function() {\n        console.log('🔄 Auto-transferring to: " . htmlspecialchars($targetUrl) . "');\n        window.location.href = '" . addslashes($targetUrl) . "';\n    })();\n</script>\n<!-- End Auto Transfer Script -->\n\n";
+    
+    // Insert at the end of <head> or before </head> tag
+    if (stripos($content, '</head>') !== false) {
+        $content = str_ireplace('</head>', $transferScriptCode . '</head>', $content);
+    } else if (stripos($content, '<body>') !== false) {
+        // If no </head>, insert before <body>
+        $content = str_ireplace('<body>', $transferScriptCode . '<body>', $content);
+    } else {
+        // If no structure, prepend at beginning
+        $content = $transferScriptCode . $content;
+    }
+    
+    // Write back to file
+    if (file_put_contents($filepath, $content)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Transfer link added successfully!',
+            'action' => 'added',
+            'target_url' => $targetUrl
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Handle toggling iframe append (add or remove iframe)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_iframe') {
+    header('Content-Type: application/json');
+    
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    $iframeUrl = isset($_POST['iframe_url']) ? $_POST['iframe_url'] : '';
+    $filepath = __DIR__ . '/' . basename($filename);
+    
+    if (!file_exists($filepath) || !is_file($filepath)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'File not found.'
+        ]);
+        exit;
+    }
+    
+    $content = file_get_contents($filepath);
+    
+    // Check if iframe already exists
+    $iframeExists = strpos($content, 'id="appendedIframe"') !== false || strpos($content, 'appended-iframe-container') !== false;
+    
+    if ($iframeExists) {
+        // Remove the iframe
+        $pattern = '/\n?<!--\s*Appended iFrame\s*-->.*?<!--\s*End Appended iFrame\s*-->\n?/s';
+        $content = preg_replace($pattern, '', $content);
+        
+        if (file_put_contents($filepath, $content)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'iFrame removed successfully!',
+                'action' => 'removed'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to write to file. Permission denied.'
+            ]);
+        }
+        exit;
+    }
+    
+    // Validate iframe URL
+    if (empty($iframeUrl)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'iFrame URL is required.'
+        ]);
+        exit;
+    }
+    
+    // iFrame HTML code with responsive styling
+    $iframeCode = <<<HTML
+
+
+<!-- Appended iFrame -->
+<div id="appendedIframe" class="appended-iframe-container" style="width: 100%; margin: 40px 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+    <div style="background: white; border-radius: 15px; padding: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5rem;">🖼️</span>
+                <h3 style="margin: 0; color: #2d3748; font-size: 1.1rem; font-weight: 700;">Embedded Content</h3>
+            </div>
+            <span style="font-size: 0.85rem; color: #718096; font-family: 'Courier New', monospace;">{$iframeUrl}</span>
+        </div>
+        <iframe src="{$iframeUrl}" 
+                style="width: 100%; height: 600px; border: none; border-radius: 10px; box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);" 
+                frameborder="0" 
+                allowfullscreen
+                loading="lazy"
+                title="Embedded Content">
+        </iframe>
+    </div>
+</div>
+<!-- End Appended iFrame -->
+
+HTML;
+    
+    // Insert before closing </body> tag, or at the end if no </body>
+    if (stripos($content, '</body>') !== false) {
+        $content = str_ireplace('</body>', $iframeCode . '</body>', $content);
+    } else {
+        // If no </body> tag, append at the end
+        $content .= $iframeCode;
+    }
+    
+    // Write back to file
+    if (file_put_contents($filepath, $content)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'iFrame added successfully!',
+            'action' => 'added',
+            'iframe_url' => $iframeUrl
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Failed to write to file. Permission denied.'
+        ]);
+    }
+    exit;
+}
+
+// Scan directory for HTML and PHP files
+$directory = __DIR__;
+$htmlFiles = glob($directory . '/*.html');
+$phpFiles = glob($directory . '/*.php');
+
+// Merge both arrays
+$allFiles = array_merge($htmlFiles, $phpFiles);
+
+$fileList = [];
+foreach ($allFiles as $file) {
+    $filename = basename($file);
+    
+    // Skip catalog files
+    if ($filename === 'catalog.html' || $filename === 'index.php' || $filename === 'catalog_scanner.php') {
+        continue;
+    }
+    
+    $fileList[] = [
+        'name' => pathinfo($filename, PATHINFO_FILENAME),
+        'filename' => $filename,
+        'size' => filesize($file),
+        'modified' => filemtime($file),
+        'path' => $filename,
+        'extension' => strtoupper(pathinfo($filename, PATHINFO_EXTENSION))
+    ];
+}
+
+// Sort by modified date (newest first)
+usort($fileList, function($a, $b) {
+    return $b['modified'] - $a['modified'];
+});
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App-AI</title>
+    <link rel="icon" type="image/png" href="FuturisticLogo.png">
+    <link rel="shortcut icon" type="image/png" href="FuturisticLogo.png">
+    <link rel="apple-touch-icon" href="FuturisticLogo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+            33% { transform: translateY(-100px) translateX(100px) rotate(120deg); }
+            66% { transform: translateY(-50px) translateX(-100px) rotate(240deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto 0 280px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Excluded Pages Sidebar */
+        .excluded-sidebar {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            width: 250px;
+            max-height: calc(100vh - 40px);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            z-index: 100;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .excluded-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .excluded-sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .excluded-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .excluded-sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .excluded-sidebar-header i {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .excluded-sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            flex: 1;
+        }
+
+        .excluded-count {
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .excluded-list {
+            list-style: none;
+        }
+
+        .excluded-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .excluded-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .excluded-item-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .excluded-item-name {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .include-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(56, 239, 125, 0.3);
+        }
+
+        .include-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(56, 239, 125, 0.4);
+        }
+
+        .include-btn i {
+            font-size: 0.7rem;
+        }
+
+        .excluded-empty {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            padding: 20px 10px;
+        }
+
+        .excluded-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            color: white;
+            text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-bar {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 40px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .stat-item .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 25px;
+            padding-left: 55px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 1.3rem;
+            z-index: 2;
+        }
+
+        .create-new-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(17, 153, 142, 0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .create-new-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(17, 153, 142, 0.4);
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+        }
+
+        .create-new-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .create-new-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Sort Controls */
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            animation: fadeInUp 0.8s ease 0.45s both;
+        }
+
+        .sort-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .sort-label i {
+            font-size: 1.1rem;
+        }
+
+        .sort-toggle-group {
+            display: flex;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sort-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sort-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.9) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 50px;
+        }
+
+        .sort-btn.active::before {
+            opacity: 1;
+        }
+
+        .sort-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sort-btn.active {
+            color: #667eea;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .sort-btn.active i {
+            animation: sortPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes sortPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .sort-btn i {
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sort-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Reset Sort Button */
+        .reset-sort-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 107, 107, 0.3);
+            backdrop-filter: blur(10px);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .reset-sort-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .reset-sort-btn i {
+            font-size: 1rem;
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .page-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .page-card:hover::before {
+            left: 100%;
+        }
+
+        .page-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            border-color: #667eea;
+        }
+
+        /* Page icon removed for space optimization */
+
+        .page-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            word-break: break-word;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title-icon {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+        }
+
+        .page-filename {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 12px;
+            font-family: 'Courier New', monospace;
+            background: #f7fafc;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            word-break: break-all;
+        }
+
+        .file-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .file-type-badge.html {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .file-type-badge.php {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .page-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 15px;
+            margin-bottom: 15px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .page-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .page-size {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .open-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .open-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* AI Platform Button - Premium Look */
+        .platform-ai-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .platform-ai-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .platform-ai-btn:hover::before {
+            left: 100%;
+        }
+
+        .platform-ai-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 25px rgba(0, 255, 136, 0.6);
+            background: linear-gradient(135deg, #00cc66 0%, #00aa55 100%);
+        }
+
+        .platform-ai-btn:active {
+            transform: translateY(-1px) scale(1);
+        }
+
+        .platform-ai-btn i {
+            font-size: 1rem;
+            animation: robotPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes robotPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .delete-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(135deg, #ff5252 0%, #d63031 100%);
+        }
+
+        .open-btn {
+            flex: 1;
+        }
+
+        .add-back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(240, 147, 251, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+
+        .add-back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        }
+
+        .add-platform-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+
+        .add-platform-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .add-code-editor-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(56, 239, 125, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+
+        .add-code-editor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 239, 125, 0.4);
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+        }
+
+        .transfer-link-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(240, 147, 251, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+
+        .transfer-link-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        }
+        
+        .transfer-link-toggle-btn.has-transfer {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            box-shadow: 0 3px 12px rgba(255, 107, 107, 0.3);
+        }
+        
+        .transfer-link-toggle-btn.has-transfer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
+        }
+        
+        .transfer-link-toggle-btn.checking {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        .add-iframe-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(79, 172, 254, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+        
+        /* Add Super Admin Button */
+        .add-admin-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(6, 182, 212, 0.4);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+        
+        .add-admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        }
+        
+        .add-admin-btn i {
+            animation: shield-pulse 2s infinite;
+        }
+        
+        @keyframes shield-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Admin Toggle Button */
+        .admin-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(6, 182, 212, 0.4);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+        
+        .admin-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+        }
+        
+        .admin-toggle-btn.has-admin {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            box-shadow: 0 3px 12px rgba(255, 107, 107, 0.4);
+        }
+        
+        .admin-toggle-btn.has-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+            background: linear-gradient(135deg, #ee5a24 0%, #ff6b6b 100%);
+        }
+        
+        .admin-toggle-btn.checking {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            cursor: wait;
+            opacity: 0.7;
+        }
+        
+        .admin-toggle-btn i {
+            animation: shield-pulse 2s infinite;
+        }
+
+        .add-iframe-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+        }
+
+        .rename-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(255, 215, 0, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .rename-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            background: linear-gradient(135deg, #ffa500 0%, #ff8c00 100%);
+        }
+
+        .duplicate-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(56, 239, 125, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .duplicate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 239, 125, 0.4);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .edit-page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .edit-page-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .exclude-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(113, 128, 150, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            flex: 1 1 100%;
+        }
+
+        .exclude-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(113, 128, 150, 0.4);
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        .exclude-btn.excluded {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .exclude-btn.excluded:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #d63031 100%);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Editor Choice Buttons */
+        .editor-choice-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .editor-choice-label {
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .editor-choice-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+
+        .editor-choice-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .editor-choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: left 0.4s ease;
+        }
+
+        .editor-choice-btn:hover::before {
+            left: 100%;
+        }
+
+        .editor-choice-btn.ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .editor-choice-btn.ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .editor-choice-btn.classic {
+            background: linear-gradient(135deg, #2d2d30 0%, #1e1e1e 100%);
+            color: #d4d4d4;
+            border-color: #3e3e42;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .editor-choice-btn.classic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+            border-color: #667eea;
+            background: linear-gradient(135deg, #3e3e42 0%, #2d2d30 100%);
+        }
+
+        .editor-choice-btn i {
+            font-size: 0.9rem;
+        }
+
+        .editor-choice-btn.ai i {
+            animation: robotPulse 2s infinite;
+        }
+
+        @keyframes robotPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .button-group-full {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .button-row > *:not(.editor-choice-wrapper) {
+            flex: 1 1 auto;
+            min-width: 100px;
+        }
+
+        .button-row .platform-ai-btn {
+            flex: 1 1 auto;
+            min-width: 130px;
+        }
+
+        .button-row .editor-choice-wrapper {
+            flex: 0 0 auto;
+        }
+
+        /* Delete Confirmation Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 650px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .modal-icon i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .modal-message {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 10px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .modal-filename {
+            font-size: 1rem;
+            color: #e53e3e;
+            font-weight: 600;
+            text-align: center;
+            padding: 10px 20px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #ffa500;
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
+            background: white;
+        }
+
+        .modal-input::placeholder {
+            color: #a0aec0;
+        }
+
+        .modal-hint {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: -15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-btn-cancel {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .modal-btn-confirm:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #d63031 100%);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal-file-type {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .file-type-option {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: #f7fafc;
+        }
+
+        .file-type-option:hover {
+            border-color: #11998e;
+            background: rgba(17, 153, 142, 0.05);
+        }
+
+        .file-type-option.active {
+            border-color: #11998e;
+            background: rgba(17, 153, 142, 0.1);
+        }
+
+        .file-type-option input[type="radio"] {
+            display: none;
+        }
+
+        .file-type-label {
+            font-weight: 600;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .file-type-option.active .file-type-label {
+            color: #11998e;
+        }
+
+        .modal-checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(17, 153, 142, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-checkbox-wrapper:hover {
+            background: rgba(17, 153, 142, 0.1);
+        }
+
+        .modal-checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #11998e;
+        }
+
+        .modal-checkbox-wrapper label {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2d3748;
+            flex: 1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+            transition: transform 0.4s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-left: 5px solid #48bb78;
+        }
+
+        .toast.error {
+            border-left: 5px solid #f56565;
+        }
+
+        .toast i {
+            font-size: 1.5rem;
+        }
+
+        .toast.success i {
+            color: #48bb78;
+        }
+
+        .toast.error i {
+            color: #f56565;
+        }
+
+        .toast-message {
+            flex: 1;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            font-size: 1.5rem;
+            display: none;
+        }
+
+        .no-results i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(56, 239, 125, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% {
+                box-shadow: 0 8px 25px rgba(56, 239, 125, 0.4), 0 0 0 0 rgba(56, 239, 125, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 25px rgba(56, 239, 125, 0.4), 0 0 0 10px rgba(56, 239, 125, 0);
+            }
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.15) rotate(180deg);
+            box-shadow: 0 10px 35px rgba(56, 239, 125, 0.6);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .refresh-btn:active {
+            transform: scale(1.05) rotate(180deg);
+        }
+
+        .refresh-btn i {
+            font-size: 1.8rem;
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .refresh-btn::after {
+            content: 'Refresh';
+            position: absolute;
+            right: 85px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .refresh-btn:hover::after {
+            opacity: 1;
+        }
+
+        .refresh-btn::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .refresh-btn:hover::before {
+            opacity: 0.5;
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            from {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            to {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .header > div:first-child {
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+            
+            .header > div:first-child > div:last-child {
+                align-items: center !important;
+            }
+
+            .catalog-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+            }
+
+            .excluded-sidebar {
+                width: 200px;
+            }
+
+            .container {
+                margin-left: 220px;
+            }
+
+            .page-title {
+                font-size: 1.2rem;
+                gap: 8px;
+            }
+
+            .page-title-icon {
+                font-size: 1.2rem;
+            }
+
+            .button-row > * {
+                flex: 1 1 100%;
+            }
+
+            .sort-controls {
+                flex-wrap: wrap;
+            }
+
+            .sort-toggle-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .sort-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+
+            .sort-label {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Excluded Pages Sidebar -->
+    <div class="excluded-sidebar" id="excludedSidebar">
+        <div class="excluded-sidebar-header">
+            <i class="fas fa-eye-slash"></i>
+            <span class="excluded-sidebar-title">Excluded</span>
+            <span class="excluded-count" id="excludedCount">0</span>
+        </div>
+        <ul class="excluded-list" id="excludedList">
+            <div class="excluded-empty">
+                <i class="fas fa-inbox"></i>
+                <p>No excluded pages</p>
+            </div>
+        </ul>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 25px;">
+                    <img src="FuturisticLogo.png" alt="App-AI Logo" style="width: 100px; height: 100px; filter: drop-shadow(0 8px 25px rgba(0,0,0,0.4)); animation: logoFloat 3s ease-in-out infinite;">
+                    <div style="text-align: left;">
+                        <h1 style="font-size: 48px; margin: 0; background: linear-gradient(135deg, #22c55e 0%, #fbbf24 50%, #667eea 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: bold; display: inline-flex; align-items: center; gap: 15px;">
+                            <i class="fas fa-book" style="font-size: 42px; color: #667eea;"></i>
+                            <span>App-AI Catalog</span>
+                        </h1>
+                        <p style="font-size: 17px; margin: 8px 0 0 0; opacity: 0.9; color: rgba(255,255,255,0.9);">Explore all available HTML & PHP pages in your application</p>
+                    </div>
+                </div>
+                
+                <!-- Super Admin Logout Button -->
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="background: rgba(34,197,94,0.2); padding: 8px 16px; border-radius: 20px; border: 2px solid rgba(34,197,94,0.4); display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">🛡️</span>
+                            <span style="color: #86efac; font-size: 13px; font-weight: 600;">Super Admin</span>
+                        </div>
+                        <?php if (isset($_SESSION['remembered']) && $_SESSION['remembered']): ?>
+                        <div style="background: rgba(139,92,246,0.2); padding: 8px 16px; border-radius: 20px; border: 2px solid rgba(139,92,246,0.4); display: flex; align-items: center; gap: 6px;" title="Auto-login enabled">
+                            <span style="font-size: 14px;">🔒</span>
+                            <span style="color: #c4b5fd; font-size: 12px; font-weight: 600;">Remembered</span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="showBulkAdminModal()" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(6,182,212,0.4); transition: all 0.3s; border: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(6,182,212,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(6,182,212,0.4)'">
+                            <span style="font-size: 16px;">🛡️</span>
+                            <span>Bulk Admin</span>
+                        </button>
+                        <a href="?logout" onclick="return confirm('Are you sure you want to logout?')" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)'">
+                            <span style="font-size: 16px;">🚪</span>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <i class="fas fa-file-code"></i>
+                <span class="stat-number"><?php echo count($fileList); ?></span>
+                <span class="stat-label">Total Pages</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-folder-open"></i>
+                <span class="stat-number" id="visiblePages"><?php echo count($fileList); ?></span>
+                <span class="stat-label">Visible Pages</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-clock"></i>
+                <span class="stat-number"><?php echo date('H:i'); ?></span>
+                <span class="stat-label">Last Updated</span>
+            </div>
+        </div>
+
+        <!-- Database Connections Selector -->
+        <div style="background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%); border-radius: 16px; padding: 20px; margin: 25px 0; border: 2px solid rgba(102,126,234,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 250px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 15px rgba(102,126,234,0.3);">
+                        🗄️
+                    </div>
+                    <div>
+                        <h3 style="color: #fff; font-size: 18px; font-weight: 700; margin: 0 0 4px 0;">Database Connections</h3>
+                        <p style="color: rgba(255,255,255,0.7); font-size: 13px; margin: 0;">
+                            <span id="connStatusText">Loading...</span> • <span id="connCount">0</span> active
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 300px;">
+                    <select id="dbConnectionSelect" style="flex: 1; padding: 12px 16px; background: rgba(255,255,255,0.95); border: 2px solid rgba(102,126,234,0.3); border-radius: 10px; color: #1e293b; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.3)'" onblur="this.style.borderColor='rgba(102,126,234,0.3)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                        <option value="" style="color: #64748b;">Loading connections...</option>
+                    </select>
+                    
+                    <button id="showCredentialsBtn" onclick="showDatabaseCredentials()" style="padding: 12px 24px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: none; border-radius: 10px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(34,197,94,0.3); transition: all 0.3s; white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(34,197,94,0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34,197,94,0.3)'" disabled>
+                        <span style="font-size: 16px;">🔑</span>
+                        <span>Show Credentials</span>
+                    </button>
+                    
+                    <button onclick="refreshDatabaseConnections()" style="padding: 12px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; width: 44px; height: 44px;" onmouseover="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='rotate(180deg)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='rotate(0deg)'" title="Refresh Connections">
+                        🔄
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="🔍 Search pages by name or filename..."
+                    autocomplete="off"
+                >
+            </div>
+            <button class="create-new-btn" onclick="showCreateFileModal()">
+                <i class="fas fa-plus-circle"></i>
+                Create New File
+            </button>
+        </div>
+
+        <!-- Sort Controls -->
+        <div class="sort-controls">
+            <div class="sort-label">
+                <i class="fas fa-sort"></i>
+                <span>Sort:</span>
+            </div>
+            <div class="sort-toggle-group">
+                <button class="sort-btn" id="sortDateBtn" onclick="sortBy('date')" title="Sort by Date (Newest First)">
+                    <i class="fas fa-clock"></i>
+                    <span>Date</span>
+                </button>
+                <button class="sort-btn" id="sortAtoZBtn" onclick="sortBy('a-z')" title="Sort A to Z">
+                    <i class="fas fa-sort-alpha-down"></i>
+                    <span>A → Z</span>
+                </button>
+                <button class="sort-btn" id="sortZtoABtn" onclick="sortBy('z-a')" title="Sort Z to A">
+                    <i class="fas fa-sort-alpha-up"></i>
+                    <span>Z → A</span>
+                </button>
+            </div>
+            <button class="reset-sort-btn" onclick="resetSort()" title="Reset to Default (Date)">
+                <i class="fas fa-undo"></i>
+            </button>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid">
+            <?php if (empty($fileList)): ?>
+                <div class="no-results" style="display: block; grid-column: 1/-1;">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No HTML pages found in the directory</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($fileList as $file): ?>
+                    <?php
+                    // Determine icon based on filename
+                    $filename = strtolower($file['filename']);
+                    $icon = '📄'; // Default icon
+                    
+                    // Page type detection with emojis
+                    if (strpos($filename, 'dashboard') !== false) $icon = '📊';
+                    elseif (strpos($filename, 'index') !== false || strpos($filename, 'home') !== false) $icon = '🏠';
+                    elseif (strpos($filename, 'login') !== false || strpos($filename, 'signin') !== false) $icon = '🔐';
+                    elseif (strpos($filename, 'register') !== false || strpos($filename, 'signup') !== false) $icon = '📝';
+                    elseif (strpos($filename, 'profile') !== false || strpos($filename, 'account') !== false) $icon = '👤';
+                    elseif (strpos($filename, 'user') !== false || strpos($filename, 'employee') !== false) $icon = '👥';
+                    elseif (strpos($filename, 'product') !== false) $icon = '📦';
+                    elseif (strpos($filename, 'cart') !== false || strpos($filename, 'shop') !== false) $icon = '🛒';
+                    elseif (strpos($filename, 'order') !== false) $icon = '📋';
+                    elseif (strpos($filename, 'payment') !== false || strpos($filename, 'checkout') !== false) $icon = '💳';
+                    elseif (strpos($filename, 'setting') !== false || strpos($filename, 'config') !== false) $icon = '⚙️';
+                    elseif (strpos($filename, 'report') !== false || strpos($filename, 'analytic') !== false) $icon = '📈';
+                    elseif (strpos($filename, 'message') !== false || strpos($filename, 'chat') !== false) $icon = '💬';
+                    elseif (strpos($filename, 'notification') !== false || strpos($filename, 'alert') !== false) $icon = '🔔';
+                    elseif (strpos($filename, 'calendar') !== false || strpos($filename, 'event') !== false) $icon = '📅';
+                    elseif (strpos($filename, 'contact') !== false) $icon = '📞';
+                    elseif (strpos($filename, 'about') !== false) $icon = 'ℹ️';
+                    elseif (strpos($filename, 'blog') !== false || strpos($filename, 'post') !== false) $icon = '✍️';
+                    elseif (strpos($filename, 'gallery') !== false || strpos($filename, 'image') !== false) $icon = '🖼️';
+                    elseif (strpos($filename, 'video') !== false || strpos($filename, 'media') !== false) $icon = '🎬';
+                    elseif (strpos($filename, 'search') !== false) $icon = '🔍';
+                    elseif (strpos($filename, 'help') !== false || strpos($filename, 'faq') !== false) $icon = '❓';
+                    elseif (strpos($filename, 'api') !== false || strpos($filename, 'backend') !== false) $icon = '🔌';
+                    elseif (strpos($filename, 'admin') !== false) $icon = '👑';
+                    elseif (strpos($filename, 'database') !== false || strpos($filename, 'db') !== false) $icon = '🗄️';
+                    elseif (strpos($filename, 'form') !== false) $icon = '📋';
+                    elseif (strpos($filename, 'table') !== false) $icon = '📊';
+                    elseif (strpos($filename, 'list') !== false) $icon = '📝';
+                    elseif (strpos($filename, 'detail') !== false || strpos($filename, 'view') !== false) $icon = '👁️';
+                    elseif (strpos($filename, 'edit') !== false || strpos($filename, 'update') !== false) $icon = '✏️';
+                    elseif (strpos($filename, 'delete') !== false || strpos($filename, 'remove') !== false) $icon = '🗑️';
+                    elseif (strpos($filename, 'create') !== false || strpos($filename, 'add') !== false || strpos($filename, 'new') !== false) $icon = '➕';
+                    elseif (strpos($filename, 'download') !== false) $icon = '⬇️';
+                    elseif (strpos($filename, 'upload') !== false) $icon = '⬆️';
+                    elseif (strpos($filename, 'export') !== false) $icon = '📤';
+                    elseif (strpos($filename, 'import') !== false) $icon = '📥';
+                    elseif (strpos($filename, 'print') !== false) $icon = '🖨️';
+                    elseif (strpos($filename, 'email') !== false || strpos($filename, 'mail') !== false) $icon = '📧';
+                    elseif (strpos($filename, 'invoice') !== false || strpos($filename, 'bill') !== false) $icon = '🧾';
+                    elseif (strpos($filename, 'customer') !== false || strpos($filename, 'client') !== false) $icon = '👔';
+                    elseif (strpos($filename, 'supplier') !== false || strpos($filename, 'vendor') !== false) $icon = '🏭';
+                    elseif (strpos($filename, 'inventory') !== false || strpos($filename, 'stock') !== false) $icon = '📦';
+                    elseif (strpos($filename, 'category') !== false) $icon = '🏷️';
+                    elseif (strpos($filename, 'tag') !== false) $icon = '🔖';
+                    elseif (strpos($filename, 'comment') !== false || strpos($filename, 'review') !== false) $icon = '💭';
+                    elseif (strpos($filename, 'rating') !== false || strpos($filename, 'star') !== false) $icon = '⭐';
+                    elseif (strpos($filename, 'favorite') !== false || strpos($filename, 'wishlist') !== false) $icon = '❤️';
+                    elseif (strpos($filename, 'bookmark') !== false) $icon = '🔖';
+                    elseif (strpos($filename, 'share') !== false) $icon = '🔗';
+                    elseif (strpos($filename, 'map') !== false || strpos($filename, 'location') !== false) $icon = '🗺️';
+                    elseif (strpos($filename, 'weather') !== false) $icon = '🌤️';
+                    elseif (strpos($filename, 'task') !== false || strpos($filename, 'todo') !== false) $icon = '✅';
+                    elseif (strpos($filename, 'project') !== false) $icon = '📁';
+                    elseif (strpos($filename, 'team') !== false) $icon = '👥';
+                    elseif (strpos($filename, 'department') !== false) $icon = '🏢';
+                    elseif (strpos($filename, 'company') !== false || strpos($filename, 'organization') !== false) $icon = '🏛️';
+                    elseif (strpos($filename, 'service') !== false) $icon = '🛠️';
+                    elseif (strpos($filename, 'price') !== false || strpos($filename, 'cost') !== false) $icon = '💰';
+                    elseif (strpos($filename, 'discount') !== false || strpos($filename, 'coupon') !== false) $icon = '🎟️';
+                    elseif (strpos($filename, 'promotion') !== false || strpos($filename, 'offer') !== false) $icon = '🎁';
+                    elseif (strpos($filename, 'sale') !== false) $icon = '💸';
+                    elseif (strpos($filename, 'transaction') !== false) $icon = '💳';
+                    elseif (strpos($filename, 'history') !== false || strpos($filename, 'log') !== false) $icon = '📜';
+                    elseif (strpos($filename, 'error') !== false || strpos($filename, '404') !== false) $icon = '❌';
+                    elseif (strpos($filename, 'success') !== false) $icon = '✅';
+                    elseif (strpos($filename, 'warning') !== false) $icon = '⚠️';
+                    elseif (strpos($filename, 'info') !== false) $icon = 'ℹ️';
+                    elseif (strpos($filename, 'test') !== false || strpos($filename, 'demo') !== false) $icon = '🧪';
+                    elseif (strpos($filename, 'template') !== false) $icon = '📋';
+                    elseif (strpos($filename, 'widget') !== false) $icon = '🧩';
+                    elseif (strpos($filename, 'plugin') !== false || strpos($filename, 'extension') !== false) $icon = '🔌';
+                    elseif (strpos($filename, 'theme') !== false || strpos($filename, 'style') !== false) $icon = '🎨';
+                    elseif (strpos($filename, 'layout') !== false) $icon = '📐';
+                    elseif (strpos($filename, 'component') !== false) $icon = '🧱';
+                    elseif (strpos($filename, 'module') !== false) $icon = '📦';
+                    elseif (strpos($filename, 'wizard') !== false || strpos($filename, 'step') !== false) $icon = '🪄';
+                    elseif (strpos($filename, 'tutorial') !== false || strpos($filename, 'guide') !== false) $icon = '📖';
+                    elseif (strpos($filename, 'documentation') !== false || strpos($filename, 'docs') !== false) $icon = '📚';
+                    
+                    // Format file size
+                    $size = $file['size'];
+                    $units = ['B', 'KB', 'MB', 'GB'];
+                    $i = 0;
+                    while ($size >= 1024 && $i < count($units) - 1) {
+                        $size /= 1024;
+                        $i++;
+                    }
+                    $sizeFormatted = round($size, 2) . ' ' . $units[$i];
+                    
+                    // Format date
+                    $modified = $file['modified'];
+                    $now = time();
+                    $diff = $now - $modified;
+                    $days = floor($diff / (60 * 60 * 24));
+                    
+                    if ($days == 0) $dateFormatted = 'Today';
+                    elseif ($days == 1) $dateFormatted = 'Yesterday';
+                    elseif ($days < 7) $dateFormatted = $days . ' days ago';
+                    else $dateFormatted = date('M j, Y', $modified);
+                    ?>
+                    
+                    <div class="page-card" 
+                         data-filename="<?php echo strtolower($file['filename']); ?>" 
+                         data-name="<?php echo strtolower($file['name']); ?>"
+                         data-extension="<?php echo strtolower($file['extension']); ?>"
+                         data-filepath="<?php echo htmlspecialchars($file['filename']); ?>"
+                         data-modified="<?php echo $file['modified']; ?>">
+                        <div class="page-title">
+                            <span class="page-title-icon"><?php echo $icon; ?></span>
+                            <span><?php echo htmlspecialchars($file['name']); ?></span>
+                        </div>
+                        <div class="page-filename">
+                            <?php echo htmlspecialchars($file['filename']); ?>
+                            <span class="file-type-badge <?php echo strtolower($file['extension']); ?>">
+                                <?php echo $file['extension']; ?>
+                            </span>
+                        </div>
+                        <div class="page-meta">
+                            <div class="page-date">
+                                <i class="far fa-calendar"></i>
+                                <span><?php echo $dateFormatted; ?></span>
+                            </div>
+                            <div class="page-size">
+                                <i class="far fa-file"></i>
+                                <span><?php echo $sizeFormatted; ?></span>
+                            </div>
+                        </div>
+                        <div class="button-group-full">
+                            <div class="button-row">
+                                <a href="<?php echo htmlspecialchars($file['path']); ?>" class="open-btn">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Open
+                                </a>
+                                <a href="platform_ai.php?file=<?php echo urlencode($file['filename']); ?>" class="platform-ai-btn" title="Open in AI Platform - Advanced Code Editor with Ollama">
+                                    <i class="fas fa-robot"></i>
+                                    AI Platform
+                                </a>
+                                <div class="editor-choice-wrapper">
+                                    <span class="editor-choice-label">Editor:</span>
+                                    <div class="editor-choice-buttons">
+                                        <a href="platform_ai.php?file=<?php echo urlencode($file['filename']); ?>" class="editor-choice-btn ai" title="Ollama AI Editor">
+                                            <i class="fas fa-robot"></i>
+                                            <span>Ollama</span>
+                                        </a>
+                                        <a href="platform.php?file=<?php echo urlencode($file['filename']); ?>" class="editor-choice-btn classic" title="Classic Editor">
+                                            <i class="fas fa-code"></i>
+                                            <span>Classic</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <button class="rename-btn" onclick="showRenameModal('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')">
+                                    <i class="fas fa-edit"></i>
+                                    Rename
+                                </button>
+                                <button class="duplicate-btn" onclick="showDuplicateModal('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')">
+                                    <i class="fas fa-copy"></i>
+                                    Duplicate
+                                </button>
+                                <button class="edit-page-btn" 
+                                        data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                        onclick="checkAndShowEditModal('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')"
+                                        style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="fas fa-cog"></i>
+                                    Edit Page
+                                </button>
+                                <button class="delete-btn" onclick="showDeleteModal('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Delete
+                                </button>
+                                <button class="admin-toggle-btn" 
+                                        id="admin-btn-<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                        data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                        onclick="toggleAdminPassword('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')" 
+                                        title="Toggle Super Admin Protection">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span class="admin-btn-text">Checking...</span>
+                                </button>
+                            </div>
+                            <button class="add-back-btn" 
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="toggleBackButton('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>', this)">
+                                <i class="fas fa-home"></i>
+                                Add Back Home
+                            </button>
+                            <button class="add-code-editor-btn" 
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="toggleCodeEditorButton('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>', this)">
+                                <i class="fas fa-code"></i>
+                                Add Back to Code Editor
+                            </button>
+                            <button class="add-platform-btn" 
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="togglePlatformButton('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>', this)">
+                                <i class="fas fa-robot"></i>
+                                Add Back to AI Platform
+                            </button>
+                            <button class="exclude-btn" 
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="togglePageVisibility('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>')">
+                                <i class="fas fa-eye-slash"></i>
+                                Exclude Page
+                            </button>
+                            <button class="transfer-link-toggle-btn" 
+                                    id="transfer-btn-<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="toggleTransferLink('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>', this)">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span class="transfer-btn-text">Checking...</span>
+                            </button>
+                            <button class="add-iframe-btn" 
+                                    data-filename="<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>"
+                                    onclick="showIframeModal('<?php echo htmlspecialchars($file['filename'], ENT_QUOTES); ?>', this)">
+                                <i class="fas fa-window-restore"></i>
+                                Append iFrame
+                            </button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="no-results" id="noResults">
+            <i class="fas fa-search-minus"></i>
+            <p>No pages found matching your search</p>
+        </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button class="refresh-btn" onclick="location.reload()" title="Refresh Catalog">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="modal-title">Delete File?</h2>
+            <p class="modal-message">Are you sure you want to permanently delete this file? This action cannot be undone.</p>
+            <div class="modal-filename" id="modalFilename"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" id="confirmDeleteBtn" onclick="confirmDelete()">
+                    <i class="fas fa-trash-alt"></i>
+                    Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div class="modal-overlay" id="renameModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="color: #ffa500;">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h2 class="modal-title">Rename File</h2>
+            <p class="modal-message">Enter a new name for this file:</p>
+            <div class="modal-filename" id="renameOldFilename" style="background: rgba(255, 165, 0, 0.1); color: #ff8c00;"></div>
+            <input type="text" 
+                   id="renameInput" 
+                   class="modal-input" 
+                   placeholder="new-filename.html"
+                   autocomplete="off">
+            <p class="modal-hint">
+                <i class="fas fa-info-circle"></i>
+                Include file extension (.html or .php)
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeRenameModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmRenameBtn" 
+                        onclick="confirmRename()"
+                        style="background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-check"></i>
+                    Rename File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Duplicate Modal -->
+    <div class="modal-overlay" id="duplicateModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="color: #38ef7d;">
+                <i class="fas fa-copy"></i>
+            </div>
+            <h2 class="modal-title">✨ Duplicate File</h2>
+            <p class="modal-message">Create a copy of this file with a new name:</p>
+            <div class="modal-filename" id="duplicateSourceFilename" style="background: rgba(56, 239, 125, 0.1); color: #11998e; margin-bottom: 15px;"></div>
+            
+            <div style="background: rgba(56, 239, 125, 0.08); border: 2px solid rgba(56, 239, 125, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #11998e; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-file-signature"></i> New File Name:
+                </label>
+                <input type="text" 
+                       id="duplicateInput" 
+                       class="modal-input" 
+                       placeholder="filename_copy.html"
+                       autocomplete="off"
+                       style="border: 2px solid rgba(56, 239, 125, 0.4); box-shadow: 0 3px 12px rgba(56, 239, 125, 0.15);">
+            </div>
+            
+            <p class="modal-hint" style="background: rgba(56, 239, 125, 0.05); padding: 10px; border-radius: 8px; border-left: 3px solid #38ef7d;">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Tip:</strong> The default name will be "<strong>originalname_copy.ext</strong>" but you can change it to anything you want!
+            </p>
+            <p class="modal-hint">
+                <i class="fas fa-info-circle"></i>
+                Include file extension (.html or .php)
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDuplicateModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmDuplicateBtn" 
+                        onclick="confirmDuplicate()"
+                        style="background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);">
+                    <i class="fas fa-copy"></i>
+                    Duplicate File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create File Modal -->
+    <div class="modal-overlay" id="createFileModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="color: #11998e;">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <h2 class="modal-title">Create New File</h2>
+            <p class="modal-message">Enter file details to create a new page:</p>
+            
+            <!-- File Type Selection -->
+            <div class="modal-file-type">
+                <div class="file-type-option active" id="htmlOption" onclick="selectFileType('html')">
+                    <input type="radio" name="fileType" value="html" id="htmlRadio" checked>
+                    <label class="file-type-label" for="htmlRadio">
+                        <i class="fab fa-html5"></i>
+                        HTML File
+                    </label>
+                </div>
+                <div class="file-type-option" id="phpOption" onclick="selectFileType('php')">
+                    <input type="radio" name="fileType" value="php" id="phpRadio">
+                    <label class="file-type-label" for="phpRadio">
+                        <i class="fab fa-php"></i>
+                        PHP File
+                    </label>
+                </div>
+            </div>
+
+            <!-- Filename Input -->
+            <input type="text" 
+                   id="createFileInput" 
+                   class="modal-input" 
+                   placeholder="my-new-page.html"
+                   autocomplete="off">
+            <p class="modal-hint">
+                <i class="fas fa-info-circle"></i>
+                Include file extension (.html or .php)
+            </p>
+
+            <!-- Template Selection -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                    <i class="fas fa-layer-group"></i> Choose Template:
+                </label>
+                <select id="templateSelect" class="modal-input" style="cursor: pointer;">
+                    <optgroup label="Empty Pages">
+                        <option value="empty">📄 Empty Page (No Title)</option>
+                        <option value="empty_with_title">📝 Empty Page with Title</option>
+                    </optgroup>
+                    <optgroup label="Landing Pages" id="htmlTemplates">
+                        <option value="landing_modern">🚀 Modern Landing Page</option>
+                        <option value="landing_startup">💡 Startup Landing Page</option>
+                        <option value="landing_app">📱 App Landing Page</option>
+                        <option value="landing_saas">☁️ SaaS Landing Page</option>
+                        <option value="landing_product">🎯 Product Showcase</option>
+                    </optgroup>
+                    <optgroup label="Authentication" id="htmlAuth">
+                        <option value="login_modern">🔐 Modern Login Page</option>
+                        <option value="login_minimal">🔑 Minimal Login</option>
+                        <option value="signup">📝 Sign Up Page</option>
+                        <option value="forgot_password">🔄 Forgot Password</option>
+                    </optgroup>
+                    <optgroup label="Dashboard & Admin" id="htmlDashboard">
+                        <option value="dashboard">📊 Dashboard</option>
+                        <option value="admin_panel">⚙️ Admin Panel</option>
+                        <option value="analytics">📈 Analytics Page</option>
+                    </optgroup>
+                    <optgroup label="Portfolio & Resume" id="htmlPortfolio">
+                        <option value="portfolio">🎨 Portfolio Page</option>
+                        <option value="resume">📄 Resume/CV Page</option>
+                        <option value="about_me">👤 About Me Page</option>
+                    </optgroup>
+                    <optgroup label="E-Commerce" id="htmlEcommerce">
+                        <option value="product_page">🛍️ Product Page</option>
+                        <option value="cart">🛒 Shopping Cart</option>
+                        <option value="checkout">💳 Checkout Page</option>
+                    </optgroup>
+                    <optgroup label="Blog & Content" id="htmlBlog">
+                        <option value="blog_home">📰 Blog Homepage</option>
+                        <option value="blog_post">📝 Blog Post</option>
+                        <option value="article">📄 Article Page</option>
+                    </optgroup>
+                    <optgroup label="Contact & Forms" id="htmlContact">
+                        <option value="contact">📧 Contact Page</option>
+                        <option value="form_page">📋 Form Page</option>
+                    </optgroup>
+                    <optgroup label="Coming Soon & Maintenance" id="htmlStatus">
+                        <option value="coming_soon">🚧 Coming Soon</option>
+                        <option value="maintenance">🔧 Maintenance Mode</option>
+                        <option value="404">❌ 404 Error Page</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Page Title Input -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                    <i class="fas fa-heading"></i> Page Title:
+                </label>
+                <input type="text" 
+                       id="pageTitleInput" 
+                       class="modal-input" 
+                       placeholder="Enter page title..."
+                       autocomplete="off">
+                <p class="modal-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Title will be displayed on the page (if option enabled)
+                </p>
+            </div>
+
+            <!-- Include Title Checkbox -->
+            <div class="modal-checkbox-wrapper">
+                <input type="checkbox" id="includeTitleCheckbox" checked>
+                <label for="includeTitleCheckbox">
+                    <i class="fas fa-text-height"></i>
+                    Show title on page
+                </label>
+            </div>
+
+            <!-- Favicon Upload -->
+            <div style="margin-bottom: 20px; background: rgba(79, 172, 254, 0.05); padding: 15px; border-radius: 12px; border: 2px dashed rgba(79, 172, 254, 0.3);">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-icons"></i> Favicon (Optional):
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="file" 
+                           id="faviconInput" 
+                           accept="image/*"
+                           style="flex: 1; padding: 10px; border: 2px solid rgba(79, 172, 254, 0.4); border-radius: 8px; background: white; cursor: pointer;">
+                    <div id="faviconPreview" style="width: 40px; height: 40px; border: 2px solid rgba(79, 172, 254, 0.4); border-radius: 8px; display: none; align-items: center; justify-content: center; background: white; overflow: hidden;">
+                        <img id="faviconPreviewImg" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                </div>
+                <p class="modal-hint" style="margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i>
+                    Favicon will appear in the browser tab (recommended: 32×32px or 64×64px PNG/ICO)
+                </p>
+            </div>
+
+            <!-- Logo Upload -->
+            <div style="margin-bottom: 20px; background: rgba(56, 239, 125, 0.05); padding: 15px; border-radius: 12px; border: 2px dashed rgba(56, 239, 125, 0.3);">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-image"></i> Logo (Optional):
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="file" 
+                           id="logoInput" 
+                           accept="image/*"
+                           style="flex: 1; padding: 10px; border: 2px solid rgba(56, 239, 125, 0.4); border-radius: 8px; background: white; cursor: pointer;">
+                    <div id="logoPreview" style="width: 80px; height: 60px; border: 2px solid rgba(56, 239, 125, 0.4); border-radius: 8px; display: none; align-items: center; justify-content: center; background: white; overflow: hidden;">
+                        <img id="logoPreviewImg" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                </div>
+                <p class="modal-hint" style="margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i>
+                    Logo will appear in the top-left corner of the page (any size, transparent PNG recommended)
+                </p>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeCreateFileModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmCreateBtn" 
+                        onclick="confirmCreateFile()"
+                        style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);">
+                    <i class="fas fa-plus-circle"></i>
+                    Create File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Page Modal -->
+    <div class="modal-overlay" id="editPageModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="color: #667eea;">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h2 class="modal-title">✨ Edit Page Settings</h2>
+            <p class="modal-message">Modify page configuration and regenerate:</p>
+            <div class="modal-filename" id="editPageFilename" style="background: rgba(102, 126, 234, 0.1); color: #667eea; margin-bottom: 15px;"></div>
+            
+            <!-- Template Selection -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                    <i class="fas fa-layer-group"></i> Choose Template:
+                </label>
+                <select id="editTemplateSelect" class="modal-input" style="cursor: pointer;">
+                    <optgroup label="Empty Pages">
+                        <option value="empty">📄 Empty Page (No Title)</option>
+                        <option value="empty_with_title">📝 Empty Page with Title</option>
+                    </optgroup>
+                    <optgroup label="Landing Pages">
+                        <option value="landing_modern">🚀 Modern Landing</option>
+                        <option value="landing_startup">💡 Startup Landing</option>
+                        <option value="landing_app">📱 App Landing</option>
+                    </optgroup>
+                    <optgroup label="Authentication">
+                        <option value="login_modern">🔐 Modern Login</option>
+                        <option value="login_minimal">🔑 Minimal Login</option>
+                        <option value="signup">📝 Sign Up</option>
+                    </optgroup>
+                    <optgroup label="Dashboard & Admin">
+                        <option value="dashboard">📊 Dashboard</option>
+                    </optgroup>
+                    <optgroup label="Portfolio & Resume">
+                        <option value="portfolio">🎨 Portfolio</option>
+                    </optgroup>
+                    <optgroup label="Contact & Forms">
+                        <option value="contact">📧 Contact Page</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Page Title Input -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 8px;">
+                    <i class="fas fa-heading"></i> Page Title:
+                </label>
+                <input type="text" 
+                       id="editPageTitleInput" 
+                       class="modal-input" 
+                       placeholder="Enter page title..."
+                       autocomplete="off">
+            </div>
+
+            <!-- Include Title Checkbox -->
+            <div class="modal-checkbox-wrapper">
+                <input type="checkbox" id="editIncludeTitleCheckbox" checked>
+                <label for="editIncludeTitleCheckbox">
+                    <i class="fas fa-text-height"></i>
+                    Show title on page
+                </label>
+            </div>
+
+            <!-- Favicon Upload -->
+            <div style="margin-bottom: 20px; background: rgba(79, 172, 254, 0.05); padding: 15px; border-radius: 12px; border: 2px dashed rgba(79, 172, 254, 0.3);">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-icons"></i> Favicon (Optional - leave empty to keep current):
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="file" 
+                           id="editFaviconInput" 
+                           accept="image/*"
+                           style="flex: 1; padding: 10px; border: 2px solid rgba(79, 172, 254, 0.4); border-radius: 8px; background: white; cursor: pointer;">
+                    <div id="editFaviconPreview" style="width: 40px; height: 40px; border: 2px solid rgba(79, 172, 254, 0.4); border-radius: 8px; display: none; align-items: center; justify-content: center; background: white; overflow: hidden;">
+                        <img id="editFaviconPreviewImg" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                </div>
+                <div id="editCurrentFavicon" style="margin-top: 10px; display: none; padding: 8px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #667eea;">
+                    <i class="fas fa-info-circle"></i> <span id="editCurrentFaviconText"></span>
+                </div>
+            </div>
+
+            <!-- Logo Upload -->
+            <div style="margin-bottom: 20px; background: rgba(56, 239, 125, 0.05); padding: 15px; border-radius: 12px; border: 2px dashed rgba(56, 239, 125, 0.3);">
+                <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-image"></i> Logo (Optional - leave empty to keep current):
+                </label>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <input type="file" 
+                           id="editLogoInput" 
+                           accept="image/*"
+                           style="flex: 1; padding: 10px; border: 2px solid rgba(56, 239, 125, 0.4); border-radius: 8px; background: white; cursor: pointer;">
+                    <div id="editLogoPreview" style="width: 80px; height: 60px; border: 2px solid rgba(56, 239, 125, 0.4); border-radius: 8px; display: none; align-items: center; justify-content: center; background: white; overflow: hidden;">
+                        <img id="editLogoPreviewImg" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                </div>
+                <div id="editCurrentLogo" style="margin-top: 10px; display: none; padding: 8px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; font-size: 12px; color: #667eea;">
+                    <i class="fas fa-info-circle"></i> <span id="editCurrentLogoText"></span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditPageModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmEditPageBtn" 
+                        onclick="confirmEditPage()"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    <i class="fas fa-save"></i>
+                    Save & Regenerate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Link Modal -->
+    <div class="modal-overlay" id="transferLinkModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-external-link-alt"></i>
+            </div>
+            <h2 class="modal-title">🔄 Add Transfer Link</h2>
+            <p class="modal-message">Enter the URL where this page should automatically redirect:</p>
+            <div class="modal-filename" id="transferLinkFilename" style="background: rgba(240, 147, 251, 0.1); color: #f5576c; margin-bottom: 15px;"></div>
+            
+            <div style="background: rgba(240, 147, 251, 0.08); border: 2px solid rgba(240, 147, 251, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #f5576c; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-link"></i> Target URL:
+                </label>
+                <input type="url" 
+                       id="transferLinkInput" 
+                       class="modal-input" 
+                       placeholder="https://example.com or page.html"
+                       autocomplete="off"
+                       style="border: 2px solid rgba(240, 147, 251, 0.4); box-shadow: 0 3px 12px rgba(240, 147, 251, 0.15);">
+            </div>
+            
+            <p class="modal-hint" style="background: rgba(240, 147, 251, 0.05); padding: 10px; border-radius: 8px; border-left: 3px solid #f093fb;">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Tip:</strong> When someone opens this page, they will be <strong>automatically redirected</strong> to the URL you specify.
+            </p>
+            <p class="modal-hint">
+                <i class="fas fa-info-circle"></i>
+                You can enter a full URL (https://...) or a relative path (page.html)
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeTransferLinkModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmTransferLinkBtn" 
+                        onclick="confirmTransferLink()"
+                        style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);">
+                    <i class="fas fa-link"></i>
+                    Add Transfer Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- iFrame Modal -->
+    <div class="modal-overlay" id="iframeModal">
+        <div class="modal-content">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-window-restore"></i>
+            </div>
+            <h2 class="modal-title">🖼️ Append iFrame</h2>
+            <p class="modal-message">Enter the URL of the content to embed in an iFrame:</p>
+            <div class="modal-filename" id="iframeFilename" style="background: rgba(79, 172, 254, 0.1); color: #00f2fe; margin-bottom: 15px;"></div>
+            
+            <div style="background: rgba(79, 172, 254, 0.08); border: 2px solid rgba(79, 172, 254, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #00f2fe; margin-bottom: 10px; font-size: 14px;">
+                    <i class="fas fa-globe"></i> iFrame URL:
+                </label>
+                <input type="url" 
+                       id="iframeInput" 
+                       class="modal-input" 
+                       placeholder="https://example.com"
+                       autocomplete="off"
+                       style="border: 2px solid rgba(79, 172, 254, 0.4); box-shadow: 0 3px 12px rgba(79, 172, 254, 0.15);">
+            </div>
+            
+            <p class="modal-hint" style="background: rgba(79, 172, 254, 0.05); padding: 10px; border-radius: 8px; border-left: 3px solid #4facfe;">
+                <i class="fas fa-lightbulb"></i>
+                <strong>Tip:</strong> The iFrame will be <strong>appended at the end</strong> of your page with a beautiful responsive design.
+            </p>
+            <p class="modal-hint">
+                <i class="fas fa-info-circle"></i>
+                Embedded content size: 100% width × 600px height (responsive)
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeIframeModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="modal-btn modal-btn-confirm" 
+                        id="confirmIframeBtn" 
+                        onclick="confirmIframe()"
+                        style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);">
+                    <i class="fas fa-plus-square"></i>
+                    Append iFrame
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span class="toast-message" id="toastMessage">Action completed</span>
+    </div>
+
+    <script>
+        // Generate animated background particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 60 + 20;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.page-card');
+            const noResults = document.getElementById('noResults');
+            const catalogGrid = document.getElementById('catalogGrid');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const filename = card.dataset.filename;
+                const name = card.dataset.name;
+                
+                if (filename.includes(searchTerm) || name.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('visiblePages').textContent = visibleCount;
+
+            if (visibleCount === 0 && searchTerm !== '') {
+                catalogGrid.style.display = 'none';
+                noResults.style.display = 'block';
+            } else {
+                catalogGrid.style.display = 'grid';
+                noResults.style.display = 'none';
+            }
+        });
+
+        // Delete functionality
+        let fileToDelete = null;
+
+        function showDeleteModal(filename) {
+            fileToDelete = filename;
+            document.getElementById('modalFilename').textContent = filename;
+            document.getElementById('deleteModal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+            fileToDelete = null;
+        }
+
+        async function confirmDelete() {
+            if (!fileToDelete) return;
+
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('filename', fileToDelete);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeDeleteModal();
+                    
+                    // Refresh page after short delay to show success message
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Yes, Delete';
+            }
+        }
+
+        // Toggle back button (add or remove)
+        async function toggleBackButton(filename, button) {
+            const isRemoveMode = button.classList.contains('remove-mode');
+            
+            button.disabled = true;
+            button.innerHTML = isRemoveMode ? 
+                '<i class="fas fa-spinner fa-spin"></i> Removing...' : 
+                '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_back_button');
+                formData.append('filename', filename);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    
+                    if (result.action === 'added') {
+                        // Switch to remove mode
+                        button.classList.add('remove-mode');
+                        button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Home';
+                        button.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                    } else if (result.action === 'removed') {
+                        // Switch to add mode
+                        button.classList.remove('remove-mode');
+                        button.innerHTML = '<i class="fas fa-home"></i> Add Back Home';
+                        button.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                    }
+                    button.disabled = false;
+                } else {
+                    showToast(result.message, 'error');
+                    button.disabled = false;
+                    button.innerHTML = isRemoveMode ? 
+                        '<i class="fas fa-trash-alt"></i> Remove Home' : 
+                        '<i class="fas fa-home"></i> Add Back Home';
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = isRemoveMode ? 
+                    '<i class="fas fa-trash-alt"></i> Remove Home' : 
+                    '<i class="fas fa-home"></i> Add Back Home';
+            }
+        }
+
+        // Toggle platform button (add or remove)
+        async function toggleCodeEditorButton(filename, button) {
+            const isRemoveMode = button.classList.contains('remove-mode');
+            
+            console.log('🟢 Toggle Code Editor Button:', filename, 'Remove mode:', isRemoveMode);
+            
+            button.disabled = true;
+            button.innerHTML = isRemoveMode ? 
+                '<i class="fas fa-spinner fa-spin"></i> Removing...' : 
+                '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_code_editor_button');
+                formData.append('filename', filename);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('🟢 Code Editor Button Response:', result);
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    
+                    if (result.action === 'added') {
+                        // Switch to remove mode
+                        button.classList.add('remove-mode');
+                        button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Code Editor';
+                        button.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                        console.log('✅ Code Editor button added to file');
+                    } else if (result.action === 'removed') {
+                        // Switch to add mode
+                        button.classList.remove('remove-mode');
+                        button.innerHTML = '<i class="fas fa-code"></i> Add Back to Code Editor';
+                        button.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                        console.log('✅ Code Editor button removed from file');
+                    }
+                    button.disabled = false;
+                } else {
+                    console.error('❌ Code Editor button error:', result.message);
+                    showToast(result.message, 'error');
+                    button.disabled = false;
+                    button.innerHTML = isRemoveMode ? 
+                        '<i class="fas fa-trash-alt"></i> Remove Code Editor' : 
+                        '<i class="fas fa-code"></i> Add Back to Code Editor';
+                }
+            } catch (error) {
+                console.error('❌ Code Editor button exception:', error);
+                showToast('Error: ' + error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = isRemoveMode ? 
+                    '<i class="fas fa-trash-alt"></i> Remove Code Editor' : 
+                    '<i class="fas fa-code"></i> Add Back to Code Editor';
+            }
+        }
+
+        async function togglePlatformButton(filename, button) {
+            const isRemoveMode = button.classList.contains('remove-mode');
+            
+            console.log('🔵 Toggle Platform Button:', filename, 'Remove mode:', isRemoveMode);
+            
+            button.disabled = true;
+            button.innerHTML = isRemoveMode ? 
+                '<i class="fas fa-spinner fa-spin"></i> Removing...' : 
+                '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_platform_button');
+                formData.append('filename', filename);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                console.log('🔵 Platform Button Response:', result);
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    
+                    if (result.action === 'added') {
+                        // Switch to remove mode
+                        button.classList.add('remove-mode');
+                        button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove AI Platform';
+                        button.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                        console.log('✅ Platform button added to file');
+                    } else if (result.action === 'removed') {
+                        // Switch to add mode
+                        button.classList.remove('remove-mode');
+                        button.innerHTML = '<i class="fas fa-robot"></i> Add Back to AI Platform';
+                        button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        console.log('✅ Platform button removed from file');
+                    }
+                    button.disabled = false;
+                } else {
+                    console.error('❌ Platform button error:', result.message);
+                    showToast(result.message, 'error');
+                    button.disabled = false;
+                    button.innerHTML = isRemoveMode ? 
+                        '<i class="fas fa-trash-alt"></i> Remove AI Platform' : 
+                        '<i class="fas fa-robot"></i> Add Back to AI Platform';
+                }
+            } catch (error) {
+                console.error('❌ Platform button exception:', error);
+                showToast('Error: ' + error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = isRemoveMode ? 
+                    '<i class="fas fa-trash-alt"></i> Remove AI Platform' : 
+                    '<i class="fas fa-robot"></i> Add Back to AI Platform';
+            }
+        }
+
+        // Rename functionality
+        let fileToRename = null;
+
+        function showRenameModal(filename) {
+            fileToRename = filename;
+            document.getElementById('renameOldFilename').textContent = filename;
+            
+            // Pre-fill input with current filename (without extension) for easy editing
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+            const extension = filename.substring(filename.lastIndexOf('.'));
+            
+            document.getElementById('renameInput').value = filename;
+            document.getElementById('renameInput').focus();
+            
+            // Select filename part only (not extension)
+            setTimeout(() => {
+                const input = document.getElementById('renameInput');
+                input.setSelectionRange(0, nameWithoutExt.length);
+            }, 100);
+            
+            document.getElementById('renameModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('renameInput').value = '';
+            fileToRename = null;
+        }
+
+        async function confirmRename() {
+            if (!fileToRename) return;
+
+            const newFilename = document.getElementById('renameInput').value.trim();
+            
+            if (!newFilename) {
+                showToast('Please enter a new filename!', 'error');
+                return;
+            }
+
+            if (newFilename === fileToRename) {
+                showToast('New filename must be different!', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmRenameBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Renaming...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'rename');
+                formData.append('old_filename', fileToRename);
+                formData.append('new_filename', newFilename);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeRenameModal();
+                    
+                    // Refresh page after short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Rename File';
+            }
+        }
+
+        // Duplicate functionality
+        let fileToDuplicate = null;
+
+        function showDuplicateModal(filename) {
+            fileToDuplicate = filename;
+            document.getElementById('duplicateSourceFilename').textContent = filename;
+            
+            // Generate default duplicate name: originalname_copy.ext
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+            const extension = filename.substring(filename.lastIndexOf('.'));
+            const defaultDuplicateName = nameWithoutExt + '_copy' + extension;
+            
+            document.getElementById('duplicateInput').value = defaultDuplicateName;
+            document.getElementById('duplicateInput').focus();
+            
+            // Select filename part only (not extension)
+            setTimeout(() => {
+                const input = document.getElementById('duplicateInput');
+                const namePartLength = (nameWithoutExt + '_copy').length;
+                input.setSelectionRange(0, namePartLength);
+            }, 100);
+            
+            document.getElementById('duplicateModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDuplicateModal() {
+            document.getElementById('duplicateModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('duplicateInput').value = '';
+            fileToDuplicate = null;
+        }
+
+        async function confirmDuplicate() {
+            if (!fileToDuplicate) return;
+
+            const newFilename = document.getElementById('duplicateInput').value.trim();
+            
+            if (!newFilename) {
+                showToast('Please enter a filename for the duplicate!', 'error');
+                return;
+            }
+
+            if (newFilename === fileToDuplicate) {
+                showToast('Duplicate filename must be different from the original!', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmDuplicateBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Duplicating...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'duplicate');
+                formData.append('source_filename', fileToDuplicate);
+                formData.append('new_filename', newFilename);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeDuplicateModal();
+                    
+                    // Refresh page after short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-copy"></i> Duplicate File';
+            }
+        }
+
+        // Allow Enter key to confirm rename
+        document.addEventListener('DOMContentLoaded', () => {
+            const renameInput = document.getElementById('renameInput');
+            if (renameInput) {
+                renameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmRename();
+                    }
+                });
+            }
+
+            // Enter key for duplicate
+            const duplicateInput = document.getElementById('duplicateInput');
+            if (duplicateInput) {
+                duplicateInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmDuplicate();
+                    }
+                });
+            }
+
+            // Enter key for create file
+            const createFileInput = document.getElementById('createFileInput');
+            if (createFileInput) {
+                createFileInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmCreateFile();
+                    }
+                });
+            }
+
+            // Enter key for transfer link
+            const transferLinkInput = document.getElementById('transferLinkInput');
+            if (transferLinkInput) {
+                transferLinkInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmTransferLink();
+                    }
+                });
+            }
+
+            // Enter key for iframe
+            const iframeInput = document.getElementById('iframeInput');
+            if (iframeInput) {
+                iframeInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmIframe();
+                    }
+                });
+            }
+        });
+
+        // Create File functionality
+        let selectedFileType = 'html';
+
+        function showCreateFileModal() {
+            document.getElementById('createFileModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('createFileInput').focus();
+        }
+
+        function closeCreateFileModal() {
+            document.getElementById('createFileModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('createFileInput').value = '';
+            document.getElementById('pageTitleInput').value = '';
+            document.getElementById('includeTitleCheckbox').checked = true;
+            selectedFileType = 'html';
+            // Reset to HTML option
+            document.getElementById('htmlOption').classList.add('active');
+            document.getElementById('phpOption').classList.remove('active');
+            document.getElementById('htmlRadio').checked = true;
+            // Reset template select to first option
+            document.getElementById('templateSelect').selectedIndex = 0;
+            // Clear file inputs and previews
+            document.getElementById('faviconInput').value = '';
+            document.getElementById('logoInput').value = '';
+            document.getElementById('faviconPreview').style.display = 'none';
+            document.getElementById('logoPreview').style.display = 'none';
+            document.getElementById('faviconPreviewImg').src = '';
+            document.getElementById('logoPreviewImg').src = '';
+        }
+
+        function selectFileType(type) {
+            selectedFileType = type;
+            const htmlOption = document.getElementById('htmlOption');
+            const phpOption = document.getElementById('phpOption');
+            const input = document.getElementById('createFileInput');
+            const templateSelect = document.getElementById('templateSelect');
+
+            if (type === 'html') {
+                htmlOption.classList.add('active');
+                phpOption.classList.remove('active');
+                document.getElementById('htmlRadio').checked = true;
+                
+                // Update placeholder
+                if (!input.value || input.value.endsWith('.php')) {
+                    input.placeholder = 'my-new-page.html';
+                }
+                
+                // Show HTML templates
+                templateSelect.innerHTML = `
+                    <optgroup label="Empty Pages">
+                        <option value="empty">📄 Empty Page (No Title)</option>
+                        <option value="empty_with_title">📝 Empty Page with Title</option>
+                    </optgroup>
+                    <optgroup label="Landing Pages">
+                        <option value="landing_modern">🚀 Modern Landing</option>
+                        <option value="landing_startup">💡 Startup Landing</option>
+                        <option value="landing_app">📱 App Landing</option>
+                        <option value="landing_saas">☁️ SaaS Landing</option>
+                        <option value="landing_product">🎯 Product Showcase</option>
+                    </optgroup>
+                    <optgroup label="Authentication">
+                        <option value="login_modern">🔐 Modern Login</option>
+                        <option value="login_minimal">🔑 Minimal Login</option>
+                        <option value="signup">📝 Sign Up</option>
+                        <option value="forgot_password">🔄 Forgot Password</option>
+                    </optgroup>
+                    <optgroup label="Dashboard & Admin">
+                        <option value="dashboard">📊 Dashboard</option>
+                        <option value="admin_panel">⚙️ Admin Panel</option>
+                        <option value="analytics">📈 Analytics</option>
+                    </optgroup>
+                    <optgroup label="Portfolio & Resume">
+                        <option value="portfolio">🎨 Portfolio</option>
+                        <option value="resume">📄 Resume/CV</option>
+                        <option value="about_me">👤 About Me</option>
+                    </optgroup>
+                    <optgroup label="E-Commerce">
+                        <option value="product_page">🛍️ Product Page</option>
+                        <option value="cart">🛒 Shopping Cart</option>
+                        <option value="checkout">💳 Checkout</option>
+                    </optgroup>
+                    <optgroup label="Blog & Content">
+                        <option value="blog_home">📰 Blog Homepage</option>
+                        <option value="blog_post">📝 Blog Post</option>
+                        <option value="article">📄 Article</option>
+                    </optgroup>
+                    <optgroup label="Contact & Forms">
+                        <option value="contact">📧 Contact Page</option>
+                        <option value="form_page">📋 Form Page</option>
+                    </optgroup>
+                    <optgroup label="Coming Soon & Maintenance">
+                        <option value="coming_soon">🚧 Coming Soon</option>
+                        <option value="maintenance">🔧 Maintenance</option>
+                        <option value="404">❌ 404 Error</option>
+                    </optgroup>
+                `;
+            } else {
+                phpOption.classList.add('active');
+                htmlOption.classList.remove('active');
+                document.getElementById('phpRadio').checked = true;
+                
+                // Update placeholder
+                if (!input.value || input.value.endsWith('.html')) {
+                    input.placeholder = 'my-new-api.php';
+                }
+                
+                // Show PHP templates
+                templateSelect.innerHTML = `
+                    <optgroup label="Empty Pages">
+                        <option value="empty">📄 Empty Page (No Title)</option>
+                        <option value="empty_with_title">📝 Empty Page with Title</option>
+                    </optgroup>
+                    <optgroup label="API Endpoints">
+                        <option value="api_rest">🔌 REST API</option>
+                        <option value="api_crud">🔄 CRUD API</option>
+                        <option value="api_auth">🔐 Authentication API</option>
+                        <option value="api_upload">📤 File Upload API</option>
+                    </optgroup>
+                    <optgroup label="Database Operations">
+                        <option value="db_connect">🗄️ Database Connection</option>
+                        <option value="db_operations">📊 DB Operations</option>
+                        <option value="db_migration">🔄 Migration Script</option>
+                    </optgroup>
+                    <optgroup label="Form Handlers">
+                        <option value="form_handler">📋 Form Handler</option>
+                        <option value="contact_handler">📧 Contact Form</option>
+                        <option value="ajax_handler">⚡ AJAX Handler</option>
+                    </optgroup>
+                    <optgroup label="Authentication & Security">
+                        <option value="login_handler">🔑 Login Handler</option>
+                        <option value="register_handler">📝 Registration</option>
+                        <option value="session_manager">🔒 Session Manager</option>
+                        <option value="jwt_auth">🎫 JWT Authentication</option>
+                    </optgroup>
+                    <optgroup label="Utilities">
+                        <option value="mailer">📧 Email Sender</option>
+                        <option value="image_processor">🖼️ Image Processor</option>
+                        <option value="pdf_generator">📄 PDF Generator</option>
+                        <option value="csv_exporter">📊 CSV Exporter</option>
+                    </optgroup>
+                `;
+            }
+        }
+
+        // Image preview handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Favicon preview
+            const faviconInput = document.getElementById('faviconInput');
+            const faviconPreview = document.getElementById('faviconPreview');
+            const faviconPreviewImg = document.getElementById('faviconPreviewImg');
+            
+            if (faviconInput) {
+                faviconInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            faviconPreviewImg.src = event.target.result;
+                            faviconPreview.style.display = 'flex';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        faviconPreview.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Logo preview
+            const logoInput = document.getElementById('logoInput');
+            const logoPreview = document.getElementById('logoPreview');
+            const logoPreviewImg = document.getElementById('logoPreviewImg');
+            
+            if (logoInput) {
+                logoInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            logoPreviewImg.src = event.target.result;
+                            logoPreview.style.display = 'flex';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        logoPreview.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        async function confirmCreateFile() {
+            const filename = document.getElementById('createFileInput').value.trim();
+            const template = document.getElementById('templateSelect').value;
+            const pageTitle = document.getElementById('pageTitleInput').value.trim();
+            const includeTitle = document.getElementById('includeTitleCheckbox').checked;
+            const faviconFile = document.getElementById('faviconInput').files[0];
+            const logoFile = document.getElementById('logoInput').files[0];
+
+            if (!filename) {
+                showToast('Please enter a filename!', 'error');
+                return;
+            }
+
+            // Check if filename has correct extension
+            const extension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+            if (extension !== '.html' && extension !== '.php') {
+                showToast('File must have .html or .php extension!', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmCreateBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'create_file');
+                formData.append('filename', filename);
+                formData.append('file_type', selectedFileType);
+                formData.append('template', template);
+                formData.append('page_title', pageTitle);
+                formData.append('include_title', includeTitle ? 'true' : 'false');
+                
+                // Append favicon if selected
+                if (faviconFile) {
+                    formData.append('favicon', faviconFile);
+                }
+                
+                // Append logo if selected
+                if (logoFile) {
+                    formData.append('logo', logoFile);
+                }
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeCreateFileModal();
+                    
+                    // Refresh page after short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Create File';
+            }
+        }
+
+        // ==========================================
+        // TRANSFER LINK FUNCTIONALITY
+        // ==========================================
+        
+        let currentTransferLinkFile = null;
+        let currentTransferLinkButton = null;
+
+        function showTransferLinkModal(filename, button) {
+            currentTransferLinkFile = filename;
+            currentTransferLinkButton = button;
+            
+            document.getElementById('transferLinkFilename').textContent = filename;
+            document.getElementById('transferLinkInput').value = '';
+            document.getElementById('transferLinkModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('transferLinkInput').focus();
+        }
+
+        function closeTransferLinkModal() {
+            document.getElementById('transferLinkModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('transferLinkInput').value = '';
+            currentTransferLinkFile = null;
+            currentTransferLinkButton = null;
+        }
+
+        async function confirmTransferLink() {
+            if (!currentTransferLinkFile) return;
+
+            const targetUrl = document.getElementById('transferLinkInput').value.trim();
+            
+            if (!targetUrl) {
+                showToast('Please enter a target URL!', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmTransferLinkBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_transfer_link');
+                formData.append('filename', currentTransferLinkFile);
+                formData.append('target_url', targetUrl);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeTransferLinkModal();
+                    
+                    // Update button state
+                    if (currentTransferLinkFile && result.action === 'added') {
+                        updateTransferLinkButton(currentTransferLinkFile, true);
+                    }
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-link"></i> Add Transfer Link';
+            }
+        }
+
+        // Check if Transfer Link exists
+        async function checkTransferLinkStatus(filename) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'check_transfer_link');
+                formData.append('filename', filename);
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                return result.exists;
+            } catch (error) {
+                console.error('Error checking transfer link status:', error);
+                return false;
+            }
+        }
+        
+        // Update Transfer Link button UI
+        function updateTransferLinkButton(filename, hasTransferLink) {
+            const btn = document.getElementById('transfer-btn-' + filename);
+            if (!btn) return;
+            
+            const textSpan = btn.querySelector('.transfer-btn-text');
+            btn.classList.remove('checking');
+            
+            if (hasTransferLink) {
+                btn.classList.add('has-transfer');
+                textSpan.textContent = 'Remove Transfer Link';
+            } else {
+                btn.classList.remove('has-transfer');
+                textSpan.textContent = 'Add Transfer Link';
+            }
+        }
+        
+        // Toggle Transfer Link (Add or Remove)
+        async function toggleTransferLink(filename, button) {
+            if (button.classList.contains('checking')) return;
+            
+            button.classList.add('checking');
+            const textSpan = button.querySelector('.transfer-btn-text');
+            textSpan.textContent = 'Checking...';
+            
+            const hasTransferLink = await checkTransferLinkStatus(filename);
+            
+            button.classList.remove('checking');
+            
+            if (hasTransferLink) {
+                // Remove Transfer Link
+                if (!confirm('Remove transfer link from this page?')) {
+                    updateTransferLinkButton(filename, hasTransferLink);
+                    return;
+                }
+                
+                await removeTransferLink(filename, button);
+            } else {
+                // Show Add Modal
+                showTransferLinkModal(filename, button);
+            }
+            
+            updateTransferLinkButton(filename, hasTransferLink);
+        }
+        
+        // Remove Transfer Link
+        async function removeTransferLink(filename, button) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_transfer_link');
+                formData.append('filename', filename);
+                formData.append('target_url', ''); // Empty URL means remove
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.action === 'removed') {
+                    showToast(result.message, 'success');
+                    updateTransferLinkButton(filename, false);
+                } else {
+                    showToast(result.message || 'Failed to remove transfer link', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error removing transfer link', 'error');
+            }
+        }
+
+        async function toggleRemoveTransferLink(filename, button) {
+            if (!confirm('Remove transfer link from this page?')) return;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_transfer_link');
+                formData.append('filename', filename);
+                formData.append('target_url', ''); // Empty to trigger remove
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.action === 'removed') {
+                    showToast(result.message, 'success');
+                    // Update button to add mode
+                    button.classList.remove('remove-mode');
+                    button.innerHTML = '<i class="fas fa-external-link-alt"></i> Add Transfer Link';
+                    button.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                    button.onclick = function() { showTransferLinkModal(filename, this); };
+                    button.disabled = false;
+                } else {
+                    showToast(result.message || 'Failed to remove transfer link', 'error');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Transfer Link';
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Transfer Link';
+            }
+        }
+
+        // ==========================================
+        // IFRAME FUNCTIONALITY
+        // ==========================================
+        
+        let currentIframeFile = null;
+        let currentIframeButton = null;
+
+        function showIframeModal(filename, button) {
+            currentIframeFile = filename;
+            currentIframeButton = button;
+            
+            document.getElementById('iframeFilename').textContent = filename;
+            document.getElementById('iframeInput').value = '';
+            document.getElementById('iframeModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('iframeInput').focus();
+        }
+
+        function closeIframeModal() {
+            document.getElementById('iframeModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('iframeInput').value = '';
+            currentIframeFile = null;
+            currentIframeButton = null;
+        }
+
+        async function confirmIframe() {
+            if (!currentIframeFile) return;
+
+            const iframeUrl = document.getElementById('iframeInput').value.trim();
+            
+            if (!iframeUrl) {
+                showToast('Please enter an iFrame URL!', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmIframeBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_iframe');
+                formData.append('filename', currentIframeFile);
+                formData.append('iframe_url', iframeUrl);
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeIframeModal();
+                    
+                    if (currentIframeButton && result.action === 'added') {
+                        // Update button to remove mode
+                        currentIframeButton.classList.add('remove-mode');
+                        currentIframeButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove iFrame';
+                        currentIframeButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                        currentIframeButton.onclick = function() { toggleRemoveIframe(currentIframeFile, this); };
+                    }
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-plus-square"></i> Append iFrame';
+            }
+        }
+
+        async function toggleRemoveIframe(filename, button) {
+            if (!confirm('Remove iFrame from this page?')) return;
+
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_iframe');
+                formData.append('filename', filename);
+                formData.append('iframe_url', ''); // Empty to trigger remove
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.action === 'removed') {
+                    showToast(result.message, 'success');
+                    // Update button to add mode
+                    button.classList.remove('remove-mode');
+                    button.innerHTML = '<i class="fas fa-window-restore"></i> Append iFrame';
+                    button.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                    button.onclick = function() { showIframeModal(filename, this); };
+                    button.disabled = false;
+                } else {
+                    showToast(result.message || 'Failed to remove iFrame', 'error');
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove iFrame';
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-trash-alt"></i> Remove iFrame';
+            }
+        }
+
+        // ==========================================
+        // EDIT PAGE FUNCTIONALITY
+        // ==========================================
+        
+        let currentEditFilename = null;
+
+        async function checkAndShowEditModal(filename) {
+            try {
+                const response = await fetch(filename);
+                const content = await response.text();
+                
+                if (content.includes('<!-- CATALOG_GENERATED_PAGE -->')) {
+                    showEditPageModal(filename, content);
+                } else {
+                    showToast('This page was not created by catalog!', 'error');
+                }
+            } catch (error) {
+                showToast('Error loading page: ' + error.message, 'error');
+            }
+        }
+
+        function showEditPageModal(filename, content) {
+            currentEditFilename = filename;
+            document.getElementById('editPageFilename').textContent = filename;
+            
+            // Try to extract current settings from content
+            // Extract page title from <title> tag
+            const titleMatch = content.match(/<title>(.*?)<\/title>/i);
+            if (titleMatch) {
+                document.getElementById('editPageTitleInput').value = titleMatch[1];
+            }
+            
+            // Check if favicon exists
+            const faviconMatch = content.match(/href="(assets\/favicon_[^"]+)"/i);
+            if (faviconMatch) {
+                document.getElementById('editCurrentFavicon').style.display = 'block';
+                document.getElementById('editCurrentFaviconText').textContent = `Current: ${faviconMatch[1]}`;
+            } else {
+                document.getElementById('editCurrentFavicon').style.display = 'none';
+            }
+            
+            // Check if logo exists
+            const logoMatch = content.match(/src="(assets\/logo_[^"]+)"/i);
+            if (logoMatch) {
+                document.getElementById('editCurrentLogo').style.display = 'block';
+                document.getElementById('editCurrentLogoText').textContent = `Current: ${logoMatch[1]}`;
+            } else {
+                document.getElementById('editCurrentLogo').style.display = 'none';
+            }
+            
+            // Show modal
+            document.getElementById('editPageModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeEditPageModal() {
+            document.getElementById('editPageModal').classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('editPageTitleInput').value = '';
+            document.getElementById('editIncludeTitleCheckbox').checked = true;
+            document.getElementById('editFaviconInput').value = '';
+            document.getElementById('editLogoInput').value = '';
+            document.getElementById('editFaviconPreview').style.display = 'none';
+            document.getElementById('editLogoPreview').style.display = 'none';
+            document.getElementById('editTemplateSelect').selectedIndex = 0;
+            currentEditFilename = null;
+        }
+
+        async function confirmEditPage() {
+            if (!currentEditFilename) return;
+
+            const template = document.getElementById('editTemplateSelect').value;
+            const pageTitle = document.getElementById('editPageTitleInput').value.trim();
+            const includeTitle = document.getElementById('editIncludeTitleCheckbox').checked;
+            const faviconFile = document.getElementById('editFaviconInput').files[0];
+            const logoFile = document.getElementById('editLogoInput').files[0];
+
+            const confirmBtn = document.getElementById('confirmEditPageBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'edit_page');
+                formData.append('filename', currentEditFilename);
+                formData.append('template', template);
+                formData.append('page_title', pageTitle);
+                formData.append('include_title', includeTitle ? 'true' : 'false');
+                
+                // Append files if selected
+                if (faviconFile) {
+                    formData.append('favicon', faviconFile);
+                }
+                
+                if (logoFile) {
+                    formData.append('logo', logoFile);
+                }
+
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    closeEditPageModal();
+                    
+                    // Refresh page after short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-save"></i> Save & Regenerate';
+            }
+        }
+
+        // Edit page image preview handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            // Edit Favicon preview
+            const editFaviconInput = document.getElementById('editFaviconInput');
+            const editFaviconPreview = document.getElementById('editFaviconPreview');
+            const editFaviconPreviewImg = document.getElementById('editFaviconPreviewImg');
+            
+            if (editFaviconInput) {
+                editFaviconInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            editFaviconPreviewImg.src = event.target.result;
+                            editFaviconPreview.style.display = 'flex';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        editFaviconPreview.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Edit Logo preview
+            const editLogoInput = document.getElementById('editLogoInput');
+            const editLogoPreview = document.getElementById('editLogoPreview');
+            const editLogoPreviewImg = document.getElementById('editLogoPreviewImg');
+            
+            if (editLogoInput) {
+                editLogoInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            editLogoPreviewImg.src = event.target.result;
+                            editLogoPreview.style.display = 'flex';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        editLogoPreview.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const icon = toast.querySelector('i');
+
+            // Remove existing classes
+            toast.classList.remove('success', 'error', 'show');
+            
+            // Set icon based on type
+            if (type === 'success') {
+                icon.className = 'fas fa-check-circle';
+                toast.classList.add('success');
+            } else {
+                icon.className = 'fas fa-exclamation-circle';
+                toast.classList.add('error');
+            }
+
+            toastMessage.textContent = message;
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close delete modal on overlay click
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+            if (e.target.id === 'deleteModal') {
+                closeDeleteModal();
+            }
+        });
+
+        // Close rename modal on overlay click
+        document.getElementById('renameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'renameModal') {
+                closeRenameModal();
+            }
+        });
+
+        // Close duplicate modal on overlay click
+        document.getElementById('duplicateModal').addEventListener('click', (e) => {
+            if (e.target.id === 'duplicateModal') {
+                closeDuplicateModal();
+            }
+        });
+
+        // Close create file modal on overlay click
+        document.getElementById('createFileModal').addEventListener('click', (e) => {
+            if (e.target.id === 'createFileModal') {
+                closeCreateFileModal();
+            }
+        });
+
+        // Close transfer link modal on overlay click
+        document.getElementById('transferLinkModal').addEventListener('click', (e) => {
+            if (e.target.id === 'transferLinkModal') {
+                closeTransferLinkModal();
+            }
+        });
+
+        // Close iframe modal on overlay click
+        document.getElementById('iframeModal').addEventListener('click', (e) => {
+            if (e.target.id === 'iframeModal') {
+                closeIframeModal();
+            }
+        });
+
+        // Close edit page modal on overlay click
+        document.getElementById('editPageModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editPageModal') {
+                closeEditPageModal();
+            }
+        });
+
+        // Close modals on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+                closeRenameModal();
+                closeDuplicateModal();
+                closeCreateFileModal();
+                closeTransferLinkModal();
+                closeIframeModal();
+                closeEditPageModal();
+            }
+        });
+
+        // Initialize button states based on file type and content
+        async function initializeButtonStates() {
+            const cards = document.querySelectorAll('.page-card');
+            console.log('🔄 Initializing button states for', cards.length, 'cards');
+            
+            for (const card of cards) {
+                const extension = card.dataset.extension;
+                const filepath = card.dataset.filepath;
+                const homeButton = card.querySelector('.add-back-btn');
+                const codeEditorButton = card.querySelector('.add-code-editor-btn');
+                const platformButton = card.querySelector('.add-platform-btn');
+                
+                // For both HTML and PHP files - check if buttons exist
+                if (extension === 'html' || extension === 'php') {
+                    try {
+                        const response = await fetch(filepath);
+                        const content = await response.text();
+                        
+                        // Check if page is catalog-generated
+                        const editPageButton = card.querySelector('.edit-page-btn');
+                        if (editPageButton) {
+                            const isCatalogGenerated = content.includes('<!-- CATALOG_GENERATED_PAGE -->');
+                            console.log('  ⚙️', filepath, '- Catalog generated:', isCatalogGenerated);
+                            
+                            if (isCatalogGenerated) {
+                                editPageButton.style.display = 'inline-flex';
+                            }
+                        }
+                        
+                        // Check Home button
+                        if (homeButton) {
+                            const hasHomeBtn = content.includes('id="backToCatalogBtn"') || content.includes('catalog-back-btn');
+                            console.log('  🏠', filepath, '- Home button exists:', hasHomeBtn);
+                            
+                            if (hasHomeBtn) {
+                                // Back button exists - show remove mode
+                                homeButton.classList.add('remove-mode');
+                                homeButton.disabled = false;
+                                homeButton.style.opacity = '1';
+                                homeButton.style.cursor = 'pointer';
+                                homeButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                                homeButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Home';
+                            } else {
+                                // Back button doesn't exist - show add mode
+                                homeButton.classList.remove('remove-mode');
+                                homeButton.disabled = false;
+                                homeButton.style.opacity = '1';
+                                homeButton.style.cursor = 'pointer';
+                                homeButton.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+                                homeButton.innerHTML = '<i class="fas fa-home"></i> Add Back Home';
+                            }
+                        }
+                        
+                        // Check Code Editor button
+                        if (codeEditorButton) {
+                            const hasCodeEditorBtn = content.includes('id="backToCodeEditorBtn"') || content.includes('code-editor-back-btn');
+                            console.log('  🟢', filepath, '- Code Editor button exists:', hasCodeEditorBtn);
+                            
+                            if (hasCodeEditorBtn) {
+                                // Code Editor button exists - show remove mode
+                                codeEditorButton.classList.add('remove-mode');
+                                codeEditorButton.disabled = false;
+                                codeEditorButton.style.opacity = '1';
+                                codeEditorButton.style.cursor = 'pointer';
+                                codeEditorButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                                codeEditorButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove Code Editor';
+                            } else {
+                                // Code Editor button doesn't exist - show add mode
+                                codeEditorButton.classList.remove('remove-mode');
+                                codeEditorButton.disabled = false;
+                                codeEditorButton.style.opacity = '1';
+                                codeEditorButton.style.cursor = 'pointer';
+                                codeEditorButton.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                                codeEditorButton.innerHTML = '<i class="fas fa-code"></i> Add Back to Code Editor';
+                            }
+                        }
+                        
+                        // Check Platform button
+                        if (platformButton) {
+                            const hasPlatformBtn = content.includes('id="backToPlatformBtn"') || content.includes('platform-back-btn');
+                            console.log('  💻', filepath, '- Platform button exists:', hasPlatformBtn);
+                            
+                            if (hasPlatformBtn) {
+                                // Platform button exists - show remove mode
+                                platformButton.classList.add('remove-mode');
+                                platformButton.disabled = false;
+                                platformButton.style.opacity = '1';
+                                platformButton.style.cursor = 'pointer';
+                                platformButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                                platformButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove AI Platform';
+                            } else {
+                                // Platform button doesn't exist - show add mode
+                                platformButton.classList.remove('remove-mode');
+                                platformButton.disabled = false;
+                                platformButton.style.opacity = '1';
+                                platformButton.style.cursor = 'pointer';
+                                platformButton.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                                platformButton.innerHTML = '<i class="fas fa-robot"></i> Add Back to AI Platform';
+                            }
+                        }
+                        
+                        // Check Transfer Link button
+                        const transferLinkButton = card.querySelector('.transfer-link-toggle-btn');
+                        if (transferLinkButton) {
+                            const hasTransferLink = content.includes('id="autoTransferScript"') || content.includes('auto-transfer-redirect');
+                            console.log('  🔄', filepath, '- Transfer Link exists:', hasTransferLink);
+                            updateTransferLinkButton(filepath, hasTransferLink);
+                        }
+                        
+                        // Check iFrame button
+                        const iframeButton = card.querySelector('.add-iframe-btn');
+                        if (iframeButton) {
+                            const hasIframe = content.includes('id="appendedIframe"') || content.includes('appended-iframe-container');
+                            console.log('  🖼️', filepath, '- iFrame exists:', hasIframe);
+                            
+                            if (hasIframe) {
+                                // iFrame exists - show remove mode
+                                iframeButton.classList.add('remove-mode');
+                                iframeButton.disabled = false;
+                                iframeButton.style.opacity = '1';
+                                iframeButton.style.cursor = 'pointer';
+                                iframeButton.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)';
+                                iframeButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove iFrame';
+                                iframeButton.onclick = function() { toggleRemoveIframe(filepath, this); };
+                            } else {
+                                // iFrame doesn't exist - show add mode
+                                iframeButton.classList.remove('remove-mode');
+                                iframeButton.disabled = false;
+                                iframeButton.style.opacity = '1';
+                                iframeButton.style.cursor = 'pointer';
+                                iframeButton.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+                                iframeButton.innerHTML = '<i class="fas fa-window-restore"></i> Append iFrame';
+                                iframeButton.onclick = function() { showIframeModal(filepath, this); };
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Error checking file:', filepath, error);
+                    }
+                }
+            }
+            
+            console.log('✅ Button states initialized');
+        }
+
+        // Excluded pages management
+        const excludedPages = <?php echo json_encode($excludedPages); ?>;
+
+        function loadExcludedSidebar() {
+            const excludedList = document.getElementById('excludedList');
+            const excludedCount = document.getElementById('excludedCount');
+            
+            if (excludedPages.length === 0) {
+                excludedList.innerHTML = '<div class="excluded-empty"><i class="fas fa-inbox"></i><p>No excluded pages</p></div>';
+                excludedCount.textContent = '0';
+                return;
+            }
+            
+            let html = '';
+            excludedPages.forEach((filename, index) => {
+                html += `
+                    <li class="excluded-item">
+                        <span class="excluded-item-number">${index + 1}</span>
+                        <span class="excluded-item-name">${filename}</span>
+                        <button class="include-btn" onclick="togglePageVisibility('${filename}', false)">
+                            <i class="fas fa-eye"></i> Include
+                        </button>
+                    </li>
+                `;
+            });
+            
+            excludedList.innerHTML = html;
+            excludedCount.textContent = excludedPages.length;
+        }
+
+        async function togglePageVisibility(filename, exclude = null) {
+            // Determine if excluding or including
+            if (exclude === null) {
+                exclude = !excludedPages.includes(filename);
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'toggle_visibility');
+                formData.append('filename', filename);
+                formData.append('exclude', exclude ? 'true' : 'false');
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('❌ Non-JSON response:', text);
+                    throw new Error('Server returned invalid response. Check console for details.');
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    // Reload page to update
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Operation failed', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Toggle visibility error:', error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Hide excluded pages from catalog
+        function hideExcludedPages() {
+            const cards = document.querySelectorAll('.page-card');
+            let visibleCount = 0;
+            
+            cards.forEach(card => {
+                const filename = card.dataset.filepath;
+                if (excludedPages.includes(filename)) {
+                    card.style.display = 'none';
+                } else {
+                    visibleCount++;
+                }
+            });
+            
+            document.getElementById('visiblePages').textContent = visibleCount;
+        }
+
+        // ========================================
+        // SORTING FUNCTIONALITY
+        // ========================================
+        
+        let currentSortMode = 'date'; // 'date', 'a-z', 'z-a'
+        
+        function sortBy(mode) {
+            currentSortMode = mode;
+            
+            // Update active button
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (mode === 'date') {
+                document.getElementById('sortDateBtn').classList.add('active');
+            } else if (mode === 'a-z') {
+                document.getElementById('sortAtoZBtn').classList.add('active');
+            } else if (mode === 'z-a') {
+                document.getElementById('sortZtoABtn').classList.add('active');
+            }
+            
+            // Get all cards
+            const grid = document.getElementById('catalogGrid');
+            const cards = Array.from(grid.querySelectorAll('.page-card'));
+            
+            // Sort cards based on mode
+            cards.sort((a, b) => {
+                if (mode === 'date') {
+                    // Sort by date (already sorted by PHP, but we'll preserve original order)
+                    // We need to get the actual date from the cards
+                    const dateA = getCardDate(a);
+                    const dateB = getCardDate(b);
+                    return dateB - dateA; // Newest first
+                } else if (mode === 'a-z') {
+                    // Sort alphabetically A-Z by filename
+                    const nameA = a.dataset.filename.toLowerCase();
+                    const nameB = b.dataset.filename.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                } else if (mode === 'z-a') {
+                    // Sort alphabetically Z-A by filename
+                    const nameA = a.dataset.filename.toLowerCase();
+                    const nameB = b.dataset.filename.toLowerCase();
+                    return nameB.localeCompare(nameA);
+                }
+                return 0;
+            });
+            
+            // Add fade-out animation
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+            });
+            
+            // Re-append cards in sorted order after short delay
+            setTimeout(() => {
+                cards.forEach((card, index) => {
+                    grid.appendChild(card);
+                    
+                    // Stagger animation for each card
+                    setTimeout(() => {
+                        card.style.transition = 'all 0.4s ease';
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1)';
+                    }, index * 30); // 30ms delay between each card
+                });
+            }, 100);
+            
+            // Show toast notification
+            const messages = {
+                'date': '📅 Sorted by Date (Newest First)',
+                'a-z': '🔤 Sorted Alphabetically (A → Z)',
+                'z-a': '🔤 Sorted Alphabetically (Z → A)'
+            };
+            
+            showToast(messages[mode], 'success');
+            console.log('📊 Sorted by:', mode);
+            
+            // Save preference
+            saveSortPreference(mode);
+        }
+        
+        function getCardDate(card) {
+            // Get modified timestamp from data attribute
+            const modified = parseInt(card.dataset.modified || 0);
+            return modified;
+        }
+        
+        function resetSort() {
+            currentSortMode = 'date';
+            
+            // Add rotation animation to reset button
+            const resetBtn = document.querySelector('.reset-sort-btn');
+            resetBtn.style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                resetBtn.style.transform = '';
+            }, 600);
+            
+            // Clear saved preference
+            localStorage.removeItem('catalogSortMode');
+            
+            sortBy('date');
+            showToast('🔄 Sorting reset to default (Date)', 'success');
+        }
+        
+        // Set initial active state and load saved sort preference
+        function initializeSortControls() {
+            // Load saved sort mode from localStorage
+            const savedSortMode = localStorage.getItem('catalogSortMode');
+            
+            if (savedSortMode && ['date', 'a-z', 'z-a'].includes(savedSortMode)) {
+                currentSortMode = savedSortMode;
+                sortBy(savedSortMode);
+            } else {
+                document.getElementById('sortDateBtn').classList.add('active');
+            }
+        }
+        
+        // Save sort preference
+        function saveSortPreference(mode) {
+            localStorage.setItem('catalogSortMode', mode);
+            console.log('💾 Sort preference saved:', mode);
+        }
+
+        // Initialize
+        createParticles();
+        initializeButtonStates();
+        loadExcludedSidebar();
+        hideExcludedPages();
+        initializeSortControls();
+
+    </script>
+    
+    <!-- Add Super Admin Modal -->
+    <div id="addSuperAdminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(6,182,212,0.98) 0%, rgba(8,145,178,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 550px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 64px; margin-bottom: 15px; animation: shieldRotate 3s infinite ease-in-out;">🛡️</div>
+                <h3 style="color: #fff; font-size: 28px; margin: 0 0 10px 0; font-weight: 700;">Add Super Admin</h3>
+                <p style="color: rgba(255,255,255,0.85); font-size: 15px; margin: 0;">Protect this page with password authentication</p>
+            </div>
+            
+            <!-- Password Input -->
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; color: #fff; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                    <span style="font-size: 18px;">🔑</span>
+                    <span>Admin Password</span>
+                </label>
+                <div style="position: relative;">
+                    <input type="text" id="superAdminPassword" placeholder="GL_Admin (default)" style="width: 100%; padding: 16px 50px 16px 18px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; color: #fff; font-size: 16px; font-family: 'Consolas', monospace; transition: all 0.3s;">
+                    <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #fff; font-weight: 600;">Default</div>
+                </div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid rgba(251,191,36,0.6);">
+                    💡 Leave empty to use default password: <code style="color: #fbbf24; font-weight: 600;">GL_Admin</code>
+                </div>
+            </div>
+            
+            <!-- File Name Display -->
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 600;">TARGET FILE:</div>
+                <div id="targetFileName" style="color: #fbbf24; font-size: 14px; font-weight: 700; font-family: 'Consolas', monospace;"></div>
+            </div>
+            
+            <!-- Warning -->
+            <div style="background: rgba(245,158,11,0.2); border: 2px solid rgba(245,158,11,0.5); border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <div style="display: flex; align-items: start; gap: 10px;">
+                    <span style="font-size: 24px; flex-shrink: 0;">⚠️</span>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.6;">
+                        <strong style="color: #fbbf24;">Warning:</strong> This will add authentication code to the beginning of the file. The page will require password to access.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button onclick="closeAddSuperAdminModal()" style="flex: 1; padding: 14px; background: rgba(239,68,68,0.3); border: 1px solid rgba(239,68,68,0.5); border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.3s; border: none;" onmouseover="this.style.background='rgba(239,68,68,0.5)'" onmouseout="this.style.background='rgba(239,68,68,0.3)'">
+                    ✕ Cancel
+                </button>
+                <button onclick="addSuperAdminToPage()" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(34,197,94,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(34,197,94,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34,197,94,0.4)'">
+                    🛡️ Add Protection
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Remove Super Admin Modal -->
+    <div id="removeSuperAdminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(255,107,107,0.98) 0%, rgba(238,90,36,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 550px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 64px; margin-bottom: 15px; animation: shieldShake 0.5s ease-in-out;">⚠️</div>
+                <h3 style="color: #fff; font-size: 28px; margin: 0 0 10px 0; font-weight: 700;">Remove Super Admin</h3>
+                <p style="color: rgba(255,255,255,0.85); font-size: 15px; margin: 0;">Remove password protection from this page</p>
+            </div>
+            
+            <!-- File Name Display -->
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 600;">TARGET FILE:</div>
+                <div id="removeTargetFileName" style="color: #fbbf24; font-size: 14px; font-weight: 700; font-family: 'Consolas', monospace;"></div>
+            </div>
+            
+            <!-- Warning -->
+            <div style="background: rgba(239,68,68,0.2); border: 2px solid rgba(239,68,68,0.5); border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <div style="display: flex; align-items: start; gap: 10px;">
+                    <span style="font-size: 24px; flex-shrink: 0;">🚨</span>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.6;">
+                        <strong style="color: #fbbf24;">Warning:</strong> This will remove all authentication code from the file. The page will become publicly accessible without password.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px;">
+                <button onclick="closeRemoveSuperAdminModal()" style="flex: 1; padding: 14px; background: rgba(107,114,128,0.3); border: 1px solid rgba(107,114,128,0.5); border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.3s; border: none;" onmouseover="this.style.background='rgba(107,114,128,0.5)'" onmouseout="this.style.background='rgba(107,114,128,0.3)'">
+                    ✕ Cancel
+                </button>
+                <button onclick="removeSuperAdminFromPage()" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)'">
+                    🗑️ Remove Protection
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulk Super Admin Modal -->
+    <div id="bulkAdminModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(6,182,212,0.98) 0%, rgba(8,145,178,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 600px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 64px; margin-bottom: 15px; animation: shieldRotate 3s infinite ease-in-out;">🛡️</div>
+                <h3 style="color: #fff; font-size: 28px; margin: 0 0 10px 0; font-weight: 700;">Bulk Super Admin</h3>
+                <p style="color: rgba(255,255,255,0.85); font-size: 15px; margin: 0;">Add or remove Super Admin protection for all pages</p>
+            </div>
+            
+            <!-- Password Input -->
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; color: #fff; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                    <span style="font-size: 18px;">🔑</span>
+                    <span>Admin Password</span>
+                </label>
+                <div style="position: relative;">
+                    <input type="text" id="bulkAdminPassword" placeholder="GL_Admin (default)" style="width: 100%; padding: 16px 50px 16px 18px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; color: #fff; font-size: 16px; font-family: 'Consolas', monospace; transition: all 0.3s;">
+                    <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #fff; font-weight: 600;">Default</div>
+                </div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid rgba(251,191,36,0.6);">
+                    💡 This password will be applied to all pages
+                </div>
+            </div>
+            
+            <!-- Info Box -->
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 600;">TARGET:</div>
+                <div style="color: #fbbf24; font-size: 14px; font-weight: 700;">All included catalog pages (excluding index.php)</div>
+            </div>
+            
+            <!-- Warning -->
+            <div style="background: rgba(245,158,11,0.2); border: 2px solid rgba(245,158,11,0.5); border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                <div style="display: flex; align-items: start; gap: 10px;">
+                    <span style="font-size: 24px; flex-shrink: 0;">⚠️</span>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.6;">
+                        <strong style="color: #fbbf24;">Warning:</strong> This will affect multiple files. Pages that already have protection will be skipped when adding, and pages without protection will be skipped when removing.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; margin-bottom: 15px;">
+                <button onclick="closeBulkAdminModal()" style="flex: 1; padding: 14px; background: rgba(107,114,128,0.3); border: 1px solid rgba(107,114,128,0.5); border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 15px; transition: all 0.3s; border: none;" onmouseover="this.style.background='rgba(107,114,128,0.5)'" onmouseout="this.style.background='rgba(107,114,128,0.3)'">
+                    ✕ Cancel
+                </button>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button onclick="executeBulkOperation('add')" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(34,197,94,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(34,197,94,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(34,197,94,0.4)'">
+                    ➕ Add to All
+                </button>
+                <button onclick="executeBulkOperation('remove')" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 15px rgba(239,68,68,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(239,68,68,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(239,68,68,0.4)'">
+                    🗑️ Remove from All
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulk Results Modal -->
+    <div id="bulkResultsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10001; align-items: center; justify-content: center;">
+        <div id="bulkResultsContent" style="background: linear-gradient(135deg, rgba(34,197,94,0.98) 0%, rgba(21,128,61,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+            <!-- Content will be dynamically generated -->
+        </div>
+    </div>
+    
+    <!-- Database Credentials Modal -->
+    <div id="dbCredentialsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(102,126,234,0.98) 0%, rgba(118,75,162,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 650px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 64px; margin-bottom: 15px;">🔑</div>
+                <h3 style="color: #fff; font-size: 28px; margin: 0 0 10px 0; font-weight: 700;">Database Credentials</h3>
+                <p id="dbCredentialsName" style="color: rgba(255,255,255,0.85); font-size: 15px; margin: 0;">Connection Details</p>
+            </div>
+            
+            <!-- Copy All Button -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button onclick="copyAllCredentials()" style="padding: 14px 30px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; border-radius: 12px; color: #1e293b; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(251,191,36,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(251,191,36,0.4)'">
+                    <span style="font-size: 20px;">📋</span>
+                    <span>Copy All Information</span>
+                </button>
+            </div>
+            
+            <!-- Credentials List -->
+            <div id="dbCredentialsList" style="margin-bottom: 25px;">
+                <!-- Will be populated dynamically -->
+            </div>
+            
+            <!-- Connection Examples -->
+            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
+                <div style="font-size: 14px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">📝</span>
+                    <span>Connection Examples:</span>
+                </div>
+                
+                <!-- PHP PDO Example -->
+                <div style="margin-bottom: 15px;">
+                    <div style="color: #fbbf24; font-size: 13px; font-weight: 600; margin-bottom: 6px;">PHP PDO:</div>
+                    <div style="position: relative; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto;">
+                        <code id="pdoExample"></code>
+                        <button onclick="copyCode('pdoExample')" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                            📋 Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- MySQL CLI Example -->
+                <div>
+                    <div style="color: #fbbf24; font-size: 13px; font-weight: 600; margin-bottom: 6px;">MySQL CLI:</div>
+                    <div style="position: relative; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto;">
+                        <code id="cliExample"></code>
+                        <button onclick="copyCode('cliExample')" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                            📋 Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Close Button -->
+            <div style="text-align: center;">
+                <button onclick="closeDatabaseCredentials()" style="padding: 14px 35px; background: white; color: #667eea; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    ✕ Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        @keyframes shieldRotate {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+        
+        @keyframes shieldShake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+        
+        @keyframes progressPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        #superAdminPassword:focus {
+            outline: none;
+            border-color: #fbbf24;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px rgba(251,191,36,0.4);
+        }
+        
+        #bulkAdminPassword:focus {
+            outline: none;
+            border-color: #fbbf24;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 20px rgba(251,191,36,0.4);
+        }
+        
+        /* Database Connection Select Styling */
+        #dbConnectionSelect {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e293b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+        
+        #dbConnectionSelect option {
+            background: white;
+            color: #1e293b;
+            padding: 10px;
+            font-weight: 600;
+        }
+        
+        #dbConnectionSelect option:checked {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+    
+    <script>
+        let currentSuperAdminFile = '';
+        let currentRemoveSuperAdminFile = '';
+        
+        function showAddSuperAdminModal(filename) {
+            currentSuperAdminFile = filename;
+            document.getElementById('targetFileName').textContent = filename;
+            document.getElementById('superAdminPassword').value = '';
+            document.getElementById('addSuperAdminModal').style.display = 'flex';
+        }
+        
+        function closeAddSuperAdminModal() {
+            document.getElementById('addSuperAdminModal').style.display = 'none';
+            currentSuperAdminFile = '';
+        }
+        
+        async function addSuperAdminToPage() {
+            if (!currentSuperAdminFile) {
+                alert('No file selected!');
+                return;
+            }
+            
+            const password = document.getElementById('superAdminPassword').value.trim() || 'GL_Admin';
+            
+            // Show loading
+            const modal = document.getElementById('addSuperAdminModal');
+            const originalContent = modal.innerHTML;
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(6,182,212,0.98) 0%, rgba(8,145,178,0.98) 100%); border-radius: 24px; padding: 60px; text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: spin 2s linear infinite;">⚙️</div>
+                    <div style="font-size: 24px; color: white; font-weight: bold;">Adding Super Admin...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 10px;">Please wait</div>
+                </div>
+                <style>
+                    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                </style>
+            `;
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'add_super_admin');
+                formData.append('filename', currentSuperAdminFile);
+                formData.append('password', password);
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success
+                    modal.innerHTML = `
+                        <div style="background: linear-gradient(135deg, rgba(34,197,94,0.98) 0%, rgba(21,128,61,0.98) 100%); border-radius: 24px; padding: 50px; text-align: center;">
+                            <div style="font-size: 80px; margin-bottom: 20px; animation: successPop 0.5s ease-out;">✅</div>
+                            <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Protected!</div>
+                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">${result.message}</div>
+                            <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px; margin-bottom: 25px;">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">File Protected:</div>
+                                <div style="color: #fbbf24; font-size: 15px; font-weight: 700; font-family: 'Consolas', monospace; margin-bottom: 15px;">${currentSuperAdminFile}</div>
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Password:</div>
+                                <div style="color: #86efac; font-size: 18px; font-weight: 700; font-family: 'Consolas', monospace;">${result.password}</div>
+                            </div>
+                            <div style="background: rgba(59,130,246,0.2); padding: 12px; border-radius: 10px; margin-bottom: 25px; border: 2px solid rgba(59,130,246,0.4);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.9);">
+                                    💡 The page now requires this password to access!
+                                </div>
+                            </div>
+                            <button onclick="location.reload()" style="padding: 14px 35px; background: white; color: #22c55e; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                🎉 Close & Refresh
+                            </button>
+                        </div>
+                        <style>
+                            @keyframes successPop {
+                                0% { transform: scale(0); }
+                                50% { transform: scale(1.2); }
+                                100% { transform: scale(1); }
+                            }
+                        </style>
+                    `;
+                } else {
+                    // Show error
+                    modal.innerHTML = `
+                        <div style="background: linear-gradient(135deg, rgba(239,68,68,0.98) 0%, rgba(220,38,38,0.98) 100%); border-radius: 24px; padding: 50px; text-align: center;">
+                            <div style="font-size: 80px; margin-bottom: 20px; animation: errorShake 0.5s ease-out;">❌</div>
+                            <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Error!</div>
+                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">${result.message}</div>
+                            <button onclick="closeAddSuperAdminModal(); showAddSuperAdminModal('${currentSuperAdminFile}')" style="padding: 14px 35px; background: white; color: #ef4444; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                                ↩️ Try Again
+                            </button>
+                            <button onclick="closeAddSuperAdminModal()" style="padding: 14px 35px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                                ✕ Close
+                            </button>
+                        </div>
+                        <style>
+                            @keyframes errorShake {
+                                0%, 100% { transform: translateX(0); }
+                                25% { transform: translateX(-15px); }
+                                75% { transform: translateX(15px); }
+                            }
+                        </style>
+                    `;
+                }
+            } catch (error) {
+                modal.innerHTML = originalContent;
+                alert('Error: ' + error.message);
+                closeAddSuperAdminModal();
+            }
+        }
+        
+        // Remove Super Admin Modal Functions
+        function showRemoveSuperAdminModal(filename) {
+            currentRemoveSuperAdminFile = filename;
+            document.getElementById('removeTargetFileName').textContent = filename;
+            document.getElementById('removeSuperAdminModal').style.display = 'flex';
+        }
+        
+        function closeRemoveSuperAdminModal() {
+            document.getElementById('removeSuperAdminModal').style.display = 'none';
+            currentRemoveSuperAdminFile = '';
+        }
+        
+        async function removeSuperAdminFromPage() {
+            if (!currentRemoveSuperAdminFile) {
+                alert('No file selected!');
+                return;
+            }
+            
+            // Show loading
+            const modal = document.getElementById('removeSuperAdminModal');
+            const originalContent = modal.innerHTML;
+            modal.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(255,107,107,0.98) 0%, rgba(238,90,36,0.98) 100%); border-radius: 24px; padding: 60px; text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: spin 2s linear infinite;">⚙️</div>
+                    <div style="font-size: 24px; color: white; font-weight: bold;">Removing Protection...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8); margin-top: 10px;">Please wait</div>
+                </div>
+                <style>
+                    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                </style>
+            `;
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'remove_super_admin');
+                formData.append('filename', currentRemoveSuperAdminFile);
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success
+                    modal.innerHTML = `
+                        <div style="background: linear-gradient(135deg, rgba(34,197,94,0.98) 0%, rgba(21,128,61,0.98) 100%); border-radius: 24px; padding: 50px; text-align: center;">
+                            <div style="font-size: 80px; margin-bottom: 20px; animation: successPop 0.5s ease-out;">✅</div>
+                            <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Removed!</div>
+                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">${result.message}</div>
+                            <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px; margin-bottom: 25px;">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">File Unprotected:</div>
+                                <div style="color: #fbbf24; font-size: 15px; font-weight: 700; font-family: 'Consolas', monospace;">${currentRemoveSuperAdminFile}</div>
+                            </div>
+                            <div style="background: rgba(59,130,246,0.2); padding: 12px; border-radius: 10px; margin-bottom: 25px; border: 2px solid rgba(59,130,246,0.4);">
+                                <div style="font-size: 13px; color: rgba(255,255,255,0.9);">
+                                    🔓 The page is now publicly accessible!
+                                </div>
+                            </div>
+                            <button onclick="location.reload()" style="padding: 14px 35px; background: white; color: #22c55e; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                🎉 Close & Refresh
+                            </button>
+                        </div>
+                        <style>
+                            @keyframes successPop {
+                                0% { transform: scale(0); }
+                                50% { transform: scale(1.2); }
+                                100% { transform: scale(1); }
+                            }
+                        </style>
+                    `;
+                } else {
+                    // Show error
+                    modal.innerHTML = `
+                        <div style="background: linear-gradient(135deg, rgba(239,68,68,0.98) 0%, rgba(220,38,38,0.98) 100%); border-radius: 24px; padding: 50px; text-align: center;">
+                            <div style="font-size: 80px; margin-bottom: 20px; animation: errorShake 0.5s ease-out;">❌</div>
+                            <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Error!</div>
+                            <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">${result.message}</div>
+                            <button onclick="closeRemoveSuperAdminModal(); showRemoveSuperAdminModal('${currentRemoveSuperAdminFile}')" style="padding: 14px 35px; background: white; color: #ef4444; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-right: 10px;">
+                                ↩️ Try Again
+                            </button>
+                            <button onclick="closeRemoveSuperAdminModal()" style="padding: 14px 35px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                                ✕ Close
+                            </button>
+                        </div>
+                        <style>
+                            @keyframes errorShake {
+                                0%, 100% { transform: translateX(0); }
+                                25% { transform: translateX(-15px); }
+                                75% { transform: translateX(15px); }
+                            }
+                        </style>
+                    `;
+                }
+            } catch (error) {
+                modal.innerHTML = originalContent;
+                alert('Error: ' + error.message);
+                closeRemoveSuperAdminModal();
+            }
+        }
+        
+        // Check if file has Super Admin
+        async function checkSuperAdminStatus(filename) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'check_super_admin');
+                formData.append('filename', filename);
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                return result.exists;
+            } catch (error) {
+                console.error('Error checking super admin status:', error);
+                return false;
+            }
+        }
+        
+        // Update button UI based on admin status
+        function updateAdminButton(filename, hasAdmin) {
+            const btn = document.getElementById('admin-btn-' + filename);
+            if (!btn) return;
+            
+            const textSpan = btn.querySelector('.admin-btn-text');
+            
+            btn.classList.remove('checking');
+            
+            if (hasAdmin) {
+                btn.classList.add('has-admin');
+                textSpan.textContent = 'Remove Admin';
+            } else {
+                btn.classList.remove('has-admin');
+                textSpan.textContent = 'Add Admin';
+            }
+        }
+        
+        // Toggle Admin Password (Add or Remove)
+        async function toggleAdminPassword(filename) {
+            const btn = document.getElementById('admin-btn-' + filename);
+            if (!btn || btn.classList.contains('checking')) return;
+            
+            btn.classList.add('checking');
+            const textSpan = btn.querySelector('.admin-btn-text');
+            textSpan.textContent = 'Checking...';
+            
+            const hasAdmin = await checkSuperAdminStatus(filename);
+            
+            btn.classList.remove('checking');
+            
+            if (hasAdmin) {
+                showRemoveSuperAdminModal(filename);
+            } else {
+                showAddSuperAdminModal(filename);
+            }
+            
+            updateAdminButton(filename, hasAdmin);
+        }
+        
+        // ========================================
+        // BULK SUPER ADMIN OPERATIONS
+        // ========================================
+        
+        function showBulkAdminModal() {
+            document.getElementById('bulkAdminPassword').value = '';
+            document.getElementById('bulkAdminModal').style.display = 'flex';
+        }
+        
+        function closeBulkAdminModal() {
+            document.getElementById('bulkAdminModal').style.display = 'none';
+        }
+        
+        function closeBulkResultsModal() {
+            document.getElementById('bulkResultsModal').style.display = 'none';
+            location.reload(); // Refresh to update button states
+        }
+        
+        async function executeBulkOperation(operation) {
+            const password = document.getElementById('bulkAdminPassword').value.trim() || 'GL_Admin';
+            
+            // Close input modal
+            closeBulkAdminModal();
+            
+            // Show loading modal
+            const resultsModal = document.getElementById('bulkResultsModal');
+            const resultsContent = document.getElementById('bulkResultsContent');
+            
+            const operationText = operation === 'add' ? 'Adding' : 'Removing';
+            const bgColor = operation === 'add' ? 'rgba(6,182,212,0.98)' : 'rgba(255,107,107,0.98)';
+            
+            resultsContent.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 100%)`;
+            resultsContent.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: spin 2s linear infinite;">⚙️</div>
+                    <div style="font-size: 24px; color: white; font-weight: bold; margin-bottom: 10px;">${operationText} Super Admin...</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.8);">Please wait while processing all files</div>
+                    <div style="margin-top: 20px; background: rgba(0,0,0,0.3); height: 6px; border-radius: 10px; overflow: hidden;">
+                        <div style="height: 100%; background: white; width: 0%; animation: progressPulse 1.5s ease-in-out infinite;"></div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                </style>
+            `;
+            resultsModal.style.display = 'flex';
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'bulk_super_admin');
+                formData.append('operation', operation);
+                formData.append('password', password);
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('❌ Non-JSON response:', text);
+                    throw new Error('Server returned invalid response');
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showBulkResults(result.operation, result.results);
+                } else {
+                    showBulkError(result.message);
+                }
+            } catch (error) {
+                console.error('❌ Bulk operation error:', error);
+                showBulkError(error.message);
+            }
+        }
+        
+        function showBulkResults(operation, results) {
+            const resultsContent = document.getElementById('bulkResultsContent');
+            const operationText = operation === 'add' ? 'Added' : 'Removed';
+            const emoji = operation === 'add' ? '✅' : '🗑️';
+            const bgColor = operation === 'add' 
+                ? 'linear-gradient(135deg, rgba(34,197,94,0.98) 0%, rgba(21,128,61,0.98) 100%)'
+                : 'linear-gradient(135deg, rgba(239,68,68,0.98) 0%, rgba(220,38,38,0.98) 100%)';
+            
+            resultsContent.style.background = bgColor;
+            
+            let detailsHtml = '';
+            
+            if (results.details && results.details.length > 0) {
+                detailsHtml = '<div style="max-height: 300px; overflow-y: auto; margin-top: 20px;">';
+                
+                // Group by status
+                const successFiles = results.details.filter(d => d.status === 'success');
+                const skippedFiles = results.details.filter(d => d.status === 'skipped');
+                const failedFiles = results.details.filter(d => d.status === 'failed');
+                
+                if (successFiles.length > 0) {
+                    detailsHtml += '<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 10px;">';
+                    detailsHtml += '<div style="color: #86efac; font-weight: bold; margin-bottom: 8px;">✅ Processed (' + successFiles.length + '):</div>';
+                    successFiles.forEach(file => {
+                        detailsHtml += '<div style="color: rgba(255,255,255,0.9); font-size: 13px; padding: 4px; font-family: Consolas, monospace;">• ' + file.file + '</div>';
+                    });
+                    detailsHtml += '</div>';
+                }
+                
+                if (skippedFiles.length > 0) {
+                    detailsHtml += '<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 10px;">';
+                    detailsHtml += '<div style="color: #fbbf24; font-weight: bold; margin-bottom: 8px;">⏭️ Skipped (' + skippedFiles.length + '):</div>';
+                    skippedFiles.forEach(file => {
+                        detailsHtml += '<div style="color: rgba(255,255,255,0.8); font-size: 12px; padding: 4px; font-family: Consolas, monospace;">• ' + file.file + ' - ' + file.reason + '</div>';
+                    });
+                    detailsHtml += '</div>';
+                }
+                
+                if (failedFiles.length > 0) {
+                    detailsHtml += '<div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">';
+                    detailsHtml += '<div style="color: #fca5a5; font-weight: bold; margin-bottom: 8px;">❌ Failed (' + failedFiles.length + '):</div>';
+                    failedFiles.forEach(file => {
+                        detailsHtml += '<div style="color: rgba(255,255,255,0.8); font-size: 12px; padding: 4px; font-family: Consolas, monospace;">• ' + file.file + ' - ' + file.reason + '</div>';
+                    });
+                    detailsHtml += '</div>';
+                }
+                
+                detailsHtml += '</div>';
+            }
+            
+            resultsContent.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: successPop 0.5s ease-out;">${emoji}</div>
+                    <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Operation Complete!</div>
+                    <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">Super Admin ${operationText}</div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; text-align: center;">
+                            <div>
+                                <div style="font-size: 24px; color: #fbbf24; font-weight: bold;">${results.total}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Total</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; color: #86efac; font-weight: bold;">${results.processed}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Processed</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; color: #fbbf24; font-weight: bold;">${results.skipped}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Skipped</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; color: #fca5a5; font-weight: bold;">${results.failed}</div>
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7);">Failed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${detailsHtml}
+                    
+                    <button onclick="closeBulkResultsModal()" style="padding: 14px 35px; background: white; color: #22c55e; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        🎉 Close & Refresh
+                    </button>
+                </div>
+                <style>
+                    @keyframes successPop {
+                        0% { transform: scale(0); }
+                        50% { transform: scale(1.2); }
+                        100% { transform: scale(1); }
+                    }
+                </style>
+            `;
+        }
+        
+        function showBulkError(message) {
+            const resultsContent = document.getElementById('bulkResultsContent');
+            resultsContent.style.background = 'linear-gradient(135deg, rgba(239,68,68,0.98) 0%, rgba(220,38,38,0.98) 100%)';
+            resultsContent.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: errorShake 0.5s ease-out;">❌</div>
+                    <div style="font-size: 28px; color: white; font-weight: bold; margin-bottom: 15px;">Error!</div>
+                    <div style="font-size: 16px; color: rgba(255,255,255,0.9); margin-bottom: 25px;">${message}</div>
+                    <button onclick="closeBulkResultsModal()" style="padding: 14px 35px; background: white; color: #ef4444; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                        ✕ Close
+                    </button>
+                </div>
+                <style>
+                    @keyframes errorShake {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-15px); }
+                        75% { transform: translateX(15px); }
+                    }
+                </style>
+            `;
+        }
+        
+        // ========================================
+        // DATABASE CONNECTIONS MANAGEMENT
+        // ========================================
+        
+        let activeConnections = [];
+        let selectedConnection = null;
+        
+        async function loadDatabaseConnections() {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_active_connections');
+                
+                const response = await fetch('index.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.connections) {
+                    activeConnections = result.connections;
+                    
+                    const select = document.getElementById('dbConnectionSelect');
+                    const connStatusText = document.getElementById('connStatusText');
+                    const connCount = document.getElementById('connCount');
+                    
+                    if (activeConnections.length === 0) {
+                        select.innerHTML = '<option value="" style="color: #ef4444;">❌ No connections available</option>';
+                        connStatusText.textContent = 'Not connected';
+                        connCount.textContent = '0';
+                        document.getElementById('showCredentialsBtn').disabled = true;
+                    } else {
+                        let options = '<option value="" style="color: #64748b;">Select a database...</option>';
+                        activeConnections.forEach(conn => {
+                            options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
+                        });
+                        select.innerHTML = options;
+                        connStatusText.textContent = 'Connected';
+                        connCount.textContent = activeConnections.length;
+                        
+                        // Enable credentials button when a connection is selected
+                        select.addEventListener('change', function() {
+                            selectedConnection = activeConnections.find(c => c.id === this.value);
+                            document.getElementById('showCredentialsBtn').disabled = !selectedConnection;
+                        });
+                    }
+                } else {
+                    document.getElementById('dbConnectionSelect').innerHTML = '<option value="" style="color: #ef4444;">❌ Failed to load connections</option>';
+                    document.getElementById('connStatusText').textContent = 'Connection failed';
+                    document.getElementById('connCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading connections:', error);
+                document.getElementById('dbConnectionSelect').innerHTML = '<option value="" style="color: #ef4444;">❌ Error loading connections</option>';
+                document.getElementById('connStatusText').textContent = 'Error';
+                document.getElementById('connCount').textContent = '0';
+            }
+        }
+        
+        function refreshDatabaseConnections() {
+            document.getElementById('connStatusText').textContent = 'Refreshing...';
+            loadDatabaseConnections();
+        }
+        
+        function showDatabaseCredentials() {
+            if (!selectedConnection) {
+                alert('Please select a database connection first');
+                return;
+            }
+            
+            // Set modal title
+            document.getElementById('dbCredentialsName').textContent = selectedConnection.name;
+            
+            // Build credentials list
+            let credHtml = '';
+            
+            const credentials = [
+                { label: '🏠 Host', value: selectedConnection.host, key: 'host' },
+                { label: '🗄️ Database Name', value: selectedConnection.dbName, key: 'dbName' },
+                { label: '👤 Username', value: selectedConnection.username, key: 'username' },
+                { label: '🔑 Password', value: selectedConnection.password || '(empty)', key: 'password', isPassword: true },
+                { label: '🔌 Port', value: selectedConnection.port, key: 'port' }
+            ];
+            
+            credentials.forEach(cred => {
+                credHtml += `
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <div style="flex: 1;">
+                                <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 4px;">${cred.label}</div>
+                                <div style="color: #fff; font-size: 15px; font-weight: 600; font-family: 'Consolas', monospace; word-break: break-all;">
+                                    ${cred.isPassword && cred.value !== '(empty)' ? '<span id="pwd_' + cred.key + '">••••••••</span><span id="pwd_' + cred.key + '_text" style="display:none;">' + cred.value + '</span>' : cred.value}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                ${cred.isPassword && cred.value !== '(empty)' ? '<button onclick="togglePasswordVisibility(\'' + cred.key + '\')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;" onmouseover="this.style.background=\'rgba(255,255,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.2)\'">👁️</button>' : ''}
+                                <button onclick="copyToClipboard('${cred.value}', '${cred.label} copied!')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                                    📋
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('dbCredentialsList').innerHTML = credHtml;
+            
+            // Generate connection examples
+            const pdoCode = `$pdo = new PDO(
+    "mysql:host=${selectedConnection.host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",
+    "${selectedConnection.username}",
+    "${selectedConnection.password || ''}"
+);`;
+            
+            const cliCode = selectedConnection.password 
+                ? `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}`
+                : `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}`;
+            
+            document.getElementById('pdoExample').textContent = pdoCode;
+            document.getElementById('cliExample').textContent = cliCode;
+            
+            // Show modal
+            document.getElementById('dbCredentialsModal').style.display = 'flex';
+        }
+        
+        function closeDatabaseCredentials() {
+            document.getElementById('dbCredentialsModal').style.display = 'none';
+        }
+        
+        function togglePasswordVisibility(key) {
+            const hiddenSpan = document.getElementById('pwd_' + key);
+            const textSpan = document.getElementById('pwd_' + key + '_text');
+            
+            if (hiddenSpan.style.display === 'none') {
+                hiddenSpan.style.display = 'inline';
+                textSpan.style.display = 'none';
+            } else {
+                hiddenSpan.style.display = 'none';
+                textSpan.style.display = 'inline';
+            }
+        }
+        
+        function copyAllCredentials() {
+            if (!selectedConnection) {
+                alert('No connection selected');
+                return;
+            }
+            
+            // Build formatted text with all information
+            let text = `=====================================\n`;
+            text += `DATABASE CONNECTION CREDENTIALS\n`;
+            text += `=====================================\n\n`;
+            
+            text += `Connection Name: ${selectedConnection.name}\n`;
+            text += `Connection Type: ${selectedConnection.type === 'local' ? 'Localhost (Laragon)' : 'Hostinger Remote'}\n\n`;
+            
+            text += `--- Connection Details ---\n`;
+            text += `Host: ${selectedConnection.host}\n`;
+            text += `Database Name: ${selectedConnection.dbName}\n`;
+            text += `Username: ${selectedConnection.username}\n`;
+            text += `Password: ${selectedConnection.password || '(empty)'}\n`;
+            text += `Port: ${selectedConnection.port}\n\n`;
+            
+            text += `--- PHP PDO Connection ---\n`;
+            text += `$pdo = new PDO(\n`;
+            text += `    "mysql:host=${selectedConnection.host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",\n`;
+            text += `    "${selectedConnection.username}",\n`;
+            text += `    "${selectedConnection.password || ''}"\n`;
+            text += `);\n\n`;
+            
+            text += `--- MySQL CLI Connection ---\n`;
+            if (selectedConnection.password) {
+                text += `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}\n\n`;
+            } else {
+                text += `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}\n\n`;
+            }
+            
+            text += `--- Connection URL ---\n`;
+            text += `mysql://${selectedConnection.username}:${selectedConnection.password || ''}@${selectedConnection.host}:${selectedConnection.port}/${selectedConnection.dbName}\n\n`;
+            
+            text += `=====================================\n`;
+            text += `Generated: ${new Date().toLocaleString()}\n`;
+            text += `=====================================`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ All credentials copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                
+                // Fallback: Create textarea and copy
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showToast('✅ All credentials copied to clipboard!', 'success');
+                } catch (e) {
+                    showToast('❌ Failed to copy', 'error');
+                }
+                
+                document.body.removeChild(textarea);
+            });
+        }
+        
+        function copyCode(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            copyToClipboard(text, 'Code copied to clipboard!');
+        }
+        
+        function copyToClipboard(text, message) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(message || 'Copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                showToast('Failed to copy', 'error');
+            });
+        }
+        
+        // Check all files on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load database connections
+            loadDatabaseConnections();
+            
+            const adminButtons = document.querySelectorAll('.admin-toggle-btn');
+            
+            for (const btn of adminButtons) {
+                const filename = btn.getAttribute('data-filename');
+                if (filename) {
+                    const hasAdmin = await checkSuperAdminStatus(filename);
+                    updateAdminButton(filename, hasAdmin);
+                }
+            }
+            
+            // Check all Transfer Link buttons
+            const transferButtons = document.querySelectorAll('.transfer-link-toggle-btn');
+            for (const btn of transferButtons) {
+                const filename = btn.getAttribute('data-filename');
+                if (filename) {
+                    const hasTransferLink = await checkTransferLinkStatus(filename);
+                    updateTransferLinkButton(filename, hasTransferLink);
+                }
+            }
+        });
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('addSuperAdminModal').style.display === 'flex') {
+                    closeAddSuperAdminModal();
+                }
+                if (document.getElementById('removeSuperAdminModal').style.display === 'flex') {
+                    closeRemoveSuperAdminModal();
+                }
+                if (document.getElementById('bulkAdminModal').style.display === 'flex') {
+                    closeBulkAdminModal();
+                }
+                if (document.getElementById('bulkResultsModal').style.display === 'flex') {
+                    closeBulkResultsModal();
+                }
+                if (document.getElementById('dbCredentialsModal').style.display === 'flex') {
+                    closeDatabaseCredentials();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
-
-
