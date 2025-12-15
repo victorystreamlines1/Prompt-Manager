@@ -1,3 +1,1 @@
-Please minimize the size of the logo on the page. The top right is very big. 
-Try to make it smaller and try to give it a better background that can fit with the theme.
- Specifically the bar, the upper menu bar of the prompt editor, they should be compatible with the logo and it should be more artistic. Try to fix it up. 
+Also I want to save the selected folder and the files. There is one folder picker and two file pickers. I want the local storage to remember which file I have selected last time and it will keep it whenever I come again. It will recall it again as the last one I took. and it keeps tracing the last file and remembering it in the Slocal storage. 

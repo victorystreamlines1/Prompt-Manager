@@ -2725,62 +2725,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-y: auto;
         }
 
-        /* Toast Notifications */
+        /* Toast Notifications - Enhanced */
         .toast-container {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            pointer-events: none;
         }
 
         .toast {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 1.5rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--shadow-card);
-            animation: toastIn 0.3s ease;
-            min-width: 280px;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: rgba(30, 30, 60, 0.95);
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            min-width: 300px;
+            max-width: 420px;
+            backdrop-filter: blur(20px);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 14px 0 0 14px;
         }
 
         .toast.success {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .toast.success::before {
+            background: linear-gradient(180deg, #10b981, #059669);
         }
 
         .toast.error {
-            border-color: var(--danger);
-            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .toast.error::before {
+            background: linear-gradient(180deg, #ef4444, #dc2626);
         }
 
         .toast.info {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .toast.info::before {
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
         }
 
-        .toast i {
-            font-size: 1.25rem;
+        .toast.warning {
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .toast.warning::before {
+            background: linear-gradient(180deg, #f59e0b, #d97706);
         }
 
-        .toast.success i { color: var(--success); }
-        .toast.error i { color: var(--danger); }
-        .toast.info i { color: var(--accent-primary); }
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
 
-        @keyframes toastIn {
+        .toast.success .toast-icon {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .toast.error .toast-icon {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .toast.info .toast-icon {
+            background: rgba(99, 102, 241, 0.15);
+            color: #6366f1;
+        }
+
+        .toast.warning .toast-icon {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .toast-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 0.15rem;
+        }
+
+        .toast-message {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            animation: toastProgress 3s linear forwards;
+        }
+
+        @keyframes toastSlideIn {
             from {
                 opacity: 0;
-                transform: translateX(100px);
+                transform: translateX(100%) scale(0.9);
             }
             to {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateX(0) scale(1);
             }
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
         }
 
         /* Modal */
@@ -6644,30 +6743,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Show toast notification
+        // Show toast notification - Enhanced
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
+
             const icons = {
                 success: 'fa-check-circle',
-                error: 'fa-exclamation-circle',
-                info: 'fa-info-circle'
+                error: 'fa-times-circle',
+                info: 'fa-info-circle',
+                warning: 'fa-exclamation-triangle'
             };
-            
+
+            const titles = {
+                success: 'Success',
+                error: 'Error',
+                info: 'Info',
+                warning: 'Warning'
+            };
+
             toast.innerHTML = `
-                <i class="fas ${icons[type]}"></i>
-                <span>${message}</span>
+                <div class="toast-icon">
+                    <i class="fas ${icons[type]}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${titles[type]}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="toast-progress"></div>
             `;
-            
+
             container.appendChild(toast);
-            
+
+            // Auto remove after 3.5 seconds
             setTimeout(() => {
                 toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100px)';
+                toast.style.transform = 'translateX(100%) scale(0.9)';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 3500);
         }
         
         // ============ WORK DISTRIBUTION FUNCTIONS ============
