@@ -2186,6 +2186,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-secondary);
         }
 
+        .file-transfer-group .file-picker-btn.has-file.needs-reconnect {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-style: dashed;
+        }
+
+        .file-transfer-group .file-picker-btn.has-file.needs-reconnect:hover {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+        }
+
         .file-transfer-group .file-picker-btn .file-name {
             white-space: nowrap;
             overflow: hidden;
@@ -5068,16 +5080,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Update UI
                 const fileName = fileHandle.name;
-                const filePickerBtn = document.getElementById(`filePicker${side.charAt(0).toUpperCase() + side.slice(1)}`);
-                const fileNameSpan = document.getElementById(`fileName${side.charAt(0).toUpperCase() + side.slice(1)}`);
-                const btnPull = document.getElementById(`btnPull${side.charAt(0).toUpperCase() + side.slice(1)}`);
-                const btnPush = document.getElementById(`btnPush${side.charAt(0).toUpperCase() + side.slice(1)}`);
+                const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
+                const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
+                const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
+                const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
+                const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
                 
+                filePickerBtn.classList.remove('needs-reconnect');
                 filePickerBtn.classList.add('has-file');
                 fileNameSpan.textContent = fileName;
-                filePickerBtn.title = fileName;
+                filePickerBtn.title = `${fileName} - Click to change`;
                 btnPull.disabled = false;
                 btnPush.disabled = false;
+                
+                // Save to localStorage
+                localStorage.setItem(`transferFile_${side}`, fileName);
                 
                 showToast(`📄 Selected: ${fileName}`, 'success');
                 console.log(`📄 File selected (${side}):`, fileName);
@@ -5090,6 +5107,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     showToast('❌ Error selecting file: ' + err.message, 'error');
                 }
             }
+        }
+        
+        // Initialize saved file names from localStorage
+        function initSavedFileNames() {
+            ['left', 'right'].forEach(side => {
+                const savedFileName = localStorage.getItem(`transferFile_${side}`);
+                if (savedFileName) {
+                    const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
+                    const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
+                    const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
+                    
+                    fileNameSpan.textContent = savedFileName;
+                    filePickerBtn.classList.add('has-file', 'needs-reconnect');
+                    filePickerBtn.title = `Last: ${savedFileName} - Click to reconnect`;
+                }
+            });
         }
         
         // Pull content from selected file into editor
@@ -5165,7 +5198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Reset transfer file state
-        function resetTransferFile(side) {
+        function resetTransferFile(side, clearStorage = false) {
             transferFileHandles[side] = null;
             
             const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
@@ -5174,11 +5207,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
             const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
             
-            filePickerBtn.classList.remove('has-file');
+            filePickerBtn.classList.remove('has-file', 'needs-reconnect');
             fileNameSpan.textContent = 'Select File';
             filePickerBtn.title = 'Select a file';
             btnPull.disabled = true;
             btnPush.disabled = true;
+            
+            // Clear localStorage if requested
+            if (clearStorage) {
+                localStorage.removeItem(`transferFile_${side}`);
+            }
         }
         
         // ============================================
@@ -5615,6 +5653,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.addEventListener('DOMContentLoaded', () => {
             initFolderConnection();
             initAutoSendTimer();
+            initSavedFileNames();
         });
 
         // Update character and word counts
