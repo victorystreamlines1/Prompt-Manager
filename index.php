@@ -1984,6 +1984,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: none;
         }
 
+        /* Clear Buttons */
+        .btn-clear-picker {
+            padding: 0.4rem 0.5rem;
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: none;
+        }
+
+        .btn-clear-picker:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .btn-clear-picker.show {
+            display: flex;
+            align-items: center;
+        }
+
         /* Auto-Send Timer */
         .auto-send-timer {
             display: flex;
@@ -3859,6 +3883,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-folder-open"></i> Folder
                                 <span class="folder-status"></span>
                             </button>
+                            <button class="btn-clear-picker" id="btnClearFolder" onclick="clearFolderSelection()" title="Clear folder selection">
+                                <i class="fas fa-times"></i>
+                            </button>
                             <button class="btn btn-send" id="btnSendToFile" onclick="sendToPromptFile()" disabled title="Send to prompt.txt">
                                 <i class="fas fa-paper-plane"></i> Send
                             </button>
@@ -3896,6 +3923,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-file"></i>
                             <span class="file-name" id="fileNameLeft">Select File</span>
                         </button>
+                        <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
                             <i class="fas fa-download"></i> Pull
                         </button>
@@ -3928,6 +3958,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
                             <i class="fas fa-file"></i>
                             <span class="file-name" id="fileNameRight">Select File</span>
+                        </button>
+                        <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
@@ -5046,6 +5079,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const btnFolder = document.getElementById('btnFolderPicker');
             const btnSend = document.getElementById('btnSendToFile');
             const btnPull = document.getElementById('btnPullFromFile');
+            const btnClear = document.getElementById('btnClearFolder');
             const pathIndicator = document.getElementById('folderPathIndicator');
             const pathText = document.getElementById('folderPathText');
             
@@ -5055,6 +5089,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 btnFolder.title = `Connected to ${folderName}/prompt.txt`;
                 btnSend.disabled = false;
                 btnPull.disabled = false;
+                btnClear.classList.add('show');
                 pathIndicator.classList.add('show');
                 pathIndicator.classList.remove('disconnected');
                 pathText.textContent = `${folderName}/prompt.txt`;
@@ -5065,6 +5100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 btnFolder.title = `Click to reconnect to ${folderName}`;
                 btnSend.disabled = true;
                 btnPull.disabled = true;
+                btnClear.classList.add('show');
                 pathIndicator.classList.add('show', 'disconnected');
                 pathText.textContent = `${folderName}/prompt.txt (click Folder to reconnect)`;
             } else {
@@ -5073,8 +5109,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 btnFolder.title = 'Select folder for prompt.txt';
                 btnSend.disabled = true;
                 btnPull.disabled = true;
+                btnClear.classList.remove('show');
                 pathIndicator.classList.remove('show', 'disconnected');
             }
+        }
+        
+        // Clear folder selection
+        function clearFolderSelection() {
+            promptFolderHandle = null;
+            promptFileHandle = null;
+            localStorage.removeItem('promptFolderName');
+            localStorage.removeItem('autoSendTimer');
+            stopAutoSendTimer();
+            updateFolderUI(null, false);
+            showToast('📁 Folder selection cleared', 'info');
         }
         
         // Send editor content to prompt.txt
@@ -5201,6 +5249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
                 const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
                 const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
+                const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
                 
                 filePickerBtn.classList.remove('needs-reconnect');
                 filePickerBtn.classList.add('has-file');
@@ -5208,6 +5257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 filePickerBtn.title = `${fileName} - Click to change`;
                 btnPull.disabled = false;
                 btnPush.disabled = false;
+                btnClear.classList.add('show');
                 
                 // Save to localStorage and IndexedDB
                 localStorage.setItem(`transferFile_${side}`, fileName);
@@ -5236,11 +5286,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
                     const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
                     const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
+                    const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
 
                     // Show as needs-reconnect first
                     fileNameSpan.textContent = savedFileName;
                     filePickerBtn.classList.add('has-file', 'needs-reconnect');
                     filePickerBtn.title = `Last: ${savedFileName} - Click to reconnect`;
+                    btnClear.classList.add('show');
                     
                     // Try auto-reconnect from IndexedDB
                     try {
@@ -5337,23 +5389,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reset transfer file state
         function resetTransferFile(side, clearStorage = false) {
             transferFileHandles[side] = null;
-            
+
             const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
             const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
             const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
             const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
             const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
-            
+            const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
+
             filePickerBtn.classList.remove('has-file', 'needs-reconnect');
             fileNameSpan.textContent = 'Select File';
             filePickerBtn.title = 'Select a file';
             btnPull.disabled = true;
             btnPush.disabled = true;
-            
+            btnClear.classList.remove('show');
+
             // Clear localStorage if requested
             if (clearStorage) {
                 localStorage.removeItem(`transferFile_${side}`);
             }
+        }
+        
+        // Clear file selection
+        function clearFileSelection(side) {
+            resetTransferFile(side, true);
+            showToast(`📄 File selection cleared (${side})`, 'info');
         }
         
         // ============================================

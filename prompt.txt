@@ -1,1 +1,1 @@
-Still not activating pull and send. Therefore, I will roll back to what you did and make sure it does send and pull. 
+now please add a clear button for the folder picker and the two file pickers to clear whatever selected from folder or files within the two file pickers and the folder just to clear it will clear it up or clear it out and make it empty 
