@@ -1,1 +1,1 @@
-helo
+Still not activating pull and send. Therefore, I will roll back to what you did and make sure it does send and pull. 

@@ -4906,14 +4906,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let promptFolderHandle = null;
         let promptFileHandle = null;
         
+        // IndexedDB for storing file handles (allows auto-reconnect)
+        const DB_NAME = 'PromptManagerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'fileHandles';
+        
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+        
+        async function saveHandleToDB(id, handle) {
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).put({ id, handle });
+                await new Promise(r => tx.oncomplete = r);
+                db.close();
+            } catch (err) {
+                console.log('DB save error:', err);
+            }
+        }
+        
+        async function getHandleFromDB(id) {
+            try {
+                const db = await openDB();
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const request = tx.objectStore(STORE_NAME).get(id);
+                return new Promise((resolve) => {
+                    request.onsuccess = () => { db.close(); resolve(request.result?.handle || null); };
+                    request.onerror = () => { db.close(); resolve(null); };
+                });
+            } catch (err) {
+                return null;
+            }
+        }
+        
         // Initialize folder connection on page load
         async function initFolderConnection() {
-            // Check if there's a saved folder path in localStorage
             const savedFolderName = localStorage.getItem('promptFolderName');
-
+            
             if (savedFolderName) {
-                // Show the saved folder name (connection needs to be re-established)
                 updateFolderUI(savedFolderName, false);
+                
+                // Try auto-reconnect from IndexedDB
+                try {
+                    const savedHandle = await getHandleFromDB('promptFolder');
+                    if (savedHandle) {
+                        const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
+                        if (perm === 'granted') {
+                            promptFolderHandle = savedHandle;
+                            try {
+                                promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: false });
+                            } catch (e) {
+                                promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: true });
+                            }
+                            updateFolderUI(savedFolderName, true);
+                            showToast(`✅ Auto-connected to ${savedFolderName}`, 'success');
+                            
+                            const savedTimer = localStorage.getItem('autoSendTimer');
+                            if (savedTimer && parseInt(savedTimer) > 0) {
+                                document.getElementById('timerInput').value = savedTimer;
+                                updateAutoSendTimer();
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.log('Auto-reconnect failed:', err.message);
+                }
             }
         }
         
@@ -4949,6 +5018,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Save folder name to localStorage
                 localStorage.setItem('promptFolderName', folderName);
+                await saveHandleToDB('promptFolder', promptFolderHandle);
                 
                 // Update UI
                 updateFolderUI(folderName, true);
@@ -5139,9 +5209,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 btnPull.disabled = false;
                 btnPush.disabled = false;
                 
-                // Save to localStorage
+                // Save to localStorage and IndexedDB
                 localStorage.setItem(`transferFile_${side}`, fileName);
-                
+                await saveHandleToDB(`transferFile_${side}`, fileHandle);
+
                 showToast(`📄 Selected: ${fileName}`, 'success');
                 console.log(`📄 File selected (${side}):`, fileName);
                 
@@ -5155,20 +5226,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Initialize saved file names from localStorage
-        function initSavedFileNames() {
-            ['left', 'right'].forEach(side => {
+        // Initialize saved file names and try auto-reconnect from IndexedDB
+        async function initSavedFileNames() {
+            for (const side of ['left', 'right']) {
                 const savedFileName = localStorage.getItem(`transferFile_${side}`);
                 if (savedFileName) {
                     const sideCapitalized = side.charAt(0).toUpperCase() + side.slice(1);
                     const filePickerBtn = document.getElementById(`filePicker${sideCapitalized}`);
                     const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
-                    
+                    const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
+                    const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
+
+                    // Show as needs-reconnect first
                     fileNameSpan.textContent = savedFileName;
                     filePickerBtn.classList.add('has-file', 'needs-reconnect');
                     filePickerBtn.title = `Last: ${savedFileName} - Click to reconnect`;
+                    
+                    // Try auto-reconnect from IndexedDB
+                    try {
+                        const savedHandle = await getHandleFromDB(`transferFile_${side}`);
+                        if (savedHandle) {
+                            const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
+                            if (perm === 'granted') {
+                                transferFileHandles[side] = savedHandle;
+                                filePickerBtn.classList.remove('needs-reconnect');
+                                filePickerBtn.title = `${savedFileName} - Click to change`;
+                                btnPull.disabled = false;
+                                btnPush.disabled = false;
+                            }
+                        }
+                    } catch (err) {
+                        console.log(`Auto-reconnect failed (${side}):`, err.message);
+                    }
                 }
-            });
+            }
         }
         
         // Pull content from selected file into editor
