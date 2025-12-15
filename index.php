@@ -58,6 +58,7 @@ function showLoginPage($error = null) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Prompt Manager</title>
+    <link rel="icon" type="image/png" href="logoPM.png">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -94,17 +95,15 @@ function showLoginPage($error = null) {
         }
         
         .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 120px;
+            height: auto;
             margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            color: white;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .login-logo img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
         }
         
         .login-header h1 {
@@ -256,9 +255,8 @@ function showLoginPage($error = null) {
     <div class="login-container">
         <div class="login-header">
             <div class="login-logo">
-                <i class="fas fa-terminal"></i>
+                <img src="logoPM.png" alt="Prompt Manager">
             </div>
-            <h1>Prompt Manager</h1>
             <p>Enter admin password to continue</p>
         </div>
         
@@ -622,6 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Manager - AI Prompt Generator</title>
+    <link rel="icon" type="image/png" href="logoPM.png">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -713,23 +712,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .sidebar-header {
-            padding: 1.5rem;
-            background: var(--gradient-main);
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(6, 182, 212, 0.1) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
             text-align: center;
+            position: relative;
         }
 
-        .sidebar-header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+        .sidebar-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
         }
 
-        .sidebar-header h1 i {
-            font-size: 1.5rem;
+        .sidebar-header img {
+            max-width: 140px;
+            height: auto;
+            filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header img:hover {
+            transform: scale(1.05);
         }
 
         .sidebar-content {
@@ -1720,9 +1728,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 1.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(6, 182, 212, 0.05) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            position: relative;
+        }
+
+        .editor-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+            border-radius: 16px 16px 0 0;
         }
 
         .editor-title {
@@ -1733,8 +1753,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .editor-title i {
-            color: var(--accent-primary);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             font-size: 1.25rem;
+        }
+
+        .editor-title span {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .logout-btn {
@@ -3554,7 +3584,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fas fa-wand-magic-sparkles"></i> Prompt Manager</h1>
+                <img src="logoPM.png" alt="Prompt Manager">
             </div>
             
             <div class="sidebar-content">

@@ -1,5 +1,3 @@
-<!-- FILE:index.php:1765745385565 -->
-[📎 File Reference: index.php | Size: 244.23 KB | Type: unknown]
-<!-- /END  FILE:index.php:1765745385565 -->
-
-Change the upper left title in purple from report prompter to prompt manager. You'll find the title on the upper left, report prompter. No, change it to prompt manager. Thank you. 
+Please minimize the size of the logo on the page. The top right is very big. 
+Try to make it smaller and try to give it a better background that can fit with the theme.
+ Specifically the bar, the upper menu bar of the prompt editor, they should be compatible with the logo and it should be more artistic. Try to fix it up. 
