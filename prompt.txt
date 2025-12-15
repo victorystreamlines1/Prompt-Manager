@@ -1,1 +1,12 @@
-now please add a clear button for the folder picker and the two file pickers to clear whatever selected from folder or files within the two file pickers and the folder just to clear it will clear it up or clear it out and make it empty 
+<!-- FILE:PHP-Dashboard.php:1765816803698 -->
+[📎 File Reference: PHP-Dashboard.php | Path: uploads/1765811533_PHP-Dashboard.php]
+<!-- /END  FILE:PHP-Dashboard.php:1765816803698 -->
+
+You will find in this prompt-dashboard.php a set of databases connections. The set of database connections are the same exact set you will find it in 
+
+
+<!-- FILE:index.php:1765816839838 -->
+[📎 File Reference: index.php | Path: uploads/1765816742_index.php]
+<!-- /END  FILE:index.php:1765816839838 -->
+
+In index.php you will find a text, input text written on it failed to find the files because I removed this from another application but the application, the files there is exactly the same exact files where you can find them in the php dashboard.php because this file is a catalog and has the set of databases that should be connected please connect index.php to the same connection php-dash dashboard.php is connected with you'll find the list there make this application connect exactly the same way this the dashboard.php is connected. If I add or delete it should take the list from dashboard.php it will be appearing in index.php so it will always check and take from dashboard.php the list of databases and make sure any database I select it is connected and it tries successful connection also when I click on the credential buttons and index.php it should show me the credentials that is that should be shown. You'll find the credentials in the HTML items in the credentials button in index.php. 
