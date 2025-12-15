@@ -998,58 +998,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     header('Content-Type: application/json');
     
     try {
-        // Read latest connections file from store/
-        $storeDir = __DIR__ . '/store';
-        $files = glob($storeDir . '/hostinger_connections_*.json');
-        
-        if (empty($files)) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'No connections file found'
-            ]);
-            exit;
-        }
-        
-        // Get latest file
-        usort($files, function($a, $b) {
-            return filemtime($b) - filemtime($a);
-        });
-        $latestFile = $files[0];
-        
-        $content = @file_get_contents($latestFile);
-        if ($content === false) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Could not read connections file'
-            ]);
-            exit;
-        }
-        
-        $data = json_decode($content, true);
-        if (!isset($data['connections'])) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Invalid connections data'
-            ]);
-            exit;
+        // Get connections from POST data (sent from JavaScript localStorage)
+        $hostingerConnections = [];
+        if (isset($_POST['connections'])) {
+            $hostingerConnections = json_decode($_POST['connections'], true) ?: [];
         }
         
         // Test each connection and return only active ones
         $activeConnections = [];
-        $localhost = [
-            'id' => 'localhost',
-            'name' => 'Localhost (Laragon)',
-            'type' => 'local',
-            'host' => 'localhost',
-            'dbName' => '',
-            'username' => 'root',
-            'password' => '',
-            'port' => '3306'
-        ];
         
-        // Test localhost first
+        // Test localhost first (Laragon)
         try {
-            $pdo = new PDO("mysql:host={$localhost['host']};port={$localhost['port']}", $localhost['username'], $localhost['password']);
+            $pdo = new PDO("mysql:host=localhost;port=3306", 'root', '');
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
             // Get databases
@@ -1072,18 +1032,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
             }
         } catch (Exception $e) {
-            // Localhost not available
+            // Localhost not available, continue with Hostinger connections
         }
         
-        // Test Hostinger connections
-        foreach ($data['connections'] as $conn) {
+        // Test Hostinger/Remote connections (from localStorage via POST)
+        foreach ($hostingerConnections as $conn) {
             try {
-                $password = ($conn['password'] === '' || $conn['password'] === null) ? null : $conn['password'];
+                $host = $conn['host'] ?? '';
+                $port = $conn['port'] ?? '3306';
+                $dbName = $conn['dbName'] ?? '';
+                $username = $conn['username'] ?? '';
+                $password = $conn['password'] ?? '';
+                $connName = $conn['name'] ?? $dbName;
+                $connId = $conn['id'] ?? uniqid();
+                $connType = $conn['type'] ?? 'remote';
                 
-                if ($password === null) {
-                    $pdo = new PDO("mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']}", $conn['username']);
+                if (empty($host) || empty($dbName) || empty($username)) {
+                    continue; // Skip incomplete connections
+                }
+                
+                $dsn = "mysql:host={$host};port={$port};dbname={$dbName}";
+                
+                if ($password === '' || $password === null) {
+                    $pdo = new PDO($dsn, $username);
                 } else {
-                    $pdo = new PDO("mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']}", $conn['username'], $password);
+                    $pdo = new PDO($dsn, $username, $password);
                 }
                 
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -1093,14 +1066,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 
                 // Connection successful
                 $activeConnections[] = [
-                    'id' => $conn['id'],
-                    'name' => "🌐 Hostinger: {$conn['name']}",
-                    'type' => $conn['type'],
-                    'host' => $conn['host'],
-                    'dbName' => $conn['dbName'],
-                    'username' => $conn['username'],
-                    'password' => $conn['password'],
-                    'port' => $conn['port'],
+                    'id' => $connId,
+                    'name' => "🌐 Remote: {$connName}",
+                    'type' => $connType,
+                    'host' => $host,
+                    'dbName' => $dbName,
+                    'username' => $username,
+                    'password' => $password,
+                    'port' => $port,
                     'status' => 'connected'
                 ];
             } catch (Exception $e) {
@@ -7367,13 +7340,26 @@ usort($fileList, function($a, $b) {
         // DATABASE CONNECTIONS MANAGEMENT
         // ========================================
         
+        // localStorage key for Hostinger connections (same as PHP-Dashboard.php)
+        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections';
+        
         let activeConnections = [];
         let selectedConnection = null;
         
+        // Get saved Hostinger connections from localStorage
+        function getHostingerConnections() {
+            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
+            return saved ? JSON.parse(saved) : [];
+        }
+        
         async function loadDatabaseConnections() {
             try {
+                // Get Hostinger connections from localStorage (synced with PHP-Dashboard.php)
+                const hostingerConnections = getHostingerConnections();
+                
                 const formData = new FormData();
                 formData.append('action', 'get_active_connections');
+                formData.append('connections', JSON.stringify(hostingerConnections));
                 
                 const response = await fetch('index.php', {
                     method: 'POST',
