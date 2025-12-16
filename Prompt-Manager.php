@@ -1865,6 +1865,140 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, #d97706, #b45309);
         }
 
+        /* History Navigation (Undo/Redo) */
+        .history-navigation {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-right: 0.75rem;
+        }
+
+        .history-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+        }
+
+        .history-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: scale(1.08);
+        }
+
+        .history-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .history-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            color: var(--text-muted);
+        }
+
+        .history-btn i {
+            transition: transform 0.2s ease;
+        }
+
+        .history-btn:hover:not(:disabled) i {
+            transform: translateX(-2px);
+        }
+
+        .history-btn.redo:hover:not(:disabled) i {
+            transform: translateX(2px);
+        }
+
+        .history-btn .history-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 9px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .history-btn:not(:disabled) .history-badge {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .history-btn.undo .history-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .history-btn.redo .history-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .history-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-color);
+            margin: 0 0.15rem;
+        }
+
+        .history-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0.5rem;
+            min-width: 50px;
+        }
+
+        .history-position {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            line-height: 1;
+        }
+
+        .history-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* History button pulse animation on state change */
+        @keyframes historyPulse {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+            70% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        .history-btn.pulse {
+            animation: historyPulse 0.5s ease-out;
+        }
+
         /* Folder Picker Group */
         .folder-picker-group {
             display: flex;
@@ -3863,6 +3997,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-sign-out-alt"></i>
                         </a>
                     </div>
+                    
+                    <!-- History Navigation (Undo/Redo) -->
+                    <div class="history-navigation">
+                        <button type="button" class="history-btn undo" id="btnUndo" onclick="historyUndo()" disabled title="Undo (Ctrl+Z)">
+                            <i class="fas fa-arrow-left"></i>
+                            <span class="history-badge" id="undoCount">0</span>
+                        </button>
+                        <div class="history-divider"></div>
+                        <div class="history-info">
+                            <span class="history-position" id="historyPosition">0/0</span>
+                            <span class="history-label">History</span>
+                        </div>
+                        <div class="history-divider"></div>
+                        <button type="button" class="history-btn redo" id="btnRedo" onclick="historyRedo()" disabled title="Redo (Ctrl+Y)">
+                            <i class="fas fa-arrow-right"></i>
+                            <span class="history-badge" id="redoCount">0</span>
+                        </button>
+                    </div>
+                    
                     <div class="editor-actions">
                         <button class="btn btn-secondary" onclick="clearEditor()">
                             <i class="fas fa-eraser"></i> Clear
@@ -4340,6 +4493,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             endMarker: '═══════════════════════════'
         };
 
+        // ============================================
+        // HISTORY SYSTEM (Undo/Redo) - 10 Steps
+        // ============================================
+        const historySystem = {
+            states: [],           // Array of editor states
+            currentIndex: -1,     // Current position in history
+            maxStates: 10,        // Maximum number of states to keep
+            isNavigating: false,  // Flag to prevent recording while navigating
+            debounceTimer: null,  // Timer for debouncing input
+            debounceDelay: 500,   // Delay before recording state (ms)
+            lastRecordedValue: '' // Last value that was recorded
+        };
+
+        // Initialize history with empty state
+        function initHistory() {
+            const editor = document.getElementById('promptEditor');
+            historySystem.states = [editor.value];
+            historySystem.currentIndex = 0;
+            historySystem.lastRecordedValue = editor.value;
+            updateHistoryUI();
+        }
+
+        // Record current state to history
+        function recordHistoryState(force = false) {
+            if (historySystem.isNavigating) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const currentValue = editor.value;
+            
+            // Don't record if value hasn't changed
+            if (currentValue === historySystem.lastRecordedValue && !force) return;
+            
+            // Remove any states after current index (when recording after undo)
+            if (historySystem.currentIndex < historySystem.states.length - 1) {
+                historySystem.states = historySystem.states.slice(0, historySystem.currentIndex + 1);
+            }
+            
+            // Add new state
+            historySystem.states.push(currentValue);
+            historySystem.lastRecordedValue = currentValue;
+            
+            // Keep only last maxStates
+            if (historySystem.states.length > historySystem.maxStates) {
+                historySystem.states.shift();
+            } else {
+                historySystem.currentIndex++;
+            }
+            
+            // Update UI
+            updateHistoryUI();
+            
+            // Pulse animation
+            const btnUndo = document.getElementById('btnUndo');
+            btnUndo.classList.add('pulse');
+            setTimeout(() => btnUndo.classList.remove('pulse'), 500);
+        }
+
+        // Debounced version for input events
+        function recordHistoryDebounced() {
+            if (historySystem.debounceTimer) {
+                clearTimeout(historySystem.debounceTimer);
+            }
+            
+            historySystem.debounceTimer = setTimeout(() => {
+                recordHistoryState();
+            }, historySystem.debounceDelay);
+        }
+
+        // Undo - go back in history
+        function historyUndo() {
+            if (historySystem.currentIndex <= 0) return;
+            
+            historySystem.isNavigating = true;
+            historySystem.currentIndex--;
+            
+            const editor = document.getElementById('promptEditor');
+            editor.value = historySystem.states[historySystem.currentIndex];
+            historySystem.lastRecordedValue = editor.value;
+            
+            updateHistoryUI();
+            updateCounts();
+            
+            // Visual feedback
+            showToast(`↩️ Undo (Step ${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
+            
+            setTimeout(() => {
+                historySystem.isNavigating = false;
+            }, 100);
+        }
+
+        // Redo - go forward in history
+        function historyRedo() {
+            if (historySystem.currentIndex >= historySystem.states.length - 1) return;
+            
+            historySystem.isNavigating = true;
+            historySystem.currentIndex++;
+            
+            const editor = document.getElementById('promptEditor');
+            editor.value = historySystem.states[historySystem.currentIndex];
+            historySystem.lastRecordedValue = editor.value;
+            
+            updateHistoryUI();
+            updateCounts();
+            
+            // Visual feedback
+            showToast(`↪️ Redo (Step ${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
+            
+            setTimeout(() => {
+                historySystem.isNavigating = false;
+            }, 100);
+        }
+
+        // Update history navigation UI
+        function updateHistoryUI() {
+            const btnUndo = document.getElementById('btnUndo');
+            const btnRedo = document.getElementById('btnRedo');
+            const undoCount = document.getElementById('undoCount');
+            const redoCount = document.getElementById('redoCount');
+            const historyPosition = document.getElementById('historyPosition');
+            
+            const canUndo = historySystem.currentIndex > 0;
+            const canRedo = historySystem.currentIndex < historySystem.states.length - 1;
+            
+            const undoSteps = historySystem.currentIndex;
+            const redoSteps = historySystem.states.length - 1 - historySystem.currentIndex;
+            
+            // Update buttons
+            btnUndo.disabled = !canUndo;
+            btnRedo.disabled = !canRedo;
+            
+            // Update badges
+            undoCount.textContent = undoSteps;
+            redoCount.textContent = redoSteps;
+            
+            // Update position indicator
+            historyPosition.textContent = `${historySystem.currentIndex + 1}/${historySystem.states.length}`;
+            
+            // Update tooltips
+            btnUndo.title = canUndo ? `Undo (${undoSteps} step${undoSteps !== 1 ? 's' : ''} back) - Ctrl+Z` : 'Nothing to undo';
+            btnRedo.title = canRedo ? `Redo (${redoSteps} step${redoSteps !== 1 ? 's' : ''} forward) - Ctrl+Y` : 'Nothing to redo';
+        }
+
+        // Clear history (when editor is cleared)
+        function clearHistory() {
+            historySystem.states = [''];
+            historySystem.currentIndex = 0;
+            historySystem.lastRecordedValue = '';
+            updateHistoryUI();
+        }
+
+        // Keyboard shortcuts for undo/redo
+        function setupHistoryKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Only work when editor is focused or no input is focused
+                const activeElement = document.activeElement;
+                const isEditorFocused = activeElement && activeElement.id === 'promptEditor';
+                
+                if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                    if (isEditorFocused) {
+                        e.preventDefault();
+                        historyUndo();
+                    }
+                }
+                
+                if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+                    if (isEditorFocused) {
+                        e.preventDefault();
+                        historyRedo();
+                    }
+                }
+            });
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadPromptTemplates(); // Load from database
@@ -4347,6 +4673,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             loadUploadedFiles();
             setupEventListeners();
             initDistributionSlider(); // Initialize distribution slider
+            initHistory(); // Initialize history system
+            setupHistoryKeyboardShortcuts(); // Setup keyboard shortcuts
         });
         
         // Load templates from database
@@ -4820,6 +5148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             updateCounts();
             updatePromptCounter();
+            recordHistoryState(true); // Record template toggle in history
         }
 
         // Rebuild editor content from active prompts
@@ -4834,6 +5163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
             
             editor.value = contents.join('\n\n');
+            recordHistoryState(true); // Record rebuild in history
         }
 
         // Clear editor
@@ -4867,6 +5197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateCounts();
             updatePromptCounter();
             updateSavedCounter();
+            recordHistoryState(true); // Record clear action in history
             showToast('Editor cleared', 'info');
         }
 
@@ -4923,6 +5254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 updateCounts();
+                recordHistoryState(true); // Record paste action in history
                 showToast('Pasted from clipboard!', 'success');
                 editor.focus();
             } catch (err) {
@@ -5862,8 +6194,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Setup event listeners
         function setupEventListeners() {
-            // Editor input
-            document.getElementById('promptEditor').addEventListener('input', updateCounts);
+            // Editor input - update counts and record history
+            document.getElementById('promptEditor').addEventListener('input', () => {
+                updateCounts();
+                recordHistoryDebounced(); // Record state after typing stops
+            });
             
             // File upload - Drop Zone
             const dropZone = document.getElementById('dropZone');
@@ -6026,6 +6361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (filesProcessed > 0) {
                 updateCounts();
+                recordHistoryState(true); // Record file upload in history
                 const modeText = shouldSendFullContent() ? 'with full content' : 'as references';
                 showToast(`✅ ${filesProcessed} file(s) added ${modeText}!`, 'success');
                 
@@ -6637,6 +6973,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             updateCounts();
             updateSavedCounter();
+            recordHistoryState(true); // Record saved prompt toggle in history
         }
         
         // Rebuild editor from active saved prompts
@@ -6660,6 +6997,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             editor.value = contents.join('\n\n');
             updateCounts();
+            recordHistoryState(true); // Record rebuild in history
         }
         
         // Update saved prompts counter
