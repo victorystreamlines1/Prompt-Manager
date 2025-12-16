@@ -4363,6 +4363,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                     
+                    <!-- Move Files Tools -->
+                    <div class="move-folder-group">
+                        <button class="btn-move-folder" style="color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);" onclick="openMoveFilesModal()" title="Move files to another folder">
+                            <i class="fas fa-file"></i>
+                            <i class="fas fa-arrow-right"></i>
+                            <i class="fas fa-folder"></i>
+                            Move
+                        </button>
+                    </div>
+                    
                     <!-- Right File Group -->
                     <div class="file-transfer-group right">
                         <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
@@ -4563,6 +4573,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button class="btn btn-secondary" onclick="closeModal('createFolderModal')">Cancel</button>
                 <button class="btn btn-success" onclick="confirmCreateFolder()">
                     <i class="fas fa-plus"></i> Create Folder
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Move Files Modal -->
+    <div class="modal-overlay" id="moveFilesModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-export" style="color: #8b5cf6;"></i> Move Files <span class="file-count-badge" id="moveFilesCountBadge"><i class="fas fa-file"></i> 0</span></h3>
+                <button class="modal-close" onclick="closeModal('moveFilesModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-file-export file-modal-icon" style="color: #8b5cf6;"></i>
+                <p class="file-modal-message">Select source folder, files to move, then destination</p>
+                
+                <!-- Source Selection -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-folder-open" style="color: #f59e0b;"></i> Source folder
+                    </label>
+                    <button class="folder-select-btn" id="moveFilesSourceBtn" onclick="selectMoveFilesSource()">
+                        <i class="fas fa-folder-open"></i>
+                        <span id="moveFilesSourceName">Click to select source folder</span>
+                    </button>
+                </div>
+                
+                <!-- Files to Move Selection -->
+                <div id="moveFilesSelectContainer" style="display: none; margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-file" style="color: #8b5cf6;"></i> Select files to move (multiple allowed)
+                    </label>
+                    <div class="file-list-container" id="moveFilesList" style="max-height: 180px;">
+                        <div class="file-list-empty">
+                            <i class="fas fa-file"></i>
+                            <p>No files found</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Destination Selection -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-folder" style="color: #10b981;"></i> Destination folder
+                    </label>
+                    <button class="folder-select-btn" id="moveFilesDestBtn" onclick="selectMoveFilesDestination()" disabled>
+                        <i class="fas fa-folder"></i>
+                        <span id="moveFilesDestName">Select files first</span>
+                    </button>
+                </div>
+                
+                <!-- Move Preview -->
+                <div id="moveFilesPreview" style="display: none; margin-top: 1rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 8px; font-size: 0.85rem; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="color: #8b5cf6;"><i class="fas fa-file"></i> <span id="previewFilesCount">0</span> file(s)</span>
+                        <i class="fas fa-arrow-right" style="color: var(--accent-primary);"></i>
+                        <span style="color: #10b981;"><i class="fas fa-folder"></i> <span id="previewFilesDestFolder">-</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('moveFilesModal')">Cancel</button>
+                <button class="btn btn-primary" id="confirmMoveFilesBtn" onclick="confirmMoveFiles()" disabled style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    <i class="fas fa-file-export"></i> Move Files
                 </button>
             </div>
         </div>
@@ -6435,6 +6509,228 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             } catch (err) {
                 showToast('❌ Error creating folder: ' + err.message, 'error');
+            }
+        }
+        
+        // ============================================
+        // MOVE FILES FUNCTIONALITY
+        // ============================================
+        
+        let moveFilesState = {
+            sourceFolder: null,
+            selectedFiles: [],
+            destination: null
+        };
+        
+        // Open Move Files Modal
+        function openMoveFilesModal() {
+            moveFilesState = {
+                sourceFolder: null,
+                selectedFiles: [],
+                destination: null
+            };
+            document.getElementById('moveFilesSourceBtn').classList.remove('selected');
+            document.getElementById('moveFilesSourceName').textContent = 'Click to select source folder';
+            document.getElementById('moveFilesSelectContainer').style.display = 'none';
+            document.getElementById('moveFilesList').innerHTML = '<div class="file-list-empty"><i class="fas fa-file"></i><p>No files found</p></div>';
+            document.getElementById('moveFilesDestBtn').classList.remove('selected');
+            document.getElementById('moveFilesDestBtn').disabled = true;
+            document.getElementById('moveFilesDestName').textContent = 'Select files first';
+            document.getElementById('moveFilesPreview').style.display = 'none';
+            document.getElementById('moveFilesCountBadge').innerHTML = '<i class="fas fa-file"></i> 0';
+            document.getElementById('confirmMoveFilesBtn').disabled = true;
+            openModal('moveFilesModal');
+        }
+        
+        // Select source folder for files
+        async function selectMoveFilesSource() {
+            try {
+                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                moveFilesState.sourceFolder = folderHandle;
+                moveFilesState.selectedFiles = [];
+                document.getElementById('moveFilesSourceBtn').classList.add('selected');
+                document.getElementById('moveFilesSourceName').textContent = folderHandle.name;
+                document.getElementById('moveFilesCountBadge').innerHTML = '<i class="fas fa-file"></i> 0';
+                document.getElementById('moveFilesDestBtn').disabled = true;
+                document.getElementById('moveFilesDestName').textContent = 'Select files first';
+                document.getElementById('confirmMoveFilesBtn').disabled = true;
+                
+                // List files only
+                const files = [];
+                for await (const entry of folderHandle.values()) {
+                    if (entry.kind === 'file') {
+                        files.push(entry.name);
+                    }
+                }
+                
+                if (files.length === 0) {
+                    document.getElementById('moveFilesSelectContainer').style.display = 'block';
+                    document.getElementById('moveFilesList').innerHTML = '<div class="file-list-empty"><i class="fas fa-file"></i><p>No files in this folder</p></div>';
+                    return;
+                }
+                
+                // Build file list
+                let html = '';
+                files.sort().forEach(name => {
+                    html += `
+                        <div class="file-list-item" onclick="toggleMoveFile(this, '${name.replace(/'/g, "\\'")}')">
+                            <input type="checkbox" onclick="event.stopPropagation(); toggleMoveFile(this.parentElement, '${name.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-file file-icon"></i>
+                            <span class="file-name">${name}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('moveFilesSelectContainer').style.display = 'block';
+                document.getElementById('moveFilesList').innerHTML = html;
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showToast('❌ Error selecting folder: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Toggle file selection for move
+        function toggleMoveFile(element, fileName) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            const isSelected = element.classList.toggle('selected');
+            checkbox.checked = isSelected;
+            
+            if (isSelected) {
+                if (!moveFilesState.selectedFiles.includes(fileName)) {
+                    moveFilesState.selectedFiles.push(fileName);
+                }
+            } else {
+                moveFilesState.selectedFiles = moveFilesState.selectedFiles.filter(f => f !== fileName);
+            }
+            
+            // Update badge
+            document.getElementById('moveFilesCountBadge').innerHTML = `<i class="fas fa-file"></i> ${moveFilesState.selectedFiles.length}`;
+            
+            // Update destination button state
+            if (moveFilesState.selectedFiles.length > 0) {
+                document.getElementById('moveFilesDestBtn').disabled = false;
+                document.getElementById('moveFilesDestName').textContent = 'Click to select destination';
+            } else {
+                document.getElementById('moveFilesDestBtn').disabled = true;
+                document.getElementById('moveFilesDestName').textContent = 'Select files first';
+                document.getElementById('moveFilesDestBtn').classList.remove('selected');
+                moveFilesState.destination = null;
+            }
+            
+            updateMoveFilesPreview();
+        }
+        
+        // Select destination folder for files
+        async function selectMoveFilesDestination() {
+            try {
+                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                moveFilesState.destination = folderHandle;
+                document.getElementById('moveFilesDestBtn').classList.add('selected');
+                document.getElementById('moveFilesDestName').textContent = folderHandle.name;
+                document.getElementById('previewFilesDestFolder').textContent = folderHandle.name;
+                
+                updateMoveFilesPreview();
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showToast('❌ Error selecting destination: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Update move files preview
+        function updateMoveFilesPreview() {
+            const hasFiles = moveFilesState.selectedFiles.length > 0;
+            const hasDest = moveFilesState.destination;
+            
+            document.getElementById('previewFilesCount').textContent = moveFilesState.selectedFiles.length;
+            
+            if (hasFiles && hasDest) {
+                document.getElementById('moveFilesPreview').style.display = 'block';
+                document.getElementById('confirmMoveFilesBtn').disabled = false;
+            } else if (hasFiles) {
+                document.getElementById('moveFilesPreview').style.display = 'block';
+                document.getElementById('previewFilesDestFolder').textContent = '?';
+                document.getElementById('confirmMoveFilesBtn').disabled = true;
+            } else {
+                document.getElementById('moveFilesPreview').style.display = 'none';
+                document.getElementById('confirmMoveFilesBtn').disabled = true;
+            }
+        }
+        
+        // Confirm and execute file move
+        async function confirmMoveFiles() {
+            if (!moveFilesState.sourceFolder || moveFilesState.selectedFiles.length === 0 || !moveFilesState.destination) {
+                showToast('❌ Please select files and destination', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('confirmMoveFilesBtn');
+            const totalFiles = moveFilesState.selectedFiles.length;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Moving...';
+            
+            let moved = 0;
+            let errors = 0;
+            let skipped = 0;
+            
+            try {
+                for (const fileName of moveFilesState.selectedFiles) {
+                    try {
+                        // Check if file already exists in destination
+                        let destFileName = fileName;
+                        try {
+                            await moveFilesState.destination.getFileHandle(fileName);
+                            // File exists, skip or rename
+                            skipped++;
+                            continue;
+                        } catch (e) {
+                            // Good, doesn't exist
+                        }
+                        
+                        // Get source file
+                        const sourceHandle = await moveFilesState.sourceFolder.getFileHandle(fileName);
+                        const sourceFile = await sourceHandle.getFile();
+                        const content = await sourceFile.arrayBuffer();
+                        
+                        // Create in destination
+                        const destHandle = await moveFilesState.destination.getFileHandle(fileName, { create: true });
+                        const writable = await destHandle.createWritable();
+                        await writable.write(content);
+                        await writable.close();
+                        
+                        // Delete from source
+                        await moveFilesState.sourceFolder.removeEntry(fileName);
+                        
+                        moved++;
+                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Moving ${moved}/${totalFiles}...`;
+                        
+                    } catch (e) {
+                        console.error('Error moving file:', fileName, e);
+                        errors++;
+                    }
+                }
+                
+                closeModal('moveFilesModal');
+                
+                if (errors > 0 || skipped > 0) {
+                    let msg = `Moved ${moved} file(s)`;
+                    if (skipped > 0) msg += `, ${skipped} skipped (already exist)`;
+                    if (errors > 0) msg += `, ${errors} error(s)`;
+                    showToast(`⚠️ ${msg}`, 'warning');
+                } else {
+                    showToast(`✅ Successfully moved ${moved} file(s) to "${moveFilesState.destination.name}"!`, 'success');
+                }
+                
+            } catch (err) {
+                console.error('Move files error:', err);
+                showToast('❌ Error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-export"></i> Move Files';
             }
         }
         
