@@ -6397,20 +6397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.getElementById('confirmDeleteFolderBtn').disabled = false;
         }
         
-        // Recursively delete folder contents
-        async function deleteFolderContents(folderHandle) {
-            for await (const entry of folderHandle.values()) {
-                if (entry.kind === 'file') {
-                    await folderHandle.removeEntry(entry.name);
-                } else if (entry.kind === 'directory') {
-                    const subFolder = await folderHandle.getDirectoryHandle(entry.name);
-                    await deleteFolderContents(subFolder);
-                    await folderHandle.removeEntry(entry.name);
-                }
-            }
-        }
-        
-        // Confirm and delete the folder
+        // Confirm and delete the folder (with all contents)
         async function confirmDeleteFolder() {
             if (!fileManagement.deleteFolderParent || !fileManagement.deleteFolderSelected) {
                 showToast('❌ Please select a folder to delete', 'error');
@@ -6418,14 +6405,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             try {
-                // Get the folder handle
-                const folderToDelete = await fileManagement.deleteFolderParent.getDirectoryHandle(fileManagement.deleteFolderSelected);
-                
-                // Delete all contents recursively
-                await deleteFolderContents(folderToDelete);
-                
-                // Delete the folder itself
-                await fileManagement.deleteFolderParent.removeEntry(fileManagement.deleteFolderSelected);
+                // Delete the folder and all its contents using recursive option
+                await fileManagement.deleteFolderParent.removeEntry(fileManagement.deleteFolderSelected, { recursive: true });
                 
                 closeModal('deleteFolderModal');
                 showToast(`✅ Folder deleted: ${fileManagement.deleteFolderSelected}`, 'success');
