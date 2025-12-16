@@ -4524,29 +4524,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="modal-overlay" id="deleteFolderModal">
         <div class="modal">
             <div class="modal-header">
-                <h3><i class="fas fa-folder-minus" style="color: #3b82f6;"></i> Delete Folder</h3>
+                <h3><i class="fas fa-folder-minus" style="color: #3b82f6;"></i> Empty Folder Contents</h3>
                 <button class="modal-close" onclick="closeModal('deleteFolderModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <i class="fas fa-folder-minus file-modal-icon" style="color: #3b82f6;"></i>
-                <p class="file-modal-message">Select a folder to delete (includes all contents)</p>
+                <p class="file-modal-message">Select a folder to delete all its contents</p>
                 
-                <button class="folder-select-btn" id="deleteFolderParentBtn" onclick="selectDeleteFolderParent()">
+                <button class="folder-select-btn" id="deleteFolderTargetBtn" onclick="selectFolderToEmpty()">
                     <i class="fas fa-folder-open"></i>
-                    <span id="deleteFolderParentName">Click to select parent folder</span>
+                    <span id="deleteFolderTargetName">Click to select folder</span>
                 </button>
                 
-                <div class="file-list-container" id="deleteFolderList">
-                    <div class="file-list-empty">
-                        <i class="fas fa-folder-open"></i>
-                        <p>Select a parent folder to see subfolders</p>
-                    </div>
+                <div id="folderContentsPreview" style="display: none; margin-top: 1rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-muted); margin-bottom: 0.5rem;">Contents to delete:</div>
+                    <div id="folderContentsCount" style="color: #3b82f6;"></div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('deleteFolderModal')">Cancel</button>
-                <button class="btn btn-danger" id="confirmDeleteFolderBtn" onclick="confirmDeleteFolder()" disabled>
-                    <i class="fas fa-trash-alt"></i> Delete Folder
+                <button class="btn btn-danger" id="confirmDeleteFolderBtn" onclick="confirmEmptyFolder()" disabled>
+                    <i class="fas fa-trash-alt"></i> Delete All Contents
                 </button>
             </div>
         </div>
@@ -6329,51 +6327,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Open Delete Folder Modal
         function deleteFolderModal() {
-            fileManagement.deleteFolderParent = null;
-            fileManagement.deleteFolderSelected = null;
-            fileManagement.deleteFoldersList = [];
-            document.getElementById('deleteFolderParentBtn').classList.remove('selected');
-            document.getElementById('deleteFolderParentName').textContent = 'Click to select parent folder';
-            document.getElementById('deleteFolderList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>Select a parent folder to see subfolders</p></div>';
+            fileManagement.deleteFolderTarget = null;
+            fileManagement.deleteFolderContents = { files: 0, folders: 0 };
+            document.getElementById('deleteFolderTargetBtn').classList.remove('selected');
+            document.getElementById('deleteFolderTargetName').textContent = 'Click to select folder';
+            document.getElementById('folderContentsPreview').style.display = 'none';
             document.getElementById('confirmDeleteFolderBtn').disabled = true;
             openModal('deleteFolderModal');
         }
         
-        // Select parent folder for deleting subfolder
-        async function selectDeleteFolderParent() {
+        // Select folder to empty
+        async function selectFolderToEmpty() {
             try {
                 const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                fileManagement.deleteFolderParent = folderHandle;
-                fileManagement.deleteFolderSelected = null;
-                fileManagement.deleteFoldersList = [];
-                document.getElementById('deleteFolderParentBtn').classList.add('selected');
-                document.getElementById('deleteFolderParentName').textContent = folderHandle.name;
-                document.getElementById('confirmDeleteFolderBtn').disabled = true;
+                fileManagement.deleteFolderTarget = folderHandle;
+                document.getElementById('deleteFolderTargetBtn').classList.add('selected');
+                document.getElementById('deleteFolderTargetName').textContent = folderHandle.name;
                 
-                // List subfolders
+                // Count contents
+                let fileCount = 0;
+                let folderCount = 0;
                 for await (const entry of folderHandle.values()) {
-                    if (entry.kind === 'directory') {
-                        fileManagement.deleteFoldersList.push(entry.name);
-                    }
+                    if (entry.kind === 'file') fileCount++;
+                    else if (entry.kind === 'directory') folderCount++;
                 }
                 
-                if (fileManagement.deleteFoldersList.length === 0) {
-                    document.getElementById('deleteFolderList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>No subfolders in this folder</p></div>';
-                    return;
-                }
+                fileManagement.deleteFolderContents = { files: fileCount, folders: folderCount };
                 
-                // Build folder list HTML
-                let html = '';
-                fileManagement.deleteFoldersList.sort().forEach(folder => {
-                    html += `
-                        <div class="file-list-item" onclick="selectFolderToDelete(this, '${folder.replace(/'/g, "\\'")}')">
-                            <input type="radio" name="deleteFolder" onclick="event.stopPropagation(); selectFolderToDelete(this.parentElement, '${folder.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-folder file-icon" style="color: #3b82f6;"></i>
-                            <span class="file-name">${folder}</span>
-                        </div>
-                    `;
-                });
-                document.getElementById('deleteFolderList').innerHTML = html;
+                if (fileCount === 0 && folderCount === 0) {
+                    document.getElementById('folderContentsPreview').style.display = 'block';
+                    document.getElementById('folderContentsCount').innerHTML = '<i class="fas fa-check" style="color: #10b981;"></i> Folder is already empty';
+                    document.getElementById('confirmDeleteFolderBtn').disabled = true;
+                } else {
+                    document.getElementById('folderContentsPreview').style.display = 'block';
+                    document.getElementById('folderContentsCount').innerHTML = `<i class="fas fa-file"></i> ${fileCount} file(s) &nbsp; <i class="fas fa-folder"></i> ${folderCount} subfolder(s)`;
+                    document.getElementById('confirmDeleteFolderBtn').disabled = false;
+                }
                 
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -6382,37 +6371,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        // Select a folder to delete
-        function selectFolderToDelete(element, folderName) {
-            // Deselect all
-            document.querySelectorAll('#deleteFolderList .file-list-item').forEach(item => {
-                item.classList.remove('selected');
-                item.querySelector('input[type="radio"]').checked = false;
-            });
-            
-            // Select this one
-            element.classList.add('selected');
-            element.querySelector('input[type="radio"]').checked = true;
-            fileManagement.deleteFolderSelected = folderName;
-            document.getElementById('confirmDeleteFolderBtn').disabled = false;
-        }
-        
-        // Confirm and delete the folder (with all contents)
-        async function confirmDeleteFolder() {
-            if (!fileManagement.deleteFolderParent || !fileManagement.deleteFolderSelected) {
-                showToast('❌ Please select a folder to delete', 'error');
+        // Confirm and empty the folder
+        async function confirmEmptyFolder() {
+            if (!fileManagement.deleteFolderTarget) {
+                showToast('❌ Please select a folder first', 'error');
                 return;
             }
             
+            const btn = document.getElementById('confirmDeleteFolderBtn');
+            const folderName = fileManagement.deleteFolderTarget.name;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            
+            let deletedFiles = 0;
+            let deletedFolders = 0;
+            let errors = 0;
+            
             try {
-                // Delete the folder and all its contents using recursive option
-                await fileManagement.deleteFolderParent.removeEntry(fileManagement.deleteFolderSelected, { recursive: true });
+                // Get all entries first
+                const entries = [];
+                for await (const entry of fileManagement.deleteFolderTarget.values()) {
+                    entries.push({ name: entry.name, kind: entry.kind });
+                }
+                
+                // Delete each entry
+                for (const entry of entries) {
+                    try {
+                        await fileManagement.deleteFolderTarget.removeEntry(entry.name, { recursive: true });
+                        if (entry.kind === 'file') deletedFiles++;
+                        else deletedFolders++;
+                    } catch (e) {
+                        console.error('Error deleting:', entry.name, e);
+                        errors++;
+                    }
+                }
                 
                 closeModal('deleteFolderModal');
-                showToast(`✅ Folder deleted: ${fileManagement.deleteFolderSelected}`, 'success');
+                
+                if (errors > 0) {
+                    showToast(`⚠️ Deleted ${deletedFiles} files, ${deletedFolders} folders. ${errors} error(s)`, 'warning');
+                } else {
+                    showToast(`✅ Emptied "${folderName}": ${deletedFiles} files, ${deletedFolders} folders deleted`, 'success');
+                }
                 
             } catch (err) {
-                showToast('❌ Error deleting folder: ' + err.message, 'error');
+                console.error('Empty folder error:', err);
+                showToast('❌ Error: ' + err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete All Contents';
             }
         }
         
