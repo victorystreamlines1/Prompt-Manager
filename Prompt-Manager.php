@@ -852,6 +852,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
         }
 
+        /* Database Selector */
+        .database-selector {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 12px;
+        }
+
+        .db-selector-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .db-selector-header i {
+            color: #fbbf24;
+        }
+
+        .db-selector-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .db-checkbox-wrapper {
+            flex-shrink: 0;
+        }
+
+        .db-checkbox-wrapper input {
+            display: none;
+        }
+
+        .db-checkbox-box {
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: var(--bg-tertiary);
+        }
+
+        .db-checkbox-box:hover {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .db-checkbox-box i {
+            font-size: 0.8rem;
+            color: white;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+
+        .db-checkbox-wrapper input:checked + .db-checkbox-box {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-color: #fbbf24;
+            box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4);
+        }
+
+        .db-checkbox-wrapper input:checked + .db-checkbox-box i {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .db-dropdown-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .db-dropdown {
+            width: 100%;
+            padding: 0.6rem 2rem 0.6rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+
+        .db-dropdown:hover {
+            border-color: #fbbf24;
+        }
+
+        .db-dropdown:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
+        }
+
+        .db-dropdown option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px;
+        }
+
+        .db-dropdown-arrow {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fbbf24;
+            font-size: 0.7rem;
+            pointer-events: none;
+        }
+
+        .db-no-connections {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 0.5rem;
+            font-style: italic;
+        }
+
+        .db-no-connections a {
+            color: #fbbf24;
+            text-decoration: none;
+        }
+
+        .db-no-connections a:hover {
+            text-decoration: underline;
+        }
+
         /* File Upload Area */
         /* Two-Level File Picker */
         .file-picker-container {
@@ -1956,6 +2094,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .history-btn.redo .history-badge {
             background: linear-gradient(135deg, #10b981, #059669);
             box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .history-btn.clear {
+            width: 32px;
+            height: 32px;
+            font-size: 0.85rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .history-btn.clear:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #ef4444;
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .history-btn.clear:active:not(:disabled) {
+            transform: scale(0.9) rotate(90deg);
         }
 
         .history-divider {
@@ -3892,6 +4050,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="sidebar-content">
+                <!-- Database Selector -->
+                <div class="database-selector" id="databaseSelector">
+                    <div class="db-selector-header">
+                        <i class="fas fa-database"></i> Hostinger Database
+                    </div>
+                    <div class="db-selector-row" id="dbSelectorRow">
+                        <label class="db-checkbox-wrapper">
+                            <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials()">
+                            <div class="db-checkbox-box">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </label>
+                        <div class="db-dropdown-wrapper">
+                            <select class="db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
+                                <option value="">-- Select Database --</option>
+                            </select>
+                            <i class="fas fa-chevron-down db-dropdown-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="db-no-connections" id="dbNoConnections" style="display: none;">
+                        No databases found.<br>
+                        <a href="PHP-Dashboard.php" target="_blank">Add in Dashboard →</a>
+                    </div>
+                </div>
+                
                 <!-- File Upload -->
                 <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
                 
@@ -4013,6 +4196,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="history-btn redo" id="btnRedo" onclick="historyRedo()" disabled title="Redo (Ctrl+Y)">
                             <i class="fas fa-arrow-right"></i>
                             <span class="history-badge" id="redoCount">0</span>
+                        </button>
+                        <div class="history-divider"></div>
+                        <button type="button" class="history-btn clear" id="btnClearHistory" onclick="resetHistory()" title="Clear History">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                     
@@ -4643,6 +4830,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateHistoryUI();
         }
 
+        // Reset history to zeros (X button)
+        function resetHistory() {
+            const editor = document.getElementById('promptEditor');
+            historySystem.states = [editor.value]; // Keep current state as starting point
+            historySystem.currentIndex = 0;
+            historySystem.lastRecordedValue = editor.value;
+            updateHistoryUI();
+            
+            // Visual feedback
+            const clearBtn = document.getElementById('btnClearHistory');
+            clearBtn.classList.add('pulse');
+            setTimeout(() => clearBtn.classList.remove('pulse'), 500);
+            
+            showToast('🗑️ History cleared', 'info');
+        }
+
         // Keyboard shortcuts for undo/redo
         function setupHistoryKeyboardShortcuts() {
             document.addEventListener('keydown', (e) => {
@@ -4666,6 +4869,190 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
 
+        // ============================================
+        // DATABASE SELECTOR (Hostinger Integration)
+        // ============================================
+        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections';
+        let selectedDatabaseConnection = null;
+
+        // Load databases from localStorage (same as PHP-Dashboard.php)
+        function loadHostingerDatabases() {
+            const dropdown = document.getElementById('dbDropdown');
+            const noConnections = document.getElementById('dbNoConnections');
+            const selectorRow = document.getElementById('dbSelectorRow');
+            
+            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
+            const connections = saved ? JSON.parse(saved) : [];
+            
+            // Clear existing options (keep placeholder)
+            dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+            
+            if (connections.length === 0) {
+                selectorRow.style.display = 'none';
+                noConnections.style.display = 'block';
+                return;
+            }
+            
+            selectorRow.style.display = 'flex';
+            noConnections.style.display = 'none';
+            
+            // Add database options
+            connections.forEach(conn => {
+                const option = document.createElement('option');
+                option.value = conn.id;
+                option.textContent = `${conn.name} (${conn.dbName})`;
+                option.dataset.host = conn.host;
+                option.dataset.dbname = conn.dbName;
+                option.dataset.username = conn.username;
+                option.dataset.password = conn.password || '';
+                option.dataset.port = conn.port || '3306';
+                option.dataset.type = conn.type || 'shared';
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Handle database selection change
+        function onDatabaseSelect() {
+            const dropdown = document.getElementById('dbDropdown');
+            const checkbox = document.getElementById('dbCredentialsCheckbox');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (dropdown.value && selectedOption.dataset) {
+                selectedDatabaseConnection = {
+                    id: dropdown.value,
+                    name: selectedOption.textContent,
+                    host: selectedOption.dataset.host,
+                    dbName: selectedOption.dataset.dbname,
+                    username: selectedOption.dataset.username,
+                    password: selectedOption.dataset.password,
+                    port: selectedOption.dataset.port,
+                    type: selectedOption.dataset.type
+                };
+                
+                // If checkbox is checked and dropdown changed, append new credentials (don't replace)
+                if (checkbox.checked) {
+                    appendCredentialsToEditor();
+                }
+            } else {
+                selectedDatabaseConnection = null;
+            }
+        }
+
+        // Track the last added credentials ID for removal
+        let lastAddedCredentialsId = null;
+
+        // Toggle database credentials in editor
+        function toggleDatabaseCredentials() {
+            const checkbox = document.getElementById('dbCredentialsCheckbox');
+            const dropdown = document.getElementById('dbDropdown');
+            
+            if (checkbox.checked) {
+                if (!dropdown.value) {
+                    showToast('⚠️ Please select a database first', 'warning');
+                    checkbox.checked = false;
+                    return;
+                }
+                appendCredentialsToEditor();
+            } else {
+                // Remove only the last added credentials when unchecking
+                if (lastAddedCredentialsId) {
+                    removeCredentialsByIdFromEditor(lastAddedCredentialsId);
+                    lastAddedCredentialsId = null;
+                }
+            }
+        }
+
+        // Append credentials to the END of prompt editor (always append, never replace)
+        function appendCredentialsToEditor() {
+            if (!selectedDatabaseConnection) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = selectedDatabaseConnection;
+            
+            // Create unique ID for this credentials block
+            const credId = `DB_${conn.id}_${Date.now()}`;
+            lastAddedCredentialsId = credId;
+            
+            // Create credentials block with ID marker
+            const credentialsBlock = `
+<!-- CRED:${credId} -->
+╔══════════════════════════════════════════════════════════════╗
+║  🗄️  DATABASE CREDENTIALS                                    ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${conn.host.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝
+<!-- /CRED:${credId} -->`.trim();
+            
+            // APPEND to the end (not prepend)
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + credentialsBlock;
+            } else {
+                editor.value = credentialsBlock;
+            }
+            
+            updateCounts();
+            recordHistoryState(true);
+            showToast(`🗄️ ${conn.name} credentials appended`, 'success');
+        }
+
+        // Remove specific credentials block by ID
+        function removeCredentialsByIdFromEditor(credId) {
+            const editor = document.getElementById('promptEditor');
+            const startMarker = `<!-- CRED:${credId} -->`;
+            const endMarker = `<!-- /CRED:${credId} -->`;
+            
+            let content = editor.value;
+            const startIdx = content.indexOf(startMarker);
+            
+            if (startIdx !== -1) {
+                const endIdx = content.indexOf(endMarker, startIdx);
+                if (endIdx !== -1) {
+                    const before = content.substring(0, startIdx).trimEnd();
+                    const after = content.substring(endIdx + endMarker.length).trimStart();
+                    editor.value = before + (before && after ? '\n\n' : '') + after;
+                    
+                    updateCounts();
+                    recordHistoryState(true);
+                    showToast('🗑️ Credentials removed', 'info');
+                }
+            }
+        }
+
+        // Remove ALL credentials blocks from the editor (legacy function - not used anymore)
+        function removeCredentialsFromEditor() {
+            const editor = document.getElementById('promptEditor');
+            // Remove all credential blocks using regex
+            let content = editor.value;
+            const regex = /<!-- CRED:[^>]+-->[\s\S]*?<!-- \/CRED:[^>]+-->\n*/g;
+            const newContent = content.replace(regex, '').trim();
+            
+            if (newContent !== content.trim()) {
+                editor.value = newContent;
+                updateCounts();
+                recordHistoryState(true);
+                showToast('🗑️ Credentials removed', 'info');
+            }
+        }
+
+        // Refresh databases when window gains focus (syncs with Dashboard)
+        window.addEventListener('focus', () => {
+            const currentCount = document.getElementById('dbDropdown').options.length - 1;
+            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
+            const connections = saved ? JSON.parse(saved) : [];
+            
+            // Only reload if count changed
+            if (connections.length !== currentCount) {
+                loadHostingerDatabases();
+                console.log('🔄 Database list refreshed from Dashboard');
+            }
+        });
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadPromptTemplates(); // Load from database
@@ -4675,6 +5062,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             initDistributionSlider(); // Initialize distribution slider
             initHistory(); // Initialize history system
             setupHistoryKeyboardShortcuts(); // Setup keyboard shortcuts
+            loadHostingerDatabases(); // Load database connections
         });
         
         // Load templates from database
