@@ -2162,7 +2162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .editor-search-bar.has-value #searchClearBtn {
             opacity: 1 !important;
             pointer-events: auto !important;
-            animation: fadeInScale 0.2s ease;
+            animation: fadeInScale 0.2s ease forwards;
         }
 
         @keyframes fadeInScale {

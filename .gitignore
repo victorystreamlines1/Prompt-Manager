@@ -1,26 +1,39 @@
-# PHP
-/vendor/
-composer.phar
-*.log
-
-# Environment and secrets
+# Environment
 .env
 .env.local
 .env.*.local
 
-# Uploads
-/uploads/
+# Storage
+storage/logs/*
+storage/cache/*
+!storage/logs/.gitkeep
+!storage/cache/.gitkeep
+
+# Uploads (keep structure, ignore files)
+public/uploads/*
+!public/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Replit
-.cache/
-.local/
+# Composer
+/vendor/
+
+# Node
+/node_modules/
+
+# Logs
+*.log
+php_dashboard_errors.log
+
+# Backups
+*.bak
+*.backup
