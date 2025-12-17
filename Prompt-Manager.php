@@ -1923,6 +1923,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-clip: text;
         }
 
+        /* Editor Search Bar */
+        .editor-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 1rem;
+            padding: 0.35rem 0.6rem;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .editor-search-bar:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            background: rgba(15, 15, 35, 0.8);
+        }
+
+        .editor-search-bar.has-results {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .editor-search-bar.no-results {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .editor-search-bar:focus-within .search-icon {
+            color: var(--accent-primary);
+        }
+
+        .editor-search-bar.has-results .search-icon {
+            color: var(--success);
+        }
+
+        .editor-search-bar.no-results .search-icon {
+            color: var(--danger);
+        }
+
+        .editor-search-input {
+            width: 140px;
+            padding: 0.3rem 0;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            transition: width 0.3s ease;
+        }
+
+        .editor-search-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .editor-search-bar:focus-within .editor-search-input {
+            width: 180px;
+        }
+
+        .search-results-badge {
+            display: none;
+            padding: 0.15rem 0.5rem;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            white-space: nowrap;
+        }
+
+        .editor-search-bar.has-results .search-results-badge {
+            display: flex;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .editor-search-bar.no-results .search-results-badge {
+            display: flex;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .search-nav-btns {
+            display: none;
+            gap: 2px;
+        }
+
+        .editor-search-bar.has-results .search-nav-btns {
+            display: flex;
+        }
+
+        .search-nav-btn {
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            transition: all 0.2s;
+        }
+
+        .search-nav-btn:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .search-clear-btn {
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 5px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .editor-search-bar.has-value .search-clear-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .search-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
         .logout-btn {
             margin-left: auto;
             padding: 0.4rem 0.6rem;
@@ -4259,6 +4409,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="editor-title">
                         <i class="fas fa-terminal"></i>
                         <span>Prompt Editor</span>
+                        
+                        <!-- Editor Search Bar -->
+                        <div class="editor-search-bar" id="editorSearchBar">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" 
+                                   class="editor-search-input" 
+                                   id="editorSearchInput" 
+                                   placeholder="Search..." 
+                                   autocomplete="off"
+                                   spellcheck="false">
+                            <span class="search-results-badge" id="searchResultsBadge">0/0</span>
+                            <div class="search-nav-btns">
+                                <button type="button" class="search-nav-btn" onclick="editorSearchPrev()" title="Previous (Shift+Enter)">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                                <button type="button" class="search-nav-btn" onclick="editorSearchNext()" title="Next (Enter)">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearEditorSearch()" title="Clear search (Esc)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
                         <a href="?logout=1" class="logout-btn" title="Logout">
                             <i class="fas fa-sign-out-alt"></i>
                         </a>
@@ -9105,6 +9279,199 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Initialize resize handle on page load
         document.addEventListener('DOMContentLoaded', initResizeHandle);
+
+        // ============================================
+        // EDITOR SEARCH SYSTEM
+        // ============================================
+        const editorSearch = {
+            matches: [],
+            currentIndex: -1,
+            searchTerm: '',
+            debounceTimer: null,
+            lastSelection: null
+        };
+
+        // Initialize editor search
+        function initEditorSearch() {
+            const searchInput = document.getElementById('editorSearchInput');
+            const searchBar = document.getElementById('editorSearchBar');
+            
+            if (!searchInput) return;
+            
+            // Dynamic search on input
+            searchInput.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Toggle has-value class for clear button
+                if (value.length > 0) {
+                    searchBar.classList.add('has-value');
+                } else {
+                    searchBar.classList.remove('has-value');
+                }
+                
+                // Debounce the search
+                clearTimeout(editorSearch.debounceTimer);
+                editorSearch.debounceTimer = setTimeout(() => {
+                    performEditorSearch(value);
+                }, 50); // Very fast for dynamic feel
+            });
+            
+            // Keyboard shortcuts
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        editorSearchPrev();
+                    } else {
+                        editorSearchNext();
+                    }
+                } else if (e.key === 'Escape') {
+                    clearEditorSearch();
+                    searchInput.blur();
+                }
+            });
+            
+            // Focus shortcut (Ctrl+F)
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    const editor = document.getElementById('promptEditor');
+                    // Only if we're in the editor area
+                    if (document.activeElement === editor || 
+                        document.activeElement === searchInput ||
+                        editor.contains(document.activeElement)) {
+                        e.preventDefault();
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                }
+            });
+        }
+
+        // Perform the search
+        function performEditorSearch(searchTerm) {
+            const editor = document.getElementById('promptEditor');
+            const searchBar = document.getElementById('editorSearchBar');
+            const badge = document.getElementById('searchResultsBadge');
+            
+            editorSearch.searchTerm = searchTerm;
+            editorSearch.matches = [];
+            editorSearch.currentIndex = -1;
+            
+            // Clear classes
+            searchBar.classList.remove('has-results', 'no-results');
+            
+            if (!searchTerm || searchTerm.length === 0) {
+                badge.textContent = '0/0';
+                return;
+            }
+            
+            const text = editor.value;
+            const lowerText = text.toLowerCase();
+            const lowerSearch = searchTerm.toLowerCase();
+            
+            // Find all matches (case-insensitive)
+            let index = 0;
+            while ((index = lowerText.indexOf(lowerSearch, index)) !== -1) {
+                editorSearch.matches.push({
+                    start: index,
+                    end: index + searchTerm.length
+                });
+                index += 1;
+            }
+            
+            // Update UI
+            if (editorSearch.matches.length > 0) {
+                searchBar.classList.add('has-results');
+                editorSearch.currentIndex = 0;
+                badge.textContent = `1/${editorSearch.matches.length}`;
+                highlightCurrentMatch();
+            } else {
+                searchBar.classList.add('no-results');
+                badge.textContent = '0/0';
+            }
+        }
+
+        // Highlight and scroll to current match
+        function highlightCurrentMatch() {
+            const editor = document.getElementById('promptEditor');
+            
+            if (editorSearch.matches.length === 0 || editorSearch.currentIndex < 0) {
+                return;
+            }
+            
+            const match = editorSearch.matches[editorSearch.currentIndex];
+            
+            // Focus editor and select the match
+            editor.focus();
+            editor.setSelectionRange(match.start, match.end);
+            
+            // Scroll to make selection visible
+            scrollToSelection(editor, match.start);
+            
+            // Store selection for later
+            editorSearch.lastSelection = match;
+        }
+
+        // Scroll textarea to show selection
+        function scrollToSelection(textarea, position) {
+            const text = textarea.value.substring(0, position);
+            const lines = text.split('\n');
+            const lineNumber = lines.length;
+            
+            // Approximate line height (adjust if needed)
+            const lineHeight = 22;
+            const scrollPosition = (lineNumber - 5) * lineHeight;
+            
+            textarea.scrollTop = Math.max(0, scrollPosition);
+        }
+
+        // Go to next match
+        function editorSearchNext() {
+            if (editorSearch.matches.length === 0) return;
+            
+            editorSearch.currentIndex = (editorSearch.currentIndex + 1) % editorSearch.matches.length;
+            
+            const badge = document.getElementById('searchResultsBadge');
+            badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
+            
+            highlightCurrentMatch();
+        }
+
+        // Go to previous match
+        function editorSearchPrev() {
+            if (editorSearch.matches.length === 0) return;
+            
+            editorSearch.currentIndex = editorSearch.currentIndex - 1;
+            if (editorSearch.currentIndex < 0) {
+                editorSearch.currentIndex = editorSearch.matches.length - 1;
+            }
+            
+            const badge = document.getElementById('searchResultsBadge');
+            badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
+            
+            highlightCurrentMatch();
+        }
+
+        // Clear search
+        function clearEditorSearch() {
+            const searchInput = document.getElementById('editorSearchInput');
+            const searchBar = document.getElementById('editorSearchBar');
+            const badge = document.getElementById('searchResultsBadge');
+            
+            searchInput.value = '';
+            editorSearch.matches = [];
+            editorSearch.currentIndex = -1;
+            editorSearch.searchTerm = '';
+            
+            searchBar.classList.remove('has-results', 'no-results', 'has-value');
+            badge.textContent = '0/0';
+            
+            // Return focus to editor
+            document.getElementById('promptEditor').focus();
+        }
+
+        // Initialize editor search on page load
+        document.addEventListener('DOMContentLoaded', initEditorSearch);
     </script>
 
 <!-- Back to Catalog Button -->
