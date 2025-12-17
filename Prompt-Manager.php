@@ -2046,31 +2046,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* Editor Search Clear Button - Elegant X */
-        .editor-search-bar .search-clear-btn {
-            width: 28px;
-            height: 28px;
-            min-width: 28px;
-            padding: 0;
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
-            border: 2px solid rgba(239, 68, 68, 0.5);
-            border-radius: 50%;
-            color: #f87171;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: all 0.25s ease;
+        #searchClearBtn {
+            position: static !important;
+            right: unset !important;
+            top: unset !important;
+            transform: none !important;
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px !important;
+            padding: 0 !important;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.35) 100%) !important;
+            border: 2px solid rgba(239, 68, 68, 0.6) !important;
+            border-radius: 50% !important;
+            color: #f87171 !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.85rem !important;
+            font-weight: bold !important;
+            transition: all 0.25s ease !important;
             opacity: 0;
             pointer-events: none;
-            margin-left: 10px;
-            flex-shrink: 0;
+            margin-left: 6px !important;
+            flex-shrink: 0 !important;
         }
 
-        .editor-search-bar.has-value .search-clear-btn {
-            opacity: 1;
-            pointer-events: auto;
+        .editor-search-bar.has-value #searchClearBtn {
+            opacity: 1 !important;
+            pointer-events: auto !important;
             animation: fadeInScale 0.2s ease;
         }
 
@@ -2079,17 +2083,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             to { opacity: 1; transform: scale(1); }
         }
 
-        .editor-search-bar .search-clear-btn:hover {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-color: #ef4444;
-            color: white;
-            transform: scale(1.15) rotate(90deg);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.6);
+        #searchClearBtn:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+            transform: scale(1.15) rotate(90deg) !important;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.6) !important;
         }
 
-        .editor-search-bar .search-clear-btn:active {
-            transform: scale(0.95) rotate(90deg);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        #searchClearBtn:active {
+            transform: scale(0.95) rotate(90deg) !important;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4) !important;
         }
 
         .logout-btn {
