@@ -1507,6 +1507,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--danger);
         }
 
+        .prompt-action-icon.pull:hover {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
         /* Template Modal */
         .template-modal-overlay {
             position: fixed;
@@ -1708,6 +1713,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .template-btn.edit:hover {
             background: var(--accent-primary);
             color: white;
+        }
+
+        .template-btn.warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+        }
+
+        .template-btn.warning:hover {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            border-color: #fbbf24;
+            box-shadow: 0 5px 20px rgba(251, 191, 36, 0.3);
         }
 
         /* Template Preview */
@@ -3112,6 +3130,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .saved-action-icon.delete:hover {
             background: rgba(239, 68, 68, 0.2);
             color: var(--danger);
+        }
+
+        .saved-action-icon.pull:hover {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
         }
 
         /* Saved Prompt Preview Modal */
@@ -4888,6 +4911,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="button" class="template-btn secondary" onclick="copyTemplateContent()">
                     <i class="fas fa-copy"></i> Copy
                 </button>
+                <button type="button" class="template-btn warning" onclick="pullTemplateContent()">
+                    <i class="fas fa-arrow-down"></i> Pull
+                </button>
                 <button type="button" class="template-btn edit" id="previewEditBtn">
                     <i class="fas fa-edit"></i> Edit
                 </button>
@@ -4918,6 +4944,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="template-modal-footer">
                 <button type="button" class="template-btn secondary" onclick="copySavedContent()">
                     <i class="fas fa-copy"></i> Copy
+                </button>
+                <button type="button" class="template-btn warning" onclick="pullSavedContent()">
+                    <i class="fas fa-arrow-down"></i> Pull
                 </button>
                 <button type="button" class="template-btn edit" id="savedPreviewEditBtn">
                     <i class="fas fa-edit"></i> Edit
@@ -5422,6 +5451,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="prompt-action-icon copy" onclick="copyTemplate(${prompt.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
+                            <button type="button" class="prompt-action-icon pull" onclick="pullToTemplate(${prompt.id})" title="Pull from Editor">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
                             <button type="button" class="prompt-action-icon edit" onclick="openEditTemplateModal(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -5725,6 +5757,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
         
+        // Pull editor content to Template (overwrite template with editor content)
+        function pullToTemplate(id) {
+            const template = promptTemplates.find(t => t.id === id);
+            if (!template) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const editorContent = editor.value.trim();
+            
+            if (!editorContent) {
+                showToast('Editor is empty! Nothing to pull.', 'warning');
+                return;
+            }
+            
+            // Confirm before overwriting
+            if (!confirm(`Are you sure you want to overwrite "${template.name}" with the current editor content?`)) {
+                return;
+            }
+            
+            // Send update to server
+            const formData = new FormData();
+            formData.append('action', 'update_template');
+            formData.append('id', id);
+            formData.append('name', template.name);
+            formData.append('content', editorContent);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local array
+                    template.content = editorContent;
+                    showToast(`✅ "${template.name}" updated with editor content!`, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update template', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('Failed to update template', 'error');
+            });
+        }
+        
         // Open Template Preview Modal
         function openTemplatePreview(id) {
             const template = promptTemplates.find(t => t.id === id);
@@ -5772,6 +5849,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }).catch(err => {
                 console.error('Failed to copy:', err);
                 showToast('Failed to copy content', 'error');
+            });
+        }
+
+        // Pull editor content to Template from preview modal
+        function pullTemplateContent() {
+            if (!currentPreviewTemplate) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const editorContent = editor.value.trim();
+            
+            if (!editorContent) {
+                showToast('Editor is empty! Nothing to pull.', 'warning');
+                return;
+            }
+            
+            // Confirm before overwriting
+            if (!confirm(`Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`)) {
+                return;
+            }
+            
+            // Send update to server
+            const formData = new FormData();
+            formData.append('action', 'update_template');
+            formData.append('id', currentPreviewTemplate.id);
+            formData.append('name', currentPreviewTemplate.name);
+            formData.append('content', editorContent);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local array and preview
+                    currentPreviewTemplate.content = editorContent;
+                    document.getElementById('previewContent').textContent = editorContent;
+                    showToast(`✅ "${currentPreviewTemplate.name}" updated with editor content!`, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update template', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('Failed to update template', 'error');
             });
         }
 
@@ -8206,6 +8328,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="saved-action-icon copy" onclick="copySavedPrompt(${prompt.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
+                            <button type="button" class="saved-action-icon pull" onclick="pullToSavedPrompt(${prompt.id})" title="Pull from Editor">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
                             <button type="button" class="saved-action-icon edit" onclick="editSavedPrompt(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -8402,6 +8527,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
         
+        // Pull editor content to Saved Prompt (overwrite prompt with editor content)
+        function pullToSavedPrompt(id) {
+            const prompt = savedPromptsList.find(p => p.id === id);
+            if (!prompt) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const editorContent = editor.value.trim();
+            
+            if (!editorContent) {
+                showToast('Editor is empty! Nothing to pull.', 'warning');
+                return;
+            }
+            
+            // Confirm before overwriting
+            if (!confirm(`Are you sure you want to overwrite "${prompt.title}" with the current editor content?`)) {
+                return;
+            }
+            
+            // Send update to server
+            const formData = new FormData();
+            formData.append('action', 'update_prompt');
+            formData.append('id', id);
+            formData.append('title', prompt.title);
+            formData.append('content', editorContent);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local array
+                    prompt.content = editorContent;
+                    showToast(`✅ "${prompt.title}" updated with editor content!`, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update prompt', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('Failed to update prompt', 'error');
+            });
+        }
+        
         // Open saved prompt preview modal
         function openSavedPreview(id) {
             const prompt = savedPromptsList.find(p => p.id === id);
@@ -8451,6 +8621,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }).catch(err => {
                 console.error('Failed to copy:', err);
                 showToast('Failed to copy content', 'error');
+            });
+        }
+        
+        // Pull editor content to Saved Prompt from preview modal
+        function pullSavedContent() {
+            if (!currentPreviewSaved) return;
+            
+            const editor = document.getElementById('promptEditor');
+            const editorContent = editor.value.trim();
+            
+            if (!editorContent) {
+                showToast('Editor is empty! Nothing to pull.', 'warning');
+                return;
+            }
+            
+            // Confirm before overwriting
+            if (!confirm(`Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`)) {
+                return;
+            }
+            
+            // Send update to server
+            const formData = new FormData();
+            formData.append('action', 'update_prompt');
+            formData.append('id', currentPreviewSaved.id);
+            formData.append('title', currentPreviewSaved.title);
+            formData.append('content', editorContent);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local array and preview
+                    currentPreviewSaved.content = editorContent;
+                    document.getElementById('savedPreviewContent').textContent = editorContent;
+                    showToast(`✅ "${currentPreviewSaved.title}" updated with editor content!`, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update prompt', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showToast('Failed to update prompt', 'error');
             });
         }
         
