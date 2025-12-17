@@ -1,1 +1,1 @@
-I have rolled back on all the work because I just kept the search box. Redo it again. Still not working. All I want you to do, no need to put, I mean, you don't have to stick to Ajax or anything. Just make the cursor stay and whenever I put anything, it should highlight in yellow whatever I put in the text box search tool. 
+You forgot to add a nice clear button for clearing the search text. 

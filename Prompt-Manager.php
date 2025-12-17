@@ -2046,21 +2046,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .search-clear-btn {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             padding: 0;
-            background: transparent;
-            border: none;
-            border-radius: 5px;
-            color: var(--text-muted);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+            color: #ef4444;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
-            transition: all 0.2s;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
             opacity: 0;
             pointer-events: none;
+            margin-left: 6px;
         }
 
         .editor-search-bar.has-value .search-clear-btn {
@@ -2069,8 +2070,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .search-clear-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .search-clear-btn:active {
+            transform: scale(0.95);
         }
 
         .logout-btn {
@@ -2617,23 +2625,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             word-wrap: break-word;
             overflow: hidden;
             pointer-events: none;
-            color: transparent;
+            color: var(--text-primary);
             background: var(--bg-primary);
             box-sizing: border-box;
             z-index: 1;
+            display: none;
+        }
+
+        /* Show overlay when searching */
+        .editor-body.searching .editor-highlight-overlay {
+            display: block;
         }
 
         .editor-highlight-overlay mark {
             background: #fef08a;
-            color: transparent;
-            border-radius: 2px;
-            padding: 0 1px;
+            color: #1a1a1a !important;
+            border-radius: 3px;
+            padding: 1px 3px;
             box-shadow: 0 0 0 2px #fef08a;
+            font-weight: 600;
         }
 
         .editor-highlight-overlay mark.current {
             background: #facc15;
-            box-shadow: 0 0 0 3px #facc15, 0 0 8px rgba(250, 204, 21, 0.5);
+            color: #000000 !important;
+            box-shadow: 0 0 0 3px #facc15, 0 0 10px rgba(250, 204, 21, 0.6);
+            font-weight: 700;
         }
 
         #promptEditor {
@@ -2662,6 +2679,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* When not searching, show solid background */
         #promptEditor:not(.searching) {
             background: var(--bg-primary);
+        }
+
+        /* When searching, make text transparent to show overlay highlights */
+        #promptEditor.searching {
+            color: transparent;
+            caret-color: var(--accent-primary);
         }
 
         #promptEditor::placeholder {
@@ -9420,10 +9443,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Clear the highlight overlay
         function clearHighlightOverlay() {
             const editor = document.getElementById('promptEditor');
+            const editorBody = editor.closest('.editor-body');
             const overlay = document.getElementById('editorHighlightOverlay');
             
             overlay.innerHTML = '';
             editor.classList.remove('searching');
+            if (editorBody) editorBody.classList.remove('searching');
         }
 
         // Update the highlight overlay with yellow marks
@@ -9458,6 +9483,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             overlay.innerHTML = html;
             editor.classList.add('searching');
+            
+            // Add searching class to editor-body for CSS targeting
+            const editorBody = editor.closest('.editor-body');
+            if (editorBody) editorBody.classList.add('searching');
             
             // Sync scroll
             syncOverlayScroll();
