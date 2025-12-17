@@ -1,11 +1,1 @@
-<!-- FILE:logoPM.png:1765996066559 -->
-[📎 File Reference: logoPM.png | Path: uploads/1765996049_logoPM.png]
-<!-- /END  FILE:logoPM.png:1765996066559 -->
-
-please put this logo in 
-
-<!-- FILE:3d-platform.php:1765996084260 -->
-[📎 File Reference: 3d-platform.php | Path: uploads/1765981621_3d-platform.php]
-<!-- /END  FILE:3d-platform.php:1765996084260 -->
-
-and also I want you to change the title of the web page instead of the platform Fusion Viewer change it into make it as prompt manager, make it prompt manager like the logo and put instead of the logo, the small logo of the colorful palette, put this logo, prompt manager, also put the title and the favicon as the prompt manager in this file, and change any title related to the Fusion Viewer into prompt manager, because I have converted this application from future viewer to prompt manager. 
+Now I want you to do a checkbox that will check all the uploaded drop file manager files. just like the prompt template you'll find a selector that will check and uncheck all the items under it also you'll find the same thing in the save prompts where you check and uncheck the save prompts under it I want the same thing to do in the drop file manager the drop file manager you'll find it under the two buttons. File mode, full content and reference only. Under it, you'll find a drop file manager box. Under it are the files that are dropped in. I want a check box that will check and uncheck all of them all at once. 

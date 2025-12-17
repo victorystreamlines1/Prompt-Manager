@@ -1042,6 +1042,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+
+        .files-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             padding: 0.5rem 0.75rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
@@ -4506,9 +4512,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 
-                <!-- Uploaded Files Header with Delete All -->
+                <!-- Uploaded Files Header with Select All and Delete All -->
                 <div class="uploaded-files-header" id="uploadedFilesHeader" style="display: none;">
-                    <span class="files-count"><i class="fas fa-paperclip"></i> <span id="filesCount">0</span> file(s)</span>
+                    <div class="files-header-left">
+                        <label class="select-all-checkbox" title="Select/Deselect All Files">
+                            <input type="checkbox" id="selectAllFilesCheckbox" onchange="toggleAllUploadedFiles(this.checked)">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">Select All</span>
+                        </label>
+                        <span class="files-count"><i class="fas fa-paperclip"></i> <span id="filesCount">0</span> file(s)</span>
+                    </div>
                     <button type="button" class="btn-delete-all" onclick="deleteAllFiles()" title="Delete all files">
                         <i class="fas fa-trash-alt"></i> Delete All
                     </button>
@@ -8287,10 +8300,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </div>
                     `}).join('');
+                    
+                    // Update Select All checkbox state
+                    updateSelectAllFilesCheckbox();
                 } else {
                     // Hide header when no files
                     header.style.display = 'none';
                     container.innerHTML = '';
+                    updateSelectAllFilesCheckbox();
                 }
             } catch (err) {
                 console.error('Error loading files:', err);
@@ -8445,6 +8462,123 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             updateCounts();
+            updateSelectAllFilesCheckbox();
+        }
+
+        // Toggle all uploaded files (Select All checkbox handler)
+        async function toggleAllUploadedFiles(checked) {
+            const fileItems = document.querySelectorAll('.file-item');
+            
+            if (fileItems.length === 0) {
+                showToast('No files to select', 'info');
+                return;
+            }
+            
+            let processedCount = 0;
+            const sendFullContent = shouldSendFullContent();
+            
+            for (const fileItem of fileItems) {
+                const filename = fileItem.dataset.filename;
+                const filepath = fileItem.dataset.filepath;
+                const isCurrentlyChecked = editorFiles.has(filename);
+                
+                if (checked && !isCurrentlyChecked) {
+                    // Add file to editor
+                    try {
+                        let content = '';
+                        let isReference = false;
+                        
+                        if (sendFullContent) {
+                            const response = await fetch(filepath);
+                            if (response.ok) {
+                                content = await response.text();
+                            } else {
+                                continue;
+                            }
+                        } else {
+                            content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                            isReference = true;
+                        }
+                        
+                        const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
+                        const endMarker = `<!-- /END  FILE:${filename}:${Date.now()} -->`;
+                        const editor = document.getElementById('promptEditor');
+                        
+                        // Add to editor
+                        const currentContent = editor.value;
+                        const newContent = currentContent 
+                            ? currentContent + '\n\n' + marker + '\n' + content + '\n' + endMarker
+                            : marker + '\n' + content + '\n' + endMarker;
+                        editor.value = newContent;
+                        
+                        // Track the file
+                        editorFiles.set(filename, {
+                            id: Date.now(),
+                            content: content,
+                            marker: marker,
+                            isReference: isReference,
+                            addedAt: Date.now()
+                        });
+                        
+                        fileItem.classList.add('checked');
+                        const checkbox = fileItem.querySelector('input[type="checkbox"]');
+                        if (checkbox) checkbox.checked = true;
+                        
+                        processedCount++;
+                    } catch (err) {
+                        console.error('Error adding file:', filename, err);
+                    }
+                } else if (!checked && isCurrentlyChecked) {
+                    // Remove file from editor
+                    removeFileFromEditor(filename);
+                    fileItem.classList.remove('checked');
+                    const checkbox = fileItem.querySelector('input[type="checkbox"]');
+                    if (checkbox) checkbox.checked = false;
+                    processedCount++;
+                }
+            }
+            
+            updateCounts();
+            
+            if (checked) {
+                const modeText = sendFullContent ? 'with full content' : 'as references';
+                showToast(`✅ ${processedCount} file(s) added ${modeText}!`, 'success');
+            } else {
+                showToast(`📄 ${processedCount} file(s) removed from editor`, 'info');
+            }
+        }
+        
+        // Update the "Select All Files" checkbox based on current selection
+        function updateSelectAllFilesCheckbox() {
+            const checkbox = document.getElementById('selectAllFilesCheckbox');
+            if (!checkbox) return;
+            
+            const fileItems = document.querySelectorAll('.file-item');
+            const totalFiles = fileItems.length;
+            
+            if (totalFiles === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+                return;
+            }
+            
+            let checkedCount = 0;
+            fileItems.forEach(item => {
+                if (item.classList.contains('checked')) {
+                    checkedCount++;
+                }
+            });
+            
+            if (checkedCount === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+            } else if (checkedCount === totalFiles) {
+                checkbox.checked = true;
+                checkbox.indeterminate = false;
+            } else {
+                checkbox.checked = false;
+                checkbox.indeterminate = true;
+            }
         }
 
         // Delete file - removes from server AND from editor
