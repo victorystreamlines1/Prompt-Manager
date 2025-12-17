@@ -1,1 +1,142 @@
-the work distribution progress bar is up to 10 I want you to make it up to 20 tasks distribution level 
+<!-- FILE:3d-platform.php:1765982555347 -->
+[📎 File Reference: 3d-platform.php | Path: uploads/1765981621_3d-platform.php]
+<!-- /END  FILE:3d-platform.php:1765982555347 -->
+
+## IDE Refactor & Re-Architecture Prompt (AI-Friendly)
+
+You are a senior software architect + refactoring specialist. Your task is to refactor and reorganize this entire application to maximize: readability, maintainability, testability, and “AI-friendliness” (clear structure, predictable patterns, low coupling, high cohesion). You are allowed to create/move/rename/delete files and folders across the whole repo as needed.
+
+### 0) Operating rules
+
+* Do **not** change external behavior unless it fixes a clear bug (if you fix bugs, document them).
+* Keep changes incremental and verifiable. Prefer small, safe commits/steps.
+* Preserve public APIs (HTTP endpoints, CLI commands, DB schema, external interfaces) unless you provide a migration plan.
+* Prioritize clarity over cleverness. Avoid over-engineering.
+* Remove dead code, duplicate logic, and inconsistent patterns.
+
+### 1) First: Build a map of the system
+
+Before changing code, produce:
+
+* A brief architecture overview: main modules, data flow, entry points.
+* Dependency graph: what imports what, which modules are “core”.
+* Identify smells: god files, circular deps, mixed concerns, unclear naming, duplicated patterns, side effects, inconsistent error handling.
+
+### 2) Target architecture (re-organization)
+
+Reorganize the repo into a predictable structure. Use a layout appropriate to the stack, but follow these principles:
+
+* Separate concerns: **presentation/UI**, **application/services**, **domain/business logic**, **infrastructure/adapters**, **shared utilities**.
+* Put side-effect code (DB, network, filesystem) behind clearly named adapters.
+* Make dependencies point inward: domain should not depend on infrastructure.
+* Centralize config, constants, and environment loading.
+* Establish consistent naming conventions for files, folders, classes, functions.
+
+If no clear architecture exists, propose one like:
+
+* `src/`
+
+  * `app/` (entry points, wiring, dependency injection)
+  * `domain/` (entities, business rules, domain services)
+  * `services/` (use-cases, orchestration)
+  * `infrastructure/` (db, network clients, external APIs, queue, cache)
+  * `api/` or `ui/` (controllers/routes/handlers/components)
+  * `shared/` (types, utils, errors, logging)
+  * `tests/`
+
+(Adjust to the language/framework conventions.)
+
+### 3) Refactoring goals
+
+Refactor code to achieve:
+
+* **Single Responsibility** per module (no mixed concerns).
+* Pure functions where possible; isolate side effects.
+* Replace “spooky action at a distance” with explicit parameters and return types.
+* Normalize patterns (e.g., controllers -> services -> repositories).
+* Remove circular dependencies by extracting interfaces/types or moving shared logic.
+* Enforce consistent error handling strategy:
+
+  * canonical error types, error codes/messages,
+  * consistent propagation (throw/return Result),
+  * consistent logging (structured logging).
+* Introduce clear boundaries and contracts (interfaces/types) between layers.
+
+### 4) Make the code AI-friendly
+
+Optimize for “AI approachability”:
+
+* Every module should have a short header comment: purpose, inputs/outputs, side effects.
+* Prefer explicit names over abbreviations.
+* Add/upgrade docstrings in key functions/classes describing:
+
+  * intent,
+  * parameters and shapes,
+  * return values,
+  * edge cases.
+* Add `README` docs:
+
+  * repo-level `README.md` (how to run, test, build, deploy),
+  * `docs/architecture.md` (module responsibilities and flows),
+  * `docs/conventions.md` (naming, patterns, error handling).
+* Add `CONTRIBUTING.md` with rules for adding new features.
+
+### 5) Tests + safety net
+
+* Ensure there is a reliable test strategy:
+
+  * unit tests for domain logic,
+  * integration tests for DB/external services,
+  * end-to-end tests for critical flows.
+* If tests are missing, create a minimal suite that locks down existing behavior.
+* Add/upgrade test helpers, factories/fixtures, and a deterministic test config.
+* Make CI-friendly commands: `lint`, `test`, `typecheck`, `build`.
+
+### 6) Tooling and quality gates
+
+Add or improve:
+
+* Linting and formatting (e.g., ESLint/Prettier, Ruff/Black, golangci-lint, etc.).
+* Type checking (e.g., TypeScript strict, mypy, etc.) if applicable.
+* Static analysis and safe refactor tools where possible.
+* Pre-commit hooks (optional) and editor configs.
+* Ensure consistent import order and module boundaries.
+
+### 7) Configuration & environment
+
+* Centralize configuration:
+
+  * `config/` or `src/app/config`,
+  * schema validation for env vars (e.g., Zod/Joi/Pydantic).
+* Remove scattered magic strings; replace with constants.
+* Create environment templates: `.env.example` with documentation.
+* Ensure secrets are not committed.
+
+### 8) Step-by-step execution plan (mandatory)
+
+Work in phases:
+
+1. Baseline: get app running, record commands, ensure tests (or add minimal).
+2. Reorganize folders with minimal logic changes; update imports.
+3. Refactor core flows: extract domain logic, isolate infrastructure, simplify controllers.
+4. Standardize error/logging/config patterns.
+5. Add/upgrade tests around refactored pieces.
+6. Cleanup + documentation.
+
+At each phase:
+
+* Provide a concise change summary,
+* mention any breaking changes and migration steps,
+* ensure build/test passes.
+
+### 9) Output requirements
+
+When you finish, provide:
+
+* Final folder tree.
+* A “What changed and why” summary.
+* A list of new conventions/patterns.
+* How to run: dev, test, build, (deploy if relevant).
+* Any TODOs you intentionally left and why.
+
+Now start by scanning the repository, identifying the current structure, entry points, and the highest-risk areas. Then propose the refactor plan and begin Phase 1.
