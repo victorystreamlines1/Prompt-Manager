@@ -1555,13 +1555,28 @@
         // INITIALIZATION (Using IndexedDB for large models)
         // ═══════════════════════════════════════════════════════════════
         
-        // IndexedDB helper
+        // IndexedDB helper with timeout protection
         const PlatformDB = {
             dbName: 'FusionPlatformDB',
             storeName: 'geometryStore',
+            timeout: 3000, // 3 second timeout
+            
+            // Wrap promise with timeout
+            withTimeout(promise, ms) {
+                return Promise.race([
+                    promise,
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('IndexedDB timeout')), ms)
+                    )
+                ]);
+            },
             
             open() {
-                return new Promise((resolve, reject) => {
+                return this.withTimeout(new Promise((resolve, reject) => {
+                    if (!window.indexedDB) {
+                        reject(new Error('IndexedDB not supported'));
+                        return;
+                    }
                     const request = indexedDB.open(this.dbName, 1);
                     request.onerror = () => reject(request.error);
                     request.onsuccess = () => resolve(request.result);
@@ -1571,29 +1586,29 @@
                             db.createObjectStore(this.storeName, { keyPath: 'id' });
                         }
                     };
-                });
+                }), this.timeout);
             },
             
             async load() {
                 const db = await this.open();
-                return new Promise((resolve, reject) => {
+                return this.withTimeout(new Promise((resolve, reject) => {
                     const tx = db.transaction(this.storeName, 'readonly');
                     const store = tx.objectStore(this.storeName);
                     const request = store.get('platformData');
                     request.onsuccess = () => { db.close(); resolve(request.result); };
                     request.onerror = () => { db.close(); reject(request.error); };
-                });
+                }), this.timeout);
             },
             
             async clear() {
                 const db = await this.open();
-                return new Promise((resolve, reject) => {
+                return this.withTimeout(new Promise((resolve, reject) => {
                     const tx = db.transaction(this.storeName, 'readwrite');
                     const store = tx.objectStore(this.storeName);
                     const request = store.delete('platformData');
                     request.onsuccess = () => { db.close(); resolve(true); };
                     request.onerror = () => { db.close(); reject(request.error); };
-                });
+                }), this.timeout);
             }
         };
         
@@ -1603,7 +1618,8 @@
                 const data = await PlatformDB.load();
                 
                 if (!data || !data.geometry) {
-                    showNoData();
+                    console.log('No geometry data in storage, showing empty scene');
+                    initEmptyPlatform();
                     return;
                 }
                 
@@ -1619,48 +1635,122 @@
                     vertices: platformState.geometryData.vertices.length / 3
                 });
                 
-                // Wait for Three.js then initialize
-                initPlatform();
+                // Wait for Three.js then initialize with geometry
+                initPlatform(true);
                 
             } catch (error) {
-                console.error('Failed to load from IndexedDB:', error);
-                showNoData();
+                console.warn('IndexedDB load failed:', error.message);
+                // Show empty scene instead of error
+                initEmptyPlatform();
             }
         }
         
-        function showNoData() {
-            document.getElementById('toolbar-left').style.display = 'none';
-            document.getElementById('viewport').style.display = 'none';
-            document.getElementById('panel-right').style.display = 'none';
-            document.getElementById('no-data').style.display = 'flex';
-            document.getElementById('loading-overlay').style.display = 'none';
+        // Initialize empty platform (no model, just grid)
+        function initEmptyPlatform() {
+            console.log('Initializing empty platform with grid...');
             
-            // Update header to show no model loaded
-            document.getElementById('filename').textContent = 'No Model';
+            // Update header to show ready state
+            document.getElementById('filename').textContent = 'Ready to Upload';
             document.getElementById('filetype-badge').textContent = '---';
+            
+            // Initialize the 3D scene without geometry
+            initPlatform(false);
         }
         
-        // Start loading
-        loadFromStorage();
+        // Early toast function for initialization errors
+        function earlyToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
         
-        function initPlatform() {
+        // GLOBAL SAFETY NET: Hide loading after 8 seconds no matter what
+        setTimeout(() => {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                const style = window.getComputedStyle(overlay);
+                if (style.display !== 'none') {
+                    console.warn('⚠ Global safety timeout triggered - hiding loading overlay');
+                    overlay.style.display = 'none';
+                    earlyToast('Loading took too long. Scene may not be fully ready.', 'warning');
+                }
+            }
+        }, 8000);
+        
+        // Start loading with Three.js availability check
+        let threeJsCheckCount = 0;
+        const maxThreeJsChecks = 50; // 5 seconds max wait
+        
+        function waitForThreeAndLoad() {
+            threeJsCheckCount++;
+            
+            if (typeof THREE !== 'undefined') {
+                console.log('✓ Three.js loaded after ' + (threeJsCheckCount * 100) + 'ms');
+                loadFromStorage();
+            } else if (threeJsCheckCount >= maxThreeJsChecks) {
+                console.error('Three.js failed to load after 5 seconds');
+                document.getElementById('loading-overlay').style.display = 'none';
+                earlyToast('Failed to load 3D library. Please refresh the page.', 'error');
+            } else {
+                setTimeout(waitForThreeAndLoad, 100);
+            }
+        }
+        
+        // Start the loading process
+        waitForThreeAndLoad();
+        
+        function initPlatform(hasGeometry = true) {
+            // Always hide loading after a maximum timeout (safety net)
+            setTimeout(() => {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay && overlay.style.display !== 'none') {
+                    overlay.style.display = 'none';
+                    console.warn('Loading overlay hidden by safety timeout');
+                }
+            }, 5000);
+            
             if (typeof THREE === 'undefined') {
-                setTimeout(initPlatform, 50);
+                console.log('Waiting for Three.js to load...');
+                setTimeout(() => initPlatform(hasGeometry), 100);
                 return;
             }
             
-            defineOrbitControls();
-            setupScene();
-            loadGeometry();
-            setupEventListeners();
-            animate();
-            
-            document.getElementById('loading-overlay').style.display = 'none';
+            try {
+                console.log('Initializing platform, hasGeometry:', hasGeometry);
+                
+                defineOrbitControls();
+                setupScene();
+                
+                // Only load geometry if we have data
+                if (hasGeometry && platformState.geometryData) {
+                    loadGeometry();
+                    showToast('Model loaded successfully', 'success');
+                } else {
+                    // Show empty scene message
+                    document.getElementById('vertex-count').textContent = 'Vertices: 0';
+                    document.getElementById('triangle-count').textContent = 'Triangles: 0';
+                    showToast('Ready! Upload a 3D model to start', 'info');
+                }
+                
+                setupEventListeners();
+                animate();
+                
+                console.log('✓ Platform initialized successfully');
+                
+            } catch (error) {
+                console.error('Platform initialization error:', error);
+                showToast('Error initializing 3D viewer: ' + error.message, 'error');
+            } finally {
+                // Always hide loading overlay
+                document.getElementById('loading-overlay').style.display = 'none';
+            }
             
             // Update save button visibility after loading
             setTimeout(() => updateSaveButtonVisibility(), 100);
-            
-            showToast('Model loaded successfully', 'success');
         }
         
         // ═══════════════════════════════════════════════════════════════
@@ -4925,49 +5015,7 @@
             html += '<script src="https://unpkg.com/three@0.160.0/build/three.min.js"><\/script>\n';
             html += '<script>\n';
             html += 'var statusEl=document.getElementById("status"),progressFill=document.getElementById("progress-fill");function updateStatus(e,t){statusEl.textContent=e,void 0!==t&&(progressFill.style.width=t+"%")}function defineOrbitControls(){if(!window.OrbitControls){class e extends THREE.EventDispatcher{constructor(e,t){super(),this.object=e,this.domElement=t,this.domElement.style.touchAction="none",this.enabled=!0,this.target=new THREE.Vector3,this.enableDamping=!0,this.dampingFactor=.05,this.enableZoom=!0,this.zoomSpeed=1,this.enableRotate=!0,this.rotateSpeed=1,this.enablePan=!0,this.panSpeed=1,this.minDistance=0,this.maxDistance=1/0,this.minPolarAngle=0,this.maxPolarAngle=Math.PI;var i=this,s={NONE:-1,ROTATE:0,DOLLY:1,PAN:2},o=s.NONE,a=new THREE.Spherical,n=new THREE.Spherical,r=1,l=new THREE.Vector3,h=new THREE.Vector2,c=new THREE.Vector2,d=new THREE.Vector2,p=new THREE.Vector2,u=new THREE.Vector2,m=new THREE.Vector2,f=new THREE.Vector2,g=new THREE.Vector3,v=(new THREE.Quaternion).setFromUnitVectors(e.up,new THREE.Vector3(0,1,0)),y=v.clone().invert();this.update=function(){var e=i.object.position;return g.copy(e).sub(i.target),g.applyQuaternion(v),a.setFromVector3(g),i.enableDamping?(a.theta+=n.theta*i.dampingFactor,a.phi+=n.phi*i.dampingFactor):(a.theta+=n.theta,a.phi+=n.phi),a.phi=Math.max(i.minPolarAngle,Math.min(i.maxPolarAngle,a.phi)),a.makeSafe(),a.radius*=r,a.radius=Math.max(i.minDistance,Math.min(i.maxDistance,a.radius)),i.enableDamping?i.target.addScaledVector(l,i.dampingFactor):i.target.add(l),g.setFromSpherical(a),g.applyQuaternion(y),e.copy(i.target).add(g),i.object.lookAt(i.target),i.enableDamping?(n.theta*=1-i.dampingFactor,n.phi*=1-i.dampingFactor,l.multiplyScalar(1-i.dampingFactor)):(n.set(0,0,0),l.set(0,0,0)),r=1,!1};var w=new THREE.Vector3;function b(e){n.theta-=e}function x(e){n.phi-=e}function E(e,t){w.setFromMatrixColumn(t,0),w.multiplyScalar(-e),l.add(w)}function T(e,t){w.setFromMatrixColumn(t,1),w.multiplyScalar(e),l.add(w)}function M(e,t){var s=i.domElement;g.copy(i.object.position).sub(i.target);var o=g.length()*Math.tan(i.object.fov/2*Math.PI/180);E(2*e*o/s.clientHeight,i.object.matrix),T(2*t*o/s.clientHeight,i.object.matrix)}function S(e){r/=e}function P(e){r*=e}function C(){return Math.pow(.95,i.zoomSpeed)}function L(e){i.enabled&&(0===e.button?(o=s.ROTATE,h.set(e.clientX,e.clientY)):1===e.button?(o=s.DOLLY,m.set(e.clientX,e.clientY)):2===e.button&&(o=s.PAN,p.set(e.clientX,e.clientY)),o!==s.NONE&&(document.addEventListener("pointermove",O),document.addEventListener("pointerup",R)))}function O(e){if(i.enabled)if(o===s.ROTATE)c.set(e.clientX,e.clientY),d.subVectors(c,h).multiplyScalar(i.rotateSpeed),b(2*Math.PI*d.x/i.domElement.clientHeight),x(2*Math.PI*d.y/i.domElement.clientHeight),h.copy(c);else if(o===s.DOLLY){var t=new THREE.Vector2(e.clientX,e.clientY),a=t.clone().sub(m);a.y>0?S(C()):a.y<0&&P(C()),m.copy(t)}else o===s.PAN&&(u.set(e.clientX,e.clientY),M((f=u.clone().sub(p).multiplyScalar(i.panSpeed)).x,f.y),p.copy(u));var f;i.update()}function R(){document.removeEventListener("pointermove",O),document.removeEventListener("pointerup",R),o=s.NONE}function D(e){i.enabled&&i.enableZoom&&(e.preventDefault(),e.deltaY<0?P(C()):e.deltaY>0&&S(C()),i.update())}i.domElement.addEventListener("contextmenu",function(e){return e.preventDefault()}),i.domElement.addEventListener("pointerdown",L),i.domElement.addEventListener("wheel",D,{passive:!1}),this.update()}}window.OrbitControls=e}}var loadAttempts=0;!function e(){loadAttempts++,"undefined"==typeof THREE?loadAttempts>200?(updateStatus("Failed to load 3D library",0),statusEl.style.color="#ef4444"):setTimeout(e,50):(defineOrbitControls(),updateStatus("Initializing...",20),setTimeout(initViewer,10))}();function initViewer(){try{var e=document.getElementById("viewer"),t=new THREE.Scene;t.background=new THREE.Color("' + bgColor + '");var i=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,.01,1e3);i.position.set(5,5,5);var s=new THREE.WebGLRenderer({antialias:!0});s.setSize(window.innerWidth,window.innerHeight),e.appendChild(s.domElement);var o=new OrbitControls(i,s.domElement);o.target.set(0,0,0),t.add(new THREE.AmbientLight(16777215,.6));var a=new THREE.DirectionalLight(16777215,1);a.position.set(5,10,7),t.add(a),updateStatus("Loading geometry...",40),setTimeout(function(){var e=JSON.parse(document.getElementById("geometry-data").textContent);updateStatus("Building model...",60),setTimeout(function(){var a=new Float32Array(e.vertices),n=new THREE.BufferGeometry;n.setAttribute("position",new THREE.BufferAttribute(a,3)),n.computeVertexNormals();var r=new THREE.MeshStandardMaterial({color:"' + color + '",metalness:' + metalness + ',roughness:' + roughness + ',side:THREE.DoubleSide}),l=new THREE.Mesh(n,r);n.computeBoundingBox();var h=n.boundingBox.getCenter(new THREE.Vector3),c=n.boundingBox.getSize(new THREE.Vector3),d=3/Math.max(c.x,c.y,c.z);n.translate(-h.x,-h.y,-h.z),l.scale.setScalar(d),t.add(l),t.add(new THREE.GridHelper(20,40,6513393,2763722)),updateStatus("Complete!",100),setTimeout(function(){document.getElementById("loading").style.display="none"},500),function e(){requestAnimationFrame(e),o.update(),s.render(t,i)}(),window.addEventListener("resize",function(){i.aspect=window.innerWidth/window.innerHeight,i.updateProjectionMatrix(),s.setSize(window.innerWidth,window.innerHeight)})},10)},10)}catch(e){console.error(e),updateStatus("Error: "+e.message,0),statusEl.style.color="#ef4444"}}\n';
-            html += '<\/script>\n
-<!-- Back to Catalog Button -->
-<a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-</a>
-<style>
-@keyframes catalog-pulse {
-    0%, 100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 0 rgba(240, 147, 251, 0.4); }
-    50% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 10px rgba(240, 147, 251, 0); }
-}
-
-@keyframes logoFloat {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    25% { transform: translateY(-8px) rotate(-2deg); }
-    50% { transform: translateY(-12px) rotate(0deg); }
-    75% { transform: translateY(-8px) rotate(2deg); }
-}
-.catalog-back-btn::after {
-    content: 'Catalog';
-    position: absolute;
-    left: 85px;
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-.catalog-back-btn:hover::after {
-    opacity: 1;
-}
-</style>
-<!-- End Back to Catalog Button -->
-</body>\n</html>';
+            html += '<\/script>\n</body>\n</html>';
             
             return html;
         }
