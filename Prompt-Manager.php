@@ -2045,40 +2045,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
 
-        .search-clear-btn {
-            width: 24px;
-            height: 24px;
+        /* Editor Search Clear Button - Elegant X */
+        .editor-search-bar .search-clear-btn {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
             padding: 0;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
+            border: 2px solid rgba(239, 68, 68, 0.5);
             border-radius: 50%;
-            color: #ef4444;
+            color: #f87171;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.25s ease;
             opacity: 0;
             pointer-events: none;
-            margin-left: 6px;
+            margin-left: 10px;
+            flex-shrink: 0;
         }
 
         .editor-search-bar.has-value .search-clear-btn {
             opacity: 1;
             pointer-events: auto;
+            animation: fadeInScale 0.2s ease;
         }
 
-        .search-clear-btn:hover {
-            background: #ef4444;
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .editor-search-bar .search-clear-btn:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             border-color: #ef4444;
             color: white;
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.6);
         }
 
-        .search-clear-btn:active {
-            transform: scale(0.95);
+        .editor-search-bar .search-clear-btn:active {
+            transform: scale(0.95) rotate(90deg);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
         }
 
         .logout-btn {
@@ -4495,7 +4506,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </button>
                             </div>
                             <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearEditorSearch()" title="Clear search (Esc)">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-times" style="font-weight: 900;"></i>
                             </button>
                         </div>
                         
