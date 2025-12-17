@@ -2601,14 +2601,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             min-height: 200px;
         }
 
+        /* Highlight Overlay for Search */
+        .editor-highlight-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 20px; /* Account for resize handle */
+            padding: 1.5rem;
+            padding-bottom: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: hidden;
+            pointer-events: none;
+            color: transparent;
+            background: var(--bg-primary);
+            box-sizing: border-box;
+            z-index: 1;
+        }
+
+        .editor-highlight-overlay mark {
+            background: #fef08a;
+            color: transparent;
+            border-radius: 2px;
+            padding: 0 1px;
+            box-shadow: 0 0 0 2px #fef08a;
+        }
+
+        .editor-highlight-overlay mark.current {
+            background: #facc15;
+            box-shadow: 0 0 0 3px #facc15, 0 0 8px rgba(250, 204, 21, 0.5);
+        }
+
         #promptEditor {
+            position: relative;
+            z-index: 2;
             width: 100%;
             min-height: 200px;
             max-height: 80vh;
             height: 280px;
             padding: 1.5rem;
             padding-bottom: 2rem;
-            background: var(--bg-primary);
+            background: transparent;
             color: var(--text-primary);
             border: none;
             border-radius: 0;
@@ -2619,6 +2656,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             outline: none;
             overflow-y: auto;
             box-sizing: border-box;
+            caret-color: var(--text-primary);
+        }
+
+        /* When not searching, show solid background */
+        #promptEditor:not(.searching) {
+            background: var(--bg-primary);
         }
 
         #promptEditor::placeholder {
@@ -4506,6 +4549,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="editor-body">
+                    <div class="editor-highlight-overlay" id="editorHighlightOverlay"></div>
                     <textarea id="promptEditor" placeholder="Your generated prompt will appear here...&#10;&#10;Check the prompt templates on the left to build your prompt, or type directly."></textarea>
                     <div class="resize-handle" id="resizeHandle" title="Drag to resize">
                         <i class="fas fa-grip-lines"></i>
@@ -9281,24 +9325,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.addEventListener('DOMContentLoaded', initResizeHandle);
 
         // ============================================
-        // EDITOR SEARCH SYSTEM
+        // EDITOR SEARCH SYSTEM (with Yellow Highlight Overlay)
         // ============================================
         const editorSearch = {
             matches: [],
             currentIndex: -1,
             searchTerm: '',
-            debounceTimer: null,
-            lastSelection: null
+            debounceTimer: null
         };
 
         // Initialize editor search
         function initEditorSearch() {
             const searchInput = document.getElementById('editorSearchInput');
             const searchBar = document.getElementById('editorSearchBar');
+            const editor = document.getElementById('promptEditor');
+            const overlay = document.getElementById('editorHighlightOverlay');
             
-            if (!searchInput) return;
+            if (!searchInput || !editor || !overlay) return;
             
-            // Dynamic search on input
+            // Sync scroll between editor and overlay
+            editor.addEventListener('scroll', syncOverlayScroll);
+            
+            // Update overlay when editor content changes
+            editor.addEventListener('input', () => {
+                if (editorSearch.searchTerm) {
+                    performEditorSearch(editorSearch.searchTerm);
+                }
+            });
+            
+            // Dynamic search on input - cursor stays in search box
             searchInput.addEventListener('input', (e) => {
                 const value = e.target.value;
                 
@@ -9307,16 +9362,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     searchBar.classList.add('has-value');
                 } else {
                     searchBar.classList.remove('has-value');
+                    clearHighlightOverlay();
                 }
                 
                 // Debounce the search
                 clearTimeout(editorSearch.debounceTimer);
                 editorSearch.debounceTimer = setTimeout(() => {
                     performEditorSearch(value);
-                }, 50); // Very fast for dynamic feel
+                }, 80);
             });
             
-            // Keyboard shortcuts
+            // Keyboard shortcuts - cursor stays in search box
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -9325,20 +9381,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         editorSearchNext();
                     }
+                    // Keep focus in search input
+                    searchInput.focus();
                 } else if (e.key === 'Escape') {
                     clearEditorSearch();
-                    searchInput.blur();
                 }
             });
             
-            // Focus shortcut (Ctrl+F)
+            // Ctrl+F to focus search
             document.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                    const editor = document.getElementById('promptEditor');
-                    // Only if we're in the editor area
-                    if (document.activeElement === editor || 
-                        document.activeElement === searchInput ||
-                        editor.contains(document.activeElement)) {
+                    const editorArea = document.querySelector('.editor-container');
+                    if (editorArea && editorArea.contains(document.activeElement)) {
                         e.preventDefault();
                         searchInput.focus();
                         searchInput.select();
@@ -9347,7 +9401,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         }
 
-        // Perform the search
+        // Sync overlay scroll with editor scroll
+        function syncOverlayScroll() {
+            const editor = document.getElementById('promptEditor');
+            const overlay = document.getElementById('editorHighlightOverlay');
+            if (overlay && editor) {
+                overlay.scrollTop = editor.scrollTop;
+            }
+        }
+
+        // Escape HTML entities for safe display
+        function escapeHtmlForOverlay(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Clear the highlight overlay
+        function clearHighlightOverlay() {
+            const editor = document.getElementById('promptEditor');
+            const overlay = document.getElementById('editorHighlightOverlay');
+            
+            overlay.innerHTML = '';
+            editor.classList.remove('searching');
+        }
+
+        // Update the highlight overlay with yellow marks
+        function updateHighlightOverlay() {
+            const editor = document.getElementById('promptEditor');
+            const overlay = document.getElementById('editorHighlightOverlay');
+            
+            if (!editorSearch.searchTerm || editorSearch.matches.length === 0) {
+                clearHighlightOverlay();
+                return;
+            }
+            
+            const text = editor.value;
+            let html = '';
+            let lastIndex = 0;
+            
+            // Build HTML with <mark> tags around matches
+            editorSearch.matches.forEach((match, idx) => {
+                // Add text before this match
+                html += escapeHtmlForOverlay(text.substring(lastIndex, match.start));
+                
+                // Add the highlighted match
+                const matchText = text.substring(match.start, match.end);
+                const isCurrent = idx === editorSearch.currentIndex;
+                html += `<mark${isCurrent ? ' class="current"' : ''}>${escapeHtmlForOverlay(matchText)}</mark>`;
+                
+                lastIndex = match.end;
+            });
+            
+            // Add remaining text after last match
+            html += escapeHtmlForOverlay(text.substring(lastIndex));
+            
+            overlay.innerHTML = html;
+            editor.classList.add('searching');
+            
+            // Sync scroll
+            syncOverlayScroll();
+        }
+
+        // Perform the search - NO focus change, just highlight
         function performEditorSearch(searchTerm) {
             const editor = document.getElementById('promptEditor');
             const searchBar = document.getElementById('editorSearchBar');
@@ -9362,6 +9478,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (!searchTerm || searchTerm.length === 0) {
                 badge.textContent = '0/0';
+                clearHighlightOverlay();
                 return;
             }
             
@@ -9384,48 +9501,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 searchBar.classList.add('has-results');
                 editorSearch.currentIndex = 0;
                 badge.textContent = `1/${editorSearch.matches.length}`;
-                highlightCurrentMatch();
+                
+                // Update overlay with highlights
+                updateHighlightOverlay();
+                
+                // Scroll to first match (no focus change)
+                scrollToMatch(editorSearch.currentIndex);
             } else {
                 searchBar.classList.add('no-results');
                 badge.textContent = '0/0';
+                clearHighlightOverlay();
             }
         }
 
-        // Highlight and scroll to current match
-        function highlightCurrentMatch() {
+        // Scroll to a specific match without changing focus
+        function scrollToMatch(matchIndex) {
             const editor = document.getElementById('promptEditor');
             
-            if (editorSearch.matches.length === 0 || editorSearch.currentIndex < 0) {
-                return;
-            }
+            if (editorSearch.matches.length === 0 || matchIndex < 0) return;
             
-            const match = editorSearch.matches[editorSearch.currentIndex];
-            
-            // Focus editor and select the match
-            editor.focus();
-            editor.setSelectionRange(match.start, match.end);
-            
-            // Scroll to make selection visible
-            scrollToSelection(editor, match.start);
-            
-            // Store selection for later
-            editorSearch.lastSelection = match;
-        }
-
-        // Scroll textarea to show selection
-        function scrollToSelection(textarea, position) {
-            const text = textarea.value.substring(0, position);
+            const match = editorSearch.matches[matchIndex];
+            const text = editor.value.substring(0, match.start);
             const lines = text.split('\n');
             const lineNumber = lines.length;
             
-            // Approximate line height (adjust if needed)
+            // Calculate scroll position (line height ~22px)
             const lineHeight = 22;
-            const scrollPosition = (lineNumber - 5) * lineHeight;
+            const editorHeight = editor.clientHeight;
+            const targetScroll = Math.max(0, (lineNumber - 1) * lineHeight - editorHeight / 3);
             
-            textarea.scrollTop = Math.max(0, scrollPosition);
+            editor.scrollTop = targetScroll;
+            
+            // Sync overlay
+            syncOverlayScroll();
         }
 
-        // Go to next match
+        // Go to next match - cursor stays in search box
         function editorSearchNext() {
             if (editorSearch.matches.length === 0) return;
             
@@ -9434,10 +9545,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const badge = document.getElementById('searchResultsBadge');
             badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
             
-            highlightCurrentMatch();
+            // Update overlay to show new current match
+            updateHighlightOverlay();
+            
+            // Scroll to match
+            scrollToMatch(editorSearch.currentIndex);
         }
 
-        // Go to previous match
+        // Go to previous match - cursor stays in search box
         function editorSearchPrev() {
             if (editorSearch.matches.length === 0) return;
             
@@ -9449,7 +9564,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const badge = document.getElementById('searchResultsBadge');
             badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
             
-            highlightCurrentMatch();
+            // Update overlay to show new current match
+            updateHighlightOverlay();
+            
+            // Scroll to match
+            scrollToMatch(editorSearch.currentIndex);
         }
 
         // Clear search
@@ -9466,8 +9585,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             searchBar.classList.remove('has-results', 'no-results', 'has-value');
             badge.textContent = '0/0';
             
-            // Return focus to editor
-            document.getElementById('promptEditor').focus();
+            clearHighlightOverlay();
         }
 
         // Initialize editor search on page load
