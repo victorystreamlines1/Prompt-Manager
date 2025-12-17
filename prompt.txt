@@ -1,5 +1,11 @@
-<!-- FILE:3d-platform.php:1765983516414 -->
-[📎 File Reference: 3d-platform.php | Path: uploads/1765981621_3d-platform.php]
-<!-- /END  FILE:3d-platform.php:1765983516414 -->
+<!-- FILE:logoPM.png:1765996066559 -->
+[📎 File Reference: logoPM.png | Path: uploads/1765996049_logoPM.png]
+<!-- /END  FILE:logoPM.png:1765996066559 -->
 
-after the enhancement and modification when I open this page 3d platform.php it keeps loading all the time it should show an empty a canvas with a grid inside it waiting me to upload an image this is what this is that what this is the default behavior of it but now it's only loading all the time. So please fix it. 
+please put this logo in 
+
+<!-- FILE:3d-platform.php:1765996084260 -->
+[📎 File Reference: 3d-platform.php | Path: uploads/1765981621_3d-platform.php]
+<!-- /END  FILE:3d-platform.php:1765996084260 -->
+
+and also I want you to change the title of the web page instead of the platform Fusion Viewer change it into make it as prompt manager, make it prompt manager like the logo and put instead of the logo, the small logo of the colorful palette, put this logo, prompt manager, also put the title and the favicon as the prompt manager in this file, and change any title related to the Fusion Viewer into prompt manager, because I have converted this application from future viewer to prompt manager. 

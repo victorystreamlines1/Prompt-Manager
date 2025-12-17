@@ -1,6 +1,6 @@
 <?php
 /**
- * Fusion 3D Platform
+ * Prompt Manager - 3D Platform
  * Advanced 3D model editor and manipulation platform
  * Created: 2025-11-28
  */
@@ -10,9 +10,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fusion 3D Platform - Editor</title>
-    <link rel="icon" type="image/png" href="logo.png">
-    <link rel="apple-touch-icon" href="logo.png">
+    <title>Prompt Manager - 3D Editor</title>
+    <link rel="icon" type="image/png" href="logoPM.png">
+    <link rel="apple-touch-icon" href="logoPM.png">
     <style>
         /* ═══════════════════════════════════════════════════════════════
            BASE STYLES & VARIABLES
@@ -1136,10 +1136,10 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">
-                    <div class="logo-icon">🎨</div>
+                    <div class="logo-icon"><img src="logoPM.png" alt="PM" style="width: 100%; height: 100%; object-fit: contain;"></div>
                     <div class="logo-text">
-                        <h1>Fusion Platform</h1>
-                        <span>3D Editor</span>
+                        <h1>Prompt Manager</h1>
+                        <span>3D Platform</span>
                     </div>
                 </div>
                 <div class="model-name" id="model-name-display">
@@ -1418,7 +1418,7 @@
         <div class="no-data" id="no-data" style="display: none;">
             <div class="no-data-icon">🔮</div>
             <h2>No Model Data</h2>
-            <p>Send a model from the Fusion Viewer to start editing</p>
+            <p>Upload a 3D model to start editing</p>
             <a href="viewer.php" class="btn btn-primary">
                 <span>←</span> Go to Viewer
             </a>
@@ -1557,7 +1557,7 @@
         
         // IndexedDB helper with timeout protection
         const PlatformDB = {
-            dbName: 'FusionPlatformDB',
+            dbName: 'PromptManagerDB',
             storeName: 'geometryStore',
             timeout: 3000, // 3 second timeout
             
@@ -1895,7 +1895,7 @@
         }
         
         // ═══════════════════════════════════════════════════════════════
-        // SCALE GIZMO SYSTEM (Like Fusion 360)
+        // SCALE GIZMO SYSTEM
         // ═══════════════════════════════════════════════════════════════
         
         const scaleGizmo = {
@@ -2186,7 +2186,7 @@
         });
         
         // ═══════════════════════════════════════════════════════════════
-        // ROTATION GIZMO SYSTEM (Like Fusion 360)
+        // ROTATION GIZMO SYSTEM
         // ═══════════════════════════════════════════════════════════════
         
         const rotateGizmo = {
@@ -2932,7 +2932,7 @@
                         }
                     } else {
                         console.log('📄 No geometry-data found in HTML');
-                        showToast('No geometry data found in HTML file. Make sure it was exported from Fusion Viewer.', 'error');
+                        showToast('No geometry data found in HTML file. Make sure it was exported from Prompt Manager.', 'error');
                     }
                 } else if (ext === 'stl' || ext === 'obj' || ext === 'fbx' || ext === 'glb' || ext === 'gltf') {
                     // Load 3D model file
@@ -4102,7 +4102,7 @@
             const uint8 = new Uint8Array(buffer);
             
             // Write header (80 bytes)
-            const header = 'Binary STL - Fusion Platform - ' + name.substring(0, 40);
+            const header = 'Binary STL - Prompt Manager - ' + name.substring(0, 40);
             for (let i = 0; i < Math.min(header.length, 80); i++) {
                 uint8[i] = header.charCodeAt(i);
             }
@@ -4152,7 +4152,7 @@
         }
         
         function generateOBJ(vertices, name, includeMTL = false) {
-            let obj = '# OBJ file exported from Fusion Platform\n';
+            let obj = '# OBJ file exported from Prompt Manager\n';
             obj += '# Object: ' + name + '\n\n';
             
             // Reference MTL file if included
@@ -4169,7 +4169,7 @@
             
             // Use material
             if (includeMTL) {
-                obj += 'usemtl FusionMaterial\n';
+                obj += 'usemtl PromptManagerMaterial\n';
             }
             
             obj += '# Faces\n';
@@ -4194,9 +4194,9 @@
             const specular = Math.round((1 - roughness) * 200);
             // d = dissolve/opacity (1 = opaque)
             
-            let mtl = '# MTL file exported from Fusion Platform\n';
+            let mtl = '# MTL file exported from Prompt Manager\n';
             mtl += '# Material for: ' + name + '\n\n';
-            mtl += 'newmtl FusionMaterial\n';
+            mtl += 'newmtl PromptManagerMaterial\n';
             mtl += 'Ka ' + (parseFloat(r) * 0.2).toFixed(6) + ' ' + (parseFloat(g) * 0.2).toFixed(6) + ' ' + (parseFloat(b) * 0.2).toFixed(6) + '\n'; // Ambient
             mtl += 'Kd ' + r + ' ' + g + ' ' + b + '\n'; // Diffuse (main color)
             mtl += 'Ks 0.500000 0.500000 0.500000\n'; // Specular
@@ -4996,7 +4996,7 @@
             html += '<html lang="en">\n<head>\n';
             html += '<meta charset="UTF-8">\n';
             html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
-            html += '<title>' + title + ' - Fusion 3D Viewer</title>\n';
+            html += '<title>' + title + ' - Prompt Manager 3D Viewer</title>\n';
             html += '<style>\n';
             html += '* { margin: 0; padding: 0; box-sizing: border-box; }\n';
             html += 'body { background: ' + bgColor + '; overflow: hidden; }\n';
@@ -5010,7 +5010,7 @@
             html += '</style>\n</head>\n<body>\n';
             html += '<div id="viewer"></div>\n';
             html += '<div id="loading"><div class="spinner"></div><div id="status">Loading 3D Viewer...</div><div id="progress-bar"><div id="progress-fill"></div></div></div>\n';
-            html += '<div id="info">Created with Fusion Platform</div>\n';
+            html += '<div id="info">Created with Prompt Manager</div>\n';
             html += '<script type="application/json" id="geometry-data">' + geometryJson + '<\/script>\n';
             html += '<script src="https://unpkg.com/three@0.160.0/build/three.min.js"><\/script>\n';
             html += '<script>\n';
