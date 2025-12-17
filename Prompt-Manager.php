@@ -1305,6 +1305,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             white-space: nowrap;
         }
 
+        /* Select All Checkbox Style */
+        .select-all-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .select-all-checkbox:hover {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .select-all-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .select-all-checkbox .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: var(--bg-tertiary);
+            flex-shrink: 0;
+        }
+
+        .select-all-checkbox .checkbox-custom::after {
+            content: '✓';
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+
+        .select-all-checkbox input[type="checkbox"]:checked + .checkbox-custom {
+            background: linear-gradient(135deg, var(--accent-primary), #818cf8);
+            border-color: var(--accent-primary);
+        }
+
+        .select-all-checkbox input[type="checkbox"]:checked + .checkbox-custom::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .select-all-checkbox .checkbox-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .select-all-checkbox:hover .checkbox-label {
+            color: var(--accent-primary);
+        }
+
+        .select-all-checkbox input[type="checkbox"]:checked ~ .checkbox-label {
+            color: var(--accent-primary);
+        }
+
+        /* Indeterminate state (partial selection) */
+        .select-all-checkbox input[type="checkbox"]:indeterminate + .checkbox-custom {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+        }
+
+        .select-all-checkbox input[type="checkbox"]:indeterminate + .checkbox-custom::after {
+            content: '−';
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .select-all-checkbox input[type="checkbox"]:indeterminate ~ .checkbox-label {
+            color: #f59e0b;
+        }
+
         /* Prompt No Results */
         .prompt-no-results {
             text-align: center;
@@ -4450,12 +4537,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- Select/Deselect All -->
                 <div class="prompt-actions">
-                    <button type="button" class="prompt-action-btn" onclick="selectAllPrompts()">
-                        <i class="fas fa-check-double"></i> Select All
-                    </button>
-                    <button type="button" class="prompt-action-btn" onclick="deselectAllPrompts()">
-                        <i class="fas fa-square"></i> Deselect All
-                    </button>
+                    <label class="select-all-checkbox" title="Select/Deselect All Templates">
+                        <input type="checkbox" id="selectAllTemplatesCheckbox" onchange="toggleAllTemplates(this.checked)">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Select All</span>
+                    </label>
                     <span class="prompt-counter" id="promptCounter">0/0</span>
                 </div>
                 
@@ -4738,12 +4824,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- Select/Deselect All for Saved Prompts -->
                 <div class="saved-actions-bar">
-                    <button type="button" class="saved-action-btn" onclick="selectAllSavedPrompts()">
-                        <i class="fas fa-check-double"></i> Select All
-                    </button>
-                    <button type="button" class="saved-action-btn" onclick="deselectAllSavedPrompts()">
-                        <i class="fas fa-square"></i> Deselect All
-                    </button>
+                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
+                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Select All</span>
+                    </label>
                     <span class="saved-counter" id="savedCounter">0/0</span>
                 </div>
                 
@@ -5794,6 +5879,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             renderPromptList(searchTerm);
             updateCounts();
+            updateSelectAllTemplatesCheckbox();
             
             if (addedCount > 0) {
                 showToast(`✅ ${addedCount} template(s) added to editor`, 'success');
@@ -5829,6 +5915,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 showToast(`🗑️ ${removedCount} template(s) removed from editor`, 'info');
             } else {
                 showToast('No templates to deselect', 'info');
+            }
+            
+            // Update checkbox state
+            updateSelectAllTemplatesCheckbox();
+        }
+        
+        // Toggle all templates (checkbox handler)
+        function toggleAllTemplates(checked) {
+            if (checked) {
+                selectAllPrompts();
+            } else {
+                deselectAllPrompts();
+            }
+        }
+        
+        // Update the "Select All" checkbox based on current selection
+        function updateSelectAllTemplatesCheckbox() {
+            const checkbox = document.getElementById('selectAllTemplatesCheckbox');
+            if (!checkbox) return;
+            
+            const searchTerm = document.getElementById('promptSearchInput')?.value.toLowerCase().trim() || '';
+            const visibleTemplates = searchTerm 
+                ? promptTemplates.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    p.content.toLowerCase().includes(searchTerm)
+                )
+                : promptTemplates;
+            
+            if (visibleTemplates.length === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+            } else {
+                const selectedCount = visibleTemplates.filter(p => activePrompts.has(p.id)).length;
+                
+                if (selectedCount === 0) {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = false;
+                } else if (selectedCount === visibleTemplates.length) {
+                    checkbox.checked = true;
+                    checkbox.indeterminate = false;
+                } else {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = true;
+                }
             }
         }
         
@@ -6190,6 +6320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             updateCounts();
             updatePromptCounter();
+            updateSelectAllTemplatesCheckbox();
             recordHistoryState(true); // Record template toggle in history
         }
 
@@ -8646,6 +8777,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             updateCounts();
             updateSavedCounter();
+            updateSelectAllSavedCheckbox();
             recordHistoryState(true); // Record saved prompt toggle in history
         }
         
@@ -8721,6 +8853,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             renderSavedPrompts(searchTerm);
             updateCounts();
+            updateSelectAllSavedCheckbox();
             
             if (addedCount > 0) {
                 showToast(`✅ ${addedCount} prompt(s) added to editor`, 'success');
@@ -8751,11 +8884,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             rebuildEditorFromSaved();
             renderSavedPrompts(searchTerm);
             updateCounts();
+            updateSelectAllSavedCheckbox();
             
             if (removedCount > 0) {
                 showToast(`🗑️ ${removedCount} prompt(s) removed from editor`, 'info');
             } else {
                 showToast('No prompts to deselect', 'info');
+            }
+        }
+        
+        // Toggle all saved prompts (checkbox handler)
+        function toggleAllSavedPrompts(checked) {
+            if (checked) {
+                selectAllSavedPrompts();
+            } else {
+                deselectAllSavedPrompts();
+            }
+        }
+        
+        // Update the "Select All" checkbox for saved prompts based on current selection
+        function updateSelectAllSavedCheckbox() {
+            const checkbox = document.getElementById('selectAllSavedCheckbox');
+            if (!checkbox) return;
+            
+            const searchTerm = document.getElementById('searchPrompts')?.value.toLowerCase().trim() || '';
+            const visiblePrompts = searchTerm 
+                ? savedPromptsList.filter(p => 
+                    p.title.toLowerCase().includes(searchTerm) || 
+                    p.content.toLowerCase().includes(searchTerm)
+                )
+                : savedPromptsList;
+            
+            if (visiblePrompts.length === 0) {
+                checkbox.checked = false;
+                checkbox.indeterminate = false;
+            } else {
+                const selectedCount = visiblePrompts.filter(p => activeSavedPrompts.has(p.id)).length;
+                
+                if (selectedCount === 0) {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = false;
+                } else if (selectedCount === visiblePrompts.length) {
+                    checkbox.checked = true;
+                    checkbox.indeterminate = false;
+                } else {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = true;
+                }
             }
         }
         
