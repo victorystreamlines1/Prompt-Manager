@@ -1,5 +1,12 @@
-I want you to change the open button it goes direct to the page and it loses track of the original page which is the index.html sorry the index.php so I want you to make it underscore blank so it goes to another page or another tab and not change the current tab whenever I press on open in this index.php PHP. 
+I got an error. This is an error I got from the system. 
+Connection Failed
+SQL Server extensions not available. Please install sqlsrv or pdo_sqlsrv extension.
 
-<!-- FILE:index.php:1766062347231 -->
-[📎 File Reference: index.php | Path: uploads/1766062282_index.php]
-<!-- /END  FILE:index.php:1766062347231 -->
+Available Extensions:
+sqlsrv: ❌
+pdo_sqlsrv: ❌
+pdo_dblib: ❌
+
+Note: You need to install Microsoft SQL Server Driver for PHP to connect to SQL Server.
+
+
