@@ -4302,7 +4302,7 @@ usort($fileList, function($a, $b) {
                         </div>
                         <div class="button-group-full">
                             <div class="button-row">
-                                <a href="<?php echo htmlspecialchars($file['path']); ?>" class="open-btn">
+                                <a href="<?php echo htmlspecialchars($file['path']); ?>" class="open-btn" target="_blank">
                                     <i class="fas fa-external-link-alt"></i>
                                     Open
                                 </a>

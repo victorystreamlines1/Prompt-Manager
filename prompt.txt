@@ -1,1 +1,5 @@
-Now I want you to do a checkbox that will check all the uploaded drop file manager files. just like the prompt template you'll find a selector that will check and uncheck all the items under it also you'll find the same thing in the save prompts where you check and uncheck the save prompts under it I want the same thing to do in the drop file manager the drop file manager you'll find it under the two buttons. File mode, full content and reference only. Under it, you'll find a drop file manager box. Under it are the files that are dropped in. I want a check box that will check and uncheck all of them all at once. 
+I want you to change the open button it goes direct to the page and it loses track of the original page which is the index.html sorry the index.php so I want you to make it underscore blank so it goes to another page or another tab and not change the current tab whenever I press on open in this index.php PHP. 
+
+<!-- FILE:index.php:1766062347231 -->
+[📎 File Reference: index.php | Path: uploads/1766062282_index.php]
+<!-- /END  FILE:index.php:1766062347231 -->
