@@ -5529,45 +5529,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // ============================================
-        // DATABASE SELECTOR (Hostinger Integration)
+        // DATABASE SELECTOR (Database Hub Integration)
         // ============================================
-        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections';
+        // Connections are loaded from the central hub: report_prompt_databases table
+        const DATABASE_HUB_API = 'report-prompt-databases.php?api=list';
+        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections'; // Fallback
         let selectedDatabaseConnection = null;
 
-        // Load databases from localStorage (same as PHP-Dashboard.php)
-        function loadHostingerDatabases() {
+        // Load databases from Database Hub (report_prompt_databases table)
+        async function loadHostingerDatabases() {
             const dropdown = document.getElementById('dbDropdown');
             const noConnections = document.getElementById('dbNoConnections');
             const selectorRow = document.getElementById('dbSelectorRow');
             
-            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
-            const connections = saved ? JSON.parse(saved) : [];
+            // Show loading state
+            dropdown.innerHTML = '<option value="">-- Loading... --</option>';
             
-            // Clear existing options (keep placeholder)
-            dropdown.innerHTML = '<option value="">-- Select Database --</option>';
-            
-            if (connections.length === 0) {
-                selectorRow.style.display = 'none';
-                noConnections.style.display = 'block';
-                return;
+            try {
+                // Fetch from Database Hub API
+                const response = await fetch(DATABASE_HUB_API);
+                const data = await response.json();
+                
+                // Clear existing options
+                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                
+                if (data.success && data.connections && data.connections.length > 0) {
+                    selectorRow.style.display = 'flex';
+                    noConnections.style.display = 'none';
+                    
+                    // Add database options from hub
+                    data.connections.forEach(conn => {
+                        const option = document.createElement('option');
+                        option.value = conn.id;
+                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                        option.dataset.host = conn.host;
+                        option.dataset.dbname = conn.dbName;
+                        option.dataset.username = conn.username;
+                        option.dataset.password = conn.password || '';
+                        option.dataset.port = conn.port || '3306';
+                        option.dataset.type = conn.type || 'shared';
+                        dropdown.appendChild(option);
+                    });
+                    
+                    console.log('✅ Loaded ' + data.connections.length + ' connections from Database Hub');
+                } else {
+                    // No connections in hub
+                    selectorRow.style.display = 'none';
+                    noConnections.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('❌ Failed to load from Database Hub:', error);
+                
+                // Fallback to localStorage
+                const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
+                const connections = saved ? JSON.parse(saved) : [];
+                
+                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                
+                if (connections.length === 0) {
+                    selectorRow.style.display = 'none';
+                    noConnections.style.display = 'block';
+                    return;
+                }
+                
+                selectorRow.style.display = 'flex';
+                noConnections.style.display = 'none';
+                
+                // Add database options from localStorage fallback
+                connections.forEach(conn => {
+                    const option = document.createElement('option');
+                    option.value = conn.id;
+                    option.textContent = `${conn.name} (${conn.dbName})`;
+                    option.dataset.host = conn.host;
+                    option.dataset.dbname = conn.dbName;
+                    option.dataset.username = conn.username;
+                    option.dataset.password = conn.password || '';
+                    option.dataset.port = conn.port || '3306';
+                    option.dataset.type = conn.type || 'shared';
+                    dropdown.appendChild(option);
+                });
+                
+                console.log('⚠️ Using localStorage fallback');
             }
-            
-            selectorRow.style.display = 'flex';
-            noConnections.style.display = 'none';
-            
-            // Add database options
-            connections.forEach(conn => {
-                const option = document.createElement('option');
-                option.value = conn.id;
-                option.textContent = `${conn.name} (${conn.dbName})`;
-                option.dataset.host = conn.host;
-                option.dataset.dbname = conn.dbName;
-                option.dataset.username = conn.username;
-                option.dataset.password = conn.password || '';
-                option.dataset.port = conn.port || '3306';
-                option.dataset.type = conn.type || 'shared';
-                dropdown.appendChild(option);
-            });
         }
 
         // Handle database selection change
@@ -5699,21 +5742,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Refresh databases when window gains focus (syncs with Dashboard)
-        window.addEventListener('focus', () => {
-            const currentCount = document.getElementById('dbDropdown').options.length - 1;
-            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
-            const connections = saved ? JSON.parse(saved) : [];
-            
-            // Only reload if count changed
-            if (connections.length !== currentCount) {
-                loadHostingerDatabases();
-                console.log('🔄 Database list refreshed from Dashboard');
+        // Refresh databases when window gains focus (syncs with Database Hub)
+        window.addEventListener('focus', async () => {
+            try {
+                const currentCount = document.getElementById('dbDropdown').options.length - 1;
+                const response = await fetch(DATABASE_HUB_API);
+                const data = await response.json();
+                
+                // Only reload if count changed
+                if (data.success && data.connections.length !== currentCount) {
+                    await loadHostingerDatabases();
+                    console.log('🔄 Database list refreshed from Database Hub');
+                }
+            } catch (e) {
+                console.log('⚠️ Could not check for new connections');
             }
         });
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             loadPromptTemplates(); // Load from database
             loadSavedPrompts();
             loadUploadedFiles();
@@ -5721,7 +5768,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             initDistributionSlider(); // Initialize distribution slider
             initHistory(); // Initialize history system
             setupHistoryKeyboardShortcuts(); // Setup keyboard shortcuts
-            loadHostingerDatabases(); // Load database connections
+            await loadHostingerDatabases(); // Load database connections from Hub
         });
         
         // Load templates from database

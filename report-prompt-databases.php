@@ -43,17 +43,54 @@ $createTableSQL = "CREATE TABLE IF NOT EXISTS `$tableName` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 $pdo->exec($createTableSQL);
 
+// ========================================
+// JSON API ENDPOINT (for other apps)
+// ========================================
+// This allows other apps to fetch connections from this hub
+if (isset($_GET['api']) && $_GET['api'] === 'list') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET');
+    
+    $stmt = $pdo->query("SELECT * FROM `$tableName` ORDER BY createdAt DESC");
+    $connections = $stmt->fetchAll();
+    
+    echo json_encode([
+        'success' => true,
+        'connections' => $connections,
+        'count' => count($connections)
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
 // Handle Actions
 $message = '';
 $messageType = '';
 
-// DELETE
+// DELETE SINGLE
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
     $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
     $stmt->execute([$id]);
     $message = 'Record deleted successfully!';
     $messageType = 'success';
+}
+
+// DELETE MULTIPLE (Mass Delete)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'mass_delete') {
+    if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids']) && count($_POST['selected_ids']) > 0) {
+        $count = 0;
+        foreach ($_POST['selected_ids'] as $id) {
+            $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
+            $stmt->execute([$id]);
+            $count++;
+        }
+        $message = "$count record(s) deleted successfully!";
+        $messageType = 'success';
+    } else {
+        $message = 'No records selected for deletion!';
+        $messageType = 'error';
+    }
 }
 
 // ADD / UPDATE
@@ -140,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// EXPORT
+// EXPORT - Returns JSON data for JavaScript to handle with file picker
 if (isset($_GET['export'])) {
     $stmt = $pdo->query("SELECT * FROM `$tableName` ORDER BY createdAt DESC");
     $records = $stmt->fetchAll();
@@ -165,8 +202,8 @@ if (isset($_GET['export'])) {
         ];
     }
     
+    // Return JSON for JavaScript file picker (no download headers)
     header('Content-Type: application/json');
-    header('Content-Disposition: attachment; filename="report_prompt_databases_' . date('Y-m-d_H-i-s') . '.json"');
     echo json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -596,6 +633,100 @@ if (isset($_GET['edit'])) {
             border-color: var(--accent-secondary);
         }
         
+        /* Custom Checkbox */
+        .checkbox-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            width: 22px;
+            height: 22px;
+        }
+        
+        .checkbox-wrapper input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 22px;
+            width: 22px;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox-wrapper:hover .checkmark {
+            border-color: var(--accent-primary);
+            background: rgba(0, 212, 170, 0.1);
+        }
+        
+        .checkbox-wrapper input:checked ~ .checkmark {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+        
+        .checkbox-wrapper input:checked ~ .checkmark:after {
+            display: block;
+        }
+        
+        .checkbox-wrapper .checkmark:after {
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 11px;
+            border: solid var(--bg-primary);
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+        
+        /* Mass Actions Bar */
+        .mass-actions-bar {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .selected-count {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-danger);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* Selected Row Highlight */
+        .data-row.selected {
+            background: rgba(0, 212, 170, 0.1) !important;
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        .data-row.selected td:first-child {
+            padding-left: 15px;
+        }
+        
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -665,7 +796,7 @@ if (isset($_GET['edit'])) {
                 <?php endif; ?>
             </form>
             <div class="toolbar-buttons">
-                <a href="?export=1" class="btn btn-warning">📤 Export JSON</a>
+                <button type="button" class="btn btn-warning" onclick="exportWithFilePicker()">📤 Export JSON</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('addForm').scrollIntoView({behavior: 'smooth'})">➕ Add New</button>
             </div>
         </div>
@@ -741,47 +872,82 @@ if (isset($_GET['edit'])) {
         <div class="table-container">
             <div class="table-header">
                 <h2>📋 Database Connections</h2>
-                <span class="record-count"><?php echo count($records); ?> Records</span>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span class="record-count"><?php echo count($records); ?> Records</span>
+                    <?php if (count($records) > 0): ?>
+                    <span id="selectedCount" class="selected-count" style="display: none;">0 selected</span>
+                    <?php endif; ?>
+                </div>
             </div>
             
             <?php if (count($records) > 0): ?>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Host</th>
-                            <th>Database</th>
-                            <th>Username</th>
-                            <th>Password</th>
-                            <th>Port</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($records as $record): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars(substr($record['id'], -8)); ?></td>
-                            <td class="td-name"><?php echo htmlspecialchars($record['name']); ?></td>
-                            <td><span class="td-type"><?php echo htmlspecialchars($record['type']); ?></span></td>
-                            <td><?php echo htmlspecialchars($record['host']); ?></td>
-                            <td><?php echo htmlspecialchars($record['dbName']); ?></td>
-                            <td><?php echo htmlspecialchars($record['username']); ?></td>
-                            <td class="td-password">••••••••</td>
-                            <td><?php echo htmlspecialchars($record['port']); ?></td>
-                            <td><?php echo date('M j, Y', strtotime($record['createdAt'])); ?></td>
-                            <td class="td-actions">
-                                <a href="?edit=<?php echo $record['id']; ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
-                                <a href="?delete=<?php echo $record['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this connection?')">🗑️ Delete</a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <!-- Mass Actions Bar -->
+            <div id="massActionsBar" class="mass-actions-bar" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <span style="color: var(--text-secondary);">
+                        <span id="massSelectedCount">0</span> item(s) selected
+                    </span>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteSelected()">
+                        🗑️ Delete Selected
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearSelection()">
+                        ✖️ Clear Selection
+                    </button>
+                </div>
             </div>
+            
+            <form id="massDeleteForm" method="POST">
+                <input type="hidden" name="action" value="mass_delete">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">
+                                    <label class="checkbox-wrapper" title="Select All">
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Host</th>
+                                <th>Database</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Port</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($records as $record): ?>
+                            <tr id="row_<?php echo $record['id']; ?>" class="data-row">
+                                <td style="text-align: center;">
+                                    <label class="checkbox-wrapper">
+                                        <input type="checkbox" name="selected_ids[]" value="<?php echo htmlspecialchars($record['id']); ?>" class="row-checkbox" onchange="updateSelection()">
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </td>
+                                <td><?php echo htmlspecialchars(substr($record['id'], -8)); ?></td>
+                                <td class="td-name"><?php echo htmlspecialchars($record['name']); ?></td>
+                                <td><span class="td-type"><?php echo htmlspecialchars($record['type']); ?></span></td>
+                                <td><?php echo htmlspecialchars($record['host']); ?></td>
+                                <td><?php echo htmlspecialchars($record['dbName']); ?></td>
+                                <td><?php echo htmlspecialchars($record['username']); ?></td>
+                                <td class="td-password">••••••••</td>
+                                <td><?php echo htmlspecialchars($record['port']); ?></td>
+                                <td><?php echo date('M j, Y', strtotime($record['createdAt'])); ?></td>
+                                <td class="td-actions">
+                                    <a href="?edit=<?php echo $record['id']; ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
+                                    <a href="?delete=<?php echo $record['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this connection?')">🗑️ Delete</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
             <?php else: ?>
             <div class="empty-state">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -792,6 +958,380 @@ if (isset($_GET['edit'])) {
             <?php endif; ?>
         </div>
     </div>
+
+<!-- Export Status Toast -->
+<div id="exportToast" style="position: fixed; top: 20px; right: 20px; padding: 16px 24px; background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); z-index: 10000; display: none; min-width: 300px;">
+    <div id="exportToastContent" style="display: flex; align-items: center; gap: 12px; color: var(--text-primary);"></div>
+</div>
+
+<script>
+// LocalStorage key for remembering last export path
+const EXPORT_PATH_KEY = 'report_prompt_db_export_path';
+
+// Show toast notification
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.getElementById('exportToast');
+    const content = document.getElementById('exportToastContent');
+    
+    const icons = {
+        'success': '✅',
+        'error': '❌',
+        'info': '🔄',
+        'warning': '⚠️'
+    };
+    
+    const colors = {
+        'success': 'var(--accent-primary)',
+        'error': 'var(--accent-danger)',
+        'info': 'var(--accent-secondary)',
+        'warning': 'var(--accent-warning)'
+    };
+    
+    content.innerHTML = `
+        <span style="font-size: 24px;">${icons[type]}</span>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; color: ${colors[type]};">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+            <div style="font-size: 0.9rem; color: var(--text-secondary);">${message}</div>
+        </div>
+    `;
+    
+    toast.style.display = 'block';
+    toast.style.animation = 'slideInRight 0.3s ease';
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 300);
+        }, duration);
+    }
+}
+
+// Export with File System Access API (File Picker)
+async function exportWithFilePicker() {
+    showToast('Fetching data from database...', 'info', 0);
+    
+    try {
+        // Fetch export data from PHP
+        const response = await fetch('?export=1');
+        if (!response.ok) throw new Error('Failed to fetch export data');
+        
+        const exportData = await response.json();
+        
+        if (!exportData.connections || exportData.connections.length === 0) {
+            showToast('No connections to export!', 'error');
+            return;
+        }
+        
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `report_prompt_databases_${timestamp}.json`;
+        
+        // Convert to JSON with formatting
+        const jsonData = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        
+        // Check if File System Access API is supported
+        if ('showSaveFilePicker' in window) {
+            await exportWithFileSystemAPI(blob, filename);
+        } else {
+            // Fallback: direct download
+            showToast('File picker not supported. Downloading directly...', 'warning');
+            downloadDirectly(blob, filename);
+        }
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Export failed: ' + error.message, 'error');
+    }
+}
+
+// Export using File System Access API
+async function exportWithFileSystemAPI(blob, defaultFilename) {
+    try {
+        showToast('Opening file picker...', 'info', 0);
+        
+        const options = {
+            suggestedName: defaultFilename,
+            types: [{
+                description: 'JSON Files',
+                accept: { 'application/json': ['.json'] }
+            }]
+        };
+        
+        // Try to get stored directory handle
+        let startIn = undefined;
+        const storedHandle = await getStoredDirectoryHandle();
+        if (storedHandle) {
+            startIn = storedHandle;
+            console.log('📂 Using remembered directory');
+        }
+        
+        if (startIn) {
+            options.startIn = startIn;
+        }
+        
+        // Show file picker
+        const fileHandle = await window.showSaveFilePicker(options);
+        
+        // Write the file
+        showToast('Saving file...', 'info', 0);
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        
+        // Try to remember the directory
+        try {
+            // Get parent directory handle (if supported)
+            if (fileHandle.getParent) {
+                const dirHandle = await fileHandle.getParent();
+                await storeDirectoryHandle(dirHandle);
+            } else {
+                // Store the file handle's name at least
+                localStorage.setItem(EXPORT_PATH_KEY + '_filename', fileHandle.name);
+            }
+        } catch (e) {
+            console.log('Could not store directory handle:', e);
+        }
+        
+        showToast(`Exported successfully!\n📁 ${fileHandle.name}`, 'success', 5000);
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            showToast('Export cancelled', 'warning');
+        } else {
+            console.error('File picker error:', error);
+            // Fallback to direct download
+            showToast('File picker failed. Using direct download...', 'warning');
+            downloadDirectly(blob, defaultFilename);
+        }
+    }
+}
+
+// Store directory handle using IndexedDB (localStorage can't store handles)
+async function storeDirectoryHandle(dirHandle) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('ExportSettings', 1);
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('directories')) {
+                db.createObjectStore('directories');
+            }
+        };
+        
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction(['directories'], 'readwrite');
+            const store = transaction.objectStore('directories');
+            store.put(dirHandle, 'lastExportDir');
+            
+            transaction.oncomplete = () => {
+                console.log('📁 Directory handle stored');
+                resolve();
+            };
+            transaction.onerror = () => reject(transaction.error);
+        };
+        
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Get stored directory handle from IndexedDB
+async function getStoredDirectoryHandle() {
+    return new Promise((resolve) => {
+        const request = indexedDB.open('ExportSettings', 1);
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('directories')) {
+                db.createObjectStore('directories');
+            }
+        };
+        
+        request.onsuccess = async (event) => {
+            try {
+                const db = event.target.result;
+                const transaction = db.transaction(['directories'], 'readonly');
+                const store = transaction.objectStore('directories');
+                const getRequest = store.get('lastExportDir');
+                
+                getRequest.onsuccess = async () => {
+                    const handle = getRequest.result;
+                    if (handle) {
+                        // Verify permission
+                        try {
+                            const permission = await handle.queryPermission({ mode: 'readwrite' });
+                            if (permission === 'granted') {
+                                resolve(handle);
+                                return;
+                            }
+                            // Try to request permission
+                            const newPermission = await handle.requestPermission({ mode: 'readwrite' });
+                            if (newPermission === 'granted') {
+                                resolve(handle);
+                                return;
+                            }
+                        } catch (e) {
+                            console.log('Permission check failed:', e);
+                        }
+                    }
+                    resolve(null);
+                };
+                
+                getRequest.onerror = () => resolve(null);
+            } catch (e) {
+                resolve(null);
+            }
+        };
+        
+        request.onerror = () => resolve(null);
+    });
+}
+
+// Fallback: Direct download
+function downloadDirectly(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast(`Downloaded: ${filename}`, 'success');
+}
+
+// ========================================
+// MASS SELECTION & DELETE FUNCTIONS
+// ========================================
+
+// Toggle Select All
+function toggleSelectAll(checkbox) {
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const rows = document.querySelectorAll('.data-row');
+    
+    rowCheckboxes.forEach((cb, index) => {
+        cb.checked = checkbox.checked;
+        if (rows[index]) {
+            rows[index].classList.toggle('selected', checkbox.checked);
+        }
+    });
+    
+    updateSelection();
+}
+
+// Update selection count and UI
+function updateSelection() {
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const massActionsBar = document.getElementById('massActionsBar');
+    const selectedCount = document.getElementById('selectedCount');
+    const massSelectedCount = document.getElementById('massSelectedCount');
+    const rows = document.querySelectorAll('.data-row');
+    
+    let checkedCount = 0;
+    
+    rowCheckboxes.forEach((cb, index) => {
+        if (cb.checked) {
+            checkedCount++;
+            if (rows[index]) {
+                rows[index].classList.add('selected');
+            }
+        } else {
+            if (rows[index]) {
+                rows[index].classList.remove('selected');
+            }
+        }
+    });
+    
+    // Update Select All checkbox state
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = checkedCount === rowCheckboxes.length && rowCheckboxes.length > 0;
+        selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < rowCheckboxes.length;
+    }
+    
+    // Show/hide mass actions bar
+    if (massActionsBar) {
+        massActionsBar.style.display = checkedCount > 0 ? 'block' : 'none';
+    }
+    
+    // Update selected count badges
+    if (selectedCount) {
+        selectedCount.style.display = checkedCount > 0 ? 'inline-block' : 'none';
+        selectedCount.textContent = `${checkedCount} selected`;
+    }
+    
+    if (massSelectedCount) {
+        massSelectedCount.textContent = checkedCount;
+    }
+}
+
+// Clear all selections
+function clearSelection() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+    toggleSelectAll({ checked: false });
+}
+
+// Delete selected items
+function deleteSelected() {
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+    const count = rowCheckboxes.length;
+    
+    if (count === 0) {
+        showToast('No records selected!', 'error');
+        return;
+    }
+    
+    const confirmMsg = count === 1 
+        ? 'Are you sure you want to delete this record?' 
+        : `Are you sure you want to delete ${count} records?\n\nThis action cannot be undone!`;
+    
+    if (confirm(confirmMsg)) {
+        showToast(`Deleting ${count} record(s)...`, 'info', 0);
+        document.getElementById('massDeleteForm').submit();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handler to rows for easier selection
+    const rows = document.querySelectorAll('.data-row');
+    rows.forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Don't toggle if clicking on buttons, links, or checkbox itself
+            if (e.target.closest('a, button, .checkbox-wrapper')) return;
+            
+            const checkbox = this.querySelector('.row-checkbox');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                updateSelection();
+            }
+        });
+    });
+    
+    // Update initial state
+    updateSelection();
+});
+</script>
+
+<style>
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(50px); }
+}
+</style>
 
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
