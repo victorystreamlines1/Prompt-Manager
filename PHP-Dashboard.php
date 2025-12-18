@@ -564,6 +564,122 @@ if ($isApiRequest) {
     try {
         $action = $requestData['action'] ?? 'test_connection';
         
+        // ========================================================================
+        // [1.6.1] HOSTINGER CONNECTIONS API - Uses report_prompt_databases table
+        // ========================================================================
+        // These actions manage saved connections stored in MySQL table
+        // Connection to the storage database is hardcoded (not user credentials)
+        // ========================================================================
+        
+        $hostingerConnectionsActions = [
+            'hostinger_list_connections',
+            'hostinger_add_connection', 
+            'hostinger_update_connection',
+            'hostinger_delete_connection',
+            'hostinger_clear_all_connections'
+        ];
+        
+        if (in_array($action, $hostingerConnectionsActions)) {
+            // Connect to the storage database (report_prompt_databases table)
+            $storageConfig = [
+                'host' => 'srv1788.hstgr.io',
+                'dbname' => 'u419999707_Mohamed',
+                'username' => 'u419999707_Abuammar',
+                'password' => 'P@master5007',
+                'port' => '3306',
+                'charset' => 'utf8mb4'
+            ];
+            $storagePdo = getConnection($storageConfig);
+            $connectionsTable = 'report_prompt_databases';
+            
+            // Ensure table exists
+            $storagePdo->exec("CREATE TABLE IF NOT EXISTS `$connectionsTable` (
+                `id` VARCHAR(50) PRIMARY KEY,
+                `name` VARCHAR(255) NOT NULL,
+                `type` VARCHAR(50) DEFAULT 'shared',
+                `host` VARCHAR(255) NOT NULL,
+                `dbName` VARCHAR(255) NOT NULL,
+                `username` VARCHAR(255) NOT NULL,
+                `password` VARCHAR(255) NOT NULL,
+                `port` VARCHAR(10) DEFAULT '3306',
+                `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            
+            switch ($action) {
+                case 'hostinger_list_connections':
+                    $stmt = $storagePdo->query("SELECT * FROM `$connectionsTable` ORDER BY createdAt DESC");
+                    $connections = $stmt->fetchAll();
+                    jsonResponse(true, 'Connections retrieved', [
+                        'connections' => $connections,
+                        'count' => count($connections)
+                    ]);
+                    break;
+                    
+                case 'hostinger_add_connection':
+                    $id = $requestData['conn_id'] ?? (time() . rand(100, 999));
+                    $name = $requestData['conn_name'] ?? '';
+                    $type = $requestData['conn_type'] ?? 'shared';
+                    $host = $requestData['conn_host'] ?? '';
+                    $dbName = $requestData['conn_dbname'] ?? '';
+                    $username = $requestData['conn_username'] ?? '';
+                    $password = $requestData['conn_password'] ?? '';
+                    $port = $requestData['conn_port'] ?? '3306';
+                    
+                    if (empty($name) || empty($host) || empty($dbName) || empty($username)) {
+                        jsonResponse(false, 'Missing required fields: name, host, dbName, username', null, 400);
+                    }
+                    
+                    $stmt = $storagePdo->prepare("INSERT INTO `$connectionsTable` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                    $stmt->execute([$id, $name, $type, $host, $dbName, $username, $password, $port]);
+                    
+                    jsonResponse(true, "Connection '$name' added successfully", ['id' => $id]);
+                    break;
+                    
+                case 'hostinger_update_connection':
+                    $id = $requestData['conn_id'] ?? '';
+                    if (empty($id)) {
+                        jsonResponse(false, 'Connection ID required', null, 400);
+                    }
+                    
+                    $name = $requestData['conn_name'] ?? '';
+                    $type = $requestData['conn_type'] ?? 'shared';
+                    $host = $requestData['conn_host'] ?? '';
+                    $dbName = $requestData['conn_dbname'] ?? '';
+                    $username = $requestData['conn_username'] ?? '';
+                    $password = $requestData['conn_password'] ?? '';
+                    $port = $requestData['conn_port'] ?? '3306';
+                    
+                    $stmt = $storagePdo->prepare("UPDATE `$connectionsTable` SET name=?, type=?, host=?, dbName=?, username=?, password=?, port=? WHERE id=?");
+                    $stmt->execute([$name, $type, $host, $dbName, $username, $password, $port, $id]);
+                    
+                    jsonResponse(true, "Connection '$name' updated successfully");
+                    break;
+                    
+                case 'hostinger_delete_connection':
+                    $id = $requestData['conn_id'] ?? '';
+                    if (empty($id)) {
+                        jsonResponse(false, 'Connection ID required', null, 400);
+                    }
+                    
+                    $stmt = $storagePdo->prepare("DELETE FROM `$connectionsTable` WHERE id = ?");
+                    $stmt->execute([$id]);
+                    
+                    jsonResponse(true, 'Connection deleted successfully');
+                    break;
+                    
+                case 'hostinger_clear_all_connections':
+                    $storagePdo->exec("DELETE FROM `$connectionsTable`");
+                    jsonResponse(true, 'All connections cleared');
+                    break;
+            }
+            
+            exit(); // End API processing for hostinger connections
+        }
+        
+        // ========================================================================
+        // [1.6.2] STANDARD DATABASE OPERATIONS
+        // ========================================================================
+        
         // Initialize database config (from request parameters)
         // For database-level operations (create, drop, list, rename), don't specify dbname
         $serverOnlyActions = ['create_database', 'drop_database', 'delete_database', 'list_databases', 'rename_database'];
@@ -3508,8 +3624,8 @@ if ($isApiRequest) {
                     <span class="card-title-icon">⚙️</span>
                     Manage Hostinger Connections
                 </h2>
-                <div class="security-notice">
-                    <strong>🌐 Hostinger Database Connections:</strong> Add your Hostinger database credentials (Shared Hosting or VPS). All data is stored locally in your browser's localStorage.
+                <div class="security-notice" style="background: rgba(34, 197, 94, 0.15); border-color: #22c55e;">
+                    <strong>🗄️ Database-Backed Storage:</strong> Your connections are securely stored in MySQL table <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">report_prompt_databases</code>. Data syncs across all browsers and devices!
                 </div>
                 <div id="settingsMessage"></div>
 
@@ -3579,32 +3695,29 @@ if ($isApiRequest) {
                     <div id="hostingerConnectionsTable"></div>
                 </div>
 
-                <!-- Export/Import Buttons -->
+                <!-- Database Storage Actions -->
                 <div style="margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="exportConnectionsToFile()">
-                        <span>📤</span> Export (Save to File)
-                    </button>
-                    <button class="btn btn-primary" onclick="showImportModal()">
-                        <span>📥</span> Import (Load from File)
+                    <button class="btn btn-primary" onclick="refreshConnectionsFromDatabase()" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
+                        <span>🔄</span> Refresh from Database
                     </button>
                     <button class="btn btn-danger" onclick="clearAllHostingerConnections()">
                         <span>🗑️</span> Clear All Connections
                     </button>
                 </div>
 
-                <!-- Export/Import Info -->
-                <div style="margin-top: 20px; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                <!-- Database Storage Info -->
+                <div style="margin-top: 20px; background: rgba(34, 197, 94, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3);">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <span style="font-size: 24px;">💾</span>
+                        <span style="font-size: 24px;">🗄️</span>
                         <div>
-                            <strong style="color: #fbbf24; font-size: 16px;">Backup & Restore with File Picker</strong>
+                            <strong style="color: #86efac; font-size: 16px;">MySQL Database Storage</strong>
                         </div>
                     </div>
                     <div style="font-size: 13px; color: rgba(254, 243, 199, 0.7); line-height: 1.6;">
-                        <strong>📤 Export:</strong> Opens file picker - Choose where to save your backup (JSON file)<br>
-                        <strong>📥 Import:</strong> Opens file picker - Select a backup file to restore<br>
-                        <strong>💡 Smart Merge:</strong> Import merges with existing connections (no data loss)<br>
-                        <strong>🔒 Secure:</strong> Files saved on your computer with full control
+                        <strong>💾 Storage:</strong> Connections are stored in MySQL table <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">report_prompt_databases</code><br>
+                        <strong>🌐 Cloud Sync:</strong> Data persists across browsers and devices<br>
+                        <strong>🔒 Secure:</strong> Stored on remote Hostinger MySQL server<br>
+                        <strong>🔄 Auto-Sync:</strong> Changes are saved automatically to the database
                     </div>
                 </div>
             </div>
@@ -5389,7 +5502,7 @@ if ($isApiRequest) {
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // 🔍 DEBUG: Log stored values
             console.log('=== STARTUP DEBUG ===');
             console.log('Stored selectedDatabaseId:', localStorage.getItem(SELECTED_DATABASE_KEY));
@@ -5401,6 +5514,7 @@ if ($isApiRequest) {
             // 🎯 ALL-IN-ONE MODE: All API requests go to this same page
             console.log('🚀 ALL-IN-ONE Mode Active!');
             console.log('📡 All API requests go to:', CURRENT_PAGE_URL);
+            console.log('🗄️ Hostinger Connections: Database-backed (report_prompt_databases table)');
             
             // Always use current page URL - clear any old settings
             localStorage.setItem(CURRENT_HOSTINGER_API_KEY, CURRENT_PAGE_URL);
@@ -5419,8 +5533,9 @@ if ($isApiRequest) {
             loadConnectionState(); // Hostinger
             loadLocalhostConnectionState(); // NEW: Localhost
             
-            loadDashboardConnections();
-            loadHostingerConnectionsTable();
+            // Load connections from database (async)
+            await loadDashboardConnections();
+            await loadHostingerConnectionsTable();
             addColumnRow(); // Add initial column row for table creation
             
             // Load selected database from localStorage
@@ -6349,7 +6464,7 @@ ${'─'.repeat(40)}
                 updateRenameDatabaseStatus(); // Update status indicator
                 loadDatabasesForDropdowns(); // Load localhost databases
             } else if (sectionId === 'settings') {
-                loadHostingerConnectionsTable();
+                loadHostingerConnectionsTable(); // Async - loads from database
             } else if (sectionId === 'generateDatabase') {
                 updateSelectedDatabaseDisplay();
             } else if (sectionId === 'aiPrompt') {
@@ -8878,69 +8993,105 @@ ${errorDetails || 'Unknown error occurred'}
         }
 
         // ========================================
-        // HOSTINGER CONNECTIONS MANAGEMENT
+        // HOSTINGER CONNECTIONS MANAGEMENT (DATABASE-BACKED)
+        // ========================================
+        // Connections are stored in MySQL table: report_prompt_databases
+        // Uses API calls instead of localStorage
         // ========================================
 
-        // Get saved connections
+        // Cache for connections (to reduce API calls)
+        let hostingerConnectionsCache = null;
+        let hostingerConnectionsCacheTime = 0;
+        const CACHE_TTL = 30000; // 30 seconds cache
+
+        // Get saved connections from database
+        async function getHostingerConnectionsAsync() {
+            // Check cache first
+            if (hostingerConnectionsCache && (Date.now() - hostingerConnectionsCacheTime) < CACHE_TTL) {
+                return hostingerConnectionsCache;
+            }
+            
+            try {
+                const result = await apiRequest('hostinger_list_connections', {});
+                if (result.success && result.connections) {
+                    hostingerConnectionsCache = result.connections;
+                    hostingerConnectionsCacheTime = Date.now();
+                    return result.connections;
+                }
+                return [];
+            } catch (error) {
+                console.error('Error fetching connections:', error);
+                return hostingerConnectionsCache || [];
+            }
+        }
+
+        // Sync version (uses cache) - for compatibility with existing code
         function getHostingerConnections() {
-            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
-            return saved ? JSON.parse(saved) : [];
+            return hostingerConnectionsCache || [];
         }
 
-        // Save connections
-        function saveHostingerConnections(connections) {
-            localStorage.setItem(HOSTINGER_CONNECTIONS_KEY, JSON.stringify(connections));
+        // Invalidate cache
+        function invalidateConnectionsCache() {
+            hostingerConnectionsCache = null;
+            hostingerConnectionsCacheTime = 0;
         }
 
-        // Add new connection
-        function addHostingerConnection(event) {
+        // Add new connection (async - to database)
+        async function addHostingerConnection(event) {
             event.preventDefault();
             
             const connection = {
-                id: Date.now().toString(),
-                name: document.getElementById('connName').value.trim(),
-                type: document.getElementById('connType').value,
-                host: document.getElementById('connHost').value.trim(),
-                dbName: document.getElementById('connDbName').value.trim(),
-                username: document.getElementById('connUsername').value.trim(),
-                password: document.getElementById('connPassword').value,
-                port: document.getElementById('connPort').value.trim() || '3306',
-                createdAt: new Date().toISOString()
+                conn_id: Date.now().toString(),
+                conn_name: document.getElementById('connName').value.trim(),
+                conn_type: document.getElementById('connType').value,
+                conn_host: document.getElementById('connHost').value.trim(),
+                conn_dbname: document.getElementById('connDbName').value.trim(),
+                conn_username: document.getElementById('connUsername').value.trim(),
+                conn_password: document.getElementById('connPassword').value,
+                conn_port: document.getElementById('connPort').value.trim() || '3306'
             };
 
-            const connections = getHostingerConnections();
-            connections.push(connection);
-            saveHostingerConnections(connections);
+            showMessage('settingsMessage', '🔄 Saving connection...', 'info');
 
-            showMessage('settingsMessage', `✅ Connection "${connection.name}" added successfully!`, 'success');
-            
-            // Reset form
-            document.getElementById('connName').value = '';
-            document.getElementById('connHost').value = '192.168.8.4';
-            document.getElementById('connDbName').value = '';
-            document.getElementById('connUsername').value = '';
-            document.getElementById('connPassword').value = '';
-            document.getElementById('connPort').value = '3306';
-            
-            // Reset password visibility
-            const passwordInput = document.getElementById('connPassword');
-            const toggleBtn = document.getElementById('togglePasswordBtn');
-            passwordInput.type = 'password';
-            toggleBtn.textContent = '👁️';
-            toggleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
-            toggleBtn.style.borderColor = '#3b82f6';
-            toggleBtn.style.color = '#93c5fd';
-            
-            loadHostingerConnectionsTable();
-            loadDashboardConnections();
-            
-            // Update toggle button to reflect new count
-            updateConnectionToggleButton();
+            try {
+                const result = await apiRequest('hostinger_add_connection', connection);
+                
+                if (result.success) {
+                    showMessage('settingsMessage', `✅ Connection "${connection.conn_name}" added successfully!`, 'success');
+                    
+                    // Reset form
+                    document.getElementById('connName').value = '';
+                    document.getElementById('connHost').value = '192.168.8.4';
+                    document.getElementById('connDbName').value = '';
+                    document.getElementById('connUsername').value = '';
+                    document.getElementById('connPassword').value = '';
+                    document.getElementById('connPort').value = '3306';
+                    
+                    // Reset password visibility
+                    const passwordInput = document.getElementById('connPassword');
+                    const toggleBtn = document.getElementById('togglePasswordBtn');
+                    passwordInput.type = 'password';
+                    toggleBtn.textContent = '👁️';
+                    toggleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                    toggleBtn.style.borderColor = '#3b82f6';
+                    toggleBtn.style.color = '#93c5fd';
+                    
+                    // Invalidate cache and reload
+                    invalidateConnectionsCache();
+                    await loadHostingerConnectionsTable();
+                    await loadDashboardConnections();
+                    updateConnectionToggleButton();
+                } else {
+                    showMessage('settingsMessage', `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage('settingsMessage', `❌ Error adding connection: ${error.message}`, 'error');
+            }
         }
 
-        // Edit connection
-        function editHostingerConnection(id) {
-            const connections = getHostingerConnections();
+        // Edit connection - fills form and deletes old
+        async function editHostingerConnection(id) {
+            const connections = await getHostingerConnectionsAsync();
             const conn = connections.find(c => c.id === id);
             
             if (!conn) return;
@@ -8955,14 +9106,14 @@ ${errorDetails || 'Unknown error occurred'}
             document.getElementById('connPort').value = conn.port;
 
             // Delete old connection
-            deleteHostingerConnection(id, true);
+            await deleteHostingerConnection(id, true);
             
             // Scroll to form
             document.querySelector('#settings .card').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Delete connection
-        function deleteHostingerConnection(id, silent = false) {
+        // Delete connection (async - from database)
+        async function deleteHostingerConnection(id, silent = false) {
             if (!silent && !confirm('Are you sure you want to delete this connection?')) {
                 return;
             }
@@ -8973,23 +9124,31 @@ ${errorDetails || 'Unknown error occurred'}
                 deselectAllDatabases();
             }
 
-            let connections = getHostingerConnections();
-            connections = connections.filter(c => c.id !== id);
-            saveHostingerConnections(connections);
-
-            if (!silent) {
-                showMessage('settingsMessage', '✅ Connection deleted successfully!', 'success');
+            try {
+                const result = await apiRequest('hostinger_delete_connection', { conn_id: id });
+                
+                if (result.success) {
+                    if (!silent) {
+                        showMessage('settingsMessage', '✅ Connection deleted successfully!', 'success');
+                    }
+                    
+                    // Invalidate cache and reload
+                    invalidateConnectionsCache();
+                    await loadHostingerConnectionsTable();
+                    await loadDashboardConnections();
+                    updateConnectionToggleButton();
+                } else if (!silent) {
+                    showMessage('settingsMessage', `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                if (!silent) {
+                    showMessage('settingsMessage', `❌ Error deleting connection: ${error.message}`, 'error');
+                }
             }
-            
-            loadHostingerConnectionsTable();
-            loadDashboardConnections();
-            
-            // Update toggle button to reflect new count
-            updateConnectionToggleButton();
         }
 
-        // Clear all connections
-        function clearAllHostingerConnections() {
+        // Clear all connections (async - from database)
+        async function clearAllHostingerConnections() {
             if (!confirm('Are you sure you want to delete ALL connections? This action cannot be undone!')) {
                 return;
             }
@@ -8997,14 +9156,23 @@ ${errorDetails || 'Unknown error occurred'}
             // Deselect if any database was selected
             deselectAllDatabases();
 
-            localStorage.removeItem(HOSTINGER_CONNECTIONS_KEY);
-            showMessage('settingsMessage', '✅ All connections cleared!', 'success');
-            
-            loadHostingerConnectionsTable();
-            loadDashboardConnections();
-            
-            // Update toggle button to reflect no connections
-            updateConnectionToggleButton();
+            try {
+                const result = await apiRequest('hostinger_clear_all_connections', {});
+                
+                if (result.success) {
+                    showMessage('settingsMessage', '✅ All connections cleared!', 'success');
+                    
+                    // Invalidate cache and reload
+                    invalidateConnectionsCache();
+                    await loadHostingerConnectionsTable();
+                    await loadDashboardConnections();
+                    updateConnectionToggleButton();
+                } else {
+                    showMessage('settingsMessage', `❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage('settingsMessage', `❌ Error clearing connections: ${error.message}`, 'error');
+            }
         }
 
         // Toggle password visibility in Settings
@@ -9029,24 +9197,34 @@ ${errorDetails || 'Unknown error occurred'}
 
         // Populate autocomplete fields from previous connections
         function populateAutocompleteFields() {
-            const connections = getHostingerConnections();
+            const connections = getHostingerConnections(); // Uses cache
             
             // Get unique values
-            const hosts = [...new Set(connections.map(c => c.host))];
-            const dbNames = [...new Set(connections.map(c => c.dbName))];
-            const usernames = [...new Set(connections.map(c => c.username))];
+            const hosts = [...new Set(connections.map(c => c.host).filter(Boolean))];
+            const dbNames = [...new Set(connections.map(c => c.dbName).filter(Boolean))];
+            const usernames = [...new Set(connections.map(c => c.username).filter(Boolean))];
 
             // Populate Host datalist
             const hostList = document.getElementById('hostList');
-            hostList.innerHTML = hosts.map(h => `<option value="${h}">`).join('');
+            if (hostList) hostList.innerHTML = hosts.map(h => `<option value="${h}">`).join('');
 
             // Populate Database Name datalist
             const dbNameList = document.getElementById('dbNameList');
-            dbNameList.innerHTML = dbNames.map(db => `<option value="${db}">`).join('');
+            if (dbNameList) dbNameList.innerHTML = dbNames.map(db => `<option value="${db}">`).join('');
 
             // Populate Username datalist
             const usernameList = document.getElementById('usernameList');
-            usernameList.innerHTML = usernames.map(u => `<option value="${u}">`).join('');
+            if (usernameList) usernameList.innerHTML = usernames.map(u => `<option value="${u}">`).join('');
+        }
+        
+        // Refresh connections from database (manual reload)
+        async function refreshConnectionsFromDatabase() {
+            showMessage('settingsMessage', '🔄 Refreshing connections from database...', 'info');
+            invalidateConnectionsCache();
+            await loadHostingerConnectionsTable();
+            await loadDashboardConnections();
+            updateConnectionToggleButton();
+            showMessage('settingsMessage', '✅ Connections refreshed from database!', 'success');
         }
 
         // Toggle password visibility in table
@@ -9071,16 +9249,21 @@ ${errorDetails || 'Unknown error occurred'}
             }
         }
 
-        // Load connections table in Settings
-        function loadHostingerConnectionsTable() {
+        // Load connections table in Settings (from database)
+        async function loadHostingerConnectionsTable() {
             const tableEl = document.getElementById('hostingerConnectionsTable');
-            const connections = getHostingerConnections();
+            
+            // Show loading state
+            tableEl.innerHTML = '<p style="color: rgba(254, 243, 199, 0.6); text-align: center; padding: 20px;"><span class="spinner"></span> Loading connections from database...</p>';
+            
+            // Fetch connections from database
+            const connections = await getHostingerConnectionsAsync();
 
             // Populate autocomplete fields
             populateAutocompleteFields();
 
             if (connections.length === 0) {
-                tableEl.innerHTML = '<p style="color: rgba(254, 243, 199, 0.6); text-align: center; padding: 20px;">No connections saved yet.</p>';
+                tableEl.innerHTML = '<p style="color: rgba(254, 243, 199, 0.6); text-align: center; padding: 20px;">No connections saved yet. Add your first connection above!</p>';
                 return;
             }
 
@@ -9102,18 +9285,18 @@ ${errorDetails || 'Unknown error occurred'}
 
             connections.forEach(conn => {
                 const typeIcon = conn.type === 'vps' ? '🖥️' : '🌐';
-                const maskedPassword = '•'.repeat(conn.password.length);
+                const maskedPassword = '•'.repeat((conn.password || '').length);
                 html += `
                     <tr style="border-bottom: 1px solid rgba(251, 191, 36, 0.1);">
                         <td style="padding: 12px; color: #fef3c7;"><strong>${conn.name}</strong></td>
-                        <td style="padding: 12px; color: rgba(254, 243, 199, 0.7);">${typeIcon} ${conn.type.toUpperCase()}</td>
+                        <td style="padding: 12px; color: rgba(254, 243, 199, 0.7);">${typeIcon} ${(conn.type || 'shared').toUpperCase()}</td>
                         <td style="padding: 12px; color: rgba(254, 243, 199, 0.7); font-family: monospace; font-size: 13px;">${conn.host}</td>
                         <td style="padding: 12px; color: rgba(254, 243, 199, 0.7); font-family: monospace; font-size: 13px;">${conn.dbName}</td>
                         <td style="padding: 12px; color: rgba(254, 243, 199, 0.7);">${conn.username}</td>
                         <td style="padding: 12px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span id="pwd_${conn.id}" style="font-family: monospace; color: rgba(254, 243, 199, 0.7); font-size: 13px;">${maskedPassword}</span>
-                                <button onclick="toggleTablePassword('${conn.id}', '${conn.password.replace(/'/g, "\\'")}')" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s;" id="pwdBtn_${conn.id}">
+                                <button onclick="toggleTablePassword('${conn.id}', '${(conn.password || '').replace(/'/g, "\\'")}')" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #93c5fd; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s;" id="pwdBtn_${conn.id}">
                                     👁️
                                 </button>
                             </div>
@@ -9128,6 +9311,9 @@ ${errorDetails || 'Unknown error occurred'}
             html += `
                         </tbody>
                     </table>
+                </div>
+                <div style="margin-top: 15px; padding: 12px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; font-size: 13px; color: rgba(134, 239, 172, 0.9);">
+                    <strong>💾 Database Storage:</strong> ${connections.length} connection${connections.length !== 1 ? 's' : ''} stored in MySQL table <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">report_prompt_databases</code>
                 </div>`;
 
             tableEl.innerHTML = html;
@@ -9136,7 +9322,7 @@ ${errorDetails || 'Unknown error occurred'}
         // Load connections in Dashboard with Test Connection
         async function loadDashboardConnections() {
             const listEl = document.getElementById('configuredConnectionsList');
-            const hostingerConnections = getHostingerConnections();
+            const hostingerConnections = await getHostingerConnectionsAsync(); // Fetch from database
             const localhostDatabases = getLocalhostDatabases();
 
             // Check if BOTH are disconnected
@@ -14608,9 +14794,11 @@ ${'='.repeat(60)}
 
         const PREFERRED_EXPORT_PATH_KEY = 'preferred_export_path';
 
-        // Export connections to file (Direct Download)
+        // Export connections to file (Direct Download) - Now exports from database
         async function exportConnectionsToFile() {
-            const connections = getHostingerConnections();
+            showMessage('settingsMessage', '🔄 Fetching connections from database...', 'info');
+            
+            const connections = await getHostingerConnectionsAsync();
             
             if (connections.length === 0) {
                 showMessage('settingsMessage', '❌ No connections to export', 'error');
@@ -14753,7 +14941,7 @@ ${'='.repeat(60)}
             input.click();
         }
 
-        // Process the imported file
+        // Process the imported file (LEGACY - uses database API now)
         async function processImportFile(file) {
             try {
                 showMessage('settingsMessage', `🔄 Reading file: ${file.name}...`, 'info');
@@ -14768,46 +14956,49 @@ ${'='.repeat(60)}
                 }
 
                 // Confirm import
-                if (!confirm(`Import ${importData.connections.length} connections from:\n${file.name}\n\nThis will MERGE with your existing connections. Continue?`)) {
+                if (!confirm(`Import ${importData.connections.length} connections from:\n${file.name}\n\nThis will add connections to the database. Continue?`)) {
                     return;
                 }
 
-                showMessage('settingsMessage', '🔄 Importing connections...', 'info');
+                showMessage('settingsMessage', '🔄 Importing connections to database...', 'info');
 
-                // Get current connections
-                let currentConnections = getHostingerConnections();
                 const importedConnections = importData.connections;
-
-                // Merge strategy: Update existing by ID or add new
-                let updatedCount = 0;
                 let addedCount = 0;
+                let errorCount = 0;
 
-                importedConnections.forEach(imported => {
-                    const existingIndex = currentConnections.findIndex(c => c.id === imported.id);
-                    if (existingIndex !== -1) {
-                        // Update existing
-                        currentConnections[existingIndex] = imported;
-                        updatedCount++;
-                    } else {
-                        // Add new
-                        currentConnections.push(imported);
-                        addedCount++;
+                // Add each connection via API
+                for (const imported of importedConnections) {
+                    try {
+                        const result = await apiRequest('hostinger_add_connection', {
+                            conn_id: imported.id || (Date.now().toString() + Math.random().toString(36).substr(2, 5)),
+                            conn_name: imported.name,
+                            conn_type: imported.type || 'shared',
+                            conn_host: imported.host,
+                            conn_dbname: imported.dbName,
+                            conn_username: imported.username,
+                            conn_password: imported.password,
+                            conn_port: imported.port || '3306'
+                        });
+                        
+                        if (result.success) {
+                            addedCount++;
+                        } else {
+                            errorCount++;
+                        }
+                    } catch (e) {
+                        errorCount++;
                     }
-                });
+                }
 
-                // Save merged connections
-                saveHostingerConnections(currentConnections);
-
-                // Refresh UI
-                loadHostingerConnectionsTable();
-                loadDashboardConnections();
-                
-                // Update toggle button to reflect new count
+                // Invalidate cache and refresh UI
+                invalidateConnectionsCache();
+                await loadHostingerConnectionsTable();
+                await loadDashboardConnections();
                 updateConnectionToggleButton();
 
                 showMessage('settingsMessage', 
-                    `✅ Import successful!\n📊 Total: ${importData.connections.length}\n✏️ Updated: ${updatedCount}\n➕ Added: ${addedCount}\n📅 Exported: ${importData.exported_at || 'Unknown'}`, 
-                    'success'
+                    `✅ Import completed!\n📊 Total: ${importData.connections.length}\n➕ Added: ${addedCount}\n❌ Errors: ${errorCount}`, 
+                    addedCount > 0 ? 'success' : 'error'
                 );
             } catch (error) {
                 showMessage('settingsMessage', `❌ Import failed: ${error.message}`, 'error');
