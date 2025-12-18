@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!-- FILE:hostinger_connections_2025-10-28T22-05-49.json:1766068760501 -->
 ## 📄 hostinger_connections_2025-10-28T22-05-49.json
 {
@@ -95,3 +96,17 @@
   ]
 }
 <!-- /END  FILE:hostinger_connections_2025-10-28T22-05-49.json:1766068760501 -->
+=======
+I got an error. This is an error I got from the system. 
+Connection Failed
+SQL Server extensions not available. Please install sqlsrv or pdo_sqlsrv extension.
+
+Available Extensions:
+sqlsrv: ❌
+pdo_sqlsrv: ❌
+pdo_dblib: ❌
+
+Note: You need to install Microsoft SQL Server Driver for PHP to connect to SQL Server.
+
+
+>>>>>>> 4e6a8c1cd4272931705caedc00e2cba835c36707
