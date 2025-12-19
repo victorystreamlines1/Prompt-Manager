@@ -1,1 +1,4 @@
-now you are in agent mode please change everything regarding any other file other than JSON and prompt generation file which is I think .text you told me remove all the code regarding other files and and prepare the environment for the according to the argument between you just told me and don't change the functionality but if the functionality is not within our objectives then remove it therefore remove any code not related to our files which is dot text and the text file and the JSON file for drawing and prepare it for our objectives do not do any of our functionality and objectives, just prepare the environment so that I can start telling you how the functionality will do. 
+<!-- FILE:3d-platform.php:1766159598202 -->
+[📎 File Reference: 3d-platform.php | Path: uploads/1766152144_3d-platform.php]
+<!-- /END  FILE:3d-platform.php:1766159598202 -->
+Yes, I've read the prompt. It's good. But I want you to add this application as the starting point of the application. So it should start from this and modify it, reaching the final goal of this prompt. Please add this to the prompt so that the AI starts doing the job from this file, 3dplatform.php. 

@@ -1,0 +1,515 @@
+================================================================================
+                         VISUAL PROMPTER - AI PROMPT GENERATOR
+                    A Revolutionary Visual-to-Prompt Design System
+================================================================================
+
+⚠️ IMPORTANT: STARTING POINT
+================================================================================
+
+THIS PROJECT ALREADY HAS A STARTING POINT FILE: 3d-platform.php
+
+DO NOT BUILD FROM SCRATCH. Instead, MODIFY and EXTEND the existing file.
+
+The file `3d-platform.php` already contains:
+✓ Three.js 3D canvas with scene, camera, renderer
+✓ OrbitControls for camera manipulation  
+✓ Grid helper and lighting setup
+✓ Dark theme UI with modern styling (CSS variables, aurora background)
+✓ Header with project name, Load/Save/Download buttons
+✓ Left toolbar for tools
+✓ Right panel with Transform, Node Style, Scene, and Prompt sections
+✓ Save/Load JSON functionality
+✓ Platform state management (nodes array, connections array, etc.)
+✓ Toast notification system
+✓ Modal dialogs
+
+YOUR TASK: Transform this existing 3D platform into the Visual Prompter by:
+1. Adding node/shape creation functionality (drag shapes onto canvas)
+2. Adding connection drawing between nodes
+3. Adding property editor for node details
+4. Implementing the prompt generation algorithm
+5. Keeping all existing UI/UX design intact
+
+START FROM: 3d-platform.php
+OUTPUT: Modified 3d-platform.php with Visual Prompter functionality
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+I want to build a "Visual Prompter" - a web-based application that allows users 
+to CREATE AI PROMPTS VISUALLY through 3D diagrams, flowcharts, and connected 
+shapes, similar to how designers work in Fusion 360, SolidWorks, or Visio.
+
+The core concept is: DRAW YOUR PROMPT, DON'T WRITE IT.
+
+This tool is designed for people who:
+- Know how to design/draw but don't know how to program
+- Are visual thinkers who struggle to express technical requirements in text
+- Want to create complex, structured AI prompts without writing paragraphs
+- Need to design software architectures visually before generating prompts
+
+================================================================================
+CORE CONCEPT
+================================================================================
+
+Instead of writing: 
+"Create a PHP application with a MySQL database that has a users table 
+connected to an orders table with a one-to-many relationship..."
+
+The user DRAWS:
+┌─────────────┐         ┌─────────────┐         ┌─────────────┐
+│  📦 MySQL   │────────▶│  📋 Users   │────────▶│  📋 Orders  │
+│  Database   │         │   Table     │  1:N    │   Table     │
+│             │         │             │         │             │
+│ Host: local │         │ - id        │         │ - id        │
+│ Port: 3306  │         │ - name      │         │ - user_id   │
+└─────────────┘         │ - email     │         │ - total     │
+                        └─────────────┘         └─────────────┘
+                                │
+                                ▼
+                        ┌─────────────┐
+                        │  🔷 PHP     │
+                        │  Backend    │
+                        │             │
+                        │ Framework:  │
+                        │ Laravel     │
+                        └─────────────┘
+
+Then clicks "GENERATE PROMPT" and the system converts this visual diagram 
+into a detailed, well-structured AI prompt that can be copied and used with 
+ChatGPT, Claude, or any AI assistant.
+
+================================================================================
+DETAILED REQUIREMENTS
+================================================================================
+
+1. CANVAS & WORKSPACE
+─────────────────────
+- 3D canvas using Three.js (already implemented)
+- Infinite workspace with pan, zoom, and rotate
+- Grid background for alignment
+- Dark theme with modern UI (already styled)
+- Save/Load projects as JSON files
+
+2. SHAPE LIBRARY (Nodes/Boxes)
+──────────────────────────────
+The system should support various shapes, each representing a different 
+concept in software development:
+
+SHAPE               │ MEANING                    │ COLOR
+────────────────────┼────────────────────────────┼──────────────
+□ Rectangle/Box     │ Component/Module/File      │ Blue (#6366f1)
+○ Circle            │ Process/Function           │ Green (#10b981)
+◇ Diamond           │ Condition/Decision         │ Yellow (#f59e0b)
+▭ Rounded Rectangle │ User Interface/Page        │ Purple (#8b5cf6)
+⬡ Hexagon           │ API Endpoint               │ Cyan (#06b6d4)
+⊡ Cylinder          │ Database/Storage           │ Orange (#f97316)
+△ Triangle          │ Start/End Point            │ Red (#ef4444)
+⬢ Octagon           │ External Service           │ Pink (#ec4899)
+
+3. NODE PROPERTIES (Editable Fields)
+────────────────────────────────────
+Each shape/node should have editable properties:
+
+GENERAL PROPERTIES:
+- Title/Name (required)
+- Description (optional)
+- Type (from predefined list)
+- Tags/Labels
+
+TECHNICAL PROPERTIES (context-dependent):
+For Database nodes:
+  - Database Type (MySQL, PostgreSQL, MongoDB, etc.)
+  - Host, Port, Username
+  - Tables (sub-list with columns)
+  
+For Backend nodes:
+  - Language (PHP, Python, Node.js, etc.)
+  - Framework (Laravel, Django, Express, etc.)
+  - Endpoints list
+  
+For Frontend nodes:
+  - Framework (React, Vue, Angular, HTML)
+  - Pages list
+  - Components list
+
+For API nodes:
+  - Method (GET, POST, PUT, DELETE)
+  - Endpoint URL
+  - Request/Response structure
+  - Authentication type
+
+For File nodes:
+  - Filename
+  - File type
+  - Purpose/Function
+
+4. CONNECTIONS (Lines/Relationships)
+────────────────────────────────────
+Users should be able to draw lines between nodes to show relationships:
+
+LINE TYPE           │ MEANING                    │ STYLE
+────────────────────┼────────────────────────────┼──────────────
+─────────────────▶  │ Data Flow                  │ Solid + Arrow
+─ ─ ─ ─ ─ ─ ─ ─ ▶  │ Optional/Conditional       │ Dashed + Arrow
+════════════════▶   │ Strong Dependency          │ Double line
+─────────○─────     │ One-to-One                 │ Circle end
+─────────<─────     │ One-to-Many                │ Crow's foot
+─────────◇─────     │ Many-to-Many               │ Diamond end
+
+Connection labels:
+- Relationship type (1:1, 1:N, N:N)
+- Data being transferred
+- Condition/trigger
+
+5. LAYERS & GROUPING
+────────────────────
+- Group related nodes together
+- Create layers for different aspects:
+  - Database Layer
+  - Backend Layer  
+  - Frontend Layer
+  - API Layer
+  - External Services Layer
+- Collapse/expand groups
+- Color-code by layer
+
+6. PROMPT GENERATION ENGINE
+───────────────────────────
+The heart of the system - converts visual diagram to text prompt:
+
+INPUT: JSON structure of nodes and connections
+OUTPUT: Well-formatted AI prompt
+
+The generated prompt should include:
+a) PROJECT OVERVIEW
+   - Derived from the overall structure
+   - Main components identified
+   
+b) TECHNICAL STACK
+   - All technologies mentioned in nodes
+   - Versions if specified
+   
+c) DATABASE STRUCTURE
+   - Tables, columns, relationships
+   - Extracted from database/table nodes
+   
+d) API ENDPOINTS
+   - All routes with methods
+   - Request/response structures
+   
+e) FILE STRUCTURE
+   - Folder hierarchy
+   - File purposes
+   
+f) RELATIONSHIPS & DATA FLOW
+   - How components connect
+   - Data transformation points
+   
+g) SPECIAL REQUIREMENTS
+   - From notes/annotations
+   - Constraints and rules
+
+7. EXPORT OPTIONS
+─────────────────
+- Generate Prompt → Copy to clipboard / Download as .txt
+- Export Diagram → PNG, SVG, PDF
+- Export Project → JSON (for later editing)
+- Share Link → Generate shareable URL
+
+================================================================================
+USER WORKFLOW EXAMPLE
+================================================================================
+
+STEP 1: User opens Visual Prompter
+        → Sees empty 3D canvas with grid
+
+STEP 2: User drags a "Database" cylinder onto canvas
+        → Double-clicks to edit
+        → Fills in: MySQL, localhost, 3306
+        → Adds tables: users, products, orders
+
+STEP 3: User drags a "Backend" rectangle
+        → Fills in: PHP, Laravel
+        → Lists controllers needed
+
+STEP 4: User drags a "Frontend" rounded rectangle  
+        → Fills in: React, with pages: Home, Products, Cart
+
+STEP 5: User draws connections:
+        → Database ──▶ Backend (data access)
+        → Backend ──▶ Frontend (API calls)
+
+STEP 6: User clicks "GENERATE PROMPT"
+        → System analyzes the diagram
+        → Generates comprehensive prompt
+
+STEP 7: Generated prompt appears:
+        ┌────────────────────────────────────────────────────────────┐
+        │ Please create a web application with the following specs: │
+        │                                                            │
+        │ ## Database (MySQL)                                        │
+        │ - Host: localhost:3306                                     │
+        │ - Tables:                                                  │
+        │   1. users (id, name, email, password, created_at)        │
+        │   2. products (id, name, price, description)              │
+        │   3. orders (id, user_id, total, status, created_at)      │
+        │ - Relationships:                                           │
+        │   - users 1:N orders                                       │
+        │   - orders N:N products (via order_items)                 │
+        │                                                            │
+        │ ## Backend (PHP/Laravel)                                   │
+        │ - Controllers: UserController, ProductController...        │
+        │ - API endpoints for CRUD operations                        │
+        │ - Authentication using Laravel Sanctum                     │
+        │                                                            │
+        │ ## Frontend (React)                                        │
+        │ - Pages: Home, Products, Cart, Checkout, Profile          │
+        │ - State management with Redux                              │
+        │ - Responsive design                                        │
+        │                                                            │
+        │ Please generate the complete codebase...                   │
+        └────────────────────────────────────────────────────────────┘
+
+STEP 8: User copies prompt and pastes into AI assistant
+        → Gets complete, working code
+
+================================================================================
+TEMPLATE LIBRARY
+================================================================================
+
+Pre-built templates for common architectures:
+
+1. E-COMMERCE SYSTEM
+   - Database schema for products, users, orders
+   - Backend API structure
+   - Frontend pages
+
+2. BLOG/CMS
+   - Posts, categories, comments
+   - Admin panel
+   - Public frontend
+
+3. CRUD APPLICATION
+   - Basic create, read, update, delete
+   - Single table with relationships
+
+4. AUTHENTICATION SYSTEM
+   - Users, roles, permissions
+   - Login/register flow
+   - Password reset
+
+5. API-ONLY BACKEND
+   - RESTful endpoints
+   - Authentication
+   - Rate limiting
+
+6. MICROSERVICES
+   - Multiple services
+   - Message queues
+   - API gateway
+
+================================================================================
+SMART FEATURES
+================================================================================
+
+1. AUTO-SUGGESTIONS
+   - As user adds nodes, suggest related nodes
+   - "You added a Users table, do you need Authentication?"
+
+2. VALIDATION
+   - Check for orphan nodes (not connected)
+   - Verify relationship logic
+   - Warn about missing required fields
+
+3. PROMPT OPTIMIZATION
+   - Arrange prompt sections logically
+   - Remove redundancy
+   - Add context where needed
+
+4. VERSION CONTROL
+   - Save diagram history
+   - Compare versions
+   - Undo/redo unlimited
+
+5. COLLABORATION (Future)
+   - Share diagrams
+   - Real-time collaboration
+   - Comments and annotations
+
+================================================================================
+TECHNICAL IMPLEMENTATION
+================================================================================
+
+FRONTEND:
+- Three.js for 3D canvas (already set up)
+- Custom node rendering system
+- Drag-and-drop interface
+- Property panels for editing
+
+DATA STRUCTURE (JSON):
+{
+  "version": "1.0",
+  "projectName": "My E-Commerce App",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "database",
+      "shape": "cylinder",
+      "position": { "x": 0, "y": 0, "z": 0 },
+      "properties": {
+        "title": "MySQL Database",
+        "dbType": "mysql",
+        "host": "localhost",
+        "port": 3306,
+        "tables": [
+          {
+            "name": "users",
+            "columns": ["id", "name", "email", "password"]
+          }
+        ]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from": "node_1",
+      "to": "node_2",
+      "type": "data_flow",
+      "label": "User data"
+    }
+  ]
+}
+
+PROMPT GENERATION ALGORITHM:
+1. Parse JSON structure
+2. Identify all node types
+3. Group by layer/category
+4. Extract relationships from connections
+5. Build prompt sections in order:
+   - Overview
+   - Tech Stack
+   - Database
+   - Backend
+   - Frontend
+   - APIs
+   - Special Requirements
+6. Format with markdown
+7. Optimize for AI consumption
+
+================================================================================
+TARGET USERS
+================================================================================
+
+1. NON-PROGRAMMERS who understand systems conceptually
+2. DESIGNERS who think visually
+3. PROJECT MANAGERS who need to communicate requirements
+4. STUDENTS learning software architecture
+5. ENTREPRENEURS with app ideas but no coding skills
+6. TEAMS who need to document and share system designs
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+The Visual Prompter is successful when:
+
+✓ A user with NO programming knowledge can create a diagram
+✓ The generated prompt is clear enough for any AI to understand
+✓ The AI can generate working code from the prompt
+✓ The workflow is faster than writing prompts manually
+✓ Complex systems can be represented visually
+✓ The tool is intuitive (no manual needed)
+
+================================================================================
+WHAT'S ALREADY IMPLEMENTED (in 3d-platform.php)
+================================================================================
+
+✅ COMPLETED - DO NOT REBUILD:
+- Three.js scene with WebGL renderer
+- PerspectiveCamera with OrbitControls
+- Grid helper (20x40 divisions)
+- Ambient + Directional lighting
+- Dark theme CSS with variables
+- Aurora animated background
+- Header with logo, project name, buttons
+- Left toolbar (Transform tools section)
+- Right panel with sections:
+  - Transform (Position X/Y/Z, Scale)
+  - Node Style (Color, Type dropdown, Opacity)
+  - Scene (Background color, Grid opacity)
+  - Prompt (Generate Prompt, Export Prompt buttons)
+- Save/Load JSON functionality
+- Toast notifications
+- Modal dialogs
+- Platform state object:
+  ```javascript
+  platformState = {
+    projectName: 'New Project',
+    scene, camera, renderer, controls,
+    nodes: [],        // Ready for node objects
+    connections: [],  // Ready for connection objects
+    selectedNode: null
+  }
+  ```
+
+🔨 NEEDS TO BE IMPLEMENTED:
+1. Shape/Node creation system
+   - Click toolbar shape → drag to canvas
+   - Create 3D mesh for each node type
+   
+2. Node selection and editing
+   - Click node to select
+   - Show properties in right panel
+   - Edit title, description, type
+   
+3. Connection drawing
+   - Click node output → drag to another node input
+   - Create 3D line between nodes
+   
+4. Property panel binding
+   - When node selected, populate right panel
+   - Save changes back to node object
+   
+5. Prompt generation function
+   - Parse platformState.nodes and connections
+   - Generate formatted text prompt
+   
+6. Export prompt as .txt file
+
+================================================================================
+IMPLEMENTATION PRIORITY
+================================================================================
+
+PHASE 1 (MVP) - Modify 3d-platform.php:
+- Add shape creation (rectangle, circle, cylinder boxes)
+- Node properties panel binding
+- Simple line connections
+- Basic prompt generation
+- Save/Load already works ✓
+
+PHASE 2:
+- All shape types
+- Advanced connections with labels
+- Template library
+- Better prompt formatting
+
+PHASE 3:
+- Auto-suggestions
+- Validation
+- Collaboration
+- Version history
+
+================================================================================
+END OF SPECIFICATION
+================================================================================
+
+This document serves as a comprehensive guide for building the Visual Prompter.
+The goal is to democratize AI prompt creation by making it visual and intuitive.
+
+"If you can draw it, you can build it."
+
+================================================================================
+
