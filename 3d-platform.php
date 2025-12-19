@@ -1,8 +1,9 @@
 <?php
 /**
- * Prompt Manager - 3D Platform
- * Advanced 3D model editor and manipulation platform
+ * Prompt Manager - Visual Prompter
+ * Visual AI Prompt Designer with flowcharts and relationships
  * Created: 2025-11-28
+ * Updated: 2025-12-19 - Converted to Visual Prompter
  */
 ?>
 <!DOCTYPE html>
@@ -10,7 +11,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Manager - 3D Editor</title>
+    <title>Prompt Manager - Visual Prompter</title>
     <link rel="icon" type="image/png" href="logoPM.png">
     <link rel="apple-touch-icon" href="logoPM.png">
     <style>
@@ -1139,23 +1140,23 @@
                     <div class="logo-icon"><img src="logoPM.png" alt="PM" style="width: 100%; height: 100%; object-fit: contain;"></div>
                     <div class="logo-text">
                         <h1>Prompt Manager</h1>
-                        <span>3D Platform</span>
+                        <span>Visual Prompter</span>
                     </div>
                 </div>
                 <div class="model-name" id="model-name-display">
-                    <span>📦</span>
-                    <span id="filename">Loading...</span>
-                    <span class="badge" id="filetype-badge">---</span>
+                    <span>✨</span>
+                    <span id="filename">New Project</span>
+                    <span class="badge" id="filetype-badge">JSON</span>
                 </div>
             </div>
             <div class="header-actions">
                 <a href="index.php" class="btn btn-home" title="Back to Home">
                     <span>🏠</span> Home
                 </a>
-                <button class="btn btn-secondary" id="upload-btn" title="Upload 3D model or HTML">
-                    <span>📂</span> Upload
+                <button class="btn btn-secondary" id="upload-btn" title="Load JSON project">
+                    <span>📂</span> Load
                 </button>
-                <button class="btn btn-secondary" id="download-btn" title="Download model">
+                <button class="btn btn-secondary" id="download-btn" title="Save project as JSON">
                     <span>⬇️</span> Download
                 </button>
                 <button class="btn btn-secondary" id="clear-btn" title="Clear platform">
@@ -1165,43 +1166,13 @@
                     <span>🔄</span> Reset Default
                 </button>
                 
-                <!-- Save HTML Button (for STL/OBJ/FBX/GLB files) -->
-                <button class="btn btn-success" id="save-btn" style="display: none;">
-                    <span>💾</span> Save HTML
+                <!-- Save Project Button -->
+                <button class="btn btn-success" id="save-project-btn" title="Save project as JSON">
+                    <span>💾</span> Save
                 </button>
-                
-                <!-- Export Panel (for HTML files) -->
-                <div class="export-panel" id="export-panel" style="display: none;">
-                    <div class="export-toggles">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="export-stl" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">STL</span>
-                        </label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="export-obj">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">OBJ</span>
-                        </label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="export-glb">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">GLB</span>
-                        </label>
-                        <!-- FBX export hidden - not supported in browser -->
-                        <label class="toggle-switch" style="display: none;">
-                            <input type="checkbox" id="export-fbx" disabled>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">FBX</span>
-                        </label>
-                    </div>
-                    <button class="btn btn-export" id="export-selected-btn">
-                        <span>⬇️</span> Export
-                    </button>
-                </div>
             </div>
             <!-- Hidden file input for upload -->
-            <input type="file" id="file-upload-input" accept=".stl,.obj,.fbx,.glb,.gltf,.html,.htm" style="display: none;">
+            <input type="file" id="file-upload-input" accept=".json" style="display: none;">
         </header>
         
         <!-- Left Toolbar -->
@@ -1286,11 +1257,11 @@
             <div id="viewer-canvas"></div>
             <div class="viewport-overlay" id="loading-overlay">
                 <div class="spinner"></div>
-                <p id="loading-status">Loading model...</p>
+                <p id="loading-status">Initializing...</p>
             </div>
             <div class="viewport-info">
-                <div class="info-badge" id="vertex-count">Vertices: ---</div>
-                <div class="info-badge" id="triangle-count">Triangles: ---</div>
+                <div class="info-badge" id="node-count">Nodes: 0</div>
+                <div class="info-badge" id="connection-count">Connections: 0</div>
             </div>
             <div class="viewport-controls">
                 <button class="viewport-btn" title="Reset Camera" data-action="reset-view">🎯</button>
@@ -1335,29 +1306,35 @@
                 </div>
             </div>
             
-            <!-- Material Section -->
+            <!-- Node Style Section -->
             <div class="panel-section">
                 <div class="panel-header">
-                    <h3><span>🎨</span> Material</h3>
+                    <h3><span>🎨</span> Node Style</h3>
                     <span class="panel-toggle">▼</span>
                 </div>
                 <div class="panel-content">
                     <div class="property-row">
-                        <span class="property-label">Color</span>
+                        <span class="property-label">Node Color</span>
                         <div class="property-value">
-                            <input type="color" class="color-swatch" id="material-color" value="#6366f1">
+                            <input type="color" class="color-swatch" id="node-color" value="#6366f1">
                         </div>
                     </div>
                     <div class="property-row">
-                        <span class="property-label">Metalness</span>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="metalness" min="0" max="1" step="0.1" value="0.3">
+                        <span class="property-label">Node Type</span>
+                        <div class="property-value">
+                            <select class="property-input" id="node-type" style="width: 100%;">
+                                <option value="system">System Prompt</option>
+                                <option value="user">User Input</option>
+                                <option value="assistant">Assistant</option>
+                                <option value="context">Context</option>
+                                <option value="function">Function</option>
+                            </select>
                         </div>
                     </div>
                     <div class="property-row">
-                        <span class="property-label">Roughness</span>
+                        <span class="property-label">Opacity</span>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="roughness" min="0" max="1" step="0.1" value="0.7">
+                            <input type="range" class="slider" id="node-opacity" min="0.3" max="1" step="0.1" value="1">
                         </div>
                     </div>
                 </div>
@@ -1408,62 +1385,41 @@
         
         <!-- No Data Fallback -->
         <div class="no-data" id="no-data" style="display: none;">
-            <div class="no-data-icon">🔮</div>
-            <h2>No Model Data</h2>
-            <p>Upload a 3D model to start editing</p>
-            <button class="btn btn-primary" onclick="document.getElementById('file-upload-input').click()">
-                <span>📁</span> Upload Model
-            </button>
+            <div class="no-data-icon">✨</div>
+            <h2>Visual Prompter Ready</h2>
+            <p>Create a new prompt diagram or load an existing project</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                <button class="btn btn-primary" id="new-project-btn">
+                    <span>➕</span> New Project
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('file-upload-input').click()">
+                    <span>📂</span> Load Project
+                </button>
+            </div>
         </div>
     </div>
     
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
     
-    <!-- Save HTML Modal -->
+    <!-- Save Project Modal -->
     <div class="modal-overlay" id="save-modal">
         <div class="modal">
             <div class="modal-header">
-                <h3><span>💾</span> Save HTML</h3>
+                <h3><span>💾</span> Save Project</h3>
                 <button class="modal-close" id="save-modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Enter a name for your project. It will be saved as an HTML viewer file.</p>
+                <p>Enter a name for your Visual Prompt project.</p>
                 <div class="modal-input-group">
                     <label for="save-filename">Project Name</label>
-                    <input type="text" id="save-filename" placeholder="my-project">
+                    <input type="text" id="save-filename" placeholder="my-prompt-project">
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="save-modal-cancel">Cancel</button>
                 <button class="btn btn-success" id="save-modal-confirm">
-                    <span>💾</span> Save & Download
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Export Name Modal -->
-    <div class="modal-overlay" id="export-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3><span>⬇️</span> Export Model</h3>
-                <button class="modal-close" id="export-modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Enter a name for your exported file(s).</p>
-                <div class="modal-input-group">
-                    <label for="export-filename">File Name</label>
-                    <input type="text" id="export-filename" placeholder="model">
-                </div>
-                <div class="export-formats-display" id="export-formats-display">
-                    <!-- Will be populated dynamically -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="export-modal-cancel">Cancel</button>
-                <button class="btn btn-export" id="export-modal-confirm">
-                    <span>⬇️</span> Export
+                    <span>💾</span> Save JSON
                 </button>
             </div>
         </div>
@@ -1487,60 +1443,35 @@
         </div>
     </div>
     
-    <!-- Three.js with FBX Support and GLTFExporter -->
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-        }
-    }
-    </script>
+    <!-- Three.js for Visual Prompter -->
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-    <script type="module">
-        // Import loaders and exporters as ES modules and make them global
-        try {
-            const { FBXLoader } = await import('three/addons/loaders/FBXLoader.js');
-            window.FBXLoader = FBXLoader;
-            window.fbxLoaderReady = true;
-            console.log('✓ FBXLoader ready');
-        } catch (e) {
-            console.error('FBXLoader failed to load:', e);
-        }
-        
-        try {
-            const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-            window.GLTFLoader = GLTFLoader;
-            window.gltfLoaderReady = true;
-            console.log('✓ GLTFLoader ready');
-        } catch (e) {
-            console.error('GLTFLoader failed to load:', e);
-        }
-        
-        try {
-            const { GLTFExporter } = await import('three/addons/exporters/GLTFExporter.js');
-            THREE.GLTFExporter = GLTFExporter;
-            window.gltfExporterReady = true;
-            console.log('✓ GLTFExporter ready');
-        } catch (e) {
-            console.error('GLTFExporter failed to load:', e);
-        }
-    </script>
     <script>
         // ═══════════════════════════════════════════════════════════════
-        // PLATFORM STATE
+        // PLATFORM STATE - Visual Prompter
         // ═══════════════════════════════════════════════════════════════
         const platformState = {
-            geometryData: null,
-            fileType: null,
-            mesh: null,
+            // Project info
+            projectName: 'New Project',
+            projectData: null,
+            
+            // Three.js core
             scene: null,
             camera: null,
             renderer: null,
             controls: null,
             gridHelper: null,
-            isWireframe: false,
-            gridVisible: true
+            gridVisible: true,
+            
+            // Visual Prompter elements
+            nodes: [],           // Prompt boxes/nodes
+            connections: [],     // Lines connecting nodes
+            selectedNode: null,  // Currently selected node
+            
+            // For backward compatibility during transition
+            geometryData: null,
+            fileType: 'JSON',
+            mesh: null,
+            isWireframe: false
         };
         
         // ═══════════════════════════════════════════════════════════════
@@ -1639,11 +1570,11 @@
         
         // Initialize empty platform (no model, just grid)
         function initEmptyPlatform() {
-            console.log('Initializing empty platform with grid...');
+            console.log('Initializing Visual Prompter...');
             
             // Update header to show ready state
-            document.getElementById('filename').textContent = 'Ready to Upload';
-            document.getElementById('filetype-badge').textContent = '---';
+            document.getElementById('filename').textContent = 'New Project';
+            document.getElementById('filetype-badge').textContent = 'JSON';
             
             // Initialize the 3D scene without geometry
             initPlatform(false);
@@ -1723,9 +1654,9 @@
                     showToast('Model loaded successfully', 'success');
                 } else {
                     // Show empty scene message
-                    document.getElementById('vertex-count').textContent = 'Vertices: 0';
-                    document.getElementById('triangle-count').textContent = 'Triangles: 0';
-                    showToast('Ready! Upload a 3D model to start', 'info');
+                    document.getElementById('node-count').textContent = 'Nodes: 0';
+                    document.getElementById('connection-count').textContent = 'Connections: 0';
+                    showToast('Visual Prompter ready! Create or load a project', 'info');
                 }
                 
                 setupEventListeners();
@@ -2749,26 +2680,23 @@
         }
         
         // ═══════════════════════════════════════════════════════════════
-        // SAVE BUTTON VISIBILITY CONTROL
+        // UI UPDATE FUNCTIONS - Visual Prompter
         // ═══════════════════════════════════════════════════════════════
         
         function updateSaveButtonVisibility() {
-            const saveBtn = document.getElementById('save-btn');
-            const exportPanel = document.getElementById('export-panel');
-            
-            if (!platformState.geometryData || !platformState.mesh) {
-                // No model loaded - hide everything
-                saveBtn.style.display = 'none';
-                exportPanel.style.display = 'none';
-            } else if (platformState.fileType === 'HTML') {
-                // HTML file loaded - show export panel with toggles
-                saveBtn.style.display = 'none';
-                exportPanel.style.display = 'flex';
-            } else {
-                // STL/OBJ/FBX/GLB file loaded - show Save HTML button
-                saveBtn.style.display = 'inline-flex';
-                exportPanel.style.display = 'none';
+            // For Visual Prompter, save button is always visible
+            // This function is kept for backward compatibility
+            const saveProjectBtn = document.getElementById('save-project-btn');
+            if (saveProjectBtn) {
+                saveProjectBtn.style.display = 'inline-flex';
             }
+        }
+        
+        function updateNodeCount() {
+            const nodeCountEl = document.getElementById('node-count');
+            const connectionCountEl = document.getElementById('connection-count');
+            if (nodeCountEl) nodeCountEl.textContent = 'Nodes: ' + (platformState.nodes?.length || 0);
+            if (connectionCountEl) connectionCountEl.textContent = 'Connections: ' + (platformState.connections?.length || 0);
         }
         
         // ═══════════════════════════════════════════════════════════════
@@ -2781,17 +2709,20 @@
             fileInput.click();
         });
         
-        // Download button - triggers export modal
+        // Download/Save button - triggers save modal
         document.getElementById('download-btn').addEventListener('click', () => {
-            if (!platformState.mesh || !platformState.geometryData) {
-                showToast('No model loaded to download', 'warning');
-                return;
-            }
-            // Open export modal with current model name
-            const exportModal = document.getElementById('export-modal');
-            const exportFilename = document.getElementById('export-filename');
-            exportFilename.value = platformState.currentFileName?.replace(/\.[^/.]+$/, '') || 'model';
-            exportModal.classList.add('active');
+            const saveModal = document.getElementById('save-modal');
+            const saveFilename = document.getElementById('save-filename');
+            saveFilename.value = platformState.projectName || 'my-prompt-project';
+            saveModal.classList.add('active');
+        });
+        
+        // Save project button in header
+        document.getElementById('save-project-btn').addEventListener('click', () => {
+            const saveModal = document.getElementById('save-modal');
+            const saveFilename = document.getElementById('save-filename');
+            saveFilename.value = platformState.projectName || 'my-prompt-project';
+            saveModal.classList.add('active');
         });
         
         fileInput.addEventListener('change', async (e) => {
@@ -2801,161 +2732,89 @@
             const fileName = file.name;
             const ext = fileName.split('.').pop().toLowerCase();
             
-            showToast('Loading file: ' + fileName, 'info');
+            showToast('Loading project: ' + fileName, 'info');
             
             try {
-                if (ext === 'html' || ext === 'htm') {
-                    // Load HTML file - extract geometry data
+                if (ext === 'json') {
+                    // Load JSON project file
                     const text = await file.text();
-                    console.log('📄 HTML file loaded, size:', text.length);
+                    console.log('📄 JSON file loaded, size:', text.length);
                     
-                    // Try multiple patterns to find geometry data
-                    let geometryMatch = text.match(/id="geometry-data"[^>]*>(\{[^<]+\})</);
-                    if (!geometryMatch) {
-                        geometryMatch = text.match(/id='geometry-data'[^>]*>(\{[^<]+\})</);
-                    }
-                    if (!geometryMatch) {
-                        // Try to find JSON with vertices array
-                        geometryMatch = text.match(/"geometry-data"[^>]*>([\s\S]*?)<\/script>/);
-                    }
-                    
-                    console.log('📄 Geometry match found:', !!geometryMatch);
-                    
-                    if (geometryMatch) {
-                        try {
-                        const geometryData = JSON.parse(geometryMatch[1]);
-                            console.log('📄 Parsed geometry:', geometryData.vertices?.length / 3, 'vertices');
-                            
-                        geometryData.name = fileName.replace(/\.[^.]+$/, '');
-                            
-                            // Initialize scene if not already done
-                            if (!platformState.scene) {
-                                console.log('🔧 Initializing scene for HTML import...');
-                                document.getElementById('toolbar-left').style.display = '';
-                                document.getElementById('viewport').style.display = 'block';
-                                document.getElementById('panel-right').style.display = '';
-                                document.getElementById('no-data').style.display = 'none';
-                                
-                                await new Promise(resolve => setTimeout(resolve, 100));
-                                
-                                if (typeof THREE !== 'undefined') {
-                                    defineOrbitControls();
-                                    setupScene();
-                                    setupEventListeners();
-                                    animate();
-                                    console.log('✓ Scene and event listeners initialized for HTML import');
-                                }
-                            }
+                    try {
+                        const projectData = JSON.parse(text);
+                        console.log('📄 Parsed project:', projectData);
                         
-                        platformState.geometryData = geometryData;
-                        platformState.fileType = 'HTML';
+                        // Store project data
+                        platformState.projectData = projectData;
+                        platformState.projectName = projectData.projectName || fileName.replace(/\.[^.]+$/, '');
+                        platformState.fileType = 'JSON';
                         
-                        loadGeometry();
-                        
-                        // Apply saved settings if they exist
-                        if (geometryData.settings && platformState.mesh) {
-                            console.log('📄 Applying saved settings:', geometryData.settings);
+                        // Initialize scene if not already done
+                        if (!platformState.scene) {
+                            console.log('🔧 Initializing scene for JSON import...');
+                            document.getElementById('toolbar-left').style.display = '';
+                            document.getElementById('viewport').style.display = 'block';
+                            document.getElementById('panel-right').style.display = '';
+                            document.getElementById('no-data').style.display = 'none';
                             
-                            // Apply color
-                            if (geometryData.settings.color) {
-                                platformState.mesh.material.color.set(geometryData.settings.color);
-                            }
+                            await new Promise(resolve => setTimeout(resolve, 100));
                             
-                            // Apply metalness and roughness
-                            if (geometryData.settings.metalness !== undefined) {
-                                platformState.mesh.material.metalness = geometryData.settings.metalness;
+                            if (typeof THREE !== 'undefined') {
+                                defineOrbitControls();
+                                setupScene();
+                                setupEventListeners();
+                                animate();
+                                console.log('✓ Scene initialized for JSON import');
                             }
-                            if (geometryData.settings.roughness !== undefined) {
-                                platformState.mesh.material.roughness = geometryData.settings.roughness;
-                            }
-                            
-                            // Apply position
-                            if (geometryData.settings.position) {
-                                platformState.mesh.position.set(
-                                    geometryData.settings.position.x || 0,
-                                    geometryData.settings.position.y || 0,
-                                    geometryData.settings.position.z || 0
-                                );
-                                // Update UI
-                                const posX = document.getElementById('pos-x');
-                                const posY = document.getElementById('pos-y');
-                                const posZ = document.getElementById('pos-z');
-                                if (posX) posX.value = geometryData.settings.position.x || 0;
-                                if (posY) posY.value = geometryData.settings.position.y || 0;
-                                if (posZ) posZ.value = geometryData.settings.position.z || 0;
-                            }
-                            
-                            // Apply rotation
-                            if (geometryData.settings.rotation) {
-                                const rx = geometryData.settings.rotation.x || 0;
-                                const ry = geometryData.settings.rotation.y || 0;
-                                const rz = geometryData.settings.rotation.z || 0;
-                                
-                                console.log('📐 Setting rotation to:', rx, ry, rz);
-                                console.log('📐 In degrees:', rx * 180/Math.PI, ry * 180/Math.PI, rz * 180/Math.PI);
-                                
-                                platformState.mesh.rotation.set(rx, ry, rz);
-                                
-                                // Also store in savedRotation for re-export
-                                platformState.savedRotation = { x: rx, y: ry, z: rz };
-                                
-                                console.log('📐 Mesh rotation after set:', 
-                                    platformState.mesh.rotation.x,
-                                    platformState.mesh.rotation.y,
-                                    platformState.mesh.rotation.z
-                                );
-                            }
-                            
-                            // Apply scale
-                            console.log('📐 Scale - loadGeometry set:', platformState.mesh.scale.x);
-                            console.log('📐 Scale - saved value:', geometryData.settings.scale);
-                            if (geometryData.settings.scale !== undefined) {
-                                platformState.mesh.scale.setScalar(geometryData.settings.scale);
-                                const scaleInput = document.getElementById('scale-uniform');
-                                if (scaleInput) scaleInput.value = geometryData.settings.scale;
-                                console.log('📐 Scale - applied:', geometryData.settings.scale);
-                            } else {
-                                console.log('📐 Scale - NOT applying (undefined in settings)');
-                            }
-                            
-                            // Apply background color
-                            if (geometryData.settings.background && platformState.scene) {
-                                platformState.scene.background = new THREE.Color(geometryData.settings.background);
-                            }
-                            
-                            console.log('✓ All settings applied successfully');
                         }
                         
-                        document.getElementById('filename').textContent = geometryData.name;
-                        document.getElementById('filetype-badge').textContent = 'HTML';
-                        
-                        updateSaveButtonVisibility();
-                            showToast('HTML model loaded: ' + (geometryData.vertices?.length / 3 || 0) + ' vertices', 'success');
-                        } catch (parseErr) {
-                            console.error('JSON parse error:', parseErr);
-                            showToast('Failed to parse geometry data from HTML', 'error');
+                        // Load project nodes and connections
+                        if (projectData.nodes) {
+                            platformState.nodes = projectData.nodes;
+                            // TODO: Render nodes in the scene
                         }
-                    } else {
-                        console.log('📄 No geometry-data found in HTML');
-                        showToast('No geometry data found in HTML file. Make sure it was exported from Prompt Manager.', 'error');
+                        
+                        if (projectData.connections) {
+                            platformState.connections = projectData.connections;
+                            // TODO: Render connections in the scene
+                        }
+                        
+                        // Apply camera settings if saved
+                        if (projectData.camera && platformState.camera) {
+                            if (projectData.camera.position) {
+                                platformState.camera.position.set(
+                                    projectData.camera.position.x || 5,
+                                    projectData.camera.position.y || 5,
+                                    projectData.camera.position.z || 5
+                                );
+                            }
+                            if (projectData.camera.target && platformState.controls) {
+                                platformState.controls.target.set(
+                                    projectData.camera.target.x || 0,
+                                    projectData.camera.target.y || 0,
+                                    projectData.camera.target.z || 0
+                                );
+                                platformState.controls.update();
+                            }
+                        }
+                        
+                        // Update UI
+                        document.getElementById('filename').textContent = platformState.projectName;
+                        document.getElementById('filetype-badge').textContent = 'JSON';
+                        document.getElementById('node-count').textContent = 'Nodes: ' + (platformState.nodes?.length || 0);
+                        document.getElementById('connection-count').textContent = 'Connections: ' + (platformState.connections?.length || 0);
+                        
+                        showToast('Project loaded: ' + platformState.projectName, 'success');
+                        
+                    } catch (parseErr) {
+                        console.error('JSON parse error:', parseErr);
+                        showToast('Failed to parse JSON project file', 'error');
                     }
-                } else if (ext === 'stl' || ext === 'obj' || ext === 'fbx' || ext === 'glb' || ext === 'gltf') {
-                    // Load 3D model file
-                    console.log('📁 Reading file:', file.name, 'Type:', file.type, 'Size:', file.size);
-                    const arrayBuffer = await file.arrayBuffer();
-                    console.log('📁 ArrayBuffer obtained, size:', arrayBuffer.byteLength);
-                    
-                    // Debug: show first 20 bytes as text
-                    const firstBytes = new Uint8Array(arrayBuffer, 0, Math.min(20, arrayBuffer.byteLength));
-                    const asText = String.fromCharCode(...firstBytes);
-                    console.log('📁 First 20 bytes as text:', asText);
-                    
-                    await load3DFile(arrayBuffer, ext, fileName);
                 } else {
-                    showToast('Unsupported file format: ' + ext + '. Supported: STL, OBJ, FBX, GLB, GLTF', 'error');
+                    showToast('Unsupported file format: ' + ext + '. Only JSON files are supported.', 'error');
                 }
             } catch (error) {
-                console.error('Upload error:', error);
+                console.error('Load error:', error);
                 showToast('Failed to load file: ' + error.message, 'error');
             }
             
@@ -4859,45 +4718,28 @@
         }
         
         // ═══════════════════════════════════════════════════════════════
-        // SAVE PROJECT MODAL
+        // SAVE PROJECT MODAL - JSON Format
         // ═══════════════════════════════════════════════════════════════
         
         const saveModal = document.getElementById('save-modal');
         const saveFilenameInput = document.getElementById('save-filename');
-        const saveBtn = document.getElementById('save-btn');
         const saveModalClose = document.getElementById('save-modal-close');
         const saveModalCancel = document.getElementById('save-modal-cancel');
         const saveModalConfirm = document.getElementById('save-modal-confirm');
-        
-        // Open modal
-        saveBtn.addEventListener('click', () => {
-            if (!platformState.mesh) {
-                showToast('No model to save', 'warning');
-                return;
-            }
-            // Set default filename from original model name
-            const originalName = platformState.geometryData?.name || 'project';
-            const cleanName = originalName.replace(/\.[^/.]+$/, ''); // Remove extension
-            saveFilenameInput.value = cleanName;
-            saveFilenameInput.placeholder = cleanName;
-            saveModal.classList.add('active');
-            saveFilenameInput.focus();
-            saveFilenameInput.select();
-        });
         
         // Close modal functions
         function closeSaveModal() {
             saveModal.classList.remove('active');
         }
         
-        saveModalClose.addEventListener('click', closeSaveModal);
-        saveModalCancel.addEventListener('click', closeSaveModal);
-        saveModal.addEventListener('click', (e) => {
+        if (saveModalClose) saveModalClose.addEventListener('click', closeSaveModal);
+        if (saveModalCancel) saveModalCancel.addEventListener('click', closeSaveModal);
+        if (saveModal) saveModal.addEventListener('click', (e) => {
             if (e.target === saveModal) closeSaveModal();
         });
         
         // Handle Enter key
-        saveFilenameInput.addEventListener('keydown', (e) => {
+        if (saveFilenameInput) saveFilenameInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 saveModalConfirm.click();
             } else if (e.key === 'Escape') {
@@ -4905,76 +4747,71 @@
             }
         });
         
-        // Save and download
-        saveModalConfirm.addEventListener('click', async () => {
-            const filename = saveFilenameInput.value.trim() || platformState.geometryData?.name || 'project';
+        // Save and download JSON
+        if (saveModalConfirm) saveModalConfirm.addEventListener('click', async () => {
+            const filename = saveFilenameInput.value.trim() || platformState.projectName || 'my-prompt-project';
             
             saveModalConfirm.disabled = true;
-            saveModalConfirm.innerHTML = '<span>⏳</span> Generating...';
+            saveModalConfirm.innerHTML = '<span>⏳</span> Saving...';
             
             try {
-                // Get current state values
-                const currentColor = platformState.mesh.material.color.getHexString();
-                const currentMetalness = platformState.mesh.material.metalness;
-                const currentRoughness = platformState.mesh.material.roughness;
-                const bgColor = '#' + platformState.scene.background.getHexString();
-                
-                // Get transform values
-                const position = {
-                    x: platformState.mesh.position.x,
-                    y: platformState.mesh.position.y,
-                    z: platformState.mesh.position.z
-                };
-                const rotation = {
-                    x: platformState.mesh.rotation.x,
-                    y: platformState.mesh.rotation.y,
-                    z: platformState.mesh.rotation.z
-                };
-                const scale = platformState.mesh.scale.x;
-                
-                console.log('💾 Save HTML - Rotation:', rotation);
-                console.log('💾 Save HTML - Rotation degrees:', 
-                    (rotation.x * 180/Math.PI).toFixed(1),
-                    (rotation.y * 180/Math.PI).toFixed(1),
-                    (rotation.z * 180/Math.PI).toFixed(1)
-                );
-                
-                // Create geometry data WITH settings embedded (same as Export section)
-                const geometryDataWithSettings = {
-                    vertices: platformState.geometryData.vertices,
-                    name: filename,
-                    settings: {
-                        color: '#' + currentColor,
-                        metalness: currentMetalness,
-                        roughness: currentRoughness,
-                        position: position,
-                        rotation: rotation,
-                        scale: scale,
-                        background: bgColor
+                // Build project JSON
+                const projectData = {
+                    version: '1.0',
+                    projectName: filename,
+                    createdAt: new Date().toISOString(),
+                    
+                    // Camera state
+                    camera: platformState.camera ? {
+                        position: {
+                            x: platformState.camera.position.x,
+                            y: platformState.camera.position.y,
+                            z: platformState.camera.position.z
+                        },
+                        target: platformState.controls ? {
+                            x: platformState.controls.target.x,
+                            y: platformState.controls.target.y,
+                            z: platformState.controls.target.z
+                        } : { x: 0, y: 0, z: 0 }
+                    } : null,
+                    
+                    // Scene settings
+                    scene: {
+                        background: platformState.scene ? '#' + platformState.scene.background.getHexString() : '#1a1a2e',
+                        gridVisible: platformState.gridVisible
+                    },
+                    
+                    // Visual Prompter data
+                    nodes: platformState.nodes || [],
+                    connections: platformState.connections || [],
+                    
+                    // Metadata
+                    metadata: {
+                        nodeCount: (platformState.nodes || []).length,
+                        connectionCount: (platformState.connections || []).length
                     }
                 };
                 
-                // Generate HTML viewer with settings embedded
-                const htmlContent = generateHTMLViewer(geometryDataWithSettings, filename, {
-                    color: '#' + currentColor,
-                    metalness: currentMetalness,
-                    roughness: currentRoughness,
-                    bgColor: bgColor
-                });
+                console.log('💾 Saving project:', projectData);
                 
-                // Download
-                const blob = new Blob([htmlContent], { type: 'text/html' });
+                // Create and download JSON file
+                const jsonContent = JSON.stringify(projectData, null, 2);
+                const blob = new Blob([jsonContent], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = filename + '.html';
+                a.download = filename + '.json';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
+                // Update state
+                platformState.projectName = filename;
+                document.getElementById('filename').textContent = filename;
+                
                 closeSaveModal();
-                showToast(`Project saved: ${filename}.html`, 'success');
+                showToast(`Project saved: ${filename}.json`, 'success');
                 
             } catch (error) {
                 console.error('Save error:', error);
@@ -4982,47 +4819,74 @@
             }
             
             saveModalConfirm.disabled = false;
-            saveModalConfirm.innerHTML = '<span>💾</span> Save & Download';
+            saveModalConfirm.innerHTML = '<span>💾</span> Save JSON';
         });
         
         // ═══════════════════════════════════════════════════════════════
-        // HTML VIEWER GENERATOR
+        // GENERATE PROMPT & EXPORT PROMPT BUTTONS
         // ═══════════════════════════════════════════════════════════════
         
-        function generateHTMLViewer(geometryData, title, options) {
-            options = options || {};
-            var color = options.color || '#6366f1';
-            var metalness = options.metalness !== undefined ? options.metalness : 0.3;
-            var roughness = options.roughness !== undefined ? options.roughness : 0.7;
-            var bgColor = options.bgColor || '#1a1a2e';
-            var geometryJson = JSON.stringify(geometryData);
-            
-            var html = '<!DOCTYPE html>\n';
-            html += '<html lang="en">\n<head>\n';
-            html += '<meta charset="UTF-8">\n';
-            html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
-            html += '<title>' + title + ' - Prompt Manager 3D Viewer</title>\n';
-            html += '<style>\n';
-            html += '* { margin: 0; padding: 0; box-sizing: border-box; }\n';
-            html += 'body { background: ' + bgColor + '; overflow: hidden; }\n';
-            html += '#viewer { width: 100vw; height: 100vh; }\n';
-            html += '#loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6366f1; font-family: system-ui, sans-serif; font-size: 18px; text-align: center; }\n';
-            html += '#loading .spinner { width: 40px; height: 40px; border: 3px solid #2a2a4a; border-top-color: #6366f1; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite; }\n';
-            html += '@keyframes spin { to { transform: rotate(360deg); } }\n';
-            html += '#progress-bar { width: 200px; height: 4px; background: #2a2a4a; border-radius: 2px; margin-top: 10px; overflow: hidden; }\n';
-            html += '#progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.3s ease; }\n';
-            html += '#info { position: fixed; bottom: 15px; left: 15px; color: rgba(255,255,255,0.6); font-family: system-ui; font-size: 12px; }\n';
-            html += '</style>\n</head>\n<body>\n';
-            html += '<div id="viewer"></div>\n';
-            html += '<div id="loading"><div class="spinner"></div><div id="status">Loading 3D Viewer...</div><div id="progress-bar"><div id="progress-fill"></div></div></div>\n';
-            html += '<div id="info">Created with Prompt Manager</div>\n';
-            html += '<script type="application/json" id="geometry-data">' + geometryJson + '<\/script>\n';
-            html += '<script src="https://unpkg.com/three@0.160.0/build/three.min.js"><\/script>\n';
-            html += '<script>\n';
-            html += 'var statusEl=document.getElementById("status"),progressFill=document.getElementById("progress-fill");function updateStatus(e,t){statusEl.textContent=e,void 0!==t&&(progressFill.style.width=t+"%")}function defineOrbitControls(){if(!window.OrbitControls){class e extends THREE.EventDispatcher{constructor(e,t){super(),this.object=e,this.domElement=t,this.domElement.style.touchAction="none",this.enabled=!0,this.target=new THREE.Vector3,this.enableDamping=!0,this.dampingFactor=.05,this.enableZoom=!0,this.zoomSpeed=1,this.enableRotate=!0,this.rotateSpeed=1,this.enablePan=!0,this.panSpeed=1,this.minDistance=0,this.maxDistance=1/0,this.minPolarAngle=0,this.maxPolarAngle=Math.PI;var i=this,s={NONE:-1,ROTATE:0,DOLLY:1,PAN:2},o=s.NONE,a=new THREE.Spherical,n=new THREE.Spherical,r=1,l=new THREE.Vector3,h=new THREE.Vector2,c=new THREE.Vector2,d=new THREE.Vector2,p=new THREE.Vector2,u=new THREE.Vector2,m=new THREE.Vector2,f=new THREE.Vector2,g=new THREE.Vector3,v=(new THREE.Quaternion).setFromUnitVectors(e.up,new THREE.Vector3(0,1,0)),y=v.clone().invert();this.update=function(){var e=i.object.position;return g.copy(e).sub(i.target),g.applyQuaternion(v),a.setFromVector3(g),i.enableDamping?(a.theta+=n.theta*i.dampingFactor,a.phi+=n.phi*i.dampingFactor):(a.theta+=n.theta,a.phi+=n.phi),a.phi=Math.max(i.minPolarAngle,Math.min(i.maxPolarAngle,a.phi)),a.makeSafe(),a.radius*=r,a.radius=Math.max(i.minDistance,Math.min(i.maxDistance,a.radius)),i.enableDamping?i.target.addScaledVector(l,i.dampingFactor):i.target.add(l),g.setFromSpherical(a),g.applyQuaternion(y),e.copy(i.target).add(g),i.object.lookAt(i.target),i.enableDamping?(n.theta*=1-i.dampingFactor,n.phi*=1-i.dampingFactor,l.multiplyScalar(1-i.dampingFactor)):(n.set(0,0,0),l.set(0,0,0)),r=1,!1};var w=new THREE.Vector3;function b(e){n.theta-=e}function x(e){n.phi-=e}function E(e,t){w.setFromMatrixColumn(t,0),w.multiplyScalar(-e),l.add(w)}function T(e,t){w.setFromMatrixColumn(t,1),w.multiplyScalar(e),l.add(w)}function M(e,t){var s=i.domElement;g.copy(i.object.position).sub(i.target);var o=g.length()*Math.tan(i.object.fov/2*Math.PI/180);E(2*e*o/s.clientHeight,i.object.matrix),T(2*t*o/s.clientHeight,i.object.matrix)}function S(e){r/=e}function P(e){r*=e}function C(){return Math.pow(.95,i.zoomSpeed)}function L(e){i.enabled&&(0===e.button?(o=s.ROTATE,h.set(e.clientX,e.clientY)):1===e.button?(o=s.DOLLY,m.set(e.clientX,e.clientY)):2===e.button&&(o=s.PAN,p.set(e.clientX,e.clientY)),o!==s.NONE&&(document.addEventListener("pointermove",O),document.addEventListener("pointerup",R)))}function O(e){if(i.enabled)if(o===s.ROTATE)c.set(e.clientX,e.clientY),d.subVectors(c,h).multiplyScalar(i.rotateSpeed),b(2*Math.PI*d.x/i.domElement.clientHeight),x(2*Math.PI*d.y/i.domElement.clientHeight),h.copy(c);else if(o===s.DOLLY){var t=new THREE.Vector2(e.clientX,e.clientY),a=t.clone().sub(m);a.y>0?S(C()):a.y<0&&P(C()),m.copy(t)}else o===s.PAN&&(u.set(e.clientX,e.clientY),M((f=u.clone().sub(p).multiplyScalar(i.panSpeed)).x,f.y),p.copy(u));var f;i.update()}function R(){document.removeEventListener("pointermove",O),document.removeEventListener("pointerup",R),o=s.NONE}function D(e){i.enabled&&i.enableZoom&&(e.preventDefault(),e.deltaY<0?P(C()):e.deltaY>0&&S(C()),i.update())}i.domElement.addEventListener("contextmenu",function(e){return e.preventDefault()}),i.domElement.addEventListener("pointerdown",L),i.domElement.addEventListener("wheel",D,{passive:!1}),this.update()}}window.OrbitControls=e}}var loadAttempts=0;!function e(){loadAttempts++,"undefined"==typeof THREE?loadAttempts>200?(updateStatus("Failed to load 3D library",0),statusEl.style.color="#ef4444"):setTimeout(e,50):(defineOrbitControls(),updateStatus("Initializing...",20),setTimeout(initViewer,10))}();function initViewer(){try{var e=document.getElementById("viewer"),t=new THREE.Scene;t.background=new THREE.Color("' + bgColor + '");var i=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,.01,1e3);i.position.set(5,5,5);var s=new THREE.WebGLRenderer({antialias:!0});s.setSize(window.innerWidth,window.innerHeight),e.appendChild(s.domElement);var o=new OrbitControls(i,s.domElement);o.target.set(0,0,0),t.add(new THREE.AmbientLight(16777215,.6));var a=new THREE.DirectionalLight(16777215,1);a.position.set(5,10,7),t.add(a),updateStatus("Loading geometry...",40),setTimeout(function(){var e=JSON.parse(document.getElementById("geometry-data").textContent);updateStatus("Building model...",60),setTimeout(function(){var a=new Float32Array(e.vertices),n=new THREE.BufferGeometry;n.setAttribute("position",new THREE.BufferAttribute(a,3)),n.computeVertexNormals();var r=new THREE.MeshStandardMaterial({color:"' + color + '",metalness:' + metalness + ',roughness:' + roughness + ',side:THREE.DoubleSide}),l=new THREE.Mesh(n,r);n.computeBoundingBox();var h=n.boundingBox.getCenter(new THREE.Vector3),c=n.boundingBox.getSize(new THREE.Vector3),d=3/Math.max(c.x,c.y,c.z);n.translate(-h.x,-h.y,-h.z),l.scale.setScalar(d),t.add(l),t.add(new THREE.GridHelper(20,40,6513393,2763722)),updateStatus("Complete!",100),setTimeout(function(){document.getElementById("loading").style.display="none"},500),function e(){requestAnimationFrame(e),o.update(),s.render(t,i)}(),window.addEventListener("resize",function(){i.aspect=window.innerWidth/window.innerHeight,i.updateProjectionMatrix(),s.setSize(window.innerWidth,window.innerHeight)})},10)},10)}catch(e){console.error(e),updateStatus("Error: "+e.message,0),statusEl.style.color="#ef4444"}}\n';
-            html += '<\/script>\n</body>\n</html>';
-            
-            return html;
+        const generatePromptBtn = document.getElementById('generate-prompt-btn');
+        const exportPromptBtn = document.getElementById('export-prompt-btn');
+        
+        if (generatePromptBtn) {
+            generatePromptBtn.addEventListener('click', () => {
+                // TODO: Generate AI prompt from visual diagram
+                if (!platformState.nodes || platformState.nodes.length === 0) {
+                    showToast('No nodes to generate prompt from. Create some prompt boxes first!', 'warning');
+                    return;
+                }
+                showToast('Generate Prompt - Coming soon!', 'info');
+                console.log('Generate Prompt clicked. Nodes:', platformState.nodes);
+            });
+        }
+        
+        if (exportPromptBtn) {
+            exportPromptBtn.addEventListener('click', () => {
+                // TODO: Export generated prompt as .txt file
+                if (!platformState.nodes || platformState.nodes.length === 0) {
+                    showToast('No prompt to export. Generate a prompt first!', 'warning');
+                    return;
+                }
+                showToast('Export Prompt - Coming soon!', 'info');
+                console.log('Export Prompt clicked. Nodes:', platformState.nodes);
+            });
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // NEW PROJECT BUTTON
+        // ═══════════════════════════════════════════════════════════════
+        
+        const newProjectBtn = document.getElementById('new-project-btn');
+        if (newProjectBtn) {
+            newProjectBtn.addEventListener('click', () => {
+                // Reset project state
+                platformState.projectName = 'New Project';
+                platformState.nodes = [];
+                platformState.connections = [];
+                platformState.selectedNode = null;
+                
+                // Update UI
+                document.getElementById('filename').textContent = 'New Project';
+                document.getElementById('node-count').textContent = 'Nodes: 0';
+                document.getElementById('connection-count').textContent = 'Connections: 0';
+                
+                // Initialize scene if not done
+                if (!platformState.scene) {
+                    document.getElementById('toolbar-left').style.display = '';
+                    document.getElementById('viewport').style.display = 'block';
+                    document.getElementById('panel-right').style.display = '';
+                    document.getElementById('no-data').style.display = 'none';
+                    
+                    if (typeof THREE !== 'undefined') {
+                        defineOrbitControls();
+                        setupScene();
+                        animate();
+                    }
+                }
+                
+                showToast('New project created!', 'success');
+            });
         }
     </script>
 
