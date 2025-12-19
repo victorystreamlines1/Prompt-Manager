@@ -1,6 +1,1 @@
-<!-- FILE:visual-prompter.txt:1766164698260 -->
-[📎 File Reference: visual-prompter.txt | Path: uploads/1766162917_visual-prompter.txt]
-<!-- /END  FILE:visual-prompter.txt:1766164698260 -->
-
-
-Please go ahead and start building the application according to the full scale prompts in PHP. 
+please add a clear button to the application If I click on it, it should clear any of the maps or the drawings in the screen. 

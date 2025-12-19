@@ -205,6 +205,7 @@
             document.getElementById('btn-load').addEventListener('click', () => this.loadProject());
             document.getElementById('btn-undo').addEventListener('click', () => this.undo());
             document.getElementById('btn-redo').addEventListener('click', () => this.redo());
+            document.getElementById('btn-clear').addEventListener('click', () => this.clearCanvas());
             document.getElementById('btn-generate').addEventListener('click', () => this.generatePrompt());
 
             // Export dropdown items
@@ -581,6 +582,25 @@
         },
 
         /**
+         * Clear all nodes and connections from canvas
+         */
+        clearCanvas: function() {
+            const nodes = this.graph._nodes || [];
+            if (nodes.length === 0) {
+                this.showToast('Canvas is already empty', 'info');
+                return;
+            }
+
+            if (confirm('Are you sure you want to clear all nodes and connections?')) {
+                this.graph.clear();
+                this.isDirty = false;
+                this.updateStatusBar();
+                this.checkWelcomeScreen();
+                this.showToast('Canvas cleared', 'success');
+            }
+        },
+
+        /**
          * Handle keyboard shortcuts
          */
         handleKeyboard: function(e) {
@@ -611,6 +631,10 @@
                     case 'y':
                         e.preventDefault();
                         this.redo();
+                        break;
+                    case 'Delete':
+                        e.preventDefault();
+                        this.clearCanvas();
                         break;
                 }
             }

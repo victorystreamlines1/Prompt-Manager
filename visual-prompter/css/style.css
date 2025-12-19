@@ -289,7 +289,8 @@ body {
 
 /* Action Buttons */
 .action-buttons,
-.history-buttons {
+.history-buttons,
+.clear-buttons {
     display: flex;
     gap: 4px;
 }
@@ -318,6 +319,20 @@ body {
 
 .action-btn:active {
     transform: translateY(0);
+}
+
+.action-btn.danger {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--accent-error);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger:hover span {
+    filter: brightness(1.2);
 }
 
 .dropdown-arrow {
