@@ -6,15 +6,16 @@
 TABLE OF CONTENTS:
 1. Quick Start Guide
 2. Core Concept
-3. UI/UX Requirements (Critical)
-4. Node Types & Popups
-5. Connections System
-6. Toolbar & Controls
-7. Prompt Generation
-8. File System (Import/Export) ← NEW!
-9. Data Structure
-10. Implementation Guide
-11. Keyboard Shortcuts
+3. Visual Design & Theme (CREATIVE!) ← NEW!
+4. UI/UX Requirements (Critical)
+5. Node Types & Popups
+6. Connections System
+7. Toolbar & Controls
+8. Prompt Generation
+9. File System (Import/Export)
+10. Data Structure
+11. Implementation Guide
+12. Keyboard Shortcuts
 
 ================================================================================
 1. QUICK START GUIDE (For Developers)
@@ -95,7 +96,293 @@ TARGET USERS:
 • Entrepreneurs with app ideas
 
 ================================================================================
-3. UI/UX REQUIREMENTS (CRITICAL - READ CAREFULLY!)
+3. VISUAL DESIGN & THEME (BE CREATIVE!)
+================================================================================
+
+🎨 THE VISUAL PROMPTER MUST BE STUNNING! 🎨
+
+This is not just a tool - it's an EXPERIENCE. The design should make users go
+"WOW!" when they first see it. Be BOLD, be CREATIVE, be MEMORABLE.
+
+────────────────────────────────────────────────────────────────────────────────
+DESIGN PHILOSOPHY
+────────────────────────────────────────────────────────────────────────────────
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│   "Make it so beautiful that users WANT to create diagrams,                │
+│    not because they HAVE to, but because it's FUN."                        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+KEY DESIGN GOALS:
+✨ APPEALING - First impression should be "This looks professional"
+✨ OUTSTANDING - Stand out from boring, generic tools
+✨ MODERN - Use latest design trends (2024+)
+✨ COOL - Users should feel proud showing it to others
+✨ CREATIVE - Unique elements that surprise and delight
+✨ USER-FRIENDLY - Beautiful AND easy to use
+
+────────────────────────────────────────────────────────────────────────────────
+COLOR THEME: DARK MODE WITH VIBRANT ACCENTS
+────────────────────────────────────────────────────────────────────────────────
+
+PRIMARY PALETTE:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│   Background (Deep Space):                                                  │
+│   ┌──────────────┐ #0D0D1A  - Main background (very dark blue-black)      │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #12121F  - Secondary background                         │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #1A1A2E  - Card/Panel background                        │
+│   └──────────────┘                                                         │
+│                                                                             │
+│   Accent Colors (Neon Glow):                                               │
+│   ┌──────────────┐ #6366F1  - Primary (Indigo/Purple)                      │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #8B5CF6  - Secondary (Violet)                           │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #06B6D4  - Accent (Cyan)                                │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #10B981  - Success (Emerald)                            │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #F59E0B  - Warning (Amber)                              │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #EF4444  - Error (Red)                                  │
+│   └──────────────┘                                                         │
+│                                                                             │
+│   Text:                                                                     │
+│   ┌──────────────┐ #FFFFFF  - Primary text                                 │
+│   └──────────────┘                                                         │
+│   ┌──────────────┐ #A0A0B0  - Secondary/muted text                         │
+│   └──────────────┘                                                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+NODE COLORS (Vibrant & Distinct):
+┌───────────────────┬──────────────┬─────────────────────────────────────────┐
+│ Node Type         │ Color        │ Gradient Effect                         │
+├───────────────────┼──────────────┼─────────────────────────────────────────┤
+│ Database          │ #F97316      │ Orange → Amber glow                     │
+│ Backend           │ #6366F1      │ Indigo → Purple glow                    │
+│ Frontend          │ #8B5CF6      │ Violet → Pink glow                      │
+│ API               │ #06B6D4      │ Cyan → Teal glow                        │
+│ Process           │ #10B981      │ Emerald → Green glow                    │
+│ Decision          │ #F59E0B      │ Amber → Yellow glow                     │
+│ Service           │ #EC4899      │ Pink → Rose glow                        │
+└───────────────────┴──────────────┴─────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+CREATIVE VISUAL EFFECTS
+────────────────────────────────────────────────────────────────────────────────
+
+1. ANIMATED BACKGROUND:
+   • Subtle animated gradient that shifts slowly (aurora borealis effect)
+   • Floating particles that move gently (like stars)
+   • Grid lines that pulse softly when you interact
+
+2. NODE EFFECTS:
+   • GLOW: Selected nodes have a soft neon glow around them
+   • SHADOW: 3D drop shadow that makes nodes "float" above canvas
+   • HOVER: Nodes lift up slightly and glow brighter on hover
+   • PULSE: New nodes pulse once when created
+   • RIPPLE: Click creates a ripple effect
+
+3. CONNECTION EFFECTS:
+   • ANIMATED FLOW: Data flow lines have animated dashes moving
+   • GLOW: Connections glow when hovered
+   • PARTICLE: Optional particle effect along connection lines
+
+4. POPUP EFFECTS:
+   • BLUR: Background blurs when popup opens (glassmorphism)
+   • SCALE: Popup scales up smoothly from the node
+   • FADE: Smooth fade in/out
+   • BOUNCE: Subtle bounce animation on open
+
+5. BUTTON EFFECTS:
+   • GRADIENT: Buttons have gradient backgrounds
+   • HOVER: Buttons glow and lift on hover
+   • CLICK: Satisfying press-down animation
+   • RIPPLE: Material design ripple on click
+
+────────────────────────────────────────────────────────────────────────────────
+TYPOGRAPHY
+────────────────────────────────────────────────────────────────────────────────
+
+FONT RECOMMENDATIONS:
+• Headings: "Space Grotesk" or "Outfit" - Modern, geometric
+• Body: "Inter" or "DM Sans" - Clean, readable
+• Code/Mono: "JetBrains Mono" or "Fira Code" - For JSON/code
+
+FONT SIZES:
+• App Title: 24px bold
+• Section Headers: 18px semibold
+• Node Titles: 14px semibold
+• Body Text: 13px regular
+• Small/Caption: 11px
+
+────────────────────────────────────────────────────────────────────────────────
+CREATIVE UI ELEMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+1. TOOLBAR DESIGN:
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │ ◉ Visual Prompter          [Shapes with icons]      [Actions] [Generate]│
+   └─────────────────────────────────────────────────────────────────────────┘
+   • Glass-morphism effect (frosted glass look)
+   • Icons with colorful gradients
+   • Subtle border with glow
+
+2. NODE DESIGN (Creative):
+   ┌────────────────────────────────┐
+   │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │ ← Gradient header bar (node color)
+   │  ⬡ MySQL Database             │
+   │  ─────────────────────        │
+   │  📊 3 tables                  │ ← Quick stats preview
+   │  🔗 2 connections             │
+   └────────────────────────────────┘
+   • Rounded corners (12px)
+   • Soft shadow
+   • Color-coded header strip
+   • Mini stats on collapsed view
+
+3. POPUP DESIGN (Glass-morphism):
+   ┌─────────────────────────────────────────────────────────────────────────┐
+   │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+   │ ░░░  ┌─────────────────────────────────────────────────────────┐  ░░░ │
+   │ ░░░  │  ⬡ Database                                        [X]  │  ░░░ │
+   │ ░░░  │  ═══════════════════════════════════════════════════   │  ░░░ │
+   │ ░░░  │                                                         │  ░░░ │
+   │ ░░░  │   [Beautiful form fields with animations]               │  ░░░ │
+   │ ░░░  │                                                         │  ░░░ │
+   │ ░░░  │           [Gradient Save Button]                        │  ░░░ │
+   │ ░░░  │                                                         │  ░░░ │
+   │ ░░░  └─────────────────────────────────────────────────────────┘  ░░░ │
+   │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+   └─────────────────────────────────────────────────────────────────────────┘
+   • Blurred background (backdrop-filter: blur)
+   • Semi-transparent (rgba with 0.9 opacity)
+   • Glowing border
+   • Smooth animations
+
+4. GENERATE BUTTON (Hero Element):
+   ┌─────────────────────────────────────────────────┐
+   │                                                 │
+   │      ✨ Generate Prompt                         │
+   │      ─────────────────                         │
+   │      Gradient: Purple → Pink → Cyan            │
+   │      Animated shimmer effect                   │
+   │      Glows on hover                            │
+   │      Pulse animation when idle                 │
+   │                                                 │
+   └─────────────────────────────────────────────────┘
+   This is the HERO button - make it IRRESISTIBLE to click!
+
+────────────────────────────────────────────────────────────────────────────────
+MICRO-INTERACTIONS (Delight Users!)
+────────────────────────────────────────────────────────────────────────────────
+
+These small details make the app feel ALIVE:
+
+• Drag node → Ghost preview shows where it will drop
+• Create connection → Line follows cursor with glow trail
+• Save project → Brief confetti burst animation
+• Generate prompt → Magic sparkle animation
+• Delete node → Subtle "poof" disappear animation
+• Error → Gentle shake animation
+• Success → Green checkmark with bounce
+• Loading → Smooth skeleton loaders, not spinners
+• Hover buttons → Tooltip with subtle fade
+• Scroll → Smooth scroll with momentum
+
+────────────────────────────────────────────────────────────────────────────────
+SOUND EFFECTS (Optional but Cool)
+────────────────────────────────────────────────────────────────────────────────
+
+Optional subtle sounds for key actions:
+• Click: Soft "pop" sound
+• Drop node: Soft "thud"
+• Connect: Satisfying "click"
+• Generate: Magic "shimmer" sound
+• Error: Gentle "bonk"
+• Success: Pleasant "ding"
+
+(Include toggle to turn off sounds)
+
+────────────────────────────────────────────────────────────────────────────────
+RESPONSIVE DESIGN
+────────────────────────────────────────────────────────────────────────────────
+
+The app should look AMAZING on all screen sizes:
+
+DESKTOP (1920x1080+):
+• Full experience with all features
+• Large canvas area
+• Comfortable spacing
+
+LAPTOP (1366x768):
+• Compact toolbar
+• Collapsible panels
+• Full functionality
+
+TABLET (768px):
+• Touch-friendly larger buttons
+• Simplified toolbar
+• Pinch to zoom
+
+(Mobile not required - this is a desktop-first tool)
+
+────────────────────────────────────────────────────────────────────────────────
+INSPIRATION REFERENCES
+────────────────────────────────────────────────────────────────────────────────
+
+Look at these for design inspiration:
+• Figma - Clean, modern interface
+• Linear - Beautiful dark mode
+• Notion - Smooth animations
+• Discord - Dark theme done right
+• Vercel - Sleek, minimal
+• Stripe Dashboard - Professional polish
+• ComfyUI - Node-based interface reference
+
+────────────────────────────────────────────────────────────────────────────────
+CSS FRAMEWORK RECOMMENDATION
+────────────────────────────────────────────────────────────────────────────────
+
+Use custom CSS with CSS variables for theming:
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #0D0D1A;
+  --bg-secondary: #12121F;
+  --bg-card: #1A1A2E;
+  
+  /* Accents */
+  --accent-primary: #6366F1;
+  --accent-secondary: #8B5CF6;
+  --accent-cyan: #06B6D4;
+  --accent-success: #10B981;
+  --accent-warning: #F59E0B;
+  --accent-error: #EF4444;
+  
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0B0;
+  
+  /* Effects */
+  --glow-primary: 0 0 20px rgba(99, 102, 241, 0.5);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --blur-glass: blur(12px);
+  
+  /* Animations */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+}
+
+================================================================================
+4. UI/UX REQUIREMENTS (CRITICAL - READ CAREFULLY!)
 ================================================================================
 
 🚨 FUNDAMENTAL RULE: NO SIDEBARS! 🚨
@@ -185,7 +472,7 @@ POPUP BEHAVIOR RULES:
 IMPORTANT: Only ONE popup can be open at a time!
 
 ================================================================================
-4. NODE TYPES & THEIR POPUPS
+5. NODE TYPES & THEIR POPUPS
 ================================================================================
 
 The system has 7 node types. Each has a unique popup with RELEVANT fields only.
@@ -540,7 +827,7 @@ EXPANDED POPUP:
 └─────────────────────────────────────────────┘
 
 ================================================================================
-5. CONNECTIONS SYSTEM
+6. CONNECTIONS SYSTEM
 ================================================================================
 
 CREATING CONNECTIONS:
@@ -593,7 +880,7 @@ IMPORTANT RULES:
 • Undo is available (Ctrl+Z)
 
 ================================================================================
-6. TOOLBAR & CONTROLS
+7. TOOLBAR & CONTROLS
 ================================================================================
 
 TOP TOOLBAR LAYOUT:
@@ -649,7 +936,7 @@ Node Right-Click:
 └─────────────────────┘
 
 ================================================================================
-7. PROMPT GENERATION
+8. PROMPT GENERATION
 ================================================================================
 
 When user clicks "✨ Generate Prompt", the system:
@@ -763,7 +1050,7 @@ PROMPT TEMPLATE STRUCTURE:
 ```
 
 ================================================================================
-8. FILE SYSTEM (Import/Export)
+9. FILE SYSTEM (Import/Export)
 ================================================================================
 
 ⚠️ IMPORTANT: TWO SEPARATE FILE TYPES!
@@ -992,7 +1279,7 @@ SUMMARY: TWO OUTPUTS, TWO PURPOSES
 └─────────────────────────┴─────────────────────────────────────────────────────┘
 
 ================================================================================
-9. DATA STRUCTURE (JSON)
+10. DATA STRUCTURE (JSON)
 ================================================================================
 
 PROJECT FILE FORMAT:
@@ -1064,7 +1351,7 @@ PROJECT FILE FORMAT:
 ```
 
 ================================================================================
-10. IMPLEMENTATION GUIDE
+11. IMPLEMENTATION GUIDE
 ================================================================================
 
 PHASE 1 - MVP (Week 1-2):
@@ -1104,7 +1391,7 @@ PHASE 4 - Advanced (Future):
 □ Collaboration
 
 ================================================================================
-11. KEYBOARD SHORTCUTS
+12. KEYBOARD SHORTCUTS
 ================================================================================
 
 GENERAL:
@@ -1168,7 +1455,10 @@ SUMMARY OF KEY PRINCIPLES:
 8. TWO OUTPUTS - Diagram (image) and Prompt (text) are separate files
 9. AUTO-PROMPT ON IMPORT - Loading a project auto-generates and shows prompt
 10. COPY ANYWHERE - Prompt always copyable to clipboard for any AI
+11. STUNNING DESIGN - Make it beautiful, modern, and delightful
+12. MICRO-INTERACTIONS - Small animations that make the app feel alive
 
 "If you can draw it, you can prompt it."
+"Make it so beautiful they can't look away."
 
 ================================================================================
