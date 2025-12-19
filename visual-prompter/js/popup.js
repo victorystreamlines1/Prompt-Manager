@@ -1,6 +1,7 @@
 /**
  * Popup Editor System for Visual Prompter
  * Handles all node editing through popup interfaces
+ * Features: Draggable, Resizable, Persistent
  */
 
 (function(global) {
@@ -11,6 +12,17 @@
         isOpen: false,
         overlay: null,
         container: null,
+        
+        // Drag state
+        isDragging: false,
+        dragOffset: { x: 0, y: 0 },
+        
+        // Resize state
+        isResizing: false,
+        resizeHandle: null,
+        initialSize: { width: 0, height: 0 },
+        initialPos: { x: 0, y: 0 },
+        initialMouse: { x: 0, y: 0 },
 
         /**
          * Initialize the popup system
@@ -19,12 +31,14 @@
             this.overlay = document.getElementById('popup-overlay');
             this.container = document.getElementById('popup-container');
             
-            // Close on overlay click
-            this.overlay.addEventListener('click', (e) => {
-                if (e.target === this.overlay) {
-                    this.close();
-                }
-            });
+            // Add resize handles
+            this.addResizeHandles();
+            
+            // Initialize drag and resize
+            this.initDragAndResize();
+            
+            // Center popup initially
+            this.centerPopup();
 
             // Close on ESC key
             document.addEventListener('keydown', (e) => {
@@ -32,6 +46,173 @@
                     this.close();
                 }
             });
+        },
+        
+        /**
+         * Add resize handles to the popup
+         */
+        addResizeHandles: function() {
+            const handles = ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'];
+            handles.forEach(handle => {
+                const el = document.createElement('div');
+                el.className = `popup-resize-handle ${handle}`;
+                el.dataset.handle = handle;
+                this.container.appendChild(el);
+            });
+        },
+        
+        /**
+         * Initialize drag and resize functionality
+         */
+        initDragAndResize: function() {
+            const self = this;
+            
+            // Drag from header
+            this.container.addEventListener('mousedown', (e) => {
+                const header = e.target.closest('.popup-header');
+                const resizeHandle = e.target.closest('.popup-resize-handle');
+                
+                if (resizeHandle) {
+                    self.startResize(e, resizeHandle.dataset.handle);
+                } else if (header && !e.target.closest('.popup-close')) {
+                    self.startDrag(e);
+                }
+            });
+            
+            // Global mouse move and up
+            document.addEventListener('mousemove', (e) => {
+                if (self.isDragging) {
+                    self.doDrag(e);
+                } else if (self.isResizing) {
+                    self.doResize(e);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                self.stopDrag();
+                self.stopResize();
+            });
+        },
+        
+        /**
+         * Center the popup
+         */
+        centerPopup: function() {
+            const rect = this.container.getBoundingClientRect();
+            const x = (window.innerWidth - rect.width) / 2;
+            const y = (window.innerHeight - rect.height) / 2;
+            this.container.style.left = x + 'px';
+            this.container.style.top = Math.max(20, y) + 'px';
+        },
+        
+        /**
+         * Start dragging
+         */
+        startDrag: function(e) {
+            this.isDragging = true;
+            const rect = this.container.getBoundingClientRect();
+            this.dragOffset.x = e.clientX - rect.left;
+            this.dragOffset.y = e.clientY - rect.top;
+            this.container.classList.add('dragging');
+            this.container.querySelector('.popup-header').classList.add('dragging');
+        },
+        
+        /**
+         * Perform drag
+         */
+        doDrag: function(e) {
+            if (!this.isDragging) return;
+            
+            let x = e.clientX - this.dragOffset.x;
+            let y = e.clientY - this.dragOffset.y;
+            
+            // Keep within viewport
+            const rect = this.container.getBoundingClientRect();
+            x = Math.max(0, Math.min(x, window.innerWidth - rect.width));
+            y = Math.max(0, Math.min(y, window.innerHeight - rect.height));
+            
+            this.container.style.left = x + 'px';
+            this.container.style.top = y + 'px';
+        },
+        
+        /**
+         * Stop dragging
+         */
+        stopDrag: function() {
+            if (this.isDragging) {
+                this.isDragging = false;
+                this.container.classList.remove('dragging');
+                const header = this.container.querySelector('.popup-header');
+                if (header) header.classList.remove('dragging');
+            }
+        },
+        
+        /**
+         * Start resizing
+         */
+        startResize: function(e, handle) {
+            this.isResizing = true;
+            this.resizeHandle = handle;
+            const rect = this.container.getBoundingClientRect();
+            this.initialSize = { width: rect.width, height: rect.height };
+            this.initialPos = { x: rect.left, y: rect.top };
+            this.initialMouse = { x: e.clientX, y: e.clientY };
+            this.container.classList.add('dragging');
+            e.preventDefault();
+        },
+        
+        /**
+         * Perform resize
+         */
+        doResize: function(e) {
+            if (!this.isResizing) return;
+            
+            const dx = e.clientX - this.initialMouse.x;
+            const dy = e.clientY - this.initialMouse.y;
+            const handle = this.resizeHandle;
+            
+            let newWidth = this.initialSize.width;
+            let newHeight = this.initialSize.height;
+            let newX = this.initialPos.x;
+            let newY = this.initialPos.y;
+            
+            // Handle resize based on handle position
+            if (handle.includes('right')) {
+                newWidth = Math.max(400, this.initialSize.width + dx);
+            }
+            if (handle.includes('left')) {
+                const w = Math.max(400, this.initialSize.width - dx);
+                if (w !== this.initialSize.width - dx + 400) {
+                    newX = this.initialPos.x + (this.initialSize.width - w);
+                }
+                newWidth = w;
+            }
+            if (handle.includes('bottom')) {
+                newHeight = Math.max(300, this.initialSize.height + dy);
+            }
+            if (handle.includes('top')) {
+                const h = Math.max(300, this.initialSize.height - dy);
+                if (h !== this.initialSize.height - dy + 300) {
+                    newY = this.initialPos.y + (this.initialSize.height - h);
+                }
+                newHeight = h;
+            }
+            
+            this.container.style.width = newWidth + 'px';
+            this.container.style.height = newHeight + 'px';
+            this.container.style.left = newX + 'px';
+            this.container.style.top = newY + 'px';
+        },
+        
+        /**
+         * Stop resizing
+         */
+        stopResize: function() {
+            if (this.isResizing) {
+                this.isResizing = false;
+                this.resizeHandle = null;
+                this.container.classList.remove('dragging');
+            }
         },
 
         /**
@@ -41,20 +222,31 @@
         open: function(node) {
             if (!node || !node.getPopupData) return;
 
-            // Close any existing popup
+            // Close any existing popup (but save first)
             if (this.isOpen && this.currentNode !== node) {
-                this.saveAndClose();
+                this.save();
             }
 
             this.currentNode = node;
             const popupData = node.getPopupData();
             
-            // Build popup HTML
+            // Build popup HTML (preserve resize handles)
+            const resizeHandles = this.container.querySelectorAll('.popup-resize-handle');
             this.container.innerHTML = this.buildPopupHTML(popupData, node.properties);
+            
+            // Re-add resize handles if they were removed
+            if (resizeHandles.length === 0) {
+                this.addResizeHandles();
+            }
             
             // Show popup with animation
             this.overlay.classList.add('active');
             this.isOpen = true;
+
+            // Center popup if not already positioned
+            if (!this.container.style.left) {
+                this.centerPopup();
+            }
 
             // Initialize form interactions
             this.initFormInteractions();
@@ -126,13 +318,26 @@
                     `;
 
                 case 'textarea':
+                    const isDescription = field.key === 'description';
+                    const descControls = isDescription ? `
+                        <div class="description-controls">
+                            <button type="button" class="desc-btn" data-action="expand" title="Expand textarea">
+                                <span>↕️</span> Expand
+                            </button>
+                            <button type="button" class="desc-btn clear" data-action="clear" title="Clear all content">
+                                <span>🗑️</span> Clear
+                            </button>
+                        </div>
+                    ` : '';
                     return `
                         <div class="form-group">
                             <label class="form-label" for="${fieldId}">${field.label}</label>
+                            ${descControls}
                             <textarea id="${fieldId}" 
-                                      class="form-textarea" 
+                                      class="form-textarea ${isDescription ? 'description-textarea' : ''}" 
                                       data-key="${field.key}"
-                                      placeholder="${field.placeholder || ''}">${this.escapeHTML(value || '')}</textarea>
+                                      placeholder="${field.placeholder || ''}"
+                                      style="${isDescription ? 'min-height: 150px; resize: vertical;' : ''}">${this.escapeHTML(value || '')}</textarea>
                         </div>
                     `;
 
@@ -410,6 +615,35 @@
                 deleteBtn.addEventListener('click', () => this.deleteNode());
             }
 
+            // Description control buttons
+            document.querySelectorAll('.desc-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    const textarea = self.container.querySelector('.description-textarea');
+                    if (!textarea) return;
+                    
+                    if (action === 'clear') {
+                        if (confirm('Clear all description content?')) {
+                            textarea.value = '';
+                            if (self.currentNode) {
+                                self.currentNode.properties.description = '';
+                            }
+                            VisualPrompter.showToast('Description cleared', 'info');
+                        }
+                    } else if (action === 'expand') {
+                        // Toggle expanded state
+                        const currentHeight = parseInt(textarea.style.height) || textarea.offsetHeight;
+                        if (currentHeight < 400) {
+                            textarea.style.height = '400px';
+                            this.innerHTML = '<span>↕️</span> Collapse';
+                        } else {
+                            textarea.style.height = '150px';
+                            this.innerHTML = '<span>↕️</span> Expand';
+                        }
+                    }
+                });
+            });
+
             // Add table button
             const addTableBtn = document.getElementById('add-table-btn');
             if (addTableBtn) {
@@ -663,7 +897,7 @@
         },
 
         /**
-         * Push credentials to description textarea
+         * Push credentials to description textarea (Always appends)
          */
         pushCredentialsToDescription: function(db) {
             const descTextarea = document.querySelector('[data-key="description"]');
@@ -682,14 +916,9 @@ Password: ${db.password}
 Hosting Type: ${db.type}
 Created: ${new Date(db.createdAt).toLocaleDateString()}`;
 
-            // Append or replace description
+            // Always APPEND to description (accumulate)
             if (descTextarea.value.trim()) {
-                const append = confirm('Description already has content. Append credentials?\n\nClick OK to append, Cancel to replace.');
-                if (append) {
-                    descTextarea.value = descTextarea.value + '\n\n' + credentials;
-                } else {
-                    descTextarea.value = credentials;
-                }
+                descTextarea.value = descTextarea.value + '\n\n' + credentials;
             } else {
                 descTextarea.value = credentials;
             }
@@ -701,7 +930,7 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
 
             // Show success message
             if (window.VisualPrompter) {
-                VisualPrompter.showToast('Credentials pushed to description', 'success');
+                VisualPrompter.showToast('Credentials appended to description', 'success');
             }
         },
 

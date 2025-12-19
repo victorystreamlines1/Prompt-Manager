@@ -700,7 +700,7 @@
         },
 
         /**
-         * Push table structure to description
+         * Push table structure to description (Always appends)
          */
         pushToDescription: function() {
             if (!this.targetNode) return;
@@ -726,14 +726,9 @@
 
             const tableDesc = this.generateTableDescription();
 
-            // Append or replace
+            // Always APPEND to description (accumulate multiple tables)
             if (descTextarea.value.trim()) {
-                const append = confirm('Description already has content. Append table structure?\n\nClick OK to append, Cancel to replace.');
-                if (append) {
-                    descTextarea.value = descTextarea.value + '\n\n' + tableDesc;
-                } else {
-                    descTextarea.value = tableDesc;
-                }
+                descTextarea.value = descTextarea.value + '\n\n' + tableDesc;
             } else {
                 descTextarea.value = tableDesc;
             }
@@ -741,7 +736,7 @@
             // Update node property
             this.targetNode.properties.description = descTextarea.value;
 
-            // Also save table structure
+            // Also save table structure to tables array (accumulate)
             this.targetNode.properties.tables = this.targetNode.properties.tables || [];
             this.targetNode.properties.tables.push({
                 name: this.tableName,
@@ -752,10 +747,13 @@
             });
 
             if (window.VisualPrompter) {
-                VisualPrompter.showToast('Table structure pushed to description', 'success');
+                VisualPrompter.showToast('Table structure appended to description', 'success');
             }
 
-            this.close();
+            // Re-open popup to show updated content
+            if (window.PopupEditor && this.targetNode) {
+                PopupEditor.open(this.targetNode);
+            }
         }
     };
 
