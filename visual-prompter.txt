@@ -3,719 +3,936 @@
                     A Revolutionary Visual-to-Prompt Design System
 ================================================================================
 
-⚠️ IMPORTANT: BUILD WITH LiteGraph.js
+TABLE OF CONTENTS:
+1. Quick Start Guide
+2. Core Concept
+3. UI/UX Requirements (Critical)
+4. Node Types & Popups
+5. Connections System
+6. Toolbar & Controls
+7. Prompt Generation
+8. Data Structure
+9. Implementation Guide
+10. Keyboard Shortcuts
+
+================================================================================
+1. QUICK START GUIDE (For Developers)
 ================================================================================
 
 RECOMMENDED LIBRARY: LiteGraph.js
-- Lightweight, vanilla JavaScript (no React/Vue required)
-- Specifically designed for node-based visual editors
-- Used in ComfyUI (popular AI tool)
-- Easy to integrate with PHP
+Website: https://github.com/jagenjo/litegraph.js
 
-CDN Links:
+WHY LiteGraph.js?
+✓ Specifically designed for node-based visual editors
+✓ Lightweight, vanilla JavaScript (no React/Vue required)
+✓ Built-in: pan, zoom, connections, node management
+✓ Used in ComfyUI (popular AI tool)
+✓ Easy to customize and extend
+
+CDN LINKS:
 <link rel="stylesheet" href="https://unpkg.com/litegraph.js/css/litegraph.css">
 <script src="https://unpkg.com/litegraph.js/build/litegraph.min.js"></script>
 
-Alternative: React Flow (if using React framework)
+FILE STRUCTURE:
+/visual-prompter/
+├── index.php              (Main page)
+├── css/
+│   └── style.css          (Custom dark theme)
+├── js/
+│   ├── nodes/             (Custom node definitions)
+│   │   ├── DatabaseNode.js
+│   │   ├── BackendNode.js
+│   │   ├── FrontendNode.js
+│   │   ├── APINode.js
+│   │   ├── ProcessNode.js
+│   │   ├── DecisionNode.js
+│   │   └── ServiceNode.js
+│   ├── popup.js           (Popup editor system)
+│   ├── prompt-generator.js (Converts diagram to text)
+│   └── app.js             (Main application)
+├── api/
+│   ├── save.php           (Save project)
+│   └── load.php           (Load project)
+└── projects/              (Saved JSON files)
 
 ================================================================================
-PROJECT OVERVIEW
+2. CORE CONCEPT
 ================================================================================
 
-I want to build a "Visual Prompter" - a web-based application that allows users 
-to CREATE AI PROMPTS VISUALLY through diagrams, flowcharts, and connected 
-shapes, similar to how designers work in Fusion 360, SolidWorks, or Visio.
+THE PROBLEM:
+Writing detailed AI prompts is time-consuming and requires technical knowledge.
 
-The core concept is: DRAW YOUR PROMPT, DON'T WRITE IT.
+THE SOLUTION:
+Draw your requirements visually → System generates the prompt automatically.
 
-This tool is designed for people who:
-- Know how to design/draw but don't know how to program
-- Are visual thinkers who struggle to express technical requirements in text
-- Want to create complex, structured AI prompts without writing paragraphs
-- Need to design software architectures visually before generating prompts
-
-================================================================================
-🚨 CRITICAL UI/UX REQUIREMENT: IN-NODE POPUP EDITING
-================================================================================
-
-⚠️ NO SIDEBAR PANELS FOR NODE PROPERTIES!
-⚠️ NO VERTICAL SIDE MENUS FOR DATA INPUT!
-⚠️ ALL INFORMATION MUST BE INSIDE THE NODE ITSELF!
-
-When user clicks on a shape/node:
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│   The node "EXPLODES" into a POPUP/MODAL that contains:                    │
-│                                                                             │
-│   ✓ All text inputs                                                        │
-│   ✓ All dropdowns/selects                                                  │
-│   ✓ All textareas for descriptions                                         │
-│   ✓ All action buttons                                                     │
-│   ✓ All property controls                                                  │
-│                                                                             │
-│   EVERYTHING lives INSIDE the node popup - NOT in a sidebar!               │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-SPACE OPTIMIZATION PRINCIPLE:
-- Maximize canvas space for the diagram
-- No permanent sidebars eating screen real estate
-- Information appears ON-DEMAND when node is clicked
-- Clean, minimal interface when not editing
-
-================================================================================
-NODE POPUP INTERACTION DESIGN
-================================================================================
-
-1. NODE STATES:
-───────────────
-   COLLAPSED STATE (default):
-   ┌───────────────┐
-   │   📦 MySQL    │  ← Just shows icon + title
-   │   Database    │  ← Type indicator
-   └───────────────┘
-
-   EXPANDED STATE (on click):
-   ┌─────────────────────────────────────┐
-   │  📦 MySQL Database            [X]   │  ← Close button
-   ├─────────────────────────────────────┤
-   │  Title: [___________________]       │
-   │                                     │
-   │  Type:  [Database        ▼]         │
-   │                                     │
-   │  Host:  [localhost_______]          │
-   │  Port:  [3306____________]          │
-   │                                     │
-   │  Description:                       │
-   │  ┌─────────────────────────────┐   │
-   │  │ Main database for user     │   │
-   │  │ authentication and orders  │   │
-   │  └─────────────────────────────┘   │
-   │                                     │
-   │  Tables:                            │
-   │  [+ Add Table]                      │
-   │  ┌─────────────────────────────┐   │
-   │  │ users    [Edit] [Delete]   │   │
-   │  │ orders   [Edit] [Delete]   │   │
-   │  │ products [Edit] [Delete]   │   │
-   │  └─────────────────────────────┘   │
-   │                                     │
-   │  [💾 Save]  [🗑️ Delete Node]        │
-   └─────────────────────────────────────┘
-
-2. POPUP BEHAVIOR:
-──────────────────
-   - Single click on node → Expand popup
-   - Click [X] or outside → Collapse back to simple shape
-   - Drag node header → Move entire node (even when expanded)
-   - Changes auto-save when popup closes
-   - ESC key → Close popup
-   - Only ONE popup can be open at a time
-
-3. POPUP ANIMATIONS:
-────────────────────
-   - Smooth expand animation (scale + fade)
-   - Popup appears centered on the node
-   - Shadow/glow effect when expanded
-   - Subtle bounce on open
-
-================================================================================
-NODE TYPE SPECIFIC POPUPS
-================================================================================
-
-Each node type has its OWN popup layout with RELEVANT fields only:
-
-1. DATABASE NODE POPUP:
-───────────────────────
-┌─────────────────────────────────────────┐
-│  ⬡ Database                       [X]   │
-├─────────────────────────────────────────┤
-│  Title:    [____________________]       │
-│  DB Type:  [MySQL ▼] [PostgreSQL]       │
-│            [MongoDB] [SQLite]           │
-│  Host:     [____________________]       │
-│  Port:     [____________________]       │
-│  Username: [____________________]       │
-│                                         │
-│  ═══ Tables ═══                         │
-│  [+ Add Table]                          │
-│  ┌─────────────────────────────────┐   │
-│  │ Table: users                    │   │
-│  │ Columns: id, name, email, pwd   │   │
-│  │ [Edit Columns] [Delete]         │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-2. BACKEND/COMPONENT NODE POPUP:
-────────────────────────────────
-┌─────────────────────────────────────────┐
-│  ◼ Backend Component              [X]   │
-├─────────────────────────────────────────┤
-│  Title:     [____________________]      │
-│  Language:  [PHP ▼]                     │
-│  Framework: [Laravel ▼]                 │
-│                                         │
-│  Description:                           │
-│  ┌─────────────────────────────────┐   │
-│  │                                 │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  ═══ Files/Controllers ═══              │
-│  [+ Add File]                           │
-│  • UserController.php                   │
-│  • ProductController.php                │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-3. API ENDPOINT NODE POPUP:
-───────────────────────────
-┌─────────────────────────────────────────┐
-│  ▲ API Endpoint                   [X]   │
-├─────────────────────────────────────────┤
-│  Title:    [____________________]       │
-│  Method:   (•)GET ( )POST ( )PUT ( )DEL │
-│  Endpoint: [/api/______________]        │
-│  Auth:     [Bearer Token ▼]             │
-│                                         │
-│  Request Body:                          │
-│  ┌─────────────────────────────────┐   │
-│  │ { "user_id": 1 }                │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  Response:                              │
-│  ┌─────────────────────────────────┐   │
-│  │ { "status": "success" }         │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-4. PROCESS/FUNCTION NODE POPUP:
-───────────────────────────────
-┌─────────────────────────────────────────┐
-│  ● Process/Function               [X]   │
-├─────────────────────────────────────────┤
-│  Title:     [____________________]      │
-│  Function:  [____________________]      │
-│                                         │
-│  Inputs:    [+ Add Input]               │
-│  • userId (int)                         │
-│  • email (string)                       │
-│                                         │
-│  Outputs:   [+ Add Output]              │
-│  • userData (object)                    │
-│                                         │
-│  Description:                           │
-│  ┌─────────────────────────────────┐   │
-│  │ Fetches user data from DB      │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-5. DECISION/CONDITION NODE POPUP:
-─────────────────────────────────
-┌─────────────────────────────────────────┐
-│  ◆ Decision                       [X]   │
-├─────────────────────────────────────────┤
-│  Title:     [____________________]      │
-│                                         │
-│  Condition:                             │
-│  ┌─────────────────────────────────┐   │
-│  │ user.isAuthenticated === true   │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  If TRUE →  [____________________]      │
-│  If FALSE → [____________________]      │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-6. EXTERNAL SERVICE NODE POPUP:
-───────────────────────────────
-┌─────────────────────────────────────────┐
-│  ◎ External Service               [X]   │
-├─────────────────────────────────────────┤
-│  Title:      [____________________]     │
-│  Service:    [Stripe ▼]                 │
-│  API URL:    [____________________]     │
-│  API Key:    [••••••••••••••••••]      │
-│                                         │
-│  Description:                           │
-│  ┌─────────────────────────────────┐   │
-│  │ Payment processing service     │   │
-│  └─────────────────────────────────┘   │
-│                                         │
-│  [💾 Save Changes]                      │
-└─────────────────────────────────────────┘
-
-================================================================================
-CORE CONCEPT
-================================================================================
-
-Instead of writing: 
+EXAMPLE:
+Instead of writing:
 "Create a PHP application with a MySQL database that has a users table 
-connected to an orders table with a one-to-many relationship..."
+connected to an orders table with a one-to-many relationship, using Laravel 
+framework with REST API endpoints for authentication..."
 
-The user DRAWS:
+User simply DRAWS:
+
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
-│  📦 MySQL   │────────▶│  📋 Users   │────────▶│  📋 Orders  │
-│  Database   │         │   Table     │  1:N    │   Table     │
+│  ⬡ MySQL   │────────▶│  📋 Users   │────────▶│  📋 Orders  │
+│  Database   │         │   Table     │   1:N   │   Table     │
 └─────────────┘         └─────────────┘         └─────────────┘
-      │
-      ▼
+       │
+       ▼
 ┌─────────────┐
-│  🔷 PHP     │
+│  ◼ Laravel │
 │  Backend    │
 └─────────────┘
 
-Then clicks "GENERATE PROMPT" and the system converts this visual diagram 
-into a detailed, well-structured AI prompt.
+Then clicks "GENERATE PROMPT" → Gets complete, structured AI prompt!
+
+TARGET USERS:
+• Non-programmers who understand systems conceptually
+• Visual thinkers who struggle with text-based requirements
+• Project managers communicating with developers/AI
+• Students learning software architecture
+• Entrepreneurs with app ideas
 
 ================================================================================
-DETAILED REQUIREMENTS
+3. UI/UX REQUIREMENTS (CRITICAL - READ CAREFULLY!)
 ================================================================================
 
-1. CANVAS & WORKSPACE
-─────────────────────
-- Canvas using LiteGraph.js (recommended) or Three.js
-- Infinite workspace with pan and zoom
-- Grid background for alignment
-- Dark theme with modern UI
-- Save/Load projects as JSON files
-- MINIMAL UI - only essential toolbar at top
-
-2. SHAPE LIBRARY (Nodes/Boxes)
-──────────────────────────────
-The system should support various shapes, each representing a different 
-concept in software development:
-
-SHAPE               │ MEANING                    │ COLOR
-────────────────────┼────────────────────────────┼──────────────
-□ Rectangle/Box     │ Component/Module/File      │ Blue (#6366f1)
-○ Circle            │ Process/Function           │ Green (#10b981)
-◇ Diamond           │ Condition/Decision         │ Yellow (#f59e0b)
-▭ Rounded Rectangle │ User Interface/Page        │ Purple (#8b5cf6)
-⬡ Hexagon           │ API Endpoint               │ Cyan (#06b6d4)
-⊡ Cylinder          │ Database/Storage           │ Orange (#f97316)
-△ Triangle          │ Start/End Point            │ Red (#ef4444)
-⬢ Octagon           │ External Service           │ Pink (#ec4899)
-
-3. NODE PROPERTIES (Inside Popup - NOT Sidebar!)
-────────────────────────────────────────────────
-⚠️ All properties edited via IN-NODE POPUP when clicked!
-
-GENERAL PROPERTIES:
-- Title/Name (required)
-- Description (optional)
-- Type (from predefined list)
-- Tags/Labels
-
-TECHNICAL PROPERTIES (context-dependent, shown in popup):
-For Database nodes:
-  - Database Type (MySQL, PostgreSQL, MongoDB, etc.)
-  - Host, Port, Username
-  - Tables (sub-list with columns)
-  
-For Backend nodes:
-  - Language (PHP, Python, Node.js, etc.)
-  - Framework (Laravel, Django, Express, etc.)
-  - Endpoints list
-  
-For Frontend nodes:
-  - Framework (React, Vue, Angular, HTML)
-  - Pages list
-  - Components list
-
-For API nodes:
-  - Method (GET, POST, PUT, DELETE)
-  - Endpoint URL
-  - Request/Response structure
-  - Authentication type
-
-For File nodes:
-  - Filename
-  - File type
-  - Purpose/Function
-
-4. CONNECTIONS (Lines/Relationships)
-────────────────────────────────────
-Users should be able to draw lines between nodes to show relationships:
-
-LINE TYPE           │ MEANING                    │ STYLE
-────────────────────┼────────────────────────────┼──────────────
-─────────────────▶  │ Data Flow                  │ Solid + Arrow
-─ ─ ─ ─ ─ ─ ─ ─ ▶  │ Optional/Conditional       │ Dashed + Arrow
-════════════════▶   │ Strong Dependency          │ Double line
-─────────○─────     │ One-to-One                 │ Circle end
-─────────<─────     │ One-to-Many                │ Crow's foot
-─────────◇─────     │ Many-to-Many               │ Diamond end
-
-Connection labels (shown on hover or click):
-- Relationship type (1:1, 1:N, N:N)
-- Data being transferred
-- Condition/trigger
-
-5. LAYERS & GROUPING
-────────────────────
-- Group related nodes together
-- Create layers for different aspects:
-  - Database Layer
-  - Backend Layer  
-  - Frontend Layer
-  - API Layer
-  - External Services Layer
-- Collapse/expand groups
-- Color-code by layer
-
-6. PROMPT GENERATION ENGINE
-───────────────────────────
-The heart of the system - converts visual diagram to text prompt:
-
-INPUT: JSON structure of nodes and connections
-OUTPUT: Well-formatted AI prompt
-
-The generated prompt should include:
-a) PROJECT OVERVIEW
-   - Derived from the overall structure
-   - Main components identified
-   
-b) TECHNICAL STACK
-   - All technologies mentioned in nodes
-   - Versions if specified
-   
-c) DATABASE STRUCTURE
-   - Tables, columns, relationships
-   - Extracted from database/table nodes
-   
-d) API ENDPOINTS
-   - All routes with methods
-   - Request/response structures
-   
-e) FILE STRUCTURE
-   - Folder hierarchy
-   - File purposes
-   
-f) RELATIONSHIPS & DATA FLOW
-   - How components connect
-   - Data transformation points
-   
-g) SPECIAL REQUIREMENTS
-   - From notes/annotations
-   - Constraints and rules
-
-7. EXPORT OPTIONS
-─────────────────
-- Generate Prompt → Copy to clipboard / Download as .txt
-- Export Diagram → PNG, SVG
-- Export Project → JSON (for later editing)
-
-================================================================================
-USER WORKFLOW EXAMPLE (Updated with Popup Interaction)
-================================================================================
-
-STEP 1: User opens Visual Prompter
-        → Sees empty canvas with grid
-        → Minimal toolbar at top with shape buttons
-
-STEP 2: User clicks "Database" shape in toolbar
-        → Clicks on canvas to place
-        → Node appears in COLLAPSED state: just icon + "Database"
-
-STEP 3: User CLICKS on the Database node
-        → Node EXPANDS into full popup editor
-        → User fills in: MySQL, localhost, 3306
-        → Adds tables: users, products, orders (all inside popup)
-        → Clicks [Save] or clicks outside to close
-
-STEP 4: User adds "Backend" node same way
-        → Clicks on it to expand popup
-        → Fills in: PHP, Laravel
-        → Lists controllers needed
-        → Closes popup
-
-STEP 5: User adds "Frontend" node
-        → Clicks to expand, fills in: React, pages list
-        → Closes popup
-
-STEP 6: User draws connections:
-        → Click output port on Database
-        → Drag to input port on Backend
-        → Line automatically drawn
-
-STEP 7: User clicks "GENERATE PROMPT" button (in top toolbar)
-        → System analyzes ALL nodes and their popup data
-        → Generates comprehensive prompt
-
-STEP 8: Generated prompt appears in modal:
-        ┌────────────────────────────────────────────────────────────┐
-        │ Please create a web application with the following specs: │
-        │                                                            │
-        │ ## Database (MySQL)                                        │
-        │ - Host: localhost:3306                                     │
-        │ - Tables:                                                  │
-        │   1. users (id, name, email, password, created_at)        │
-        │   2. products (id, name, price, description)              │
-        │   3. orders (id, user_id, total, status, created_at)      │
-        │                                                            │
-        │ ## Backend (PHP/Laravel)                                   │
-        │ - Controllers: UserController, ProductController...        │
-        │ - API endpoints for CRUD operations                        │
-        │                                                            │
-        │ ## Frontend (React)                                        │
-        │ - Pages: Home, Products, Cart, Checkout, Profile          │
-        │                                                            │
-        │ Please generate the complete codebase...                   │
-        └────────────────────────────────────────────────────────────┘
-
-STEP 9: User copies prompt → pastes into AI → gets code!
-
-================================================================================
-UI LAYOUT (Optimized for Space)
-================================================================================
+🚨 FUNDAMENTAL RULE: NO SIDEBARS! 🚨
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ Visual Prompter    [📦][⬡][●][◆][▲][◎]    [💾 Save][📂 Load][✨ Generate] │ ← Top toolbar only
-├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
+│   ❌ DO NOT CREATE:                                                        │
+│   • Sidebar panels for properties                                          │
+│   • Vertical menus for node editing                                        │
+│   • Side panels for any data input                                         │
+│   • Any permanent UI that takes canvas space                               │
 │                                                                             │
-│                     ┌───────┐        ┌───────┐                             │
-│                     │ MySQL │───────▶│ Users │                             │
-│                     │  DB   │        │ Table │                             │
-│                     └───────┘        └───────┘                             │
-│                          │                                                  │
-│                          ▼                                                  │
-│                     ┌───────┐                                              │
-│                     │  PHP  │  ← Click to expand popup                     │
-│                     │Backend│                                               │
-│                     └───────┘                                              │
+│   ✅ INSTEAD:                                                              │
+│   • ALL node editing happens in a POPUP when node is clicked               │
+│   • Popup appears ON TOP of the canvas (overlay)                           │
+│   • Popup contains ALL fields for that node type                           │
+│   • Maximum canvas space for the diagram                                   │
 │                                                                             │
-│                        FULL CANVAS SPACE - NO SIDEBARS!                    │
-│                                                                             │
-│                                                                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Nodes: 3  │  Connections: 2  │  Zoom: 100%  │  Grid: On                    │ ← Status bar (minimal)
 └─────────────────────────────────────────────────────────────────────────────┘
 
+SCREEN LAYOUT:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🎨 Visual Prompter │ [Shapes...] │ [Save][Load][Export] │ [✨ Generate]    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                                                                             │
+│                        ← FULL CANVAS AREA →                                │
+│                         (No sidebars!)                                      │
+│                                                                             │
+│                    ┌─────────┐       ┌─────────┐                           │
+│                    │  Node   │──────▶│  Node   │                           │
+│                    └─────────┘       └─────────┘                           │
+│                                                                             │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Nodes: 2 │ Connections: 1 │ Zoom: 100% │ [+][-] │ [Grid: On]              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+NODE INTERACTION - TWO STATES:
+
+STATE 1 - COLLAPSED (Default view on canvas):
+┌───────────────────┐
+│  ⬡ MySQL         │  ← Icon + Title only
+│  Database         │  ← Subtitle (type)
+└───────────────────┘
+Size: ~150x60 pixels
+
+STATE 2 - EXPANDED (Popup when clicked):
+┌─────────────────────────────────────────────┐
+│  ⬡ Database                           [X]  │
+├─────────────────────────────────────────────┤
+│                                             │
+│  Title:    [MySQL Database________]        │
+│  DB Type:  [MySQL           ▼]             │
+│  Host:     [localhost_________]            │
+│  Port:     [3306______________]            │
+│                                             │
+│  ═══ Tables ═══                             │
+│  [+ Add Table]                              │
+│  ┌─────────────────────────────────────┐   │
+│  │ • users (id, name, email)    [✏️][🗑️]│   │
+│  │ • orders (id, user_id, total)[✏️][🗑️]│   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │ Main database for the application  │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save]              [🗑️ Delete Node]   │
+└─────────────────────────────────────────────┘
+
+POPUP BEHAVIOR RULES:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ACTION                          │ RESULT                                   │
+├─────────────────────────────────┼───────────────────────────────────────────┤
+│ Single click on node            │ Open popup (expand)                      │
+│ Click [X] button                │ Close popup, save changes                │
+│ Click outside popup             │ Close popup, save changes                │
+│ Press ESC key                   │ Close popup, save changes                │
+│ Press Enter in text field       │ Move to next field                       │
+│ Drag popup header               │ Move the popup position                  │
+│ Click another node              │ Close current popup, open new one        │
+│ Right-click on node             │ Context menu: Copy, Delete, Duplicate    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+IMPORTANT: Only ONE popup can be open at a time!
+
 ================================================================================
-TECHNICAL IMPLEMENTATION
+4. NODE TYPES & THEIR POPUPS
 ================================================================================
 
-RECOMMENDED STACK:
-- LiteGraph.js for the node canvas and interactions
-- Vanilla JavaScript (no framework needed)
-- PHP backend for saving/loading projects
-- JSON for data storage
+The system has 7 node types. Each has a unique popup with RELEVANT fields only.
 
-DATA STRUCTURE (JSON):
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 1: DATABASE (⬡ Orange Cylinder)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents a database system (MySQL, PostgreSQL, MongoDB, etc.)
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ⬡ MySQL         │
+│  Database         │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ⬡ Database                           [X]  │
+├─────────────────────────────────────────────┤
+│  Title:    [_________________________]     │
+│                                             │
+│  DB Type:  ( ) MySQL    ( ) PostgreSQL     │
+│            ( ) MongoDB  ( ) SQLite         │
+│            ( ) Redis    ( ) Other          │
+│                                             │
+│  Host:     [_________________________]     │
+│  Port:     [_________________________]     │
+│  Database: [_________________________]     │
+│  Username: [_________________________]     │
+│                                             │
+│  ═══════════════ Tables ═══════════════    │
+│                                             │
+│  [+ Add Table]                              │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ 📋 users                            │   │
+│  │    Columns: id, name, email, pwd    │   │
+│  │    [Edit Columns] [Delete Table]    │   │
+│  ├─────────────────────────────────────┤   │
+│  │ 📋 orders                           │   │
+│  │    Columns: id, user_id, total      │   │
+│  │    [Edit Columns] [Delete Table]    │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │                                     │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+SUB-POPUP: Edit Table Columns
+┌─────────────────────────────────────────────┐
+│  📋 Edit Table: users                 [X]  │
+├─────────────────────────────────────────────┤
+│  Table Name: [users__________________]     │
+│                                             │
+│  Columns:                                   │
+│  ┌─────────────────────────────────────┐   │
+│  │ Name         │ Type      │ Actions  │   │
+│  ├─────────────────────────────────────┤   │
+│  │ [id_______]  │ [INT   ▼] │ [🗑️]     │   │
+│  │ [name_____]  │ [VARCHAR▼]│ [🗑️]     │   │
+│  │ [email____]  │ [VARCHAR▼]│ [🗑️]     │   │
+│  │ [password_]  │ [VARCHAR▼]│ [🗑️]     │   │
+│  └─────────────────────────────────────┘   │
+│  [+ Add Column]                             │
+│                                             │
+│  Primary Key: [id ▼]                        │
+│                                             │
+│  [💾 Save Table]                            │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 2: BACKEND/COMPONENT (◼ Blue Rectangle)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents backend code, controllers, services
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ◼ Laravel       │
+│  Backend          │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ◼ Backend Component                  [X]  │
+├─────────────────────────────────────────────┤
+│  Title:     [_________________________]    │
+│                                             │
+│  Language:  [PHP ▼]                         │
+│             Options: PHP, Python, Node.js,  │
+│                     Java, C#, Go, Ruby      │
+│                                             │
+│  Framework: [Laravel ▼]                     │
+│             (Dynamic based on language)     │
+│                                             │
+│  ═══════════ Files/Controllers ═══════════ │
+│                                             │
+│  [+ Add File]                               │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ 📄 UserController.php         [🗑️]  │   │
+│  │ 📄 ProductController.php      [🗑️]  │   │
+│  │ 📄 OrderService.php           [🗑️]  │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │ Handles user authentication and     │   │
+│  │ product management                  │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 3: FRONTEND/UI (▭ Purple Rounded Rectangle)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents frontend application, pages, components
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ▭ React App     │
+│  Frontend         │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ▭ Frontend Application               [X]  │
+├─────────────────────────────────────────────┤
+│  Title:     [_________________________]    │
+│                                             │
+│  Framework: [React ▼]                       │
+│             Options: React, Vue, Angular,   │
+│                     Svelte, HTML/CSS, Next  │
+│                                             │
+│  Styling:   [Tailwind CSS ▼]               │
+│             Options: CSS, Tailwind, SCSS,   │
+│                     Bootstrap, Material UI  │
+│                                             │
+│  ═══════════════ Pages ═══════════════     │
+│                                             │
+│  [+ Add Page]                               │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ 🖥️ Home           /              [🗑️]│   │
+│  │ 🖥️ Products       /products      [🗑️]│   │
+│  │ 🖥️ Product Detail /products/:id  [🗑️]│   │
+│  │ 🖥️ Cart           /cart          [🗑️]│   │
+│  │ 🖥️ Checkout       /checkout      [🗑️]│   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  ═══════════ Components ═══════════════    │
+│                                             │
+│  [+ Add Component]                          │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ 🧩 Navbar                      [🗑️] │   │
+│  │ 🧩 ProductCard                 [🗑️] │   │
+│  │ 🧩 CartItem                    [🗑️] │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 4: API ENDPOINT (▲ Cyan Triangle/Hexagon)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents a single API endpoint
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ▲ GET /users    │
+│  API Endpoint     │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ▲ API Endpoint                       [X]  │
+├─────────────────────────────────────────────┤
+│  Title:    [_________________________]     │
+│                                             │
+│  Method:   (●) GET  ( ) POST               │
+│            ( ) PUT  ( ) DELETE              │
+│            ( ) PATCH                        │
+│                                             │
+│  Endpoint: [/api/____________________]     │
+│                                             │
+│  Auth:     [Bearer Token ▼]                │
+│            Options: None, Bearer Token,     │
+│                    API Key, Session, OAuth  │
+│                                             │
+│  Request Body (JSON):                       │
+│  ┌─────────────────────────────────────┐   │
+│  │ {                                   │   │
+│  │   "user_id": 1,                     │   │
+│  │   "items": []                       │   │
+│  │ }                                   │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Response (JSON):                           │
+│  ┌─────────────────────────────────────┐   │
+│  │ {                                   │   │
+│  │   "success": true,                  │   │
+│  │   "data": {}                        │   │
+│  │ }                                   │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │                                     │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 5: PROCESS/FUNCTION (● Green Circle)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents a function, process, or operation
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ● Calculate     │
+│  Process          │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ● Process / Function                 [X]  │
+├─────────────────────────────────────────────┤
+│  Title:         [_______________________]  │
+│  Function Name: [_______________________]  │
+│                                             │
+│  ═══════════════ Inputs ═══════════════    │
+│                                             │
+│  [+ Add Input]                              │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ Name          │ Type      │ Action  │   │
+│  ├─────────────────────────────────────┤   │
+│  │ [userId____]  │ [int   ▼] │ [🗑️]    │   │
+│  │ [productId_]  │ [int   ▼] │ [🗑️]    │   │
+│  │ [quantity__]  │ [int   ▼] │ [🗑️]    │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  ═══════════════ Outputs ══════════════    │
+│                                             │
+│  [+ Add Output]                             │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ [orderTotal]  │ [float ▼] │ [🗑️]    │   │
+│  │ [success___]  │ [bool  ▼] │ [🗑️]    │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description / Logic:                       │
+│  ┌─────────────────────────────────────┐   │
+│  │ Calculates the total price of an    │   │
+│  │ order based on product prices and   │   │
+│  │ quantities, applies discounts       │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 6: DECISION/CONDITION (◆ Yellow Diamond)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents a conditional branch (if/else)
+
+COLLAPSED VIEW:
+    ◆
+   /  \
+  / Is \
+ / Auth? \
+ ─────────
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ◆ Decision / Condition               [X]  │
+├─────────────────────────────────────────────┤
+│  Title:     [_________________________]    │
+│                                             │
+│  Condition (What to check):                 │
+│  ┌─────────────────────────────────────┐   │
+│  │ user.isAuthenticated === true       │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  If TRUE → goes to:                         │
+│  [Dashboard Page ▼] (select connected node) │
+│  Label: [Authenticated________________]    │
+│                                             │
+│  If FALSE → goes to:                        │
+│  [Login Page ▼] (select connected node)     │
+│  Label: [Not authenticated____________]    │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │ Checks if user is logged in before  │   │
+│  │ allowing access to dashboard        │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+────────────────────────────────────────────────────────────────────────────────
+NODE TYPE 7: EXTERNAL SERVICE (◎ Pink Octagon)
+────────────────────────────────────────────────────────────────────────────────
+Purpose: Represents third-party services (Stripe, AWS, Firebase, etc.)
+
+COLLAPSED VIEW:
+┌───────────────────┐
+│  ◎ Stripe        │
+│  Payment          │
+└───────────────────┘
+
+EXPANDED POPUP:
+┌─────────────────────────────────────────────┐
+│  ◎ External Service                   [X]  │
+├─────────────────────────────────────────────┤
+│  Title:       [_________________________]  │
+│                                             │
+│  Service:     [Stripe ▼]                   │
+│               Options: Stripe, PayPal,      │
+│               AWS, Firebase, Twilio,        │
+│               SendGrid, Cloudinary, Other   │
+│                                             │
+│  API Base URL:[_________________________]  │
+│  API Key:     [••••••••••••••••••••••••]   │
+│               [👁️ Show]                     │
+│                                             │
+│  Environment: ( ) Production (●) Sandbox   │
+│                                             │
+│  ═══════════ Used Methods ═══════════════  │
+│                                             │
+│  [+ Add Method]                             │
+│                                             │
+│  ┌─────────────────────────────────────┐   │
+│  │ • createPaymentIntent         [🗑️]  │   │
+│  │ • confirmPayment              [🗑️]  │   │
+│  │ • refund                      [🗑️]  │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │ Payment processing for orders       │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save Changes]     [🗑️ Delete Node]    │
+└─────────────────────────────────────────────┘
+
+================================================================================
+5. CONNECTIONS SYSTEM
+================================================================================
+
+CREATING CONNECTIONS:
+1. Each node has connection ports (small circles on edges)
+2. Click and drag from output port → to input port
+3. Line automatically curves to avoid overlap
+4. Arrow shows data flow direction
+
+CONNECTION TYPES (Visual Styles):
+┌─────────────────────┬──────────────────────┬─────────────────────────────────┐
+│ Type                │ Visual              │ Meaning                         │
+├─────────────────────┼──────────────────────┼─────────────────────────────────┤
+│ Data Flow           │ ─────────────▶      │ Data passes from A to B         │
+│ Optional            │ - - - - - - -▶      │ Conditional/optional connection │
+│ One-to-One          │ ──────○──────       │ 1:1 relationship                │
+│ One-to-Many         │ ──────<──────       │ 1:N relationship (crow's foot)  │
+│ Many-to-Many        │ ──────◇──────       │ N:N relationship                │
+└─────────────────────┴──────────────────────┴─────────────────────────────────┘
+
+EDITING CONNECTIONS:
+• Click on a connection line → Opens connection popup:
+
+┌─────────────────────────────────────────────┐
+│  🔗 Connection                        [X]  │
+├─────────────────────────────────────────────┤
+│  From: [MySQL Database] → To: [Backend]    │
+│                                             │
+│  Type: [Data Flow ▼]                       │
+│                                             │
+│  Label: [User data________________]        │
+│                                             │
+│  Relationship: [One-to-Many (1:N) ▼]       │
+│                                             │
+│  Description:                               │
+│  ┌─────────────────────────────────────┐   │
+│  │ Passes user records to backend      │   │
+│  └─────────────────────────────────────┘   │
+│                                             │
+│  [💾 Save]              [🗑️ Delete Line]   │
+└─────────────────────────────────────────────┘
+
+DELETING CONNECTIONS:
+• Click connection → Delete button in popup
+• OR: Select connection → Press DELETE key
+• Confirmation dialog appears before deletion
+
+IMPORTANT RULES:
+• When a node is deleted, ALL its connections are also deleted
+• User gets a warning: "Deleting this node will remove X connections"
+• Undo is available (Ctrl+Z)
+
+================================================================================
+6. TOOLBAR & CONTROLS
+================================================================================
+
+TOP TOOLBAR LAYOUT:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🎨 Visual Prompter │ SHAPES │ ACTIONS │ GENERATE                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ [⬡][◼][▭][▲][●][◆][◎] │ [💾][📂][📤] │ [↩️][↪️] │ [✨ Generate Prompt] │
+│  │  │  │  │  │  │  │    │  │  │     │  │       │                         │
+│  │  │  │  │  │  │  │    │  │  │     │  Redo   │                         │
+│  │  │  │  │  │  │  │    │  │  │     Undo                                │
+│  │  │  │  │  │  │  │    │  │  Export                                    │
+│  │  │  │  │  │  │  │    │  Load                                         │
+│  │  │  │  │  │  │  │    Save                                            │
+│  │  │  │  │  │  │  Service                                              │
+│  │  │  │  │  │  Decision                                                │
+│  │  │  │  │  Process                                                    │
+│  │  │  │  API                                                           │
+│  │  │  Frontend                                                         │
+│  │  Backend                                                             │
+│  Database                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+BOTTOM STATUS BAR:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Nodes: 5 │ Connections: 4 │ Zoom: 100% │ [−][+] │ [🔲 Grid] │ [📍 Minimap]│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ADDING NODES:
+Method 1: Click shape button → Click on canvas to place
+Method 2: Drag shape button → Drop on canvas
+Method 3: Right-click on canvas → Select from context menu
+
+CONTEXT MENUS:
+
+Canvas Right-Click:
+┌─────────────────────┐
+│ + Add Node       ▶ │ → Submenu with all node types
+│ ─────────────────── │
+│ 📋 Paste (Ctrl+V)   │
+│ 🔍 Zoom to Fit      │
+│ 🔲 Toggle Grid      │
+│ ─────────────────── │
+│ ⚙️ Settings         │
+└─────────────────────┘
+
+Node Right-Click:
+┌─────────────────────┐
+│ ✏️ Edit             │ (Opens popup)
+│ 📋 Copy (Ctrl+C)    │
+│ 📄 Duplicate        │
+│ ─────────────────── │
+│ 🗑️ Delete (Del)     │
+└─────────────────────┘
+
+================================================================================
+7. PROMPT GENERATION
+================================================================================
+
+When user clicks "✨ Generate Prompt", the system:
+
+STEP 1: Collect all nodes and their data
+STEP 2: Collect all connections and relationships
+STEP 3: Organize by category (Database, Backend, Frontend, etc.)
+STEP 4: Generate structured markdown prompt
+STEP 5: Show in modal for copy/download
+
+GENERATED PROMPT MODAL:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ✨ Generated AI Prompt                                               [X]  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ # Project: E-Commerce Application                                   │   │
+│  │                                                                     │   │
+│  │ ## Overview                                                         │   │
+│  │ Build a complete e-commerce web application with the following     │   │
+│  │ components and requirements.                                        │   │
+│  │                                                                     │   │
+│  │ ## Tech Stack                                                       │   │
+│  │ - Database: MySQL                                                   │   │
+│  │ - Backend: PHP with Laravel framework                               │   │
+│  │ - Frontend: React with Tailwind CSS                                 │   │
+│  │ - Payment: Stripe integration                                       │   │
+│  │                                                                     │   │
+│  │ ## Database Structure                                               │   │
+│  │                                                                     │   │
+│  │ ### Table: users                                                    │   │
+│  │ - id (INT, Primary Key)                                             │   │
+│  │ - name (VARCHAR)                                                    │   │
+│  │ - email (VARCHAR, Unique)                                           │   │
+│  │ - password (VARCHAR)                                                │   │
+│  │                                                                     │   │
+│  │ ### Table: products                                                 │   │
+│  │ - id (INT, Primary Key)                                             │   │
+│  │ - name (VARCHAR)                                                    │   │
+│  │ - price (DECIMAL)                                                   │   │
+│  │ - description (TEXT)                                                │   │
+│  │                                                                     │   │
+│  │ ### Relationships                                                   │   │
+│  │ - users → orders (One-to-Many)                                      │   │
+│  │ - orders ↔ products (Many-to-Many via order_items)                 │   │
+│  │                                                                     │   │
+│  │ ## Backend Requirements                                             │   │
+│  │ ... (continues)                                                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  [📋 Copy to Clipboard]   [💾 Download .txt]   [Close]                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+PROMPT TEMPLATE STRUCTURE:
+```markdown
+# Project: {Project Name}
+
+## Overview
+{Auto-generated based on diagram complexity}
+
+## Tech Stack
+{List all technologies from nodes}
+
+## Database Structure
+{For each Database node}
+### {Database Title}
+- Type: {dbType}
+- Host: {host}:{port}
+
+### Tables
+{For each table}
+- {table name}: {columns}
+
+### Relationships
+{From connections between tables}
+
+## Backend
+{For each Backend node}
+### {Backend Title}
+- Language: {language}
+- Framework: {framework}
+- Files: {list}
+
+## Frontend
+{For each Frontend node}
+### {Frontend Title}
+- Framework: {framework}
+- Pages: {list}
+- Components: {list}
+
+## API Endpoints
+{For each API node}
+### {Method} {endpoint}
+- Auth: {auth}
+- Request: {request body}
+- Response: {response body}
+
+## External Services
+{For each Service node}
+### {Service Title}
+- Provider: {service}
+- Purpose: {description}
+
+## Data Flow
+{From connections}
+- {Node A} → {Node B}: {label}
+
+## Additional Requirements
+{From descriptions}
+```
+
+================================================================================
+8. DATA STRUCTURE (JSON)
+================================================================================
+
+PROJECT FILE FORMAT:
+```json
 {
   "version": "1.0",
   "projectName": "My E-Commerce App",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T14:45:00Z",
+  
+  "canvas": {
+    "zoom": 1.0,
+    "panX": 0,
+    "panY": 0,
+    "gridEnabled": true
+  },
+  
   "nodes": [
     {
       "id": "node_1",
       "type": "database",
-      "shape": "cylinder",
       "position": { "x": 100, "y": 200 },
-      "collapsed": true,
       "properties": {
         "title": "MySQL Database",
         "dbType": "mysql",
         "host": "localhost",
         "port": 3306,
+        "database": "ecommerce",
+        "username": "root",
         "tables": [
           {
             "name": "users",
-            "columns": ["id", "name", "email", "password"]
+            "columns": [
+              { "name": "id", "type": "INT", "primary": true },
+              { "name": "name", "type": "VARCHAR" },
+              { "name": "email", "type": "VARCHAR" }
+            ]
           }
-        ]
+        ],
+        "description": "Main application database"
+      }
+    },
+    {
+      "id": "node_2",
+      "type": "backend",
+      "position": { "x": 400, "y": 200 },
+      "properties": {
+        "title": "Laravel Backend",
+        "language": "php",
+        "framework": "laravel",
+        "files": ["UserController.php", "ProductController.php"],
+        "description": "REST API backend"
       }
     }
   ],
+  
   "connections": [
     {
       "id": "conn_1",
-      "from": "node_1",
-      "to": "node_2",
+      "from": { "nodeId": "node_1", "port": "output" },
+      "to": { "nodeId": "node_2", "port": "input" },
       "type": "data_flow",
-      "label": "User data"
+      "style": "one_to_many",
+      "label": "User data",
+      "description": "Passes user records to backend for processing"
     }
   ]
 }
-
-LITEGRAPH.JS CUSTOM NODE EXAMPLE:
-```javascript
-// Define custom Database node
-function DatabaseNode() {
-    this.addOutput("data", "object");
-    this.properties = { 
-        title: "Database",
-        dbType: "mysql",
-        host: "localhost",
-        port: 3306,
-        tables: []
-    };
-    this.size = [180, 60]; // Collapsed size
-}
-
-DatabaseNode.title = "Database";
-DatabaseNode.desc = "Database storage node";
-
-// When double-clicked, show popup
-DatabaseNode.prototype.onDblClick = function(e, pos, canvas) {
-    showNodePopup(this); // Custom function to show full editor popup
-};
-
-// Collapse appearance
-DatabaseNode.prototype.onDrawForeground = function(ctx) {
-    ctx.fillStyle = "#f97316";
-    ctx.font = "14px Arial";
-    ctx.fillText("⬡ " + this.properties.title, 10, 25);
-    ctx.fillStyle = "#888";
-    ctx.font = "10px Arial";
-    ctx.fillText(this.properties.dbType, 10, 40);
-};
-
-LiteGraph.registerNodeType("prompt/database", DatabaseNode);
 ```
 
-PROMPT GENERATION ALGORITHM:
-1. Parse JSON structure
-2. Identify all node types
-3. Group by layer/category
-4. Extract relationships from connections
-5. Build prompt sections in order:
-   - Overview
-   - Tech Stack
-   - Database
-   - Backend
-   - Frontend
-   - APIs
-   - Special Requirements
-6. Format with markdown
-7. Optimize for AI consumption
-
 ================================================================================
-TEMPLATE LIBRARY
+9. IMPLEMENTATION GUIDE
 ================================================================================
 
-Pre-built templates for common architectures:
+PHASE 1 - MVP (Week 1-2):
+─────────────────────────
+□ Setup LiteGraph.js canvas with dark theme
+□ Create 3 node types: Database, Backend, Frontend
+□ Implement popup system for node editing
+□ Basic connections (click-drag)
+□ Save/Load JSON
+□ Basic prompt generation
 
-1. E-COMMERCE SYSTEM
-   - Database schema for products, users, orders
-   - Backend API structure
-   - Frontend pages
+PHASE 2 - Core Features (Week 3-4):
+───────────────────────────────────
+□ All 7 node types with full popups
+□ Connection editing popup
+□ Connection types (1:1, 1:N, N:N)
+□ Improved prompt generation with all sections
+□ Copy to clipboard
+□ Download as .txt
 
-2. BLOG/CMS
-   - Posts, categories, comments
-   - Admin panel
-   - Public frontend
+PHASE 3 - Polish (Week 5-6):
+────────────────────────────
+□ Keyboard shortcuts
+□ Undo/Redo
+□ Context menus
+□ Minimap
+□ Zoom controls
+□ Grid toggle
+□ Templates library
 
-3. CRUD APPLICATION
-   - Basic create, read, update, delete
-   - Single table with relationships
-
-4. AUTHENTICATION SYSTEM
-   - Users, roles, permissions
-   - Login/register flow
-   - Password reset
-
-5. API-ONLY BACKEND
-   - RESTful endpoints
-   - Authentication
-   - Rate limiting
-
-6. MICROSERVICES
-   - Multiple services
-   - Message queues
-   - API gateway
-
-================================================================================
-SMART FEATURES
-================================================================================
-
-1. AUTO-SUGGESTIONS
-   - As user adds nodes, suggest related nodes
-   - "You added a Users table, do you need Authentication?"
-
-2. VALIDATION
-   - Check for orphan nodes (not connected)
-   - Verify relationship logic
-   - Warn about missing required fields in popup
-
-3. PROMPT OPTIMIZATION
-   - Arrange prompt sections logically
-   - Remove redundancy
-   - Add context where needed
-
-4. VERSION CONTROL
-   - Save diagram history
-   - Compare versions
-   - Undo/redo unlimited
+PHASE 4 - Advanced (Future):
+────────────────────────────
+□ Auto-suggestions
+□ Validation warnings
+□ Export as PNG/SVG
+□ Share links
+□ Collaboration
 
 ================================================================================
-TARGET USERS
+10. KEYBOARD SHORTCUTS
 ================================================================================
 
-1. NON-PROGRAMMERS who understand systems conceptually
-2. DESIGNERS who think visually
-3. PROJECT MANAGERS who need to communicate requirements
-4. STUDENTS learning software architecture
-5. ENTREPRENEURS with app ideas but no coding skills
-6. TEAMS who need to document and share system designs
+GENERAL:
+┌─────────────────────┬─────────────────────────────────────────────────────────┐
+│ Shortcut            │ Action                                                  │
+├─────────────────────┼─────────────────────────────────────────────────────────┤
+│ Ctrl + S            │ Save project                                            │
+│ Ctrl + O            │ Open/Load project                                       │
+│ Ctrl + Z            │ Undo                                                    │
+│ Ctrl + Y            │ Redo                                                    │
+│ Ctrl + C            │ Copy selected node                                      │
+│ Ctrl + V            │ Paste node                                              │
+│ Ctrl + D            │ Duplicate selected node                                 │
+│ Delete / Backspace  │ Delete selected node or connection                      │
+│ Escape              │ Close popup / Deselect                                  │
+│ Ctrl + G            │ Generate prompt                                         │
+│ Ctrl + A            │ Select all nodes                                        │
+│ Ctrl + +            │ Zoom in                                                 │
+│ Ctrl + -            │ Zoom out                                                │
+│ Ctrl + 0            │ Reset zoom (100%)                                       │
+│ Ctrl + F            │ Zoom to fit all nodes                                   │
+│ Space + Drag        │ Pan canvas                                              │
+│ G                   │ Toggle grid                                             │
+│ M                   │ Toggle minimap                                          │
+└─────────────────────┴─────────────────────────────────────────────────────────┘
 
-================================================================================
-SUCCESS CRITERIA
-================================================================================
+NODE SHORTCUTS (when node selected):
+┌─────────────────────┬─────────────────────────────────────────────────────────┐
+│ Enter / Double-click│ Open node popup                                         │
+│ Arrow keys          │ Move node by 10px                                       │
+│ Shift + Arrow       │ Move node by 1px (precise)                              │
+└─────────────────────┴─────────────────────────────────────────────────────────┘
 
-The Visual Prompter is successful when:
-
-✓ A user with NO programming knowledge can create a diagram
-✓ The generated prompt is clear enough for any AI to understand
-✓ The AI can generate working code from the prompt
-✓ The workflow is faster than writing prompts manually
-✓ Complex systems can be represented visually
-✓ The tool is intuitive (no manual needed)
-✓ MAXIMUM canvas space - NO sidebar clutter
-✓ All editing happens INSIDE node popups
-
-================================================================================
-IMPLEMENTATION PRIORITY
-================================================================================
-
-PHASE 1 (MVP):
-- Setup LiteGraph.js canvas
-- Create custom node types (Database, Backend, API, etc.)
-- Implement popup editor for each node type
-- Simple line connections
-- Basic prompt generation
-- Save/Load JSON
-
-PHASE 2:
-- All shape types
-- Advanced connections with labels
-- Template library
-- Better prompt formatting
-- Keyboard shortcuts
-
-PHASE 3:
-- Auto-suggestions
-- Validation
-- Collaboration
-- Version history
+QUICK ADD (Press key, then click canvas):
+┌─────────────────────┬─────────────────────────────────────────────────────────┐
+│ 1                   │ Add Database node                                       │
+│ 2                   │ Add Backend node                                        │
+│ 3                   │ Add Frontend node                                       │
+│ 4                   │ Add API node                                            │
+│ 5                   │ Add Process node                                        │
+│ 6                   │ Add Decision node                                       │
+│ 7                   │ Add Service node                                        │
+└─────────────────────┴─────────────────────────────────────────────────────────┘
 
 ================================================================================
 END OF SPECIFICATION
 ================================================================================
 
-This document serves as a comprehensive guide for building the Visual Prompter.
-The goal is to democratize AI prompt creation by making it visual and intuitive.
+SUMMARY OF KEY PRINCIPLES:
 
-KEY PRINCIPLE: Everything inside the node popup, nothing in sidebars!
+1. NO SIDEBARS - Everything in popups
+2. CLICK TO EDIT - Single click opens popup
+3. ONE POPUP AT A TIME - Previous closes when new opens
+4. AUTO-SAVE - Changes save when popup closes
+5. MAXIMUM CANVAS - UI takes minimal space
+6. VISUAL FIRST - Draw, don't write
+7. SMART GENERATION - Comprehensive prompt from diagram
 
-"If you can draw it, you can build it."
+"If you can draw it, you can prompt it."
 
 ================================================================================
