@@ -1462,3 +1462,8 @@ SUMMARY OF KEY PRINCIPLES:
 "Make it so beautiful they can't look away."
 
 ================================================================================
+
+
+Add Clear button to clear all projects in the screen. 
+
+Make sure the name you add is not preserved. Check the route. Make sure the name you add is different so that it does not contradict with the existing names of the files. 

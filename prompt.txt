@@ -1,1 +1,6 @@
-Also add to visual prompt.text that the UI theme should be appealing, outstanding, very nice, cool, and modern. Try to make it as creative as possible and try to make the functionality and the idea as creative as possible. Try to be very creative in the functions, the theme, it should be very attractive and very user friendly. Also, while applying, try to make it as easy as possible and to be as creative as possible. 
+<!-- FILE:visual-prompter.txt:1766164698260 -->
+[📎 File Reference: visual-prompter.txt | Path: uploads/1766162917_visual-prompter.txt]
+<!-- /END  FILE:visual-prompter.txt:1766164698260 -->
+
+
+Please go ahead and start building the application according to the full scale prompts in PHP. 
