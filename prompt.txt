@@ -1,14 +1,11 @@
-<!-- FILE:report-prompt-databases.php:1766178528626 -->
-[📎 File Reference: report-prompt-databases.php | Path: uploads/1766178523_report-prompt-databases.php]
-<!-- /END  FILE:report-prompt-databases.php:1766178528626 -->
+<!-- FILE:appmaker.php:1766179100938 -->
+[📎 File Reference: appmaker.php | Size: 439.03 KB | Type: unknown]
+<!-- /END  FILE:appmaker.php:1766179100938 -->
 
-there is a list of databases credentials and this table I want you to take from this table database the same drop down you put it in the database icon whenever I create it and generate it and the container as a drop down where I can push the credential of any of these database and it will push it to the description. Also check what database type is it and make the radio button whenever I select it, it will select the database type that matches this database type. This is from Hostinger and all the credentials are available there. You can see which type of database and make the radio button automatically select the database and also send the database credentials to the description of the database form container so put this as a drop down above the description and an arrow to push the information to the description on whatever database I select also the drop-down should increase or decrease according to the table of this databases list. Databases list I might increase or decrease the drop-down should increase or decrease according to this table so it should be dynamic checking every time when I start the application what are the available items in the database or databases available in Hostinger from this table And then it will show me and then it will process the sending to the description text area. 
+Now I want you to read this application and do the exact same thing what you did in the in the previous request and it is to take but instead of taking the database items and pushing them I want you to take the mechanism of tables there is you read this application carefully and you'll find a mechanism a table mechanism creation I want this table mechanism creation to extract it I want you to extract it and put it as a pop-up of creating tables and pushing them to the description of the database but do not clutter it inside the form, make it a pop-up and take the ID and mechanism from this appmaker.php and the table will be created and pushed just like you pushed the database information into the description Make sure you put all the mechanism of creating the table even the templates and other stuff therefore read it and I prefer if you Share with this page if you can do it by sharing from this page or extracting see what is easier and then do it. If you can go and take the page mechanism by sharing it or borrowing it or go ahead and do it. If it is impossible programmatically then go ahead and extract it, create in the pop-up in our related files but make sure you don't change anything in the app maker.php since it's an independent working app do everything in your site and do not tamper or change app maker.php of course you will do everything in 
 
-
-All this will be done in 
-
-
-
-<!-- FILE:visual-prompter.php:1766178691550 -->
+<!-- FILE:visual-prompter.php:1766179279363 -->
 [📎 File Reference: visual-prompter.php | Path: uploads/1766177629_visual-prompter.php]
-<!-- /END  FILE:visual-prompter.php:1766178691550 -->
+<!-- /END  FILE:visual-prompter.php:1766179279363 -->
+
+Therefore try to make it clean and neat and not cluttered A nice pop-up button written on it, add table A pop-up will come up the exact same functionality of adding tables And templates of tables Thank you. 

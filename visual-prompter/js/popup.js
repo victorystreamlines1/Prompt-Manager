@@ -706,9 +706,16 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
         },
 
         /**
-         * Show add table dialog
+         * Show add table dialog - Now uses TableBuilder
          */
         showAddTableDialog: function() {
+            // Use the advanced TableBuilder if available
+            if (window.TableBuilder) {
+                TableBuilder.open(this.currentNode);
+                return;
+            }
+            
+            // Fallback to simple prompt if TableBuilder not loaded
             const tableName = prompt('Enter table name:');
             if (tableName && tableName.trim()) {
                 if (!this.currentNode.properties.tables) {
@@ -725,12 +732,49 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
         },
 
         /**
-         * Show edit table dialog
+         * Show edit table dialog - Now uses TableBuilder for editing
          */
         showEditTableDialog: function(index) {
             const table = this.currentNode.properties.tables[index];
             if (!table) return;
 
+            // Use the advanced TableBuilder if available
+            if (window.TableBuilder) {
+                // Pre-populate the TableBuilder with existing table data
+                TableBuilder.open(this.currentNode);
+                // Set the table name
+                document.getElementById('tb-table-name').value = table.name;
+                TableBuilder.tableName = table.name;
+                
+                // Convert existing columns to TableBuilder format
+                if (table.columns && table.columns.length > 0) {
+                    TableBuilder.currentFields = table.columns.map(col => {
+                        // Parse type and length from "VARCHAR(255)" format
+                        const typeMatch = col.type.match(/^(\w+)(?:\(([^)]+)\))?$/);
+                        const sqlType = typeMatch ? typeMatch[1].toUpperCase() : 'VARCHAR';
+                        const length = typeMatch && typeMatch[2] ? typeMatch[2] : '';
+                        
+                        return {
+                            type: 'text',
+                            label: col.name,
+                            sqlType: sqlType,
+                            length: length,
+                            icon: '📝',
+                            fieldName: col.name,
+                            notNull: false,
+                            unique: false,
+                            primaryKey: col.name.toLowerCase() === 'id',
+                            autoIncrement: col.name.toLowerCase() === 'id',
+                            defaultValue: ''
+                        };
+                    });
+                    TableBuilder.renderFields();
+                    TableBuilder.updateSQLPreview();
+                }
+                return;
+            }
+
+            // Fallback to simple prompt if TableBuilder not loaded
             const columns = table.columns || [];
             let columnsList = columns.map(c => `${c.name} (${c.type})`).join('\n');
             

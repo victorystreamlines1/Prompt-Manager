@@ -285,6 +285,7 @@
     <script src="visual-prompter/js/nodes/ProcessNode.js"></script>
     <script src="visual-prompter/js/nodes/DecisionNode.js"></script>
     <script src="visual-prompter/js/nodes/ServiceNode.js"></script>
+    <script src="visual-prompter/js/table-builder.js"></script>
     <script src="visual-prompter/js/popup.js"></script>
     <script src="visual-prompter/js/prompt-generator.js"></script>
     <script src="visual-prompter/js/node-enhancer.js"></script>
