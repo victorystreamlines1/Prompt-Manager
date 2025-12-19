@@ -287,6 +287,7 @@
     <script src="visual-prompter/js/nodes/ServiceNode.js"></script>
     <script src="visual-prompter/js/popup.js"></script>
     <script src="visual-prompter/js/prompt-generator.js"></script>
+    <script src="visual-prompter/js/node-enhancer.js"></script>
     <script src="visual-prompter/js/app.js"></script>
 
 <!-- Back to Catalog Button -->

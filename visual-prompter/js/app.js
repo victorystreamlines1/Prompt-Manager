@@ -109,15 +109,14 @@
             // Set canvas background
             this.graphCanvas.clear_background_color = '#0D0D1A';
             
-            // Handle node click for popup
-            const self = this;
-            this.graphCanvas.onNodeSelected = function(node) {
-                if (node && node.getPopupData) {
-                    PopupEditor.open(node);
-                }
-            };
+            // Initialize Node Enhancer for interactive zones
+            // (X to delete, drag header, double-click for form, connection slots)
+            if (typeof NodeEnhancer !== 'undefined') {
+                NodeEnhancer.init(this.graphCanvas, this.graph);
+            }
             
             // Track changes
+            const self = this;
             this.graph.onNodeAdded = function() {
                 self.onGraphChanged();
             };
@@ -285,10 +284,7 @@
                 // Select the new node
                 this.graphCanvas.selectNode(node);
                 
-                // Open popup for editing
-                setTimeout(() => PopupEditor.open(node), 100);
-                
-                this.showToast(`${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} node added`, 'success');
+                this.showToast(`${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} node added - Double-click to edit`, 'success');
             }
         },
 
