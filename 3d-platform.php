@@ -1161,9 +1161,6 @@
                 <button class="btn btn-secondary" id="reset-default-btn" title="Reset all changes to default">
                     <span>🔄</span> Reset Default
                 </button>
-                <a href="viewer.php" class="btn btn-secondary">
-                    <span>←</span> Back to Viewer
-                </a>
                 
                 <!-- Save HTML Button (for STL/OBJ/FBX/GLB files) -->
                 <button class="btn btn-success" id="save-btn" style="display: none;">
@@ -1385,29 +1382,21 @@
                 </div>
             </div>
             
-            <!-- Export Section -->
+            <!-- Prompt Section -->
             <div class="panel-section">
                 <div class="panel-header">
-                    <h3><span>💾</span> Export</h3>
+                    <h3><span>✨</span> Prompt</h3>
                     <span class="panel-toggle">▼</span>
                 </div>
                 <div class="panel-content">
                     <div class="export-grid">
-                        <button class="export-btn" data-export="html">
-                            <span>🌐</span>
-                            <span>HTML Viewer</span>
+                        <button class="export-btn" id="generate-prompt-btn">
+                            <span>🤖</span>
+                            <span>Generate Prompt</span>
                         </button>
-                        <button class="export-btn" data-export="stl">
-                            <span>📦</span>
-                            <span>STL</span>
-                        </button>
-                        <button class="export-btn" data-export="obj">
-                            <span>📦</span>
-                            <span>OBJ</span>
-                        </button>
-                        <button class="export-btn" data-export="glb">
-                            <span>📦</span>
-                            <span>GLB</span>
+                        <button class="export-btn" id="export-prompt-btn">
+                            <span>📤</span>
+                            <span>Export Prompt</span>
                         </button>
                     </div>
                 </div>
@@ -1419,9 +1408,9 @@
             <div class="no-data-icon">🔮</div>
             <h2>No Model Data</h2>
             <p>Upload a 3D model to start editing</p>
-            <a href="viewer.php" class="btn btn-primary">
-                <span>←</span> Go to Viewer
-            </a>
+            <button class="btn btn-primary" onclick="document.getElementById('file-upload-input').click()">
+                <span>📁</span> Upload Model
+            </button>
         </div>
     </div>
     
