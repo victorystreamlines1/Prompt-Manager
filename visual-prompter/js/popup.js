@@ -208,9 +208,39 @@
                 case 'param-list':
                     return this.buildParamListHTML(field, value || []);
 
+                case 'hostinger-db-selector':
+                    return this.buildHostingerDbSelectorHTML(field);
+
                 default:
                     return '';
             }
+        },
+
+        /**
+         * Build Hostinger database selector HTML
+         */
+        buildHostingerDbSelectorHTML: function(field) {
+            return `
+                <div class="popup-section hostinger-db-section">
+                    <div class="popup-section-title">
+                        <span style="color: #F97316;">🗄️</span> ${field.label}
+                    </div>
+                    <div class="hostinger-db-container">
+                        <div class="hostinger-db-row">
+                            <select id="hostinger-db-select" class="form-select hostinger-db-select" data-target="${field.targetField}">
+                                <option value="">-- Select a database from Hostinger --</option>
+                            </select>
+                            <button type="button" id="hostinger-db-refresh" class="btn-refresh" title="Refresh list">
+                                🔄
+                            </button>
+                        </div>
+                        <button type="button" id="hostinger-db-push" class="btn-push" disabled>
+                            <span>⬇️</span> Push Credentials to Description
+                        </button>
+                        <div id="hostinger-db-status" class="hostinger-db-status"></div>
+                    </div>
+                </div>
+            `;
         },
 
         /**
@@ -427,6 +457,252 @@
                     self.deleteListItem('tables', parseInt(this.dataset.index));
                 });
             });
+
+            // Initialize Hostinger database selector
+            this.initHostingerDbSelector();
+        },
+
+        /**
+         * Hostinger databases cache
+         */
+        hostingerDatabases: [],
+
+        /**
+         * Initialize Hostinger database selector
+         */
+        initHostingerDbSelector: function() {
+            const self = this;
+            const select = document.getElementById('hostinger-db-select');
+            const refreshBtn = document.getElementById('hostinger-db-refresh');
+            const pushBtn = document.getElementById('hostinger-db-push');
+            const statusDiv = document.getElementById('hostinger-db-status');
+
+            if (!select) return;
+
+            // Fetch databases on init
+            this.fetchHostingerDatabases();
+
+            // Refresh button
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    this.fetchHostingerDatabases(true);
+                });
+            }
+
+            // Database selection change
+            select.addEventListener('change', function() {
+                const selectedId = this.value;
+                if (pushBtn) {
+                    pushBtn.disabled = !selectedId;
+                }
+
+                if (selectedId) {
+                    const db = self.hostingerDatabases.find(d => d.id === selectedId);
+                    if (db) {
+                        // Auto-select the database type radio button
+                        self.selectDatabaseType(db.dbType);
+                        
+                        // Auto-fill other fields
+                        self.fillDatabaseFields(db);
+                        
+                        if (statusDiv) {
+                            statusDiv.innerHTML = `<span style="color: #10B981;">✓ Selected: ${db.name}</span>`;
+                        }
+                    }
+                } else {
+                    if (statusDiv) {
+                        statusDiv.innerHTML = '';
+                    }
+                }
+            });
+
+            // Push button
+            if (pushBtn) {
+                pushBtn.addEventListener('click', () => {
+                    const selectedId = select.value;
+                    if (selectedId) {
+                        const db = self.hostingerDatabases.find(d => d.id === selectedId);
+                        if (db) {
+                            self.pushCredentialsToDescription(db);
+                        }
+                    }
+                });
+            }
+        },
+
+        /**
+         * Fetch Hostinger databases from API
+         */
+        fetchHostingerDatabases: function(forceRefresh = false) {
+            const select = document.getElementById('hostinger-db-select');
+            const statusDiv = document.getElementById('hostinger-db-status');
+            const refreshBtn = document.getElementById('hostinger-db-refresh');
+
+            if (!select) return;
+
+            // Show loading state
+            select.innerHTML = '<option value="">Loading databases...</option>';
+            select.disabled = true;
+            if (refreshBtn) refreshBtn.disabled = true;
+            if (statusDiv) statusDiv.innerHTML = '<span style="color: #6366F1;">🔄 Fetching from Hostinger...</span>';
+
+            // Fetch from API
+            fetch('visual-prompter/api/get-databases.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.databases) {
+                        this.hostingerDatabases = data.databases;
+                        this.populateHostingerDbSelect(data.databases);
+                        
+                        if (statusDiv) {
+                            statusDiv.innerHTML = `<span style="color: #10B981;">✓ ${data.count} database(s) available</span>`;
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to fetch databases');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching Hostinger databases:', error);
+                    select.innerHTML = '<option value="">Error loading databases</option>';
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `<span style="color: #EF4444;">❌ ${error.message}</span>`;
+                    }
+                })
+                .finally(() => {
+                    select.disabled = false;
+                    if (refreshBtn) refreshBtn.disabled = false;
+                });
+        },
+
+        /**
+         * Populate the Hostinger database dropdown
+         */
+        populateHostingerDbSelect: function(databases) {
+            const select = document.getElementById('hostinger-db-select');
+            if (!select) return;
+
+            let options = '<option value="">-- Select a database from Hostinger --</option>';
+            
+            databases.forEach(db => {
+                const typeIcon = this.getDatabaseTypeIcon(db.dbType);
+                options += `<option value="${db.id}" data-type="${db.dbType}">${typeIcon} ${db.name} (${db.dbName})</option>`;
+            });
+
+            select.innerHTML = options;
+        },
+
+        /**
+         * Get icon for database type
+         */
+        getDatabaseTypeIcon: function(dbType) {
+            const icons = {
+                'mysql': '🐬',
+                'postgresql': '🐘',
+                'mongodb': '🍃',
+                'sqlite': '📦',
+                'redis': '🔴',
+                'other': '💾'
+            };
+            return icons[dbType] || icons['other'];
+        },
+
+        /**
+         * Auto-select database type radio button
+         */
+        selectDatabaseType: function(dbType) {
+            const radioInputs = document.querySelectorAll('input[data-key="dbType"]');
+            radioInputs.forEach(radio => {
+                if (radio.value === dbType) {
+                    radio.checked = true;
+                    // Update the node property immediately
+                    if (this.currentNode) {
+                        this.currentNode.properties.dbType = dbType;
+                    }
+                }
+            });
+        },
+
+        /**
+         * Auto-fill database fields
+         */
+        fillDatabaseFields: function(db) {
+            // Fill host
+            const hostInput = document.querySelector('[data-key="host"]');
+            if (hostInput) {
+                hostInput.value = db.host;
+                if (this.currentNode) this.currentNode.properties.host = db.host;
+            }
+
+            // Fill port
+            const portInput = document.querySelector('[data-key="port"]');
+            if (portInput) {
+                portInput.value = db.port;
+                if (this.currentNode) this.currentNode.properties.port = db.port;
+            }
+
+            // Fill database name
+            const dbNameInput = document.querySelector('[data-key="database"]');
+            if (dbNameInput) {
+                dbNameInput.value = db.dbName;
+                if (this.currentNode) this.currentNode.properties.database = db.dbName;
+            }
+
+            // Fill username
+            const usernameInput = document.querySelector('[data-key="username"]');
+            if (usernameInput) {
+                usernameInput.value = db.username;
+                if (this.currentNode) this.currentNode.properties.username = db.username;
+            }
+
+            // Fill title if empty
+            const titleInput = document.querySelector('[data-key="title"]');
+            if (titleInput && !titleInput.value) {
+                titleInput.value = db.name;
+                if (this.currentNode) this.currentNode.properties.title = db.name;
+            }
+        },
+
+        /**
+         * Push credentials to description textarea
+         */
+        pushCredentialsToDescription: function(db) {
+            const descTextarea = document.querySelector('[data-key="description"]');
+            if (!descTextarea) return;
+
+            // Format credentials as text
+            const credentials = `Database Credentials (${db.name})
+═══════════════════════════════════════
+Type: ${db.dbType.toUpperCase()}
+Host: ${db.host}
+Port: ${db.port}
+Database: ${db.dbName}
+Username: ${db.username}
+Password: ${db.password}
+═══════════════════════════════════════
+Hosting Type: ${db.type}
+Created: ${new Date(db.createdAt).toLocaleDateString()}`;
+
+            // Append or replace description
+            if (descTextarea.value.trim()) {
+                const append = confirm('Description already has content. Append credentials?\n\nClick OK to append, Cancel to replace.');
+                if (append) {
+                    descTextarea.value = descTextarea.value + '\n\n' + credentials;
+                } else {
+                    descTextarea.value = credentials;
+                }
+            } else {
+                descTextarea.value = credentials;
+            }
+
+            // Update node property
+            if (this.currentNode) {
+                this.currentNode.properties.description = descTextarea.value;
+            }
+
+            // Show success message
+            if (window.VisualPrompter) {
+                VisualPrompter.showToast('Credentials pushed to description', 'success');
+            }
         },
 
         /**

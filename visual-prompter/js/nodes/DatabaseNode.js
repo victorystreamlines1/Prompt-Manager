@@ -85,6 +85,12 @@
                 { key: 'database', label: 'Database Name', type: 'text', placeholder: 'my_database' },
                 { key: 'username', label: 'Username', type: 'text', placeholder: 'root' },
                 { key: 'tables', label: 'Tables', type: 'table-list' },
+                {
+                    key: 'hostingerDb',
+                    label: 'Load from Hostinger',
+                    type: 'hostinger-db-selector',
+                    targetField: 'description'
+                },
                 { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Describe the purpose of this database...' }
             ]
         };

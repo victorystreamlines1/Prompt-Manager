@@ -1,5 +1,14 @@
-<!-- FILE:visual-prompter.php:1766177628363 -->
-[📎 File Reference: visual-prompter.php | Size: 15.68 KB | Type: unknown]
-<!-- /END  FILE:visual-prompter.php:1766177628363 -->
+<!-- FILE:report-prompt-databases.php:1766178528626 -->
+[📎 File Reference: report-prompt-databases.php | Path: uploads/1766178523_report-prompt-databases.php]
+<!-- /END  FILE:report-prompt-databases.php:1766178528626 -->
 
-I have rolled back on what you did because you misunderstood me. I want everything the same, but whenever the icon is in the screen, so I click and I drag out the icon, I pop it up and put it in the screen. Once it's there, I want all the actions to be there. I want to have a small X to make the icon disappear or cleared. individually I want part of the icon I mean not the icon the popped up container that pertains to the database or whatever tool I'm using in development in the screen I'm speaking when the tool is outside the upper menu horizontal bar and pull to the screen there. I want the dragable part of the container a hand to drag. Part of the container a double click to pop up the form and part of the container whenever I'm on the connection part I create a connection so I think you misunderstood me I didn't mean to do to do them on the horizontal top menu bar no not at all when it they are on the screen generated and the containers are working in the process there I want all the organization to be. So I hold back, please redo them on the right way or the proper way. 
+there is a list of databases credentials and this table I want you to take from this table database the same drop down you put it in the database icon whenever I create it and generate it and the container as a drop down where I can push the credential of any of these database and it will push it to the description. Also check what database type is it and make the radio button whenever I select it, it will select the database type that matches this database type. This is from Hostinger and all the credentials are available there. You can see which type of database and make the radio button automatically select the database and also send the database credentials to the description of the database form container so put this as a drop down above the description and an arrow to push the information to the description on whatever database I select also the drop-down should increase or decrease according to the table of this databases list. Databases list I might increase or decrease the drop-down should increase or decrease according to this table so it should be dynamic checking every time when I start the application what are the available items in the database or databases available in Hostinger from this table And then it will show me and then it will process the sending to the description text area. 
+
+
+All this will be done in 
+
+
+
+<!-- FILE:visual-prompter.php:1766178691550 -->
+[📎 File Reference: visual-prompter.php | Path: uploads/1766177629_visual-prompter.php]
+<!-- /END  FILE:visual-prompter.php:1766178691550 -->
