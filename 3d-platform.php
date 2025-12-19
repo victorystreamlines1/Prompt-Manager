@@ -1155,6 +1155,9 @@
                 <button class="btn btn-secondary" id="upload-btn" title="Upload 3D model or HTML">
                     <span>📂</span> Upload
                 </button>
+                <button class="btn btn-secondary" id="download-btn" title="Download model">
+                    <span>⬇️</span> Download
+                </button>
                 <button class="btn btn-secondary" id="clear-btn" title="Clear platform">
                     <span>🗑️</span> Clear
                 </button>
@@ -2776,6 +2779,19 @@
         
         document.getElementById('upload-btn').addEventListener('click', () => {
             fileInput.click();
+        });
+        
+        // Download button - triggers export modal
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (!platformState.mesh || !platformState.geometryData) {
+                showToast('No model loaded to download', 'warning');
+                return;
+            }
+            // Open export modal with current model name
+            const exportModal = document.getElementById('export-modal');
+            const exportFilename = document.getElementById('export-filename');
+            exportFilename.value = platformState.currentFileName?.replace(/\.[^/.]+$/, '') || 'model';
+            exportModal.classList.add('active');
         });
         
         fileInput.addEventListener('change', async (e) => {
