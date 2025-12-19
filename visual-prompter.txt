@@ -3,42 +3,27 @@
                     A Revolutionary Visual-to-Prompt Design System
 ================================================================================
 
-⚠️ IMPORTANT: STARTING POINT
+⚠️ IMPORTANT: BUILD WITH LiteGraph.js
 ================================================================================
 
-THIS PROJECT ALREADY HAS A STARTING POINT FILE: 3d-platform.php
+RECOMMENDED LIBRARY: LiteGraph.js
+- Lightweight, vanilla JavaScript (no React/Vue required)
+- Specifically designed for node-based visual editors
+- Used in ComfyUI (popular AI tool)
+- Easy to integrate with PHP
 
-DO NOT BUILD FROM SCRATCH. Instead, MODIFY and EXTEND the existing file.
+CDN Links:
+<link rel="stylesheet" href="https://unpkg.com/litegraph.js/css/litegraph.css">
+<script src="https://unpkg.com/litegraph.js/build/litegraph.min.js"></script>
 
-The file `3d-platform.php` already contains:
-✓ Three.js 3D canvas with scene, camera, renderer
-✓ OrbitControls for camera manipulation  
-✓ Grid helper and lighting setup
-✓ Dark theme UI with modern styling (CSS variables, aurora background)
-✓ Header with project name, Load/Save/Download buttons
-✓ Left toolbar for tools
-✓ Right panel with Transform, Node Style, Scene, and Prompt sections
-✓ Save/Load JSON functionality
-✓ Platform state management (nodes array, connections array, etc.)
-✓ Toast notification system
-✓ Modal dialogs
-
-YOUR TASK: Transform this existing 3D platform into the Visual Prompter by:
-1. Adding node/shape creation functionality (drag shapes onto canvas)
-2. Adding connection drawing between nodes
-3. Adding property editor for node details
-4. Implementing the prompt generation algorithm
-5. Keeping all existing UI/UX design intact
-
-START FROM: 3d-platform.php
-OUTPUT: Modified 3d-platform.php with Visual Prompter functionality
+Alternative: React Flow (if using React framework)
 
 ================================================================================
 PROJECT OVERVIEW
 ================================================================================
 
 I want to build a "Visual Prompter" - a web-based application that allows users 
-to CREATE AI PROMPTS VISUALLY through 3D diagrams, flowcharts, and connected 
+to CREATE AI PROMPTS VISUALLY through diagrams, flowcharts, and connected 
 shapes, similar to how designers work in Fusion 360, SolidWorks, or Visio.
 
 The core concept is: DRAW YOUR PROMPT, DON'T WRITE IT.
@@ -48,6 +33,224 @@ This tool is designed for people who:
 - Are visual thinkers who struggle to express technical requirements in text
 - Want to create complex, structured AI prompts without writing paragraphs
 - Need to design software architectures visually before generating prompts
+
+================================================================================
+🚨 CRITICAL UI/UX REQUIREMENT: IN-NODE POPUP EDITING
+================================================================================
+
+⚠️ NO SIDEBAR PANELS FOR NODE PROPERTIES!
+⚠️ NO VERTICAL SIDE MENUS FOR DATA INPUT!
+⚠️ ALL INFORMATION MUST BE INSIDE THE NODE ITSELF!
+
+When user clicks on a shape/node:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│   The node "EXPLODES" into a POPUP/MODAL that contains:                    │
+│                                                                             │
+│   ✓ All text inputs                                                        │
+│   ✓ All dropdowns/selects                                                  │
+│   ✓ All textareas for descriptions                                         │
+│   ✓ All action buttons                                                     │
+│   ✓ All property controls                                                  │
+│                                                                             │
+│   EVERYTHING lives INSIDE the node popup - NOT in a sidebar!               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+SPACE OPTIMIZATION PRINCIPLE:
+- Maximize canvas space for the diagram
+- No permanent sidebars eating screen real estate
+- Information appears ON-DEMAND when node is clicked
+- Clean, minimal interface when not editing
+
+================================================================================
+NODE POPUP INTERACTION DESIGN
+================================================================================
+
+1. NODE STATES:
+───────────────
+   COLLAPSED STATE (default):
+   ┌───────────────┐
+   │   📦 MySQL    │  ← Just shows icon + title
+   │   Database    │  ← Type indicator
+   └───────────────┘
+
+   EXPANDED STATE (on click):
+   ┌─────────────────────────────────────┐
+   │  📦 MySQL Database            [X]   │  ← Close button
+   ├─────────────────────────────────────┤
+   │  Title: [___________________]       │
+   │                                     │
+   │  Type:  [Database        ▼]         │
+   │                                     │
+   │  Host:  [localhost_______]          │
+   │  Port:  [3306____________]          │
+   │                                     │
+   │  Description:                       │
+   │  ┌─────────────────────────────┐   │
+   │  │ Main database for user     │   │
+   │  │ authentication and orders  │   │
+   │  └─────────────────────────────┘   │
+   │                                     │
+   │  Tables:                            │
+   │  [+ Add Table]                      │
+   │  ┌─────────────────────────────┐   │
+   │  │ users    [Edit] [Delete]   │   │
+   │  │ orders   [Edit] [Delete]   │   │
+   │  │ products [Edit] [Delete]   │   │
+   │  └─────────────────────────────┘   │
+   │                                     │
+   │  [💾 Save]  [🗑️ Delete Node]        │
+   └─────────────────────────────────────┘
+
+2. POPUP BEHAVIOR:
+──────────────────
+   - Single click on node → Expand popup
+   - Click [X] or outside → Collapse back to simple shape
+   - Drag node header → Move entire node (even when expanded)
+   - Changes auto-save when popup closes
+   - ESC key → Close popup
+   - Only ONE popup can be open at a time
+
+3. POPUP ANIMATIONS:
+────────────────────
+   - Smooth expand animation (scale + fade)
+   - Popup appears centered on the node
+   - Shadow/glow effect when expanded
+   - Subtle bounce on open
+
+================================================================================
+NODE TYPE SPECIFIC POPUPS
+================================================================================
+
+Each node type has its OWN popup layout with RELEVANT fields only:
+
+1. DATABASE NODE POPUP:
+───────────────────────
+┌─────────────────────────────────────────┐
+│  ⬡ Database                       [X]   │
+├─────────────────────────────────────────┤
+│  Title:    [____________________]       │
+│  DB Type:  [MySQL ▼] [PostgreSQL]       │
+│            [MongoDB] [SQLite]           │
+│  Host:     [____________________]       │
+│  Port:     [____________________]       │
+│  Username: [____________________]       │
+│                                         │
+│  ═══ Tables ═══                         │
+│  [+ Add Table]                          │
+│  ┌─────────────────────────────────┐   │
+│  │ Table: users                    │   │
+│  │ Columns: id, name, email, pwd   │   │
+│  │ [Edit Columns] [Delete]         │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
+
+2. BACKEND/COMPONENT NODE POPUP:
+────────────────────────────────
+┌─────────────────────────────────────────┐
+│  ◼ Backend Component              [X]   │
+├─────────────────────────────────────────┤
+│  Title:     [____________________]      │
+│  Language:  [PHP ▼]                     │
+│  Framework: [Laravel ▼]                 │
+│                                         │
+│  Description:                           │
+│  ┌─────────────────────────────────┐   │
+│  │                                 │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  ═══ Files/Controllers ═══              │
+│  [+ Add File]                           │
+│  • UserController.php                   │
+│  • ProductController.php                │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
+
+3. API ENDPOINT NODE POPUP:
+───────────────────────────
+┌─────────────────────────────────────────┐
+│  ▲ API Endpoint                   [X]   │
+├─────────────────────────────────────────┤
+│  Title:    [____________________]       │
+│  Method:   (•)GET ( )POST ( )PUT ( )DEL │
+│  Endpoint: [/api/______________]        │
+│  Auth:     [Bearer Token ▼]             │
+│                                         │
+│  Request Body:                          │
+│  ┌─────────────────────────────────┐   │
+│  │ { "user_id": 1 }                │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  Response:                              │
+│  ┌─────────────────────────────────┐   │
+│  │ { "status": "success" }         │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
+
+4. PROCESS/FUNCTION NODE POPUP:
+───────────────────────────────
+┌─────────────────────────────────────────┐
+│  ● Process/Function               [X]   │
+├─────────────────────────────────────────┤
+│  Title:     [____________________]      │
+│  Function:  [____________________]      │
+│                                         │
+│  Inputs:    [+ Add Input]               │
+│  • userId (int)                         │
+│  • email (string)                       │
+│                                         │
+│  Outputs:   [+ Add Output]              │
+│  • userData (object)                    │
+│                                         │
+│  Description:                           │
+│  ┌─────────────────────────────────┐   │
+│  │ Fetches user data from DB      │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
+
+5. DECISION/CONDITION NODE POPUP:
+─────────────────────────────────
+┌─────────────────────────────────────────┐
+│  ◆ Decision                       [X]   │
+├─────────────────────────────────────────┤
+│  Title:     [____________________]      │
+│                                         │
+│  Condition:                             │
+│  ┌─────────────────────────────────┐   │
+│  │ user.isAuthenticated === true   │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  If TRUE →  [____________________]      │
+│  If FALSE → [____________________]      │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
+
+6. EXTERNAL SERVICE NODE POPUP:
+───────────────────────────────
+┌─────────────────────────────────────────┐
+│  ◎ External Service               [X]   │
+├─────────────────────────────────────────┤
+│  Title:      [____________________]     │
+│  Service:    [Stripe ▼]                 │
+│  API URL:    [____________________]     │
+│  API Key:    [••••••••••••••••••]      │
+│                                         │
+│  Description:                           │
+│  ┌─────────────────────────────────┐   │
+│  │ Payment processing service     │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+│  [💾 Save Changes]                      │
+└─────────────────────────────────────────┘
 
 ================================================================================
 CORE CONCEPT
@@ -61,24 +264,16 @@ The user DRAWS:
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │  📦 MySQL   │────────▶│  📋 Users   │────────▶│  📋 Orders  │
 │  Database   │         │   Table     │  1:N    │   Table     │
-│             │         │             │         │             │
-│ Host: local │         │ - id        │         │ - id        │
-│ Port: 3306  │         │ - name      │         │ - user_id   │
-└─────────────┘         │ - email     │         │ - total     │
-                        └─────────────┘         └─────────────┘
-                                │
-                                ▼
-                        ┌─────────────┐
-                        │  🔷 PHP     │
-                        │  Backend    │
-                        │             │
-                        │ Framework:  │
-                        │ Laravel     │
-                        └─────────────┘
+└─────────────┘         └─────────────┘         └─────────────┘
+      │
+      ▼
+┌─────────────┐
+│  🔷 PHP     │
+│  Backend    │
+└─────────────┘
 
 Then clicks "GENERATE PROMPT" and the system converts this visual diagram 
-into a detailed, well-structured AI prompt that can be copied and used with 
-ChatGPT, Claude, or any AI assistant.
+into a detailed, well-structured AI prompt.
 
 ================================================================================
 DETAILED REQUIREMENTS
@@ -86,11 +281,12 @@ DETAILED REQUIREMENTS
 
 1. CANVAS & WORKSPACE
 ─────────────────────
-- 3D canvas using Three.js (already implemented)
-- Infinite workspace with pan, zoom, and rotate
+- Canvas using LiteGraph.js (recommended) or Three.js
+- Infinite workspace with pan and zoom
 - Grid background for alignment
-- Dark theme with modern UI (already styled)
+- Dark theme with modern UI
 - Save/Load projects as JSON files
+- MINIMAL UI - only essential toolbar at top
 
 2. SHAPE LIBRARY (Nodes/Boxes)
 ──────────────────────────────
@@ -108,9 +304,9 @@ SHAPE               │ MEANING                    │ COLOR
 △ Triangle          │ Start/End Point            │ Red (#ef4444)
 ⬢ Octagon           │ External Service           │ Pink (#ec4899)
 
-3. NODE PROPERTIES (Editable Fields)
-────────────────────────────────────
-Each shape/node should have editable properties:
+3. NODE PROPERTIES (Inside Popup - NOT Sidebar!)
+────────────────────────────────────────────────
+⚠️ All properties edited via IN-NODE POPUP when clicked!
 
 GENERAL PROPERTIES:
 - Title/Name (required)
@@ -118,7 +314,7 @@ GENERAL PROPERTIES:
 - Type (from predefined list)
 - Tags/Labels
 
-TECHNICAL PROPERTIES (context-dependent):
+TECHNICAL PROPERTIES (context-dependent, shown in popup):
 For Database nodes:
   - Database Type (MySQL, PostgreSQL, MongoDB, etc.)
   - Host, Port, Username
@@ -158,7 +354,7 @@ LINE TYPE           │ MEANING                    │ STYLE
 ─────────<─────     │ One-to-Many                │ Crow's foot
 ─────────◇─────     │ Many-to-Many               │ Diamond end
 
-Connection labels:
+Connection labels (shown on hover or click):
 - Relationship type (1:1, 1:N, N:N)
 - Data being transferred
 - Condition/trigger
@@ -214,38 +410,47 @@ g) SPECIAL REQUIREMENTS
 7. EXPORT OPTIONS
 ─────────────────
 - Generate Prompt → Copy to clipboard / Download as .txt
-- Export Diagram → PNG, SVG, PDF
+- Export Diagram → PNG, SVG
 - Export Project → JSON (for later editing)
-- Share Link → Generate shareable URL
 
 ================================================================================
-USER WORKFLOW EXAMPLE
+USER WORKFLOW EXAMPLE (Updated with Popup Interaction)
 ================================================================================
 
 STEP 1: User opens Visual Prompter
-        → Sees empty 3D canvas with grid
+        → Sees empty canvas with grid
+        → Minimal toolbar at top with shape buttons
 
-STEP 2: User drags a "Database" cylinder onto canvas
-        → Double-clicks to edit
-        → Fills in: MySQL, localhost, 3306
-        → Adds tables: users, products, orders
+STEP 2: User clicks "Database" shape in toolbar
+        → Clicks on canvas to place
+        → Node appears in COLLAPSED state: just icon + "Database"
 
-STEP 3: User drags a "Backend" rectangle
+STEP 3: User CLICKS on the Database node
+        → Node EXPANDS into full popup editor
+        → User fills in: MySQL, localhost, 3306
+        → Adds tables: users, products, orders (all inside popup)
+        → Clicks [Save] or clicks outside to close
+
+STEP 4: User adds "Backend" node same way
+        → Clicks on it to expand popup
         → Fills in: PHP, Laravel
         → Lists controllers needed
+        → Closes popup
 
-STEP 4: User drags a "Frontend" rounded rectangle  
-        → Fills in: React, with pages: Home, Products, Cart
+STEP 5: User adds "Frontend" node
+        → Clicks to expand, fills in: React, pages list
+        → Closes popup
 
-STEP 5: User draws connections:
-        → Database ──▶ Backend (data access)
-        → Backend ──▶ Frontend (API calls)
+STEP 6: User draws connections:
+        → Click output port on Database
+        → Drag to input port on Backend
+        → Line automatically drawn
 
-STEP 6: User clicks "GENERATE PROMPT"
-        → System analyzes the diagram
+STEP 7: User clicks "GENERATE PROMPT" button (in top toolbar)
+        → System analyzes ALL nodes and their popup data
         → Generates comprehensive prompt
 
-STEP 7: Generated prompt appears:
+STEP 8: Generated prompt appears in modal:
         ┌────────────────────────────────────────────────────────────┐
         │ Please create a web application with the following specs: │
         │                                                            │
@@ -255,25 +460,143 @@ STEP 7: Generated prompt appears:
         │   1. users (id, name, email, password, created_at)        │
         │   2. products (id, name, price, description)              │
         │   3. orders (id, user_id, total, status, created_at)      │
-        │ - Relationships:                                           │
-        │   - users 1:N orders                                       │
-        │   - orders N:N products (via order_items)                 │
         │                                                            │
         │ ## Backend (PHP/Laravel)                                   │
         │ - Controllers: UserController, ProductController...        │
         │ - API endpoints for CRUD operations                        │
-        │ - Authentication using Laravel Sanctum                     │
         │                                                            │
         │ ## Frontend (React)                                        │
         │ - Pages: Home, Products, Cart, Checkout, Profile          │
-        │ - State management with Redux                              │
-        │ - Responsive design                                        │
         │                                                            │
         │ Please generate the complete codebase...                   │
         └────────────────────────────────────────────────────────────┘
 
-STEP 8: User copies prompt and pastes into AI assistant
-        → Gets complete, working code
+STEP 9: User copies prompt → pastes into AI → gets code!
+
+================================================================================
+UI LAYOUT (Optimized for Space)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Visual Prompter    [📦][⬡][●][◆][▲][◎]    [💾 Save][📂 Load][✨ Generate] │ ← Top toolbar only
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                                                                             │
+│                     ┌───────┐        ┌───────┐                             │
+│                     │ MySQL │───────▶│ Users │                             │
+│                     │  DB   │        │ Table │                             │
+│                     └───────┘        └───────┘                             │
+│                          │                                                  │
+│                          ▼                                                  │
+│                     ┌───────┐                                              │
+│                     │  PHP  │  ← Click to expand popup                     │
+│                     │Backend│                                               │
+│                     └───────┘                                              │
+│                                                                             │
+│                        FULL CANVAS SPACE - NO SIDEBARS!                    │
+│                                                                             │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Nodes: 3  │  Connections: 2  │  Zoom: 100%  │  Grid: On                    │ ← Status bar (minimal)
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+TECHNICAL IMPLEMENTATION
+================================================================================
+
+RECOMMENDED STACK:
+- LiteGraph.js for the node canvas and interactions
+- Vanilla JavaScript (no framework needed)
+- PHP backend for saving/loading projects
+- JSON for data storage
+
+DATA STRUCTURE (JSON):
+{
+  "version": "1.0",
+  "projectName": "My E-Commerce App",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "database",
+      "shape": "cylinder",
+      "position": { "x": 100, "y": 200 },
+      "collapsed": true,
+      "properties": {
+        "title": "MySQL Database",
+        "dbType": "mysql",
+        "host": "localhost",
+        "port": 3306,
+        "tables": [
+          {
+            "name": "users",
+            "columns": ["id", "name", "email", "password"]
+          }
+        ]
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn_1",
+      "from": "node_1",
+      "to": "node_2",
+      "type": "data_flow",
+      "label": "User data"
+    }
+  ]
+}
+
+LITEGRAPH.JS CUSTOM NODE EXAMPLE:
+```javascript
+// Define custom Database node
+function DatabaseNode() {
+    this.addOutput("data", "object");
+    this.properties = { 
+        title: "Database",
+        dbType: "mysql",
+        host: "localhost",
+        port: 3306,
+        tables: []
+    };
+    this.size = [180, 60]; // Collapsed size
+}
+
+DatabaseNode.title = "Database";
+DatabaseNode.desc = "Database storage node";
+
+// When double-clicked, show popup
+DatabaseNode.prototype.onDblClick = function(e, pos, canvas) {
+    showNodePopup(this); // Custom function to show full editor popup
+};
+
+// Collapse appearance
+DatabaseNode.prototype.onDrawForeground = function(ctx) {
+    ctx.fillStyle = "#f97316";
+    ctx.font = "14px Arial";
+    ctx.fillText("⬡ " + this.properties.title, 10, 25);
+    ctx.fillStyle = "#888";
+    ctx.font = "10px Arial";
+    ctx.fillText(this.properties.dbType, 10, 40);
+};
+
+LiteGraph.registerNodeType("prompt/database", DatabaseNode);
+```
+
+PROMPT GENERATION ALGORITHM:
+1. Parse JSON structure
+2. Identify all node types
+3. Group by layer/category
+4. Extract relationships from connections
+5. Build prompt sections in order:
+   - Overview
+   - Tech Stack
+   - Database
+   - Backend
+   - Frontend
+   - APIs
+   - Special Requirements
+6. Format with markdown
+7. Optimize for AI consumption
 
 ================================================================================
 TEMPLATE LIBRARY
@@ -321,7 +644,7 @@ SMART FEATURES
 2. VALIDATION
    - Check for orphan nodes (not connected)
    - Verify relationship logic
-   - Warn about missing required fields
+   - Warn about missing required fields in popup
 
 3. PROMPT OPTIMIZATION
    - Arrange prompt sections logically
@@ -332,72 +655,6 @@ SMART FEATURES
    - Save diagram history
    - Compare versions
    - Undo/redo unlimited
-
-5. COLLABORATION (Future)
-   - Share diagrams
-   - Real-time collaboration
-   - Comments and annotations
-
-================================================================================
-TECHNICAL IMPLEMENTATION
-================================================================================
-
-FRONTEND:
-- Three.js for 3D canvas (already set up)
-- Custom node rendering system
-- Drag-and-drop interface
-- Property panels for editing
-
-DATA STRUCTURE (JSON):
-{
-  "version": "1.0",
-  "projectName": "My E-Commerce App",
-  "nodes": [
-    {
-      "id": "node_1",
-      "type": "database",
-      "shape": "cylinder",
-      "position": { "x": 0, "y": 0, "z": 0 },
-      "properties": {
-        "title": "MySQL Database",
-        "dbType": "mysql",
-        "host": "localhost",
-        "port": 3306,
-        "tables": [
-          {
-            "name": "users",
-            "columns": ["id", "name", "email", "password"]
-          }
-        ]
-      }
-    }
-  ],
-  "connections": [
-    {
-      "id": "conn_1",
-      "from": "node_1",
-      "to": "node_2",
-      "type": "data_flow",
-      "label": "User data"
-    }
-  ]
-}
-
-PROMPT GENERATION ALGORITHM:
-1. Parse JSON structure
-2. Identify all node types
-3. Group by layer/category
-4. Extract relationships from connections
-5. Build prompt sections in order:
-   - Overview
-   - Tech Stack
-   - Database
-   - Backend
-   - Frontend
-   - APIs
-   - Special Requirements
-6. Format with markdown
-7. Optimize for AI consumption
 
 ================================================================================
 TARGET USERS
@@ -422,79 +679,27 @@ The Visual Prompter is successful when:
 ✓ The workflow is faster than writing prompts manually
 ✓ Complex systems can be represented visually
 ✓ The tool is intuitive (no manual needed)
-
-================================================================================
-WHAT'S ALREADY IMPLEMENTED (in 3d-platform.php)
-================================================================================
-
-✅ COMPLETED - DO NOT REBUILD:
-- Three.js scene with WebGL renderer
-- PerspectiveCamera with OrbitControls
-- Grid helper (20x40 divisions)
-- Ambient + Directional lighting
-- Dark theme CSS with variables
-- Aurora animated background
-- Header with logo, project name, buttons
-- Left toolbar (Transform tools section)
-- Right panel with sections:
-  - Transform (Position X/Y/Z, Scale)
-  - Node Style (Color, Type dropdown, Opacity)
-  - Scene (Background color, Grid opacity)
-  - Prompt (Generate Prompt, Export Prompt buttons)
-- Save/Load JSON functionality
-- Toast notifications
-- Modal dialogs
-- Platform state object:
-  ```javascript
-  platformState = {
-    projectName: 'New Project',
-    scene, camera, renderer, controls,
-    nodes: [],        // Ready for node objects
-    connections: [],  // Ready for connection objects
-    selectedNode: null
-  }
-  ```
-
-🔨 NEEDS TO BE IMPLEMENTED:
-1. Shape/Node creation system
-   - Click toolbar shape → drag to canvas
-   - Create 3D mesh for each node type
-   
-2. Node selection and editing
-   - Click node to select
-   - Show properties in right panel
-   - Edit title, description, type
-   
-3. Connection drawing
-   - Click node output → drag to another node input
-   - Create 3D line between nodes
-   
-4. Property panel binding
-   - When node selected, populate right panel
-   - Save changes back to node object
-   
-5. Prompt generation function
-   - Parse platformState.nodes and connections
-   - Generate formatted text prompt
-   
-6. Export prompt as .txt file
+✓ MAXIMUM canvas space - NO sidebar clutter
+✓ All editing happens INSIDE node popups
 
 ================================================================================
 IMPLEMENTATION PRIORITY
 ================================================================================
 
-PHASE 1 (MVP) - Modify 3d-platform.php:
-- Add shape creation (rectangle, circle, cylinder boxes)
-- Node properties panel binding
+PHASE 1 (MVP):
+- Setup LiteGraph.js canvas
+- Create custom node types (Database, Backend, API, etc.)
+- Implement popup editor for each node type
 - Simple line connections
 - Basic prompt generation
-- Save/Load already works ✓
+- Save/Load JSON
 
 PHASE 2:
 - All shape types
 - Advanced connections with labels
 - Template library
 - Better prompt formatting
+- Keyboard shortcuts
 
 PHASE 3:
 - Auto-suggestions
@@ -509,7 +714,8 @@ END OF SPECIFICATION
 This document serves as a comprehensive guide for building the Visual Prompter.
 The goal is to democratize AI prompt creation by making it visual and intuitive.
 
+KEY PRINCIPLE: Everything inside the node popup, nothing in sidebars!
+
 "If you can draw it, you can build it."
 
 ================================================================================
-
