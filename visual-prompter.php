@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://unpkg.com/litegraph.js/css/litegraph.css">
     <script src="https://unpkg.com/litegraph.js/build/litegraph.min.js"></script>
     
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="visual-prompter/css/style.css">
+    <!-- Custom Styles (with cache busting) -->
+    <link rel="stylesheet" href="visual-prompter/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <!-- Animated Background -->
@@ -277,19 +277,20 @@
     <!-- Hidden File Input -->
     <input type="file" id="file-input" accept=".json" style="display: none;">
 
-    <!-- Scripts -->
-    <script src="visual-prompter/js/nodes/DatabaseNode.js"></script>
-    <script src="visual-prompter/js/nodes/BackendNode.js"></script>
-    <script src="visual-prompter/js/nodes/FrontendNode.js"></script>
-    <script src="visual-prompter/js/nodes/APINode.js"></script>
-    <script src="visual-prompter/js/nodes/ProcessNode.js"></script>
-    <script src="visual-prompter/js/nodes/DecisionNode.js"></script>
-    <script src="visual-prompter/js/nodes/ServiceNode.js"></script>
-    <script src="visual-prompter/js/table-builder.js"></script>
-    <script src="visual-prompter/js/popup.js"></script>
-    <script src="visual-prompter/js/prompt-generator.js"></script>
-    <script src="visual-prompter/js/node-enhancer.js"></script>
-    <script src="visual-prompter/js/app.js"></script>
+    <!-- Scripts (with cache busting) -->
+    <?php $v = time(); ?>
+    <script src="visual-prompter/js/nodes/DatabaseNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/BackendNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/FrontendNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/APINode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/ProcessNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/DecisionNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/nodes/ServiceNode.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/table-builder.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/popup.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/prompt-generator.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/node-enhancer.js?v=<?php echo $v; ?>"></script>
+    <script src="visual-prompter/js/app.js?v=<?php echo $v; ?>"></script>
 
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">

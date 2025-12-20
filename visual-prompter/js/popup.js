@@ -429,6 +429,10 @@
                 <div class="popup-section hostinger-db-section">
                     <div class="popup-section-title">
                         <span style="color: #F97316;">🗄️</span> ${field.label}
+                        <div class="db-connection-indicator" id="db-connection-indicator" title="Connection status">
+                            <span class="indicator-icon">⚪</span>
+                            <span class="indicator-text">Not tested</span>
+                        </div>
                     </div>
                     <div class="hostinger-db-container">
                         <div class="hostinger-db-row">
@@ -731,7 +735,7 @@
                 }
 
                 if (selectedId) {
-                    const db = self.hostingerDatabases.find(d => d.id === selectedId);
+                    const db = self.hostingerDatabases.find(d => String(d.id) === String(selectedId));
                     if (db) {
                         // Auto-select the database type radio button
                         self.selectDatabaseType(db.dbType);
@@ -742,11 +746,16 @@
                         if (statusDiv) {
                             statusDiv.innerHTML = `<span style="color: #10B981;">✓ Selected: ${db.name}</span>`;
                         }
+                        
+                        // AUTO-TEST CONNECTION when database is selected
+                        self.testDatabaseConnection(db);
                     }
                 } else {
                     if (statusDiv) {
                         statusDiv.innerHTML = '';
                     }
+                    // Reset connection indicator
+                    self.updateConnectionIndicator('idle');
                 }
             });
 
@@ -768,6 +777,7 @@
          * Fetch Hostinger databases from API
          */
         fetchHostingerDatabases: function(forceRefresh = false) {
+            const self = this;
             const select = document.getElementById('hostinger-db-select');
             const statusDiv = document.getElementById('hostinger-db-status');
             const refreshBtn = document.getElementById('hostinger-db-refresh');
@@ -780,13 +790,22 @@
             if (refreshBtn) refreshBtn.disabled = true;
             if (statusDiv) statusDiv.innerHTML = '<span style="color: #6366F1;">🔄 Fetching from Hostinger...</span>';
 
+            // Get correct API path
+            const apiUrl = this.getApiBasePath() + 'get-databases.php';
+            console.log('🔗 Fetching databases from:', apiUrl);
+
             // Fetch from API
-            fetch('visual-prompter/api/get-databases.php')
-                .then(response => response.json())
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success && data.databases) {
-                        this.hostingerDatabases = data.databases;
-                        this.populateHostingerDbSelect(data.databases);
+                        self.hostingerDatabases = data.databases;
+                        self.populateHostingerDbSelect(data.databases);
                         
                         if (statusDiv) {
                             statusDiv.innerHTML = `<span style="color: #10B981;">✓ ${data.count} database(s) available</span>`;
@@ -796,7 +815,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching Hostinger databases:', error);
+                    console.error('❌ Error fetching Hostinger databases:', error);
                     select.innerHTML = '<option value="">Error loading databases</option>';
                     if (statusDiv) {
                         statusDiv.innerHTML = `<span style="color: #EF4444;">❌ ${error.message}</span>`;
@@ -1159,6 +1178,133 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
             this.overlay.classList.remove('active');
             this.isOpen = false;
             this.currentNode = null;
+        },
+
+        /**
+         * Get API base path dynamically
+         * Works whether accessed from root or subdirectory
+         */
+        getApiBasePath: function() {
+            // Method 1: Try to get from script tag src
+            const scripts = document.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+                const src = scripts[i].src;
+                if (src && src.includes('visual-prompter/js/popup.js')) {
+                    const idx = src.indexOf('visual-prompter/js/popup.js');
+                    return src.substring(0, idx) + 'visual-prompter/api/';
+                }
+            }
+            
+            // Method 2: Build from current location
+            const origin = window.location.origin;
+            const pathname = window.location.pathname;
+            
+            // If we're at /visual-prompter.php or similar
+            if (pathname.includes('visual-prompter')) {
+                // Get the directory containing visual-prompter.php
+                const dir = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+                return origin + dir + 'visual-prompter/api/';
+            }
+            
+            // Method 3: Simple fallback - assume visual-prompter folder is at root
+            return origin + '/visual-prompter/api/';
+        },
+
+        /**
+         * Test database connection
+         * @param {Object} db - Database credentials object
+         */
+        testDatabaseConnection: function(db) {
+            const self = this;
+            
+            // Update indicator to testing state
+            this.updateConnectionIndicator('testing');
+            
+            // Prepare the request
+            const requestData = {
+                host: db.host,
+                port: db.port,
+                dbName: db.dbName,
+                username: db.username,
+                password: db.password,
+                dbType: db.dbType || 'mysql'
+            };
+            
+            // Get correct API path
+            const apiUrl = this.getApiBasePath() + 'test-connection.php';
+            console.log('🔗 Testing connection to:', apiUrl);
+            
+            // Make API call to test connection
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    self.updateConnectionIndicator('connected', data.latency);
+                    console.log('✅ Connection successful:', data);
+                } else {
+                    self.updateConnectionIndicator('failed', null, data.error || data.message);
+                    console.log('❌ Connection failed:', data);
+                }
+            })
+            .catch(error => {
+                self.updateConnectionIndicator('failed', null, error.message);
+                console.error('❌ Connection test error:', error);
+            });
+        },
+
+        /**
+         * Update connection indicator UI
+         * @param {string} status - 'idle', 'testing', 'connected', 'failed'
+         * @param {number} latency - Connection latency in ms (optional)
+         * @param {string} error - Error message (optional)
+         */
+        updateConnectionIndicator: function(status, latency, error) {
+            const indicator = document.getElementById('db-connection-indicator');
+            if (!indicator) return;
+            
+            const iconEl = indicator.querySelector('.indicator-icon');
+            const textEl = indicator.querySelector('.indicator-text');
+            
+            // Remove all status classes
+            indicator.classList.remove('idle', 'testing', 'connected', 'failed');
+            indicator.classList.add(status);
+            
+            switch (status) {
+                case 'idle':
+                    iconEl.textContent = '⚪';
+                    textEl.textContent = 'Not tested';
+                    indicator.title = 'Select a database to test connection';
+                    break;
+                    
+                case 'testing':
+                    iconEl.innerHTML = '<span class="spinner">⟳</span>';
+                    textEl.textContent = 'Testing...';
+                    indicator.title = 'Testing database connection...';
+                    break;
+                    
+                case 'connected':
+                    iconEl.textContent = '✅';
+                    textEl.textContent = latency ? `Connected (${latency}ms)` : 'Connected';
+                    indicator.title = `Connection successful${latency ? ' - Latency: ' + latency + 'ms' : ''}`;
+                    break;
+                    
+                case 'failed':
+                    iconEl.textContent = '❌';
+                    textEl.textContent = 'Failed';
+                    indicator.title = error || 'Connection failed';
+                    break;
+            }
         },
 
         /**

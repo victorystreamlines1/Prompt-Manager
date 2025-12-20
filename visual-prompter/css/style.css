@@ -1206,6 +1206,7 @@ body {
     gap: 8px;
     color: var(--node-database);
     margin-bottom: 12px;
+    flex-wrap: wrap;
 }
 
 .hostinger-db-container {
@@ -1302,6 +1303,85 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+/* Database Connection Indicator */
+.db-connection-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.db-connection-indicator .indicator-icon {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.db-connection-indicator .indicator-text {
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Idle State */
+.db-connection-indicator.idle {
+    background: rgba(107, 107, 128, 0.2);
+    border-color: rgba(107, 107, 128, 0.3);
+}
+
+.db-connection-indicator.idle .indicator-text {
+    color: var(--text-muted);
+}
+
+/* Testing State */
+.db-connection-indicator.testing {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.db-connection-indicator.testing .indicator-text {
+    color: var(--accent-primary);
+}
+
+.db-connection-indicator.testing .spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Connected State */
+.db-connection-indicator.connected {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.db-connection-indicator.connected .indicator-text {
+    color: var(--accent-success);
+}
+
+/* Failed State */
+.db-connection-indicator.failed {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+}
+
+.db-connection-indicator.failed .indicator-text {
+    color: var(--accent-error);
 }
 
 /* ============================================================================
