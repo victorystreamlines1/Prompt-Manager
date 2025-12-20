@@ -443,6 +443,21 @@
                                 🔄
                             </button>
                         </div>
+                        
+                        <!-- Tables List Container -->
+                        <div id="db-tables-container" class="db-tables-container" style="display: none;">
+                            <div class="db-tables-header">
+                                <span class="tables-title">📋 Tables</span>
+                                <span class="tables-count" id="tables-count">0 tables</span>
+                                <label class="select-all-label">
+                                    <input type="checkbox" id="select-all-tables"> Select All
+                                </label>
+                            </div>
+                            <div id="db-tables-list" class="db-tables-list">
+                                <!-- Tables will be loaded here -->
+                            </div>
+                        </div>
+                        
                         <button type="button" id="hostinger-db-push" class="btn-push" disabled>
                             <span>⬇️</span> Push Credentials to Description
                         </button>
@@ -749,6 +764,9 @@
                         
                         // AUTO-TEST CONNECTION when database is selected
                         self.testDatabaseConnection(db);
+                        
+                        // FETCH TABLES from the selected database
+                        self.fetchDatabaseTables(db);
                     }
                 } else {
                     if (statusDiv) {
@@ -756,6 +774,8 @@
                     }
                     // Reset connection indicator
                     self.updateConnectionIndicator('idle');
+                    // Hide tables container
+                    self.hideDatabaseTables();
                 }
             });
 
@@ -764,11 +784,20 @@
                 pushBtn.addEventListener('click', () => {
                     const selectedId = select.value;
                     if (selectedId) {
-                        const db = self.hostingerDatabases.find(d => d.id === selectedId);
+                        const db = self.hostingerDatabases.find(d => String(d.id) === String(selectedId));
                         if (db) {
                             self.pushCredentialsToDescription(db);
                         }
                     }
+                });
+            }
+            
+            // Select All tables checkbox
+            const selectAllCheckbox = document.getElementById('select-all-tables');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.table-checkbox');
+                    checkboxes.forEach(cb => cb.checked = this.checked);
                 });
             }
         },
@@ -917,13 +946,14 @@
 
         /**
          * Push credentials to description textarea (Always appends)
+         * Includes selected tables if any
          */
         pushCredentialsToDescription: function(db) {
             const descTextarea = document.querySelector('[data-key="description"]');
             if (!descTextarea) return;
 
             // Format credentials as text
-            const credentials = `Database Credentials (${db.name})
+            let content = `Database Credentials (${db.name})
 ═══════════════════════════════════════
 Type: ${db.dbType.toUpperCase()}
 Host: ${db.host}
@@ -935,11 +965,40 @@ Password: ${db.password}
 Hosting Type: ${db.type}
 Created: ${new Date(db.createdAt).toLocaleDateString()}`;
 
+            // Get selected tables
+            const selectedTables = this.getSelectedTables();
+            
+            if (selectedTables.length > 0) {
+                content += `\n\n📋 SELECTED TABLES (${selectedTables.length})
+═══════════════════════════════════════`;
+                
+                selectedTables.forEach(table => {
+                    content += `\n\n📄 Table: ${table.name}`;
+                    content += `\n   Rows: ${table.rowCount}`;
+                    if (table.primaryKey) {
+                        content += `\n   Primary Key: ${table.primaryKey}`;
+                    }
+                    content += `\n   Columns (${table.columns.length}):`;
+                    
+                    table.columns.forEach(col => {
+                        let colInfo = `\n      • ${col.name} (${col.type})`;
+                        if (col.key === 'PRI') colInfo += ' [PK]';
+                        else if (col.key === 'UNI') colInfo += ' [UNIQUE]';
+                        else if (col.key === 'MUL') colInfo += ' [INDEX]';
+                        if (!col.nullable) colInfo += ' NOT NULL';
+                        if (col.extra) colInfo += ` ${col.extra}`;
+                        content += colInfo;
+                    });
+                });
+                
+                content += `\n═══════════════════════════════════════`;
+            }
+
             // Always APPEND to description (accumulate)
             if (descTextarea.value.trim()) {
-                descTextarea.value = descTextarea.value + '\n\n' + credentials;
+                descTextarea.value = descTextarea.value + '\n\n' + content;
             } else {
-                descTextarea.value = credentials;
+                descTextarea.value = content;
             }
 
             // Update node property
@@ -948,9 +1007,139 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
             }
 
             // Show success message
+            const tableMsg = selectedTables.length > 0 
+                ? ` with ${selectedTables.length} table(s)` 
+                : '';
             if (window.VisualPrompter) {
-                VisualPrompter.showToast('Credentials appended to description', 'success');
+                VisualPrompter.showToast(`Credentials${tableMsg} appended to description`, 'success');
             }
+        },
+        
+        /**
+         * Current database tables cache
+         */
+        currentDatabaseTables: [],
+        
+        /**
+         * Fetch tables from the selected database
+         */
+        fetchDatabaseTables: function(db) {
+            const self = this;
+            const container = document.getElementById('db-tables-container');
+            const tablesList = document.getElementById('db-tables-list');
+            const tablesCount = document.getElementById('tables-count');
+            
+            if (!container || !tablesList) return;
+            
+            // Show container with loading state
+            container.style.display = 'block';
+            tablesList.innerHTML = '<div class="tables-loading"><span class="spinner">⟳</span> Loading tables...</div>';
+            
+            // Get API path
+            const apiUrl = this.getApiBasePath() + 'get-tables.php';
+            console.log('🔗 Fetching tables from:', apiUrl);
+            
+            // Prepare request
+            const requestData = {
+                host: db.host,
+                port: db.port,
+                dbName: db.dbName,
+                username: db.username,
+                password: db.password,
+                dbType: db.dbType || 'mysql'
+            };
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.tables) {
+                    self.currentDatabaseTables = data.tables;
+                    self.displayDatabaseTables(data.tables);
+                    if (tablesCount) {
+                        tablesCount.textContent = `${data.count} table(s)`;
+                    }
+                    console.log(`✅ Loaded ${data.count} tables`);
+                } else {
+                    tablesList.innerHTML = `<div class="tables-error">❌ ${data.error || 'Failed to load tables'}</div>`;
+                    self.currentDatabaseTables = [];
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching tables:', error);
+                tablesList.innerHTML = `<div class="tables-error">❌ ${error.message}</div>`;
+                self.currentDatabaseTables = [];
+            });
+        },
+        
+        /**
+         * Display tables in the list
+         */
+        displayDatabaseTables: function(tables) {
+            const tablesList = document.getElementById('db-tables-list');
+            if (!tablesList) return;
+            
+            if (tables.length === 0) {
+                tablesList.innerHTML = '<div class="tables-empty">No tables found in this database</div>';
+                return;
+            }
+            
+            let html = '';
+            tables.forEach((table, index) => {
+                const columnCount = table.columns ? table.columns.length : 0;
+                html += `
+                    <label class="table-item" data-index="${index}">
+                        <input type="checkbox" class="table-checkbox" data-table-name="${table.name}">
+                        <span class="table-icon">📋</span>
+                        <span class="table-info">
+                            <span class="table-name">${this.escapeHTML(table.name)}</span>
+                            <span class="table-meta">${columnCount} cols • ${table.rowCount || 0} rows</span>
+                        </span>
+                    </label>
+                `;
+            });
+            
+            tablesList.innerHTML = html;
+            
+            // Reset select all checkbox
+            const selectAllCheckbox = document.getElementById('select-all-tables');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
+        },
+        
+        /**
+         * Hide the tables container
+         */
+        hideDatabaseTables: function() {
+            const container = document.getElementById('db-tables-container');
+            if (container) {
+                container.style.display = 'none';
+            }
+            this.currentDatabaseTables = [];
+        },
+        
+        /**
+         * Get selected tables with their full data
+         */
+        getSelectedTables: function() {
+            const checkboxes = document.querySelectorAll('.table-checkbox:checked');
+            const selectedTables = [];
+            
+            checkboxes.forEach(cb => {
+                const tableName = cb.dataset.tableName;
+                const tableData = this.currentDatabaseTables.find(t => t.name === tableName);
+                if (tableData) {
+                    selectedTables.push(tableData);
+                }
+            });
+            
+            return selectedTables;
         },
 
         /**
