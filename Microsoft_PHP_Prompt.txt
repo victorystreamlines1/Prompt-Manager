@@ -8,6 +8,9 @@
 
 Please generate a comprehensive, beginner-friendly, and highly engaging tutorial that covers the complete setup and integration of Microsoft web technologies with PHP development on a Windows environment. This tutorial should be practical, step-by-step, and include real-world examples that learners can follow along with on their own Windows machines.
 
+**IMPORTANT: Visual Studio Edition Requirement**
+Throughout this entire tutorial, ALL instructions, screenshots, and examples must use **Visual Studio Community Edition** - the FREE edition provided by Microsoft for individual developers, students, and open-source projects. Do NOT use Visual Studio Professional or Enterprise editions. Visual Studio Community Edition provides all the features needed for ASP.NET development at no cost, making it the ideal choice for beginners and learners following this tutorial.
+
 ---
 
 ## SECTION 1: Complete ASP.NET Installation Guide (Windows)
@@ -20,13 +23,15 @@ Create a detailed section covering ALL official Microsoft methods for installing
 - Administrator privileges explanation
 - Internet connection requirements for downloads
 
-### 1.2 Visual Studio Installation Method
+### 1.2 Visual Studio Community Edition Installation Method (FREE)
 - Downloading Visual Studio Installer from visualstudio.microsoft.com
-- Selecting the correct Visual Studio edition (Community, Professional, Enterprise)
+- **Selecting Visual Studio Community Edition (FREE)** - the blue-themed edition, NOT Professional (purple) or Enterprise
+- Explaining why Community Edition is perfect for learning (free, full-featured for individuals)
 - Choosing ASP.NET and web development workload
 - Selecting individual components (.NET Framework versions, .NET Core/.NET 5/6/7/8)
 - Installation location options and disk space management
 - Post-installation verification steps
+- Confirming Community Edition is installed (checking About dialog)
 
 ### 1.3 Visual Studio Code with .NET SDK Method
 - Downloading and installing Visual Studio Code
@@ -94,20 +99,21 @@ Create a detailed section covering ALL official Microsoft methods for installing
 - Setting primary keys and relationships
 - Inserting sample data for testing
 
-### 2.6 Connecting ASP.NET to SQL Server
+### 2.6 Connecting ASP.NET to SQL Server (Using Visual Studio Community Edition)
 - Understanding connection strings
 - Connection string formats (Server, Database, Authentication)
-- appsettings.json configuration in ASP.NET Core
+- appsettings.json configuration in ASP.NET Core (demonstrated in VS Community)
 - Web.config configuration in ASP.NET Framework
 - Using SQL Server authentication vs Windows authentication
+- Using Visual Studio Community Edition's Server Explorer to test connections
 - Connection string security best practices (User Secrets, Environment Variables)
 
-### 2.7 Entity Framework Core Setup
-- Installing Entity Framework Core NuGet packages
+### 2.7 Entity Framework Core Setup (Using Visual Studio Community Edition)
+- Installing Entity Framework Core NuGet packages via NuGet Package Manager in VS Community
 - Database-First approach (scaffolding from existing database)
 - Code-First approach (creating database from C# models)
 - DbContext configuration and registration
-- Running migrations (Add-Migration, Update-Database)
+- Running migrations using Package Manager Console in VS Community (Add-Migration, Update-Database)
 
 ### 2.8 ADO.NET Direct Connection Method
 - SqlConnection, SqlCommand, SqlDataReader classes
@@ -338,6 +344,8 @@ Create a detailed section covering ALL official Microsoft methods for installing
 - Reference Windows paths (C:\, backslashes)
 - Windows-specific software (SSMS, IIS Manager, etc.)
 - No Linux/Mac alternatives - pure Windows focus
+- **Use Visual Studio Community Edition (FREE) exclusively** - do not reference or use Professional or Enterprise editions
+- All Visual Studio screenshots and instructions must reflect the Community Edition interface
 
 ---
 
@@ -357,13 +365,14 @@ Please structure the tutorial with:
 ## TARGET OUTCOME
 
 By the end of this tutorial, learners should be able to:
-1. Install ASP.NET using any official Microsoft method on Windows
+1. Install ASP.NET using Visual Studio Community Edition (FREE) on Windows
 2. Set up SQL Server and connect it to ASP.NET applications
 3. Create PHP APIs that communicate with SQL Server remotely
 4. Build a complete full-stack application with HTML, PHP, SQL Server, and proper API architecture
 5. Understand data flow and communication between all layers
 6. Apply security best practices in their applications
 7. Troubleshoot common issues independently
+8. Complete all tasks using only FREE Microsoft tools (Visual Studio Community, SQL Server Express/Developer)
 
 ---
 
