@@ -323,11 +323,19 @@
 
             // Clear button
             document.getElementById('tb-clear-btn').addEventListener('click', () => {
-                if (confirm('Clear all columns?')) {
-                    this.currentFields = [];
-                    this.renderFields();
-                    this.updateSQLPreview();
-                }
+                VisualPrompter.showConfirm({
+                    title: 'Clear All Columns',
+                    message: 'Are you sure you want to clear all columns? This cannot be undone.',
+                    confirmText: 'Clear All',
+                    cancelText: 'Cancel',
+                    type: 'warning'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        this.currentFields = [];
+                        this.renderFields();
+                        this.updateSQLPreview();
+                    }
+                });
             });
 
             // Push button

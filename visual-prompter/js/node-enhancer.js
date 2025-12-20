@@ -281,11 +281,22 @@
          * Delete a node
          */
         deleteNode: function(node) {
-            if (confirm(`Delete ${node.title || 'this node'}?`)) {
-                this.graph.remove(node);
-                if (global.VisualPrompter) {
-                    global.VisualPrompter.showToast('Node deleted', 'success');
-                }
+            const self = this;
+            const nodeName = node.title || 'this node';
+            
+            if (global.VisualPrompter && global.VisualPrompter.showConfirm) {
+                global.VisualPrompter.showConfirm({
+                    title: 'Delete Node',
+                    message: `Are you sure you want to delete "${nodeName}"?`,
+                    confirmText: 'Delete',
+                    cancelText: 'Cancel',
+                    type: 'danger'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        self.graph.remove(node);
+                        global.VisualPrompter.showToast('Node deleted', 'success');
+                    }
+                });
             }
         },
 

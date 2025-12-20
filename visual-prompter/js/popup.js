@@ -642,13 +642,21 @@
                     if (!textarea) return;
                     
                     if (action === 'clear') {
-                        if (confirm('Clear all description content?')) {
-                            textarea.value = '';
-                            if (self.currentNode) {
-                                self.currentNode.properties.description = '';
+                        VisualPrompter.showConfirm({
+                            title: 'Clear Description',
+                            message: 'Are you sure you want to clear all description content? This cannot be undone.',
+                            confirmText: 'Clear',
+                            cancelText: 'Cancel',
+                            type: 'warning'
+                        }).then(confirmed => {
+                            if (confirmed) {
+                                textarea.value = '';
+                                if (self.currentNode) {
+                                    self.currentNode.properties.description = '';
+                                }
+                                VisualPrompter.showToast('Description cleared', 'info');
                             }
-                            VisualPrompter.showToast('Description cleared', 'info');
-                        }
+                        });
                     } else if (action === 'expand') {
                         // Toggle expanded state
                         const currentHeight = parseInt(textarea.style.height) || textarea.offsetHeight;
@@ -1294,13 +1302,22 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
          * Delete list item
          */
         deleteListItem: function(key, index) {
-            if (confirm('Delete this item?')) {
-                if (this.currentNode.properties[key]) {
-                    this.currentNode.properties[key].splice(index, 1);
-                    this.open(this.currentNode);
-                    VisualPrompter.showToast('Item deleted', 'info');
+            const self = this;
+            VisualPrompter.showConfirm({
+                title: 'Delete Item',
+                message: 'Are you sure you want to delete this item?',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    if (self.currentNode.properties[key]) {
+                        self.currentNode.properties[key].splice(index, 1);
+                        self.open(self.currentNode);
+                        VisualPrompter.showToast('Item deleted', 'info');
+                    }
                 }
-            }
+            });
         },
 
         /**
@@ -1347,17 +1364,27 @@ Created: ${new Date(db.createdAt).toLocaleDateString()}`;
          */
         deleteNode: function() {
             if (!this.currentNode) return;
+            const self = this;
+            const nodeName = this.currentNode.title || 'this node';
 
-            if (confirm('Delete this node? This will also remove all its connections.')) {
-                const node = this.currentNode;
-                this.close();
-                
-                if (window.VisualPrompter && window.VisualPrompter.graph) {
-                    window.VisualPrompter.graph.remove(node);
-                    window.VisualPrompter.updateStatusBar();
-                    VisualPrompter.showToast('Node deleted', 'info');
+            VisualPrompter.showConfirm({
+                title: 'Delete Node',
+                message: `Are you sure you want to delete "${nodeName}"? This will also remove all its connections.`,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    const node = self.currentNode;
+                    self.close();
+                    
+                    if (window.VisualPrompter && window.VisualPrompter.graph) {
+                        window.VisualPrompter.graph.remove(node);
+                        window.VisualPrompter.updateStatusBar();
+                        VisualPrompter.showToast('Node deleted', 'info');
+                    }
                 }
-            }
+            });
         },
 
         /**

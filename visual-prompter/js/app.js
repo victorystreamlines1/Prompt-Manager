@@ -292,18 +292,30 @@
          * Create new project
          */
         newProject: function() {
+            const self = this;
+            
+            const createNew = () => {
+                self.graph.clear();
+                self.projectName = 'Untitled Project';
+                self.isDirty = false;
+                self.updateStatusBar();
+                self.checkWelcomeScreen();
+                self.showToast('New project created', 'success');
+            };
+            
             if (this.isDirty) {
-                if (!confirm('You have unsaved changes. Create new project anyway?')) {
-                    return;
-                }
+                this.showConfirm({
+                    title: 'Unsaved Changes',
+                    message: 'You have unsaved changes. Create new project anyway?',
+                    confirmText: 'Create New',
+                    cancelText: 'Cancel',
+                    type: 'warning'
+                }).then(confirmed => {
+                    if (confirmed) createNew();
+                });
+            } else {
+                createNew();
             }
-
-            this.graph.clear();
-            this.projectName = 'Untitled Project';
-            this.isDirty = false;
-            this.updateStatusBar();
-            this.checkWelcomeScreen();
-            this.showToast('New project created', 'success');
         },
 
         /**
@@ -581,19 +593,28 @@
          * Clear all nodes and connections from canvas
          */
         clearCanvas: function() {
+            const self = this;
             const nodes = this.graph._nodes || [];
             if (nodes.length === 0) {
                 this.showToast('Canvas is already empty', 'info');
                 return;
             }
 
-            if (confirm('Are you sure you want to clear all nodes and connections?')) {
-                this.graph.clear();
-                this.isDirty = false;
-                this.updateStatusBar();
-                this.checkWelcomeScreen();
-                this.showToast('Canvas cleared', 'success');
-            }
+            this.showConfirm({
+                title: 'Clear Canvas',
+                message: 'Are you sure you want to clear all nodes and connections? This cannot be undone.',
+                confirmText: 'Clear All',
+                cancelText: 'Cancel',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    self.graph.clear();
+                    self.isDirty = false;
+                    self.updateStatusBar();
+                    self.checkWelcomeScreen();
+                    self.showToast('Canvas cleared', 'success');
+                }
+            });
         },
 
         /**
@@ -659,15 +680,108 @@
                     // Delete selected node
                     const selected = this.graphCanvas.selected_nodes;
                     if (selected && Object.keys(selected).length > 0) {
-                        if (confirm('Delete selected nodes?')) {
-                            for (let id in selected) {
-                                this.graph.remove(selected[id]);
+                        const count = Object.keys(selected).length;
+                        this.showConfirm({
+                            title: 'Delete Nodes',
+                            message: `Are you sure you want to delete ${count} selected node(s)?`,
+                            confirmText: 'Delete',
+                            cancelText: 'Cancel',
+                            type: 'danger'
+                        }).then(confirmed => {
+                            if (confirmed) {
+                                for (let id in selected) {
+                                    this.graph.remove(selected[id]);
+                                }
+                                this.showToast('Nodes deleted', 'info');
                             }
-                            this.showToast('Nodes deleted', 'info');
-                        }
+                        });
                     }
                     break;
             }
+        },
+
+        /**
+         * Show custom confirm dialog (replaces native confirm)
+         * @param {Object} options - Dialog options
+         * @param {string} options.title - Dialog title
+         * @param {string} options.message - Dialog message
+         * @param {string} options.confirmText - Confirm button text
+         * @param {string} options.cancelText - Cancel button text
+         * @param {string} options.type - Dialog type: 'danger', 'warning', 'info'
+         * @returns {Promise<boolean>} - Resolves true if confirmed, false if cancelled
+         */
+        showConfirm: function(options = {}) {
+            return new Promise((resolve) => {
+                const {
+                    title = 'Confirm',
+                    message = 'Are you sure?',
+                    confirmText = 'Confirm',
+                    cancelText = 'Cancel',
+                    type = 'danger'
+                } = options;
+
+                const icons = {
+                    danger: '🗑️',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'confirm-overlay';
+                overlay.innerHTML = `
+                    <div class="confirm-dialog ${type}">
+                        <div class="confirm-header">
+                            <span class="confirm-icon">${icons[type]}</span>
+                            <h3 class="confirm-title">${title}</h3>
+                        </div>
+                        <p class="confirm-message">${message}</p>
+                        <div class="confirm-actions">
+                            <button class="confirm-btn cancel">${cancelText}</button>
+                            <button class="confirm-btn confirm ${type}">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Animate in
+                requestAnimationFrame(() => {
+                    overlay.classList.add('active');
+                });
+
+                // Handle buttons
+                const confirmBtn = overlay.querySelector('.confirm-btn.confirm');
+                const cancelBtn = overlay.querySelector('.confirm-btn.cancel');
+
+                const closeDialog = (result) => {
+                    overlay.classList.remove('active');
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve(result);
+                    }, 200);
+                };
+
+                confirmBtn.addEventListener('click', () => closeDialog(true));
+                cancelBtn.addEventListener('click', () => closeDialog(false));
+
+                // Close on overlay click
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeDialog(false);
+                });
+
+                // Close on Escape key
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
+                        document.removeEventListener('keydown', handleEscape);
+                        closeDialog(false);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
+
+                // Focus confirm button
+                confirmBtn.focus();
+            });
         },
 
         /**
