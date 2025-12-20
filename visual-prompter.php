@@ -200,6 +200,50 @@
         </footer>
     </div>
 
+    <!-- Projects Sidebar -->
+    <aside class="projects-sidebar" id="projects-sidebar">
+        <div class="sidebar-toggle" id="sidebar-toggle" title="Toggle Projects Panel">
+            <span class="toggle-icon">📁</span>
+            <span class="toggle-arrow">◀</span>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">
+                    <span>📂</span> My Projects
+                </h3>
+                <button class="sidebar-refresh" id="btn-refresh-projects" title="Refresh">
+                    🔄
+                </button>
+            </div>
+            <div class="sidebar-actions">
+                <button class="sidebar-btn primary" id="btn-sidebar-new">
+                    <span>➕</span> New Project
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="project-search" class="sidebar-search-input" placeholder="🔍 Search projects...">
+            </div>
+            <div class="sidebar-stats" id="sidebar-stats">
+                <span class="stat-item">
+                    <span class="stat-icon">📊</span>
+                    <span class="stat-value" id="total-projects">0</span> projects
+                </span>
+            </div>
+            <div class="projects-list" id="projects-list">
+                <!-- Projects will be loaded here -->
+                <div class="projects-loading" id="projects-loading">
+                    <div class="loading-spinner"></div>
+                    <span>Loading projects...</span>
+                </div>
+                <div class="projects-empty" id="projects-empty" style="display: none;">
+                    <span class="empty-icon">📭</span>
+                    <p>No saved projects yet</p>
+                    <small>Create your first project!</small>
+                </div>
+            </div>
+        </div>
+    </aside>
+
     <!-- Node Popup Template -->
     <div class="popup-overlay" id="popup-overlay">
         <div class="popup-container" id="popup-container">

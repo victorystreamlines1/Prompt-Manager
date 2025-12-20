@@ -17,6 +17,28 @@
         elements: {},
 
         /**
+         * Get API base path dynamically
+         * Works whether accessed from root or subdirectory
+         */
+        getApiPath: function(endpoint) {
+            // Method 1: Try to get from script tag src
+            const scripts = document.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+                const src = scripts[i].src;
+                if (src && src.includes('visual-prompter/js/app.js')) {
+                    const idx = src.indexOf('visual-prompter/js/app.js');
+                    return src.substring(0, idx) + 'visual-prompter/api/' + endpoint;
+                }
+            }
+            
+            // Method 2: Build from current location
+            const origin = window.location.origin;
+            const pathname = window.location.pathname;
+            const dir = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+            return origin + dir + 'visual-prompter/api/' + endpoint;
+        },
+
+        /**
          * Initialize the application
          */
         init: function() {
@@ -34,11 +56,17 @@
             // Initialize popup editor
             PopupEditor.init();
             
+            // Initialize sidebar
+            this.initSidebar();
+            
             // Bind events
             this.bindEvents();
             
             // Update status bar
             this.updateStatusBar();
+            
+            // Start auto-save (every 60 seconds)
+            this.startAutoSave(60);
             
             console.log('✨ Visual Prompter Ready!');
         },
@@ -58,7 +86,15 @@
                 saveModal: document.getElementById('save-modal'),
                 promptPreview: document.getElementById('prompt-preview'),
                 toastContainer: document.getElementById('toast-container'),
-                fileInput: document.getElementById('file-input')
+                fileInput: document.getElementById('file-input'),
+                // Sidebar elements
+                sidebar: document.getElementById('projects-sidebar'),
+                sidebarToggle: document.getElementById('sidebar-toggle'),
+                projectsList: document.getElementById('projects-list'),
+                projectsLoading: document.getElementById('projects-loading'),
+                projectsEmpty: document.getElementById('projects-empty'),
+                projectSearch: document.getElementById('project-search'),
+                totalProjects: document.getElementById('total-projects')
             };
         },
 
@@ -297,6 +333,7 @@
             const createNew = () => {
                 self.graph.clear();
                 self.projectName = 'Untitled Project';
+                self.currentProjectUUID = null; // Reset UUID for new project
                 self.isDirty = false;
                 self.updateStatusBar();
                 self.checkWelcomeScreen();
@@ -358,8 +395,9 @@
         loadProjectData: function(data) {
             this.graph.clear();
             
-            // Set project name
+            // Set project name and UUID
             this.projectName = data.projectName || 'Loaded Project';
+            this.currentProjectUUID = data.uuid || null;
             
             // Configure graph from data
             if (data.graph) {
@@ -369,6 +407,49 @@
             this.isDirty = false;
             this.updateStatusBar();
             this.checkWelcomeScreen();
+        },
+
+        /**
+         * Auto-save timer
+         */
+        autoSaveTimer: null,
+
+        /**
+         * Start auto-save
+         */
+        startAutoSave: function(intervalSeconds = 60) {
+            const self = this;
+            
+            // Clear existing timer
+            if (this.autoSaveTimer) {
+                clearInterval(this.autoSaveTimer);
+            }
+            
+            this.autoSaveTimer = setInterval(() => {
+                if (self.isDirty && self.currentProjectUUID) {
+                    console.log('⏰ Auto-saving project...');
+                    self.saveProjectToDatabase()
+                        .then(() => {
+                            self.isDirty = false;
+                            self.updateStatusBar();
+                            console.log('✅ Auto-save complete');
+                        })
+                        .catch(err => console.warn('Auto-save failed:', err));
+                }
+            }, intervalSeconds * 1000);
+            
+            console.log(`🔄 Auto-save enabled (every ${intervalSeconds}s)`);
+        },
+
+        /**
+         * Stop auto-save
+         */
+        stopAutoSave: function() {
+            if (this.autoSaveTimer) {
+                clearInterval(this.autoSaveTimer);
+                this.autoSaveTimer = null;
+                console.log('⏹️ Auto-save disabled');
+            }
         },
 
         /**
@@ -387,20 +468,41 @@
         },
 
         /**
-         * Save project to file
+         * Current project UUID (for database sync)
+         */
+        currentProjectUUID: null,
+
+        /**
+         * Save project - Saves to both database and file
          */
         saveProject: function() {
             const projectName = document.getElementById('save-project-name').value.trim() || 'Untitled Project';
             this.projectName = projectName;
             
+            // Save to database first
+            this.saveProjectToDatabase().then(() => {
+                // Then download as JSON file
+                this.downloadProjectAsFile(projectName);
+            }).catch(err => {
+                console.error('Database save failed:', err);
+                // Still download file even if database save fails
+                this.downloadProjectAsFile(projectName);
+                this.showToast('Saved locally (cloud sync failed)', 'warning');
+            });
+        },
+
+        /**
+         * Download project as JSON file
+         */
+        downloadProjectAsFile: function(projectName) {
             const data = {
                 version: '1.0',
                 projectName: projectName,
+                uuid: this.currentProjectUUID,
                 createdAt: new Date().toISOString(),
                 graph: this.graph.serialize()
             };
 
-            // Download as JSON
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -416,6 +518,170 @@
             
             // Confetti effect
             this.showConfetti();
+        },
+
+        /**
+         * Save project to database
+         */
+        saveProjectToDatabase: function() {
+            const self = this;
+            const graphData = this.graph.serialize();
+            
+            // Extract nodes and connections from graph
+            const nodes = graphData.nodes || [];
+            const links = graphData.links || [];
+            
+            // Convert links to connections format
+            const connections = links.map(link => ({
+                origin_id: link[1],
+                origin_slot: link[2],
+                target_id: link[3],
+                target_slot: link[4],
+                type: link[5] || 'default'
+            }));
+
+            const projectData = {
+                project: {
+                    uuid: this.currentProjectUUID,
+                    name: this.projectName,
+                    description: null,
+                    thumbnail: null, // Could generate canvas thumbnail
+                    canvas_config: {
+                        zoom: this.graphCanvas.ds.scale,
+                        offset_x: this.graphCanvas.ds.offset[0],
+                        offset_y: this.graphCanvas.ds.offset[1]
+                    }
+                },
+                nodes: nodes,
+                connections: connections,
+                graph: graphData
+            };
+
+            return fetch(this.getApiPath('projects.php?action=save'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(projectData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    self.currentProjectUUID = data.uuid;
+                    console.log('✅ Project saved to database:', data.uuid);
+                    // Refresh sidebar to show updated projects list
+                    self.refreshSidebarAfterSave();
+                    return data;
+                } else {
+                    throw new Error(data.error || 'Save failed');
+                }
+            });
+        },
+
+        /**
+         * Load project from database
+         */
+        loadProjectFromDatabase: function(uuid) {
+            const self = this;
+            
+            return fetch(this.getApiPath(`projects.php?action=get&uuid=${uuid}`))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    self.currentProjectUUID = data.project.uuid;
+                    self.projectName = data.project.name;
+                    
+                    // Reconstruct graph data
+                    // If we have nodes/connections, rebuild the graph
+                    // Otherwise use the stored graph snapshot from history
+                    
+                    self.graph.clear();
+                    
+                    // Load each node
+                    data.nodes.forEach(nodeData => {
+                        const nodeClass = LiteGraph.registered_node_types[nodeData.node_type];
+                        if (nodeClass) {
+                            const node = LiteGraph.createNode(nodeData.node_type);
+                            node.id = nodeData.node_id;
+                            node.pos = [nodeData.position_x, nodeData.position_y];
+                            node.size = [nodeData.size_width, nodeData.size_height];
+                            node.title = nodeData.title;
+                            
+                            // Restore properties
+                            if (nodeData.properties) {
+                                Object.assign(node.properties, nodeData.properties);
+                            }
+                            
+                            self.graph.add(node);
+                        }
+                    });
+                    
+                    // Load connections
+                    data.connections.forEach(conn => {
+                        const sourceNode = self.graph.getNodeById(conn.source_node_id);
+                        const targetNode = self.graph.getNodeById(conn.target_node_id);
+                        if (sourceNode && targetNode) {
+                            sourceNode.connect(conn.source_slot, targetNode, conn.target_slot);
+                        }
+                    });
+                    
+                    // Apply canvas config
+                    if (data.project.canvas_config) {
+                        const config = typeof data.project.canvas_config === 'string' 
+                            ? JSON.parse(data.project.canvas_config) 
+                            : data.project.canvas_config;
+                        if (config.zoom) self.graphCanvas.ds.scale = config.zoom;
+                        if (config.offset_x !== undefined) {
+                            self.graphCanvas.ds.offset[0] = config.offset_x;
+                            self.graphCanvas.ds.offset[1] = config.offset_y;
+                        }
+                    }
+                    
+                    self.isDirty = false;
+                    self.updateStatusBar();
+                    self.checkWelcomeScreen();
+                    self.showToast('Project loaded from cloud', 'success');
+                    
+                    return data;
+                } else {
+                    throw new Error(data.error || 'Load failed');
+                }
+            });
+        },
+
+        /**
+         * Get list of saved projects from database
+         */
+        getProjectsList: function() {
+            return fetch(this.getApiPath('projects.php?action=list'))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    return data.projects;
+                }
+                return [];
+            })
+            .catch(err => {
+                console.error('Failed to fetch projects:', err);
+                return [];
+            });
+        },
+
+        /**
+         * Delete project from database
+         */
+        deleteProjectFromDatabase: function(uuid) {
+            return fetch(this.getApiPath(`projects.php?action=delete&uuid=${uuid}`), {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showToast('Project deleted', 'info');
+                    return true;
+                }
+                throw new Error(data.error);
+            });
         },
 
         /**
@@ -861,6 +1127,557 @@
             setTimeout(() => {
                 btn.style.animation = 'pulse-glow 3s ease-in-out infinite';
             }, 10);
+        },
+
+        // ============================================================================
+        // PROJECTS SIDEBAR
+        // ============================================================================
+
+        /**
+         * Cached projects list
+         */
+        cachedProjects: [],
+
+        /**
+         * Initialize sidebar
+         */
+        initSidebar: function() {
+            const self = this;
+            
+            // Sidebar toggle
+            if (this.elements.sidebarToggle) {
+                this.elements.sidebarToggle.addEventListener('click', () => {
+                    self.toggleSidebar();
+                });
+            }
+            
+            // Refresh button
+            const refreshBtn = document.getElementById('btn-refresh-projects');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    self.loadSidebarProjects();
+                });
+            }
+            
+            // New project button in sidebar
+            const sidebarNewBtn = document.getElementById('btn-sidebar-new');
+            if (sidebarNewBtn) {
+                sidebarNewBtn.addEventListener('click', () => {
+                    self.newProject();
+                    self.closeSidebar();
+                });
+            }
+            
+            // Search functionality
+            if (this.elements.projectSearch) {
+                this.elements.projectSearch.addEventListener('input', (e) => {
+                    self.filterProjects(e.target.value);
+                });
+            }
+            
+            // Load projects on init
+            this.loadSidebarProjects();
+            
+            console.log('📁 Sidebar initialized');
+        },
+
+        /**
+         * Toggle sidebar open/closed
+         */
+        toggleSidebar: function() {
+            if (this.elements.sidebar) {
+                this.elements.sidebar.classList.toggle('expanded');
+            }
+        },
+
+        /**
+         * Open sidebar
+         */
+        openSidebar: function() {
+            if (this.elements.sidebar) {
+                this.elements.sidebar.classList.add('expanded');
+            }
+        },
+
+        /**
+         * Close sidebar
+         */
+        closeSidebar: function() {
+            if (this.elements.sidebar) {
+                this.elements.sidebar.classList.remove('expanded');
+            }
+        },
+
+        /**
+         * Load projects from database into sidebar
+         */
+        loadSidebarProjects: function() {
+            const self = this;
+            
+            // Show loading state
+            if (this.elements.projectsLoading) {
+                this.elements.projectsLoading.style.display = 'flex';
+            }
+            if (this.elements.projectsEmpty) {
+                this.elements.projectsEmpty.style.display = 'none';
+            }
+            
+            // Clear existing project cards (but keep loading indicator)
+            const existingCards = this.elements.projectsList.querySelectorAll('.project-card');
+            existingCards.forEach(card => card.remove());
+            
+            // Fetch projects from API
+            this.getProjectsList()
+                .then(projects => {
+                    self.cachedProjects = projects;
+                    self.renderProjectsList(projects);
+                })
+                .catch(err => {
+                    console.error('Failed to load projects:', err);
+                    self.showProjectsError();
+                });
+        },
+
+        /**
+         * Render projects list
+         */
+        renderProjectsList: function(projects) {
+            // Hide loading
+            if (this.elements.projectsLoading) {
+                this.elements.projectsLoading.style.display = 'none';
+            }
+            
+            // Update total count
+            if (this.elements.totalProjects) {
+                this.elements.totalProjects.textContent = projects.length;
+            }
+            
+            // Show empty state if no projects
+            if (projects.length === 0) {
+                if (this.elements.projectsEmpty) {
+                    this.elements.projectsEmpty.style.display = 'flex';
+                }
+                return;
+            }
+            
+            // Hide empty state
+            if (this.elements.projectsEmpty) {
+                this.elements.projectsEmpty.style.display = 'none';
+            }
+            
+            // Render each project card
+            projects.forEach(project => {
+                const card = this.createProjectCard(project);
+                this.elements.projectsList.appendChild(card);
+            });
+        },
+
+        /**
+         * Create a project card element
+         */
+        createProjectCard: function(project) {
+            const self = this;
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.dataset.uuid = project.uuid;
+            
+            // Check if this is the current project
+            if (this.currentProjectUUID === project.uuid) {
+                card.classList.add('active');
+            }
+            
+            // Format date
+            const updatedDate = new Date(project.updated_at);
+            const formattedDate = this.formatRelativeTime(updatedDate);
+            
+            card.innerHTML = `
+                <div class="project-card-header">
+                    <h4 class="project-card-title" title="${project.name}">${project.name}</h4>
+                    <div class="project-card-actions">
+                        <button class="project-action-btn edit" title="Rename" data-action="rename">
+                            ✏️
+                        </button>
+                        <button class="project-action-btn duplicate" title="Duplicate" data-action="duplicate">
+                            📋
+                        </button>
+                        <button class="project-action-btn delete" title="Delete" data-action="delete">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div class="project-card-meta">
+                    <span class="project-meta-item">
+                        <span class="project-meta-icon">📦</span>
+                        ${project.node_count || 0} nodes
+                    </span>
+                    <span class="project-meta-item">
+                        <span class="project-meta-icon">🔗</span>
+                        ${project.connection_count || 0} links
+                    </span>
+                    <span class="project-meta-item">
+                        <span class="project-meta-icon">🕒</span>
+                        ${formattedDate}
+                    </span>
+                    <span class="version-badge">v${project.version || 1}</span>
+                </div>
+            `;
+            
+            // Click to load project
+            card.addEventListener('click', (e) => {
+                // Don't load if clicking action buttons
+                if (e.target.closest('.project-action-btn')) return;
+                self.loadProjectFromSidebar(project.uuid);
+            });
+            
+            // Action buttons
+            card.querySelectorAll('.project-action-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = btn.dataset.action;
+                    
+                    switch (action) {
+                        case 'rename':
+                            self.renameProject(project);
+                            break;
+                        case 'duplicate':
+                            self.duplicateProject(project.uuid);
+                            break;
+                        case 'delete':
+                            self.confirmDeleteProject(project);
+                            break;
+                    }
+                });
+            });
+            
+            return card;
+        },
+
+        /**
+         * Format relative time (e.g., "2 hours ago")
+         */
+        formatRelativeTime: function(date) {
+            const now = new Date();
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 7) {
+                return date.toLocaleDateString();
+            } else if (days > 0) {
+                return `${days}d ago`;
+            } else if (hours > 0) {
+                return `${hours}h ago`;
+            } else if (minutes > 0) {
+                return `${minutes}m ago`;
+            } else {
+                return 'Just now';
+            }
+        },
+
+        /**
+         * Filter projects by search query
+         */
+        filterProjects: function(query) {
+            const searchTerm = query.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                this.renderProjectsList(this.cachedProjects);
+                return;
+            }
+            
+            const filtered = this.cachedProjects.filter(project => {
+                return project.name.toLowerCase().includes(searchTerm);
+            });
+            
+            // Clear and re-render
+            const existingCards = this.elements.projectsList.querySelectorAll('.project-card');
+            existingCards.forEach(card => card.remove());
+            
+            this.renderProjectsList(filtered);
+        },
+
+        /**
+         * Load project from sidebar
+         */
+        loadProjectFromSidebar: function(uuid) {
+            const self = this;
+            
+            // Check for unsaved changes
+            if (this.isDirty) {
+                this.showConfirm({
+                    title: 'Unsaved Changes',
+                    message: 'You have unsaved changes. Load this project anyway?',
+                    confirmText: 'Load Project',
+                    cancelText: 'Cancel',
+                    type: 'warning'
+                }).then(confirmed => {
+                    if (confirmed) {
+                        self.doLoadProjectFromSidebar(uuid);
+                    }
+                });
+            } else {
+                this.doLoadProjectFromSidebar(uuid);
+            }
+        },
+
+        /**
+         * Actually load the project
+         */
+        doLoadProjectFromSidebar: function(uuid) {
+            const self = this;
+            
+            this.showToast('Loading project...', 'info');
+            
+            this.loadProjectFromDatabase(uuid)
+                .then(() => {
+                    // Update active state in sidebar
+                    document.querySelectorAll('.project-card').forEach(card => {
+                        card.classList.remove('active');
+                        if (card.dataset.uuid === uuid) {
+                            card.classList.add('active');
+                        }
+                    });
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth < 768) {
+                        self.closeSidebar();
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed to load project:', err);
+                    self.showToast('Failed to load project', 'error');
+                });
+        },
+
+        /**
+         * Rename project
+         */
+        renameProject: function(project) {
+            const self = this;
+            
+            // Create rename modal
+            const modalHTML = `
+                <div class="modal-overlay confirm-overlay active" id="rename-modal">
+                    <div class="modal-container confirm-container">
+                        <div class="modal-header">
+                            <h3 class="modal-title">✏️ Rename Project</h3>
+                            <button class="modal-close-btn">×</button>
+                        </div>
+                        <div class="modal-content">
+                            <div class="form-group">
+                                <label for="new-project-name">Project Name</label>
+                                <input type="text" id="new-project-name" class="form-input" value="${project.name}" autofocus>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn ghost cancel-btn">Cancel</button>
+                            <button class="modal-btn confirm-btn info">Rename</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            const modal = document.getElementById('rename-modal');
+            const input = document.getElementById('new-project-name');
+            
+            input.select();
+            
+            const closeModal = () => {
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+            };
+            
+            modal.querySelector('.modal-close-btn').addEventListener('click', closeModal);
+            modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
+            
+            modal.querySelector('.confirm-btn').addEventListener('click', () => {
+                const newName = input.value.trim();
+                if (newName && newName !== project.name) {
+                    self.doRenameProject(project.uuid, newName);
+                }
+                closeModal();
+            });
+            
+            // Enter to confirm
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const newName = input.value.trim();
+                    if (newName && newName !== project.name) {
+                        self.doRenameProject(project.uuid, newName);
+                    }
+                    closeModal();
+                }
+            });
+        },
+
+        /**
+         * Actually rename the project
+         */
+        doRenameProject: function(uuid, newName) {
+            const self = this;
+            
+            // Find the project in cache
+            const project = this.cachedProjects.find(p => p.uuid === uuid);
+            if (!project) return;
+            
+            // Update via API (reuse save endpoint)
+            fetch(this.getApiPath('projects.php?action=save'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    project: {
+                        uuid: uuid,
+                        name: newName
+                    },
+                    nodes: [],
+                    connections: []
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local cache
+                    project.name = newName;
+                    
+                    // Update card in DOM
+                    const card = document.querySelector(`.project-card[data-uuid="${uuid}"]`);
+                    if (card) {
+                        card.querySelector('.project-card-title').textContent = newName;
+                        card.querySelector('.project-card-title').title = newName;
+                    }
+                    
+                    // Update project name if this is current project
+                    if (self.currentProjectUUID === uuid) {
+                        self.projectName = newName;
+                        self.updateStatusBar();
+                    }
+                    
+                    self.showToast('Project renamed', 'success');
+                }
+            })
+            .catch(err => {
+                console.error('Rename failed:', err);
+                self.showToast('Failed to rename project', 'error');
+            });
+        },
+
+        /**
+         * Duplicate project
+         */
+        duplicateProject: function(uuid) {
+            const self = this;
+            
+            // Find the project ID from UUID
+            const project = this.cachedProjects.find(p => p.uuid === uuid);
+            if (!project) {
+                this.showToast('Project not found', 'error');
+                return;
+            }
+            
+            fetch(this.getApiPath(`projects.php?action=duplicate&id=${project.id}`), {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    self.showToast('Project duplicated', 'success');
+                    self.loadSidebarProjects();
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(err => {
+                console.error('Duplicate failed:', err);
+                self.showToast('Failed to duplicate project', 'error');
+            });
+        },
+
+        /**
+         * Confirm delete project
+         */
+        confirmDeleteProject: function(project) {
+            const self = this;
+            
+            this.showConfirm({
+                title: 'Delete Project',
+                message: `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    self.doDeleteProject(project.uuid);
+                }
+            });
+        },
+
+        /**
+         * Actually delete the project
+         */
+        doDeleteProject: function(uuid) {
+            const self = this;
+            
+            this.deleteProjectFromDatabase(uuid)
+                .then(() => {
+                    // Remove from cache
+                    self.cachedProjects = self.cachedProjects.filter(p => p.uuid !== uuid);
+                    
+                    // Remove card from DOM
+                    const card = document.querySelector(`.project-card[data-uuid="${uuid}"]`);
+                    if (card) {
+                        card.style.animation = 'fadeOut 0.3s ease forwards';
+                        setTimeout(() => {
+                            card.remove();
+                            // Update count
+                            if (self.elements.totalProjects) {
+                                self.elements.totalProjects.textContent = self.cachedProjects.length;
+                            }
+                            // Show empty if no projects
+                            if (self.cachedProjects.length === 0 && self.elements.projectsEmpty) {
+                                self.elements.projectsEmpty.style.display = 'flex';
+                            }
+                        }, 300);
+                    }
+                    
+                    // If deleted current project, reset
+                    if (self.currentProjectUUID === uuid) {
+                        self.newProject();
+                    }
+                })
+                .catch(err => {
+                    console.error('Delete failed:', err);
+                    self.showToast('Failed to delete project', 'error');
+                });
+        },
+
+        /**
+         * Show projects error state
+         */
+        showProjectsError: function() {
+            if (this.elements.projectsLoading) {
+                this.elements.projectsLoading.style.display = 'none';
+            }
+            
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'projects-empty';
+            errorDiv.innerHTML = `
+                <span class="empty-icon">⚠️</span>
+                <p>Failed to load projects</p>
+                <small>Check your connection and try again</small>
+            `;
+            this.elements.projectsList.appendChild(errorDiv);
+        },
+
+        /**
+         * Refresh sidebar after save
+         */
+        refreshSidebarAfterSave: function() {
+            // Reload projects list
+            this.loadSidebarProjects();
         }
     };
 
