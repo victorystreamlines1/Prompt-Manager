@@ -4556,6 +4556,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: rotate(90deg);
         }
 
+        /* Refresh Button */
+        .dict-refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: #34d399;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-refresh-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(52, 211, 153, 0.2));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .dict-refresh-btn i {
+            transition: transform 0.4s ease;
+        }
+
+        .dict-refresh-btn:hover i {
+            transform: rotate(180deg);
+        }
+
         /* Admin Popup Modal */
         .dict-admin-modal {
             display: none;
@@ -5770,6 +5802,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-cog"></i>
                         <span>Admin</span>
                     </button>
+                    <button type="button" class="dict-refresh-btn" onclick="dictRefreshAPI()" title="Refresh from API">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 
                 <div class="dictionary-wrapper" id="dictionaryWrapper">
@@ -5779,7 +5814,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="label-badge"><i class="fas fa-layer-group"></i> Group</span>
                             <span class="active-group" id="dictActiveGroupName">All</span>
                             <button type="button" class="reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset filter to All">✕</button>
-                            <button type="button" class="refresh-btn" onclick="dictRefreshAPI()" title="Refresh from API"><i class="fas fa-sync-alt"></i></button>
                         </div>
                         <div class="slider-bar-wrapper">
                             <div class="slider-bar" id="dictSliderTrack">
