@@ -4247,70 +4247,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.5; }
         }
 
-        /* Work Distribution Section - Compact Version */
+        /* Work Distribution Section - Ultra Compact */
         .distribution-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            padding: 0.5rem 0.75rem;
             position: relative;
         }
 
         .distribution-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .distribution-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
+            gap: 0.4rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-secondary);
         }
 
         .distribution-title i {
             color: var(--accent-primary);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .distribution-value {
             display: flex;
             align-items: baseline;
-            gap: 0.25rem;
+            gap: 0.2rem;
             background: var(--gradient-main);
-            padding: 0.3rem 0.7rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
         }
 
         .value-number {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: white;
             line-height: 1;
         }
 
         .value-label {
-            font-size: 0.65rem;
+            font-size: 0.55rem;
             color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
         }
 
+        /* Distribution Append Checkbox */
+        .dist-append-check {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.2rem 0.35rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .dist-append-check:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .dist-append-check.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dist-append-check input {
+            display: none;
+        }
+
+        .dist-append-check .check-box {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(139, 92, 246, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(30, 30, 60, 0.5);
+        }
+
+        .dist-append-check .check-box i {
+            font-size: 0.5rem;
+            color: transparent;
+        }
+
+        .dist-append-check.active .check-box {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-color: #10b981;
+        }
+
+        .dist-append-check.active .check-box i {
+            color: #fff;
+        }
+
         /* Slider Container - Compact */
         .slider-container {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
         }
 
         .slider-track {
             position: relative;
-            height: 8px;
+            height: 6px;
             background: var(--bg-tertiary);
-            border-radius: 4px;
-            margin-bottom: 0.4rem;
+            border-radius: 3px;
             overflow: visible;
         }
 
@@ -4320,8 +4372,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             height: 100%;
             background: var(--gradient-main);
-            border-radius: 4px;
-            transition: width 0.15s ease;
+            border-radius: 3px;
+            transition: width 0.1s ease;
             pointer-events: none;
         }
 
@@ -4331,7 +4383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             left: 0;
             transform: translateY(-50%);
             width: 100%;
-            height: 20px;
+            height: 16px;
             -webkit-appearance: none;
             appearance: none;
             background: transparent;
@@ -4342,138 +4394,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .slider-input::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
             cursor: grab;
             transition: all 0.2s ease;
         }
 
         .slider-input::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+            transform: scale(1.1);
         }
 
         .slider-input::-webkit-slider-thumb:active {
             cursor: grabbing;
-            transform: scale(1.1);
         }
 
         .slider-input::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
             cursor: grab;
-        }
-
-        /* Slider Labels - Compact */
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            padding: 0;
-        }
-
-        .slider-label {
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .slider-label:hover {
-            color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .slider-label.active {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
-        /* Toggle Switch - Compact */
-        .distribution-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 36px;
-            height: 20px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            height: 14px;
-            width: 14px;
-            left: 2px;
-            bottom: 2px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--gradient-main);
-            border-color: var(--accent-primary);
-        }
-
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(16px);
-            background: white;
-        }
-
-        .toggle-text {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .distribution-toggle:has(input:checked) .toggle-text {
-            color: var(--accent-primary);
         }
 
         /* Distribution Active State */
         .distribution-section.active {
             border-color: var(--accent-primary);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.1);
         }
 
         /* Responsive */
@@ -5632,39 +5584,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="distribution-header">
                     <div class="distribution-title">
                         <i class="fas fa-layer-group"></i>
-                        <span>Work Distribution</span>
+                        <span>Steps</span>
                     </div>
                     <div class="distribution-value" id="distributionValue">
                         <span class="value-number" id="valueNumber">1</span>
-                        <span class="value-label">Part</span>
+                        <span class="value-label">/ 30</span>
                     </div>
+                    <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
+                        <input type="checkbox" id="distributionEnabled">
+                        <span class="check-box"><i class="fas fa-check"></i></span>
+                    </label>
                 </div>
                 
                 <div class="slider-container">
                     <div class="slider-track">
                         <div class="slider-fill" id="sliderFill"></div>
-                        <input type="range" min="1" max="10" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
                     </div>
-                    <div class="slider-labels">
-                        <span class="slider-label" onclick="setDistribution(1)">1</span>
-                        <span class="slider-label" onclick="setDistribution(2)">2</span>
-                        <span class="slider-label" onclick="setDistribution(3)">3</span>
-                        <span class="slider-label" onclick="setDistribution(4)">4</span>
-                        <span class="slider-label" onclick="setDistribution(5)">5</span>
-                        <span class="slider-label" onclick="setDistribution(6)">6</span>
-                        <span class="slider-label" onclick="setDistribution(7)">7</span>
-                        <span class="slider-label" onclick="setDistribution(8)">8</span>
-                        <span class="slider-label" onclick="setDistribution(9)">9</span>
-                        <span class="slider-label" onclick="setDistribution(10)">10</span>
-                    </div>
-                </div>
-                
-                <div class="distribution-toggle">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="distributionEnabled" onchange="toggleDistribution()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-text">Add distribution instruction to prompt</span>
                 </div>
             </div>
             
@@ -11045,17 +10981,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Update value display
             const valueNumber = document.getElementById('valueNumber');
-            const valueLabel = document.querySelector('.value-label');
             valueNumber.textContent = value;
-            valueLabel.textContent = value === 1 ? 'Part' : 'Parts';
             
-            // Update slider fill
+            // Update slider fill (30 steps)
             const fill = document.getElementById('sliderFill');
-            const percentage = ((value - 1) / 9) * 100;
+            const percentage = ((value - 1) / 29) * 100;
             fill.style.width = `${percentage}%`;
-            
-            // Update active label
-            updateActiveLabel(value);
             
             // If enabled, update the editor
             if (distributionState.enabled) {
@@ -11070,69 +11001,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateDistribution(value);
         }
         
-        // Update active label styling
-        function updateActiveLabel(value) {
-            const labels = document.querySelectorAll('.slider-label');
-            labels.forEach((label, index) => {
-                if (index + 1 === value) {
-                    label.classList.add('active');
-                } else {
-                    label.classList.remove('active');
-                }
-            });
-        }
-        
         // Get distribution messages based on value
         function getDistributionMessages(value) {
             if (value === 1) {
                 return {
                     short: 'Complete this task in a single comprehensive response.',
-                    full: '📋 WORK DISTRIBUTION: Single Part\n\nPlease complete this entire task in ONE comprehensive response.\nProvide a complete and thorough solution without breaking it into parts.'
+                    full: '📋 WORK DISTRIBUTION: Single Step\n\nPlease complete this entire task in ONE comprehensive response.\nProvide a complete and thorough solution without breaking it into parts.'
                 };
-            } else if (value === 2) {
+            } else if (value <= 5) {
                 return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:\n\n• Part 1/2: First half of the task\n• Part 2/2: Second half of the task\n\n✅ After completing each part, indicate "Part X Complete" before proceeding.`
+                    short: `Distribute the work into ${value} steps.`,
+                    full: `📋 WORK DISTRIBUTION: ${value} Steps\n\nPlease distribute and organize your work into ${value} distinct steps.\n\n✅ After completing each step, indicate "Step X/${value} Complete" before proceeding.`
                 };
             } else {
-                let partsBreakdown = '';
-                for (let i = 1; i <= value; i++) {
-                    partsBreakdown += `\n• Part ${i}/${value}: ${getPartDescription(i, value)}`;
-                }
-                
                 return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:${partsBreakdown}\n\n✅ After completing each part, indicate "Part X Complete" before proceeding to the next.`
+                    short: `Distribute the work into ${value} steps.`,
+                    full: `📋 WORK DISTRIBUTION: ${value} Steps\n\nPlease distribute and organize your work into ${value} distinct steps.\nBreak down the task systematically and work through each step methodically.\n\n✅ After completing each step, indicate "Step X/${value} Complete" before proceeding to the next.`
                 };
             }
         }
         
-        // Get part description based on position
-        function getPartDescription(part, total) {
-            const percentage = Math.round((1 / total) * 100);
+        // Toggle distribution append - checkbox behavior
+        function toggleDistributionAppend(event) {
+            event.preventDefault();
+            event.stopPropagation();
             
-            if (part === 1) return `Initial setup & foundation (~${percentage}% of work)`;
-            if (part === total) return `Final completion & review (~${percentage}% of work)`;
-            if (part === Math.ceil(total / 2)) return `Core implementation (~${percentage}% of work)`;
-            
-            return `Section ${part} implementation (~${percentage}% of work)`;
-        }
-        
-        // Toggle distribution on/off
-        function toggleDistribution() {
+            const label = document.getElementById('distAppendCheck');
             const checkbox = document.getElementById('distributionEnabled');
             const section = document.querySelector('.distribution-section');
+            const editor = document.getElementById('promptEditor');
             
-            distributionState.enabled = checkbox.checked;
+            if (!editor) return;
             
-            if (checkbox.checked) {
-                section.classList.add('active');
-                addDistributionToEditor();
-                showToast(`✅ Distribution (${distributionState.value} parts) added to prompt`, 'success');
-            } else {
+            const isActive = label.classList.contains('active');
+            
+            if (isActive) {
+                // Remove
+                label.classList.remove('active');
+                checkbox.checked = false;
                 section.classList.remove('active');
+                distributionState.enabled = false;
                 removeDistributionFromEditor();
-                showToast('Distribution instruction removed', 'info');
+                showToast('Steps removed', 'info');
+            } else {
+                // Add - append to editor
+                label.classList.add('active');
+                checkbox.checked = true;
+                section.classList.add('active');
+                distributionState.enabled = true;
+                
+                const messages = getDistributionMessages(distributionState.value);
+                const distributionBlock = `${distributionState.startMarker}\n${messages.full}\n${distributionState.endMarker}`;
+                
+                // Append to editor
+                if (editor.value.trim()) {
+                    editor.value = editor.value.trim() + '\n\n' + distributionBlock;
+                } else {
+                    editor.value = distributionBlock;
+                }
+                
+                showToast(`${distributionState.value} steps added`, 'success');
+                updateCounts();
+            }
+        }
+        
+        // Legacy toggle function for compatibility
+        function toggleDistribution() {
+            const label = document.getElementById('distAppendCheck');
+            if (label) {
+                toggleDistributionAppend({ preventDefault: () => {}, stopPropagation: () => {} });
             }
         }
         
