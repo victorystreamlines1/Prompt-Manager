@@ -4901,7 +4901,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-label {
-            font-size: 0.5rem;
+            font-size: 0.6rem;
             font-weight: 600;
             color: #8b5cf6;
             text-transform: uppercase;
@@ -4910,7 +4910,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-card-title {
-            font-size: 0.7rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-primary);
             margin: 0;
@@ -4923,9 +4923,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dict-card-group-badge {
             display: flex;
             align-items: center;
-            gap: 0.2rem;
-            font-size: 0.5rem;
-            padding: 0.1rem 0.3rem;
+            gap: 0.25rem;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
             background: rgba(139, 92, 246, 0.15);
             color: #a78bfa;
             border-radius: 3px;
@@ -4935,7 +4935,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-card-group-badge .dict-label {
             color: #c4b5fd;
-            font-size: 0.45rem;
+            font-size: 0.55rem;
         }
 
         .dict-card-phrase {
@@ -4950,7 +4950,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-card-phrase p {
             flex: 1;
-            font-size: 0.6rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             margin: 0;
             line-height: 1.4;
