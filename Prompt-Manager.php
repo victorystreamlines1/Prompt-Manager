@@ -4560,14 +4560,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(30, 30, 60, 0.5);
             border: 1px solid rgba(99, 102, 241, 0.1);
             border-radius: 8px;
-            padding: 0.5rem;
+            padding: 0.5rem 0.6rem;
             margin-bottom: 0.6rem;
+            overflow: hidden;
         }
 
         .slider-label {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: flex-start;
+            gap: 0.4rem;
             margin-bottom: 0.4rem;
             font-size: 0.65rem;
             color: var(--text-muted);
@@ -4576,35 +4578,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .slider-label .label-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            padding: 0.25rem 0.5rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 6px;
+            gap: 0.25rem;
             font-size: 0.6rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #c4b5fd;
+            letter-spacing: 0.3px;
+            color: #a78bfa;
         }
 
         .slider-label .label-badge i {
             font-size: 0.55rem;
-            color: #a78bfa;
+            color: #8b5cf6;
         }
 
         .slider-label .active-group {
-            color: #a78bfa;
-            font-weight: 600;
-            margin-left: auto;
-            font-size: 0.6rem;
-            max-width: 100px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 0.15rem 0.4rem;
-            background: rgba(139, 92, 246, 0.1);
-            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            padding-left: 0.3rem;
+            border-left: 1px solid rgba(139, 92, 246, 0.3);
         }
 
         .slider-label .reset-btn,
@@ -4612,27 +4603,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(40, 40, 70, 0.6);
-            border: 1px solid rgba(99, 102, 241, 0.15);
+            background: transparent;
+            border: none;
             color: var(--text-muted);
             cursor: pointer;
             font-size: 0.6rem;
-            width: 22px;
-            height: 22px;
-            border-radius: 5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
             transition: all 0.2s;
+            opacity: 0.7;
         }
 
         .slider-label .reset-btn:hover {
             color: #f87171;
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
+            opacity: 1;
         }
 
         .slider-label .refresh-btn:hover {
             color: #34d399;
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
+            opacity: 1;
         }
 
         .slider-label .refresh-btn.spinning i {
@@ -4642,8 +4632,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .slider-bar-wrapper {
             overflow-x: auto;
             scrollbar-width: none;
-            margin: 0 -0.25rem;
-            padding: 0 0.25rem;
+            margin: 0;
+            padding: 0;
         }
 
         .slider-bar-wrapper::-webkit-scrollbar {
