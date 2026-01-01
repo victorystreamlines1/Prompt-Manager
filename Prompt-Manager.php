@@ -4588,6 +4588,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: rotate(180deg);
         }
 
+        /* Reset Filter Button */
+        .dict-reset-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-reset-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(248, 113, 113, 0.2));
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.2);
+        }
+
         /* Admin Popup Modal */
         .dict-admin-modal {
             display: none;
@@ -5805,6 +5829,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="button" class="dict-refresh-btn" onclick="dictRefreshAPI()" title="Refresh from API">
                         <i class="fas fa-sync-alt"></i>
                     </button>
+                    <button type="button" class="dict-reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset filter to All">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 
                 <div class="dictionary-wrapper" id="dictionaryWrapper">
@@ -5813,7 +5840,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="slider-label">
                             <span class="label-badge"><i class="fas fa-layer-group"></i> Group</span>
                             <span class="active-group" id="dictActiveGroupName">All</span>
-                            <button type="button" class="reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset filter to All">✕</button>
                         </div>
                         <div class="slider-bar-wrapper">
                             <div class="slider-bar" id="dictSliderTrack">
