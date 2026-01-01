@@ -4494,112 +4494,156 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* ========================================== */
-        /* AI PROMPT DICTIONARY SECTION */
+        /* AI PROMPT DICTIONARY SECTION - MODERN REDESIGN */
         /* ========================================== */
         .dictionary-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(15, 15, 35, 0.95), rgba(20, 20, 45, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 12px;
             overflow: hidden;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .dictionary-header {
-            padding: 1rem 1.25rem;
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
-            border-bottom: 1px solid var(--border-color);
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .dictionary-header h3 {
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-primary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             margin: 0;
+            letter-spacing: 0.3px;
         }
 
         .dictionary-header h3 i {
-            color: #8b5cf6;
+            color: #a78bfa;
+            font-size: 0.85rem;
         }
 
         .dictionary-wrapper {
-            max-height: 500px;
+            max-height: 380px;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 0.75rem;
         }
 
         .dictionary-wrapper::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         .dictionary-wrapper::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
+            background: transparent;
         }
 
         .dictionary-wrapper::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 3px;
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 2px;
         }
 
-        /* Group Filter Slider */
+        .dictionary-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.6);
+        }
+
+        /* Group Filter - Compact Pills */
         .group-slider-compact {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 0.6rem;
         }
 
         .slider-label {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.75rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
         }
 
-        .slider-label .label-icon {
-            font-size: 0.9rem;
-        }
-
-        .slider-label .label-text {
+        .slider-label .label-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            font-size: 0.6rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #c4b5fd;
+        }
+
+        .slider-label .label-badge i {
+            font-size: 0.55rem;
+            color: #a78bfa;
         }
 
         .slider-label .active-group {
-            color: #8b5cf6;
+            color: #a78bfa;
             font-weight: 600;
             margin-left: auto;
+            font-size: 0.6rem;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0.15rem 0.4rem;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 4px;
         }
 
-        .slider-label .reset-btn {
-            background: transparent;
-            border: none;
+        .slider-label .reset-btn,
+        .slider-label .refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(40, 40, 70, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 1rem;
-            padding: 0.25rem;
-            border-radius: 4px;
+            font-size: 0.6rem;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
             transition: all 0.2s;
         }
 
         .slider-label .reset-btn:hover {
-            color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .slider-label .refresh-btn:hover {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .slider-label .refresh-btn.spinning i {
+            animation: spin 0.8s linear infinite;
         }
 
         .slider-bar-wrapper {
             overflow-x: auto;
             scrollbar-width: none;
+            margin: 0 -0.25rem;
+            padding: 0 0.25rem;
         }
 
         .slider-bar-wrapper::-webkit-scrollbar {
@@ -4608,76 +4652,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .slider-bar {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.3rem;
             position: relative;
-            padding: 0.25rem;
         }
 
         .slider-option {
             flex-shrink: 0;
-            padding: 0.4rem 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
+            padding: 0.25rem 0.6rem;
+            background: rgba(40, 40, 70, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
         }
 
         .slider-option:hover {
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: var(--text-secondary);
+            background: rgba(139, 92, 246, 0.1);
         }
 
         .slider-option.active {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-color: #8b5cf6;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+            border-color: transparent;
             color: white;
             font-weight: 500;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
 
-        /* Dictionary Search Container */
+        /* Dictionary Search - Sleek */
         .dict-search-container {
             position: relative;
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
         }
 
         .dict-search-container .search-icon {
             position: absolute;
-            left: 0.75rem;
+            left: 0.6rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            color: rgba(167, 139, 250, 0.5);
+            font-size: 0.75rem;
         }
 
         .dict-search-input {
             width: 100%;
-            padding: 0.75rem 2.5rem 0.75rem 2.25rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            padding: 0.5rem 2rem 0.5rem 1.8rem;
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
             color: var(--text-primary);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             font-family: inherit;
             transition: all 0.2s;
         }
 
         .dict-search-input:focus {
             outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+            background: rgba(30, 30, 60, 0.8);
         }
 
         .dict-search-input::placeholder {
             color: var(--text-muted);
+            font-size: 0.7rem;
         }
 
         .dict-search-loading {
             position: absolute;
-            right: 2.5rem;
+            right: 2rem;
             top: 50%;
             transform: translateY(-50%);
             display: none;
@@ -4688,10 +4735,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .spinner-small {
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border-color);
-            border-top-color: var(--accent-primary);
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #a78bfa;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -4702,15 +4749,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-search-clear {
             position: absolute;
-            right: 0.75rem;
+            right: 0.5rem;
             top: 50%;
             transform: translateY(-50%);
             background: transparent;
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 0.9rem;
-            padding: 0.25rem;
+            font-size: 0.7rem;
+            padding: 0.2rem;
             border-radius: 4px;
             display: none;
             transition: all 0.2s;
@@ -4723,62 +4770,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-search-clear:hover {
-            color: var(--danger);
+            color: #f87171;
             background: rgba(239, 68, 68, 0.1);
         }
 
-        /* Results Info */
+        /* Results Info - Minimal */
         .dict-results-info {
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.3rem;
+            padding-left: 0.2rem;
         }
 
         .dict-results-info strong {
-            color: var(--accent-primary);
+            color: #a78bfa;
         }
 
-        /* Loading Skeleton */
+        /* Loading Skeleton - Compact */
         .dictionary-loading {
             display: none;
         }
 
         .dictionary-loading.show {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
         }
 
         .skeleton-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
+            background: rgba(40, 40, 70, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+            border-radius: 6px;
+            padding: 0.6rem;
+            height: 42px;
         }
 
         .skeleton-card::before {
             content: '';
             display: block;
-            height: 20px;
-            width: 60%;
-            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
+            height: 10px;
+            width: 50%;
+            background: linear-gradient(90deg, rgba(60, 60, 90, 0.5) 25%, rgba(80, 80, 110, 0.5) 50%, rgba(60, 60, 90, 0.5) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            border-radius: 4px;
-            margin-bottom: 0.75rem;
+            border-radius: 3px;
+            margin-bottom: 0.4rem;
         }
 
         .skeleton-card::after {
             content: '';
             display: block;
-            height: 14px;
-            width: 100%;
-            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
+            height: 8px;
+            width: 80%;
+            background: linear-gradient(90deg, rgba(60, 60, 90, 0.4) 25%, rgba(80, 80, 110, 0.4) 50%, rgba(60, 60, 90, 0.4) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            border-radius: 4px;
+            border-radius: 3px;
         }
 
         @keyframes shimmer {
@@ -4786,42 +4836,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             100% { background-position: 200% 0; }
         }
 
-        /* Dictionary List */
+        /* Dictionary List - Compact Rows */
         .dictionary-list {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.35rem;
         }
 
         .dictionary-list.hidden {
             display: none;
         }
 
-        /* Dictionary Card */
+        /* Dictionary Card - Sleek Row Design */
         .dict-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            background: rgba(35, 35, 65, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+            border-radius: 8px;
             overflow: hidden;
             transition: all 0.2s;
         }
 
         .dict-card:hover {
-            border-color: var(--accent-primary);
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(45, 45, 75, 0.7);
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
         }
 
+        /* Compact Card Header */
         .dict-card-header {
-            padding: 0.75rem 1rem;
+            padding: 0.45rem 0.65rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+            gap: 0.4rem;
+            border-bottom: none;
+            background: transparent;
         }
 
         .dict-card-title {
-            font-size: 0.9rem;
+            font-size: 0.72rem;
             font-weight: 600;
             color: var(--text-primary);
             margin: 0;
@@ -4829,80 +4881,140 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            letter-spacing: 0.2px;
         }
 
         .dict-card-group-badge {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.5rem;
-            background: rgba(139, 92, 246, 0.15);
-            color: #a78bfa;
-            border-radius: 20px;
+            font-size: 0.55rem;
+            padding: 0.12rem 0.4rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            border-radius: 10px;
             white-space: nowrap;
+            font-weight: 500;
+            letter-spacing: 0.2px;
         }
 
+        /* Compact Phrase Section */
         .dict-card-phrase {
-            padding: 0.75rem 1rem;
+            padding: 0 0.65rem 0.45rem;
             display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .dict-card-phrase p {
             flex: 1;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            line-height: 1.4;
             margin: 0;
-            max-height: 60px;
+            max-height: 32px;
             overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .dict-btn-copy {
             flex-shrink: 0;
-            padding: 0.4rem 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 5px;
+            color: #a78bfa;
+            font-size: 0.6rem;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
+            font-weight: 500;
         }
 
         .dict-btn-copy:hover {
             background: rgba(16, 185, 129, 0.15);
-            border-color: var(--success);
-            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            transform: scale(1.02);
         }
 
         .dict-btn-copy.copied {
             background: rgba(16, 185, 129, 0.2);
-            border-color: var(--success);
-            color: var(--success);
+            border-color: #34d399;
+            color: #34d399;
         }
 
-        /* Card Preview */
+        .dict-btn-copy i {
+            font-size: 0.55rem;
+        }
+
+        /* Preview - Collapsible Mini Thumbnail */
         .dict-card-preview {
-            padding: 0.5rem;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
+            padding: 0.35rem 0.65rem 0.5rem;
+            background: transparent;
+            border-top: 1px solid rgba(99, 102, 241, 0.06);
+        }
+
+        .dict-preview-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 5px;
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+            font-family: inherit;
+        }
+
+        .dict-preview-toggle:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+
+        .dict-preview-toggle.expanded {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .dict-preview-toggle i {
+            font-size: 0.55rem;
+            transition: transform 0.2s;
+        }
+
+        .dict-preview-toggle.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .dict-preview-content {
+            margin-top: 0.4rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .dict-preview-content.expanded {
+            max-height: 100px;
         }
 
         .dict-card-preview iframe {
             width: 100%;
-            height: 120px;
+            height: 80px;
             border: none;
-            border-radius: 6px;
-            background: white;
+            border-radius: 5px;
+            background: #fff;
+            display: block;
         }
 
-        /* Empty State */
+        /* Empty State - Compact */
         .dict-empty-state {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
             display: none;
         }
 
@@ -4911,32 +5023,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-empty-state-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.75rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
         }
 
         .dict-empty-state-title {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin: 0 0 0.5rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.3rem;
         }
 
         .dict-empty-state-text {
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             margin: 0;
         }
 
-        /* Pagination */
+        /* Pagination - Minimal */
         .dict-pagination {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            padding-top: 1rem;
-            margin-top: 1rem;
-            border-top: 1px solid var(--border-color);
+            justify-content: center;
+            gap: 0.75rem;
+            padding-top: 0.6rem;
+            margin-top: 0.6rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.08);
         }
 
         .dict-pagination.hidden {
@@ -4944,49 +5057,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-btn-pagination {
-            padding: 0.5rem 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
+            padding: 0.3rem 0.6rem;
+            background: rgba(40, 40, 70, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 5px;
+            color: var(--text-muted);
+            font-size: 0.65rem;
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
         }
 
         .dict-btn-pagination:hover:not(:disabled) {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #a78bfa;
         }
 
         .dict-btn-pagination:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
         .dict-pagination-info {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
         }
 
         .dict-pagination-info span {
-            display: block;
+            display: inline;
         }
 
         .dict-pagination-info #dict-page-info {
-            color: var(--text-primary);
+            color: #a78bfa;
             font-weight: 500;
         }
 
-        /* Error State */
+        .dict-pagination-info #dict-items-info {
+            margin-left: 0.3rem;
+            opacity: 0.7;
+        }
+
+        /* Error State - Compact */
         .dict-error-state {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 8px;
-            padding: 1rem;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            padding: 0.75rem;
             text-align: center;
             display: none;
         }
@@ -4996,25 +5114,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-error-state p {
-            color: #f87171;
-            font-size: 0.85rem;
+            color: #fca5a5;
+            font-size: 0.7rem;
             margin: 0;
         }
 
         .dict-error-state button {
-            margin-top: 0.75rem;
-            padding: 0.5rem 1rem;
-            background: var(--danger);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.75rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 5px;
+            color: #fca5a5;
+            font-size: 0.65rem;
             cursor: pointer;
             transition: all 0.2s;
+            font-family: inherit;
         }
 
         .dict-error-state button:hover {
-            opacity: 0.9;
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
         }
     </style>
 </head>
@@ -5432,10 +5552,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Group Filter Slider -->
                     <div class="group-slider-compact" id="dictGroupSlider">
                         <div class="slider-label">
-                            <span class="label-icon">⚡</span>
-                            <span class="label-text">Group</span>
+                            <span class="label-badge"><i class="fas fa-layer-group"></i> Group</span>
                             <span class="active-group" id="dictActiveGroupName">All</span>
-                            <button type="button" class="reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset">↻</button>
+                            <button type="button" class="reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset filter to All">✕</button>
+                            <button type="button" class="refresh-btn" onclick="dictRefreshAPI()" title="Refresh from API"><i class="fas fa-sync-alt"></i></button>
                         </div>
                         <div class="slider-bar-wrapper">
                             <div class="slider-bar" id="dictSliderTrack">
@@ -6125,6 +6245,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             await dictSelectGroup(null, 'All');
         }
         
+        // Refresh from API (reload groups and prompts)
+        async function dictRefreshAPI() {
+            const btn = document.querySelector('.refresh-btn');
+            if (btn) {
+                btn.classList.add('spinning');
+            }
+            
+            try {
+                await dictLoadGroups();
+                await dictLoadPrompts();
+                showToast('✅ Dictionary refreshed from API', 'success');
+            } catch (err) {
+                showToast('❌ Failed to refresh', 'error');
+            } finally {
+                if (btn) {
+                    btn.classList.remove('spinning');
+                }
+            }
+        }
+        
         // Setup search input listener with debounce
         function dictSetupSearchListener() {
             const searchInput = document.getElementById('dictSearchInput');
@@ -6237,16 +6377,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ? `<span class="dict-card-group-badge">${dictEscapeHtml(item.group_title)}</span>` 
                     : '';
                 
+                // Truncate phrase for display
+                const phraseText = item.phrase || '';
+                const truncatedPhrase = phraseText.length > 80 ? phraseText.substring(0, 80) + '...' : phraseText;
+                
                 html += `
                     <div class="dict-card" data-id="${item.id}">
                         <div class="dict-card-header">
-                            <h3 class="dict-card-title">${dictEscapeHtml(item.title)}</h3>
+                            <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
                             ${groupBadge}
                         </div>
                         <div class="dict-card-phrase">
-                            <p>${dictEscapeHtml(item.phrase || '')}</p>
-                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(item.phrase || '')}')" title="Copy phrase">
-                                <i class="fas fa-copy"></i> Copy
+                            <p title="${dictEscapeHtml(phraseText)}">${dictEscapeHtml(truncatedPhrase)}</p>
+                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
+                                <i class="fas fa-copy"></i>
                             </button>
                         </div>
                         ${hasPreview ? dictRenderPreview(item) : ''}
@@ -6257,26 +6401,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             listEl.innerHTML = html;
         }
         
-        // Render preview iframe
+        // Render preview - collapsible
         function dictRenderPreview(item) {
             let srcdoc = '';
             
             if (item.full_code) {
                 srcdoc = item.full_code;
             } else if (item.html_code || item.css_code) {
-                srcdoc = `<!DOCTYPE html><html><head><style>${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
+                srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:12px;}${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
             } else {
                 return '';
             }
             
             // Escape for attribute
             const escapedSrcdoc = srcdoc.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const previewId = `preview-${item.id}`;
             
             return `
                 <div class="dict-card-preview">
-                    <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
+                    <button type="button" class="dict-preview-toggle" onclick="dictTogglePreview('${previewId}', this)">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>Preview</span>
+                    </button>
+                    <div class="dict-preview-content" id="${previewId}">
+                        <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
+                    </div>
                 </div>
             `;
+        }
+        
+        // Toggle preview visibility
+        function dictTogglePreview(previewId, btn) {
+            const content = document.getElementById(previewId);
+            if (!content) return;
+            
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                btn.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                btn.classList.add('expanded');
+            }
         }
         
         // Copy phrase to clipboard
@@ -6284,12 +6451,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 await navigator.clipboard.writeText(text);
                 button.classList.add('copied');
-                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.innerHTML = '<i class="fas fa-check"></i>';
                 
                 setTimeout(() => {
                     button.classList.remove('copied');
-                    button.innerHTML = '<i class="fas fa-copy"></i> Copy';
-                }, 2000);
+                    button.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 1500);
             } catch (err) {
                 console.error('Copy failed:', err);
             }
