@@ -4522,6 +4522,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.85rem;
         }
 
+        /* Admin Button */
+        .dict-admin-btn {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-admin-btn:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.2));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-admin-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dict-admin-btn:hover i {
+            transform: rotate(90deg);
+        }
+
+        /* Admin Popup Modal */
+        .dict-admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .dict-admin-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dict-admin-popup {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.15);
+            animation: popupSlide 0.3s ease;
+        }
+
+        @keyframes popupSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dict-admin-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-admin-popup-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .dict-admin-popup-header h4 i {
+            color: #a78bfa;
+        }
+
+        .dict-admin-close-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dict-admin-close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.05);
+        }
+
+        .dict-admin-iframe {
+            width: 100%;
+            height: calc(100% - 48px);
+            border: none;
+            background: #fff;
+        }
+
         .dictionary-wrapper {
             padding: 0.75rem;
         }
@@ -5639,6 +5766,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="dictionary-section">
                 <div class="dictionary-header">
                     <h3><i class="fas fa-book"></i> AI Prompt Dictionary</h3>
+                    <button type="button" class="dict-admin-btn" onclick="openDictAdminPopup()" title="Open Admin Panel">
+                        <i class="fas fa-cog"></i>
+                        <span>Admin</span>
+                    </button>
                 </div>
                 
                 <div class="dictionary-wrapper" id="dictionaryWrapper">
@@ -11532,7 +11663,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Initialize editor search on page load
         document.addEventListener('DOMContentLoaded', initEditorSearch);
+        
+        // ============================================
+        // ADMIN POPUP IFRAME
+        // ============================================
+        function openDictAdminPopup() {
+            const modal = document.getElementById('dictAdminModal');
+            const iframe = document.getElementById('dictAdminIframe');
+            
+            if (modal) {
+                modal.classList.add('active');
+                iframe.src = 'https://frouty.com/pages/admin.php';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeDictAdminPopup() {
+            const modal = document.getElementById('dictAdminModal');
+            const iframe = document.getElementById('dictAdminIframe');
+            
+            if (modal) {
+                modal.classList.remove('active');
+                iframe.src = 'about:blank';
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDictAdminPopup();
+            }
+        });
     </script>
+    
+    <!-- Admin Popup Modal -->
+    <div class="dict-admin-modal" id="dictAdminModal" onclick="if(event.target === this) closeDictAdminPopup()">
+        <div class="dict-admin-popup">
+            <div class="dict-admin-popup-header">
+                <h4><i class="fas fa-cog"></i> Dictionary Admin Panel</h4>
+                <button type="button" class="dict-admin-close-btn" onclick="closeDictAdminPopup()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe class="dict-admin-iframe" id="dictAdminIframe" src="about:blank"></iframe>
+        </div>
+    </div>
 
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
