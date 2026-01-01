@@ -4522,9 +4522,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.85rem;
         }
 
+        /* Quiz Button */
+        .dict-quiz-btn {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-quiz-btn:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.2));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-quiz-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dict-quiz-btn:hover i {
+            transform: scale(1.1);
+        }
+
         /* Admin Button */
         .dict-admin-btn {
-            margin-left: auto;
             display: flex;
             align-items: center;
             gap: 0.35rem;
@@ -4703,6 +4736,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             height: calc(100% - 48px);
             border: none;
             background: #fff;
+        }
+
+        /* Quiz Popup Modal */
+        .dict-quiz-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .dict-quiz-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dict-quiz-popup {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            min-width: 400px;
+            min-height: 300px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.15);
+            animation: popupSlide 0.3s ease;
+            resize: both;
+        }
+
+        .dict-quiz-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            cursor: move;
+        }
+
+        .dict-quiz-popup-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .dict-quiz-popup-header h4 i {
+            color: #a78bfa;
+        }
+
+        .dict-quiz-close-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dict-quiz-close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.05);
+        }
+
+        .dict-quiz-iframe {
+            width: 100%;
+            height: calc(100% - 48px);
+            border: none;
+            background: #fff;
+        }
+
+        .dict-quiz-resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            cursor: se-resize;
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(139, 92, 246, 0.3) 50%);
         }
 
         .dictionary-wrapper {
@@ -5822,6 +5952,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="dictionary-section">
                 <div class="dictionary-header">
                     <h3><i class="fas fa-book"></i> AI Prompt Dictionary</h3>
+                    <button type="button" class="dict-quiz-btn" onclick="openDictQuizPopup()" title="Open Quiz">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Quiz</span>
+                    </button>
                     <button type="button" class="dict-admin-btn" onclick="openDictAdminPopup()" title="Open Admin Panel">
                         <i class="fas fa-cog"></i>
                         <span>Admin</span>
@@ -11748,11 +11882,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 document.body.style.overflow = '';
             }
         }
+
+        // ============================================
+        // QUIZ POPUP IFRAME
+        // ============================================
+        function openDictQuizPopup() {
+            const modal = document.getElementById('dictQuizModal');
+            const iframe = document.getElementById('dictQuizIframe');
+            
+            if (modal) {
+                modal.classList.add('active');
+                iframe.src = 'https://frouty.com/pages/quiz.php';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeDictQuizPopup() {
+            const modal = document.getElementById('dictQuizModal');
+            const iframe = document.getElementById('dictQuizIframe');
+            
+            if (modal) {
+                modal.classList.remove('active');
+                iframe.src = 'about:blank';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Make Quiz popup draggable
+        (function() {
+            let isDragging = false;
+            let isResizing = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            let resizeStartX;
+            let resizeStartY;
+            let resizeStartWidth;
+            let resizeStartHeight;
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const popup = document.getElementById('dictQuizPopup');
+                const header = document.getElementById('dictQuizPopupHeader');
+                const resizeHandle = document.getElementById('dictQuizResizeHandle');
+                
+                if (!popup || !header || !resizeHandle) return;
+
+                // Dragging functionality
+                header.addEventListener('mousedown', dragStart);
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', dragEnd);
+
+                // Resizing functionality
+                resizeHandle.addEventListener('mousedown', resizeStart);
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', resizeEnd);
+
+                function dragStart(e) {
+                    if (e.target.closest('.dict-quiz-close-btn')) return;
+                    
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                    
+                    if (e.target === header || header.contains(e.target)) {
+                        isDragging = true;
+                        popup.style.transition = 'none';
+                    }
+                }
+
+                function drag(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        
+                        currentX = e.clientX - initialX;
+                        currentY = e.clientY - initialY;
+                        
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        
+                        popup.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                    }
+                }
+
+                function dragEnd() {
+                    if (isDragging) {
+                        initialX = currentX;
+                        initialY = currentY;
+                        isDragging = false;
+                        popup.style.transition = '';
+                    }
+                }
+
+                function resizeStart(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isResizing = true;
+                    resizeStartX = e.clientX;
+                    resizeStartY = e.clientY;
+                    resizeStartWidth = popup.offsetWidth;
+                    resizeStartHeight = popup.offsetHeight;
+                    popup.style.transition = 'none';
+                }
+
+                function resize(e) {
+                    if (isResizing) {
+                        e.preventDefault();
+                        const width = resizeStartWidth + (e.clientX - resizeStartX);
+                        const height = resizeStartHeight + (e.clientY - resizeStartY);
+                        
+                        if (width >= 400) {
+                            popup.style.width = width + 'px';
+                        }
+                        if (height >= 300) {
+                            popup.style.height = height + 'px';
+                        }
+                    }
+                }
+
+                function resizeEnd() {
+                    if (isResizing) {
+                        isResizing = false;
+                        popup.style.transition = '';
+                    }
+                }
+
+                // Reset position when modal is closed
+                document.getElementById('dictQuizModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        popup.style.transform = 'translate(0, 0)';
+                        xOffset = 0;
+                        yOffset = 0;
+                    }
+                });
+            });
+        })();
         
         // Close on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeDictAdminPopup();
+                closeDictQuizPopup();
             }
         });
     </script>
@@ -11767,6 +12039,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </div>
             <iframe class="dict-admin-iframe" id="dictAdminIframe" src="about:blank"></iframe>
+        </div>
+    </div>
+
+    <!-- Quiz Popup Modal -->
+    <div class="dict-quiz-modal" id="dictQuizModal" onclick="if(event.target === this) closeDictQuizPopup()">
+        <div class="dict-quiz-popup" id="dictQuizPopup">
+            <div class="dict-quiz-popup-header" id="dictQuizPopupHeader">
+                <h4><i class="fas fa-question-circle"></i> Quiz</h4>
+                <button type="button" class="dict-quiz-close-btn" onclick="closeDictQuizPopup()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe class="dict-quiz-iframe" id="dictQuizIframe" src="about:blank"></iframe>
+            <div class="dict-quiz-resize-handle" id="dictQuizResizeHandle"></div>
         </div>
     </div>
 
