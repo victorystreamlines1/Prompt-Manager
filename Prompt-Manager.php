@@ -3141,9 +3141,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
-            max-height: 400px;
+            height: 220px;
+            min-height: 120px;
+            max-height: 600px;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        .saved-resize-handle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.1));
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .saved-resize-handle:hover {
+            opacity: 1;
+            background: linear-gradient(to bottom, transparent, rgba(139, 92, 246, 0.2));
+        }
+
+        .saved-resize-handle i {
+            font-size: 0.6rem;
+            color: #a78bfa;
+        }
+
+        .saved-prompts-section.resizing {
+            user-select: none;
+        }
+
+        .saved-prompts-section.resizing .saved-resize-handle {
+            opacity: 1;
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .saved-header {
@@ -5655,6 +5693,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="saved-list" id="savedList">
                     <!-- Saved prompts will be loaded here -->
+                </div>
+                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
+                    <i class="fas fa-grip-lines"></i>
                 </div>
             </div>
             
@@ -11232,6 +11273,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Initialize resize handle on page load
         document.addEventListener('DOMContentLoaded', initResizeHandle);
+
+        // ============================================
+        // SAVED PROMPTS RESIZE HANDLE
+        // ============================================
+        function initSavedResize() {
+            const section = document.querySelector('.saved-prompts-section');
+            const handle = document.getElementById('savedResizeHandle');
+            
+            if (!section || !handle) return;
+            
+            let isResizing = false;
+            let startY = 0;
+            let startHeight = 0;
+            
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = section.offsetHeight;
+                section.classList.add('resizing');
+                document.body.style.cursor = 'ns-resize';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                
+                const deltaY = e.clientY - startY;
+                const newHeight = Math.min(Math.max(startHeight + deltaY, 120), 600);
+                section.style.height = newHeight + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    section.classList.remove('resizing');
+                    document.body.style.cursor = '';
+                    // Save height to localStorage
+                    localStorage.setItem('savedPromptsHeight', section.style.height);
+                }
+            });
+            
+            // Restore height from localStorage
+            const savedHeight = localStorage.getItem('savedPromptsHeight');
+            if (savedHeight) {
+                section.style.height = savedHeight;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', initSavedResize);
 
         // ============================================
         // EDITOR SEARCH SYSTEM (with Yellow Highlight Overlay)
