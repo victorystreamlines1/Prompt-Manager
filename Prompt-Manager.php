@@ -377,6 +377,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $action = $_POST['action'] ?? '';
     
+    // ============================================
+    // DICTIONARY API PROXY (bypass CORS)
+    // ============================================
+    if ($action === 'dictionary_proxy') {
+        $apiAction = $_POST['api_action'] ?? 'list';
+        $query = $_POST['query'] ?? '';
+        $groupId = $_POST['group_id'] ?? '';
+        $page = $_POST['page'] ?? 1;
+        $limit = $_POST['limit'] ?? 15;
+        
+        $apiUrl = 'https://frouty.com/api/search-api.php?';
+        
+        if ($apiAction === 'search' && $query) {
+            $apiUrl .= 'action=search&q=' . urlencode($query);
+        } elseif ($apiAction === 'groups') {
+            $apiUrl .= 'action=groups';
+        } else {
+            $apiUrl .= 'action=list';
+        }
+        
+        $apiUrl .= '&page=' . intval($page) . '&limit=' . intval($limit);
+        
+        if ($groupId) {
+            $apiUrl .= '&group_id=' . intval($groupId);
+        }
+        
+        // Make request to external API
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Prompt-Manager/1.0');
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($response === false || $httpCode !== 200) {
+            echo json_encode(['success' => false, 'message' => 'API request failed: ' . ($error ?: 'HTTP ' . $httpCode)]);
+        } else {
+            // Pass through the API response
+            echo $response;
+        }
+        exit;
+    }
+    
     // Save prompt
     if ($action === 'save_prompt') {
         $title = $_POST['title'] ?? '';
@@ -4444,6 +4492,530 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 order: 3;
             }
         }
+
+        /* ========================================== */
+        /* AI PROMPT DICTIONARY SECTION */
+        /* ========================================== */
+        .dictionary-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .dictionary-header {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .dictionary-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+        }
+
+        .dictionary-header h3 i {
+            color: #8b5cf6;
+        }
+
+        .dictionary-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .dictionary-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dictionary-wrapper::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+        }
+
+        .dictionary-wrapper::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 3px;
+        }
+
+        /* Group Filter Slider */
+        .group-slider-compact {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .slider-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .slider-label .label-icon {
+            font-size: 0.9rem;
+        }
+
+        .slider-label .label-text {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-label .active-group {
+            color: #8b5cf6;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .slider-label .reset-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .slider-label .reset-btn:hover {
+            color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .slider-bar-wrapper {
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .slider-bar-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-bar {
+            display: flex;
+            gap: 0.5rem;
+            position: relative;
+            padding: 0.25rem;
+        }
+
+        .slider-option {
+            flex-shrink: 0;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .slider-option:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .slider-option.active {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-color: #8b5cf6;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Dictionary Search Container */
+        .dict-search-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .dict-search-container .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .dict-search-input {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 2.25rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .dict-search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .dict-search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .dict-search-loading {
+            position: absolute;
+            right: 2.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+
+        .dict-search-loading.show {
+            display: block;
+        }
+
+        .spinner-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .dict-search-clear {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.25rem;
+            border-radius: 4px;
+            display: none;
+            transition: all 0.2s;
+        }
+
+        .dict-search-clear.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dict-search-clear:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Results Info */
+        .dict-results-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dict-results-info strong {
+            color: var(--accent-primary);
+        }
+
+        /* Loading Skeleton */
+        .dictionary-loading {
+            display: none;
+        }
+
+        .dictionary-loading.show {
+            display: block;
+        }
+
+        .skeleton-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .skeleton-card::before {
+            content: '';
+            display: block;
+            height: 20px;
+            width: 60%;
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .skeleton-card::after {
+            content: '';
+            display: block;
+            height: 14px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--border-color) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Dictionary List */
+        .dictionary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .dictionary-list.hidden {
+            display: none;
+        }
+
+        /* Dictionary Card */
+        .dict-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .dict-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .dict-card-header {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dict-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dict-card-group-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .dict-card-phrase {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .dict-card-phrase p {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .dict-btn-copy {
+            flex-shrink: 0;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .dict-btn-copy:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .dict-btn-copy.copied {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        /* Card Preview */
+        .dict-card-preview {
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .dict-card-preview iframe {
+            width: 100%;
+            height: 120px;
+            border: none;
+            border-radius: 6px;
+            background: white;
+        }
+
+        /* Empty State */
+        .dict-empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            display: none;
+        }
+
+        .dict-empty-state.show {
+            display: block;
+        }
+
+        .dict-empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .dict-empty-state-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem;
+        }
+
+        .dict-empty-state-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Pagination */
+        .dict-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .dict-pagination.hidden {
+            display: none;
+        }
+
+        .dict-btn-pagination {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .dict-btn-pagination:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .dict-btn-pagination:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dict-pagination-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .dict-pagination-info span {
+            display: block;
+        }
+
+        .dict-pagination-info #dict-page-info {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Error State */
+        .dict-error-state {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .dict-error-state.show {
+            display: block;
+        }
+
+        .dict-error-state p {
+            color: #f87171;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .dict-error-state button {
+            margin-top: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--danger);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dict-error-state button:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -4847,6 +5419,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="saved-list" id="savedList">
                     <!-- Saved prompts will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- AI Prompt Dictionary Section -->
+            <div class="dictionary-section">
+                <div class="dictionary-header">
+                    <h3><i class="fas fa-book"></i> AI Prompt Dictionary</h3>
+                </div>
+                
+                <div class="dictionary-wrapper" id="dictionaryWrapper">
+                    <!-- Group Filter Slider -->
+                    <div class="group-slider-compact" id="dictGroupSlider">
+                        <div class="slider-label">
+                            <span class="label-icon">⚡</span>
+                            <span class="label-text">Group</span>
+                            <span class="active-group" id="dictActiveGroupName">All</span>
+                            <button type="button" class="reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset">↻</button>
+                        </div>
+                        <div class="slider-bar-wrapper">
+                            <div class="slider-bar" id="dictSliderTrack">
+                                <!-- Groups loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search Bar -->
+                    <div class="dict-search-container">
+                        <span class="search-icon"><i class="fas fa-search"></i></span>
+                        <input type="text" 
+                               class="dict-search-input" 
+                               id="dictSearchInput"
+                               placeholder="Search prompts by title or phrase..." 
+                               autocomplete="off">
+                        <div class="dict-search-loading" id="dictSearchLoading">
+                            <div class="spinner-small"></div>
+                        </div>
+                        <button type="button" class="dict-search-clear" id="dictSearchClear" onclick="dictClearSearch()" title="Clear">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Results Info -->
+                    <div class="dict-results-info" id="dictResultsInfo">
+                        <span>Showing <strong id="dictResultsCount">0</strong> prompts</span>
+                    </div>
+                    
+                    <!-- Loading Skeleton -->
+                    <div class="dictionary-loading" id="dictLoading">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                    
+                    <!-- Error State -->
+                    <div class="dict-error-state" id="dictErrorState">
+                        <p id="dictErrorMessage">Failed to load prompts</p>
+                        <button type="button" onclick="dictLoadPrompts()">Try Again</button>
+                    </div>
+                    
+                    <!-- Prompts List -->
+                    <div class="dictionary-list" id="dictList">
+                        <!-- Prompt cards loaded dynamically -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="dict-empty-state" id="dictEmptyState">
+                        <div class="dict-empty-state-icon">📭</div>
+                        <h3 class="dict-empty-state-title">No prompts found</h3>
+                        <p class="dict-empty-state-text">Try adjusting your search or filters</p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="dict-pagination" id="dictPagination">
+                        <button type="button" class="dict-btn-pagination" id="dictBtnPrev" onclick="dictPrevPage()" disabled>← Previous</button>
+                        <div class="dict-pagination-info">
+                            <span id="dict-page-info">Page 1 of 1</span>
+                            <span id="dict-items-info">(0 items)</span>
+                        </div>
+                        <button type="button" class="dict-btn-pagination" id="dictBtnNext" onclick="dictNextPage()">Next →</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -5327,6 +5979,425 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Active saved prompts tracking
         let activeSavedPrompts = new Set();
+        
+        // ============================================
+        // AI PROMPT DICTIONARY - API INTEGRATION
+        // ============================================
+        // Uses PHP proxy to bypass CORS restrictions
+        
+        // Dictionary State
+        const dictState = {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: 0,
+            search: '',
+            groupId: null,
+            groupName: 'All',
+            items: [],
+            groups: [],
+            isLoading: false,
+            limit: 15,
+            debounceTimer: null
+        };
+        
+        // Helper: Make API request DIRECTLY to frouty.com (bypassing PHP proxy)
+        const DICT_API_BASE = 'https://frouty.com/api/search-api.php';
+        
+        async function dictApiRequest(params) {
+            // Build URL with query parameters
+            const url = new URL(DICT_API_BASE);
+            
+            // Map our params to API params
+            if (params.api_action === 'groups') {
+                url.searchParams.append('action', 'groups');
+            } else if (params.api_action === 'search' && params.query) {
+                url.searchParams.append('action', 'search');
+                url.searchParams.append('q', params.query);
+            } else {
+                url.searchParams.append('action', 'list');
+            }
+            
+            // Add pagination
+            if (params.page) url.searchParams.append('page', params.page);
+            if (params.limit) url.searchParams.append('limit', params.limit);
+            if (params.group_id) url.searchParams.append('group_id', params.group_id);
+            
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Wrap in success format if API returns raw data
+                if (data.success === undefined) {
+                    return { success: true, data: data };
+                }
+                return data;
+            } catch (err) {
+                console.error('Dictionary API error:', err);
+                return { success: false, message: err.message };
+            }
+        }
+        
+        // Initialize Dictionary on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            dictInit();
+        });
+        
+        // Initialize dictionary
+        async function dictInit() {
+            await dictLoadGroups();
+            await dictLoadPrompts();
+            dictSetupSearchListener();
+        }
+        
+        // Load groups for filter
+        async function dictLoadGroups() {
+            try {
+                const data = await dictApiRequest({ api_action: 'groups' });
+                
+                if (data.success && data.data && data.data.items) {
+                    dictState.groups = data.data.items;
+                    dictRenderGroups();
+                }
+            } catch (err) {
+                console.error('Failed to load groups:', err);
+            }
+        }
+        
+        // Render group filter slider
+        function dictRenderGroups() {
+            const slider = document.getElementById('dictSliderTrack');
+            if (!slider) return;
+            
+            let html = `
+                <div class="slider-option ${dictState.groupId === null ? 'active' : ''}" 
+                     data-group-id="all" 
+                     data-group-name="All"
+                     onclick="dictSelectGroup(null, 'All')">
+                    <span>All</span>
+                </div>
+            `;
+            
+            dictState.groups.forEach(group => {
+                const isActive = dictState.groupId === group.id;
+                html += `
+                    <div class="slider-option ${isActive ? 'active' : ''}" 
+                         data-group-id="${group.id}" 
+                         data-group-name="${dictEscapeHtml(group.title)}"
+                         onclick="dictSelectGroup(${group.id}, '${dictEscapeHtml(group.title)}')">
+                        <span>${dictEscapeHtml(group.title)}</span>
+                    </div>
+                `;
+            });
+            
+            slider.innerHTML = html;
+        }
+        
+        // Select a group filter
+        async function dictSelectGroup(groupId, groupName) {
+            dictState.groupId = groupId;
+            dictState.groupName = groupName;
+            dictState.currentPage = 1;
+            
+            // Update UI
+            document.getElementById('dictActiveGroupName').textContent = groupName;
+            
+            // Update active state on buttons
+            document.querySelectorAll('#dictSliderTrack .slider-option').forEach(opt => {
+                const optGroupId = opt.dataset.groupId === 'all' ? null : parseInt(opt.dataset.groupId);
+                opt.classList.toggle('active', optGroupId === groupId);
+            });
+            
+            await dictLoadPrompts();
+        }
+        
+        // Reset group filter
+        async function dictResetGroupFilter() {
+            await dictSelectGroup(null, 'All');
+        }
+        
+        // Setup search input listener with debounce
+        function dictSetupSearchListener() {
+            const searchInput = document.getElementById('dictSearchInput');
+            const clearBtn = document.getElementById('dictSearchClear');
+            
+            if (!searchInput) return;
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // Show/hide clear button
+                clearBtn.classList.toggle('show', query.length > 0);
+                
+                // Debounce search
+                if (dictState.debounceTimer) {
+                    clearTimeout(dictState.debounceTimer);
+                }
+                
+                if (query.length >= 2 || query.length === 0) {
+                    dictState.debounceTimer = setTimeout(() => {
+                        dictState.search = query;
+                        dictState.currentPage = 1;
+                        dictLoadPrompts();
+                    }, 400);
+                }
+            });
+        }
+        
+        // Clear search
+        async function dictClearSearch() {
+            const searchInput = document.getElementById('dictSearchInput');
+            const clearBtn = document.getElementById('dictSearchClear');
+            
+            searchInput.value = '';
+            clearBtn.classList.remove('show');
+            dictState.search = '';
+            dictState.currentPage = 1;
+            
+            await dictLoadPrompts();
+            searchInput.focus();
+        }
+        
+        // Load prompts from API
+        async function dictLoadPrompts() {
+            if (dictState.isLoading) return;
+            
+            dictState.isLoading = true;
+            dictShowLoading(true);
+            dictShowError(false);
+            
+            try {
+                const params = {
+                    api_action: dictState.search ? 'search' : 'list',
+                    query: dictState.search || '',
+                    page: dictState.currentPage,
+                    limit: dictState.limit,
+                    group_id: dictState.groupId || ''
+                };
+                
+                const data = await dictApiRequest(params);
+                
+                if (data.success && data.data) {
+                    dictState.items = data.data.items || [];
+                    
+                    if (data.data.pagination) {
+                        dictState.currentPage = data.data.pagination.current_page || 1;
+                        dictState.totalPages = data.data.pagination.total_pages || 1;
+                        dictState.totalItems = data.data.pagination.total_items || 0;
+                    } else {
+                        dictState.totalItems = dictState.items.length;
+                        dictState.totalPages = 1;
+                    }
+                    
+                    dictRenderPrompts();
+                    dictUpdatePagination();
+                    dictUpdateResultsInfo();
+                } else {
+                    throw new Error(data.message || 'Failed to load prompts');
+                }
+            } catch (err) {
+                console.error('Dictionary load error:', err);
+                dictShowError(true, err.message);
+            } finally {
+                dictState.isLoading = false;
+                dictShowLoading(false);
+            }
+        }
+        
+        // Render prompts list
+        function dictRenderPrompts() {
+            const listEl = document.getElementById('dictList');
+            const emptyEl = document.getElementById('dictEmptyState');
+            
+            if (!listEl) return;
+            
+            if (dictState.items.length === 0) {
+                listEl.classList.add('hidden');
+                emptyEl.classList.add('show');
+                return;
+            }
+            
+            listEl.classList.remove('hidden');
+            emptyEl.classList.remove('show');
+            
+            let html = '';
+            
+            dictState.items.forEach(item => {
+                const hasPreview = item.has_html || item.has_css || item.has_full_code;
+                const groupBadge = item.group_title 
+                    ? `<span class="dict-card-group-badge">${dictEscapeHtml(item.group_title)}</span>` 
+                    : '';
+                
+                html += `
+                    <div class="dict-card" data-id="${item.id}">
+                        <div class="dict-card-header">
+                            <h3 class="dict-card-title">${dictEscapeHtml(item.title)}</h3>
+                            ${groupBadge}
+                        </div>
+                        <div class="dict-card-phrase">
+                            <p>${dictEscapeHtml(item.phrase || '')}</p>
+                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(item.phrase || '')}')" title="Copy phrase">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        ${hasPreview ? dictRenderPreview(item) : ''}
+                    </div>
+                `;
+            });
+            
+            listEl.innerHTML = html;
+        }
+        
+        // Render preview iframe
+        function dictRenderPreview(item) {
+            let srcdoc = '';
+            
+            if (item.full_code) {
+                srcdoc = item.full_code;
+            } else if (item.html_code || item.css_code) {
+                srcdoc = `<!DOCTYPE html><html><head><style>${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
+            } else {
+                return '';
+            }
+            
+            // Escape for attribute
+            const escapedSrcdoc = srcdoc.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            
+            return `
+                <div class="dict-card-preview">
+                    <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
+                </div>
+            `;
+        }
+        
+        // Copy phrase to clipboard
+        async function dictCopyPhrase(button, text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                button.classList.add('copied');
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                }, 2000);
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+        }
+        
+        // Update pagination UI
+        function dictUpdatePagination() {
+            const paginationEl = document.getElementById('dictPagination');
+            const prevBtn = document.getElementById('dictBtnPrev');
+            const nextBtn = document.getElementById('dictBtnNext');
+            const pageInfo = document.getElementById('dict-page-info');
+            const itemsInfo = document.getElementById('dict-items-info');
+            
+            if (!paginationEl) return;
+            
+            // Hide pagination if only one page
+            paginationEl.classList.toggle('hidden', dictState.totalPages <= 1);
+            
+            // Update buttons
+            prevBtn.disabled = dictState.currentPage <= 1;
+            nextBtn.disabled = dictState.currentPage >= dictState.totalPages;
+            
+            // Update info
+            pageInfo.textContent = `Page ${dictState.currentPage} of ${dictState.totalPages}`;
+            itemsInfo.textContent = `(${dictState.totalItems} items)`;
+        }
+        
+        // Update results info
+        function dictUpdateResultsInfo() {
+            const countEl = document.getElementById('dictResultsCount');
+            if (countEl) {
+                countEl.textContent = dictState.items.length;
+            }
+        }
+        
+        // Navigate to previous page
+        async function dictPrevPage() {
+            if (dictState.currentPage > 1) {
+                dictState.currentPage--;
+                await dictLoadPrompts();
+                dictScrollToTop();
+            }
+        }
+        
+        // Navigate to next page
+        async function dictNextPage() {
+            if (dictState.currentPage < dictState.totalPages) {
+                dictState.currentPage++;
+                await dictLoadPrompts();
+                dictScrollToTop();
+            }
+        }
+        
+        // Scroll to top of dictionary wrapper
+        function dictScrollToTop() {
+            const wrapper = document.getElementById('dictionaryWrapper');
+            if (wrapper) {
+                wrapper.scrollTop = 0;
+            }
+        }
+        
+        // Show/hide loading state
+        function dictShowLoading(show) {
+            const loadingEl = document.getElementById('dictLoading');
+            const listEl = document.getElementById('dictList');
+            const searchLoading = document.getElementById('dictSearchLoading');
+            
+            if (loadingEl) {
+                loadingEl.classList.toggle('show', show);
+            }
+            if (listEl && show) {
+                listEl.classList.add('hidden');
+            }
+            if (searchLoading) {
+                searchLoading.classList.toggle('show', show);
+            }
+        }
+        
+        // Show/hide error state
+        function dictShowError(show, message = 'Failed to load prompts') {
+            const errorEl = document.getElementById('dictErrorState');
+            const messageEl = document.getElementById('dictErrorMessage');
+            const listEl = document.getElementById('dictList');
+            
+            if (errorEl) {
+                errorEl.classList.toggle('show', show);
+            }
+            if (messageEl && message) {
+                messageEl.textContent = message;
+            }
+            if (listEl && show) {
+                listEl.classList.add('hidden');
+            }
+        }
+        
+        // Escape HTML for safe display
+        function dictEscapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Escape text for JavaScript string
+        function dictEscapeJs(text) {
+            if (!text) return '';
+            return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        }
         
         // Current saved prompt being previewed
         let currentPreviewSaved = null;
