@@ -377,6 +377,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $action = $_POST['action'] ?? '';
     
+    // ============================================
+    // DICTIONARY API PROXY (bypass CORS)
+    // ============================================
+    if ($action === 'dictionary_proxy') {
+        $apiAction = $_POST['api_action'] ?? 'list';
+        $query = $_POST['query'] ?? '';
+        $groupId = $_POST['group_id'] ?? '';
+        $page = $_POST['page'] ?? 1;
+        $limit = $_POST['limit'] ?? 15;
+        
+        $apiUrl = 'https://frouty.com/api/search-api.php?';
+        
+        if ($apiAction === 'search' && $query) {
+            $apiUrl .= 'action=search&q=' . urlencode($query);
+        } elseif ($apiAction === 'groups') {
+            $apiUrl .= 'action=groups';
+        } else {
+            $apiUrl .= 'action=list';
+        }
+        
+        $apiUrl .= '&page=' . intval($page) . '&limit=' . intval($limit);
+        
+        if ($groupId) {
+            $apiUrl .= '&group_id=' . intval($groupId);
+        }
+        
+        // Make request to external API
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Prompt-Manager/1.0');
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($response === false || $httpCode !== 200) {
+            echo json_encode(['success' => false, 'message' => 'API request failed: ' . ($error ?: 'HTTP ' . $httpCode)]);
+        } else {
+            // Pass through the API response
+            echo $response;
+        }
+        exit;
+    }
+    
     // Save prompt
     if ($action === 'save_prompt') {
         $title = $_POST['title'] ?? '';
@@ -3093,9 +3141,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
-            max-height: 400px;
+            height: 220px;
+            min-height: 120px;
+            max-height: 600px;
             display: flex;
             flex-direction: column;
+            position: relative;
+        }
+
+        .saved-resize-handle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.1));
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .saved-resize-handle:hover {
+            opacity: 1;
+            background: linear-gradient(to bottom, transparent, rgba(139, 92, 246, 0.2));
+        }
+
+        .saved-resize-handle i {
+            font-size: 0.6rem;
+            color: #a78bfa;
+        }
+
+        .saved-prompts-section.resizing {
+            user-select: none;
+        }
+
+        .saved-prompts-section.resizing .saved-resize-handle {
+            opacity: 1;
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .saved-header {
@@ -4161,70 +4247,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.5; }
         }
 
-        /* Work Distribution Section - Compact Version */
+        /* Work Distribution Section - Ultra Compact */
         .distribution-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            padding: 0.5rem 0.75rem;
             position: relative;
         }
 
         .distribution-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .distribution-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
+            gap: 0.4rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-secondary);
         }
 
         .distribution-title i {
             color: var(--accent-primary);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .distribution-value {
             display: flex;
             align-items: baseline;
-            gap: 0.25rem;
+            gap: 0.2rem;
             background: var(--gradient-main);
-            padding: 0.3rem 0.7rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
         }
 
         .value-number {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: white;
             line-height: 1;
         }
 
         .value-label {
-            font-size: 0.65rem;
+            font-size: 0.55rem;
             color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
         }
 
+        /* Distribution Append Checkbox */
+        .dist-append-check {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.2rem 0.35rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .dist-append-check:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .dist-append-check.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dist-append-check input {
+            display: none;
+        }
+
+        .dist-append-check .check-box {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(139, 92, 246, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(30, 30, 60, 0.5);
+        }
+
+        .dist-append-check .check-box i {
+            font-size: 0.5rem;
+            color: transparent;
+        }
+
+        .dist-append-check.active .check-box {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-color: #10b981;
+        }
+
+        .dist-append-check.active .check-box i {
+            color: #fff;
+        }
+
         /* Slider Container - Compact */
         .slider-container {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
         }
 
         .slider-track {
             position: relative;
-            height: 8px;
+            height: 6px;
             background: var(--bg-tertiary);
-            border-radius: 4px;
-            margin-bottom: 0.4rem;
+            border-radius: 3px;
             overflow: visible;
         }
 
@@ -4234,8 +4372,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             height: 100%;
             background: var(--gradient-main);
-            border-radius: 4px;
-            transition: width 0.15s ease;
+            border-radius: 3px;
+            transition: width 0.1s ease;
             pointer-events: none;
         }
 
@@ -4245,7 +4383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             left: 0;
             transform: translateY(-50%);
             width: 100%;
-            height: 20px;
+            height: 16px;
             -webkit-appearance: none;
             appearance: none;
             background: transparent;
@@ -4256,138 +4394,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .slider-input::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
             cursor: grab;
             transition: all 0.2s ease;
         }
 
         .slider-input::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+            transform: scale(1.1);
         }
 
         .slider-input::-webkit-slider-thumb:active {
             cursor: grabbing;
-            transform: scale(1.1);
         }
 
         .slider-input::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             border: 2px solid var(--accent-primary);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
             cursor: grab;
-        }
-
-        /* Slider Labels - Compact */
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            padding: 0;
-        }
-
-        .slider-label {
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .slider-label:hover {
-            color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .slider-label.active {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
-        /* Toggle Switch - Compact */
-        .distribution-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 36px;
-            height: 20px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-slider::before {
-            content: '';
-            position: absolute;
-            height: 14px;
-            width: 14px;
-            left: 2px;
-            bottom: 2px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--gradient-main);
-            border-color: var(--accent-primary);
-        }
-
-        .toggle-switch input:checked + .toggle-slider::before {
-            transform: translateX(16px);
-            background: white;
-        }
-
-        .toggle-text {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .distribution-toggle:has(input:checked) .toggle-text {
-            color: var(--accent-primary);
         }
 
         /* Distribution Active State */
         .distribution-section.active {
             border-color: var(--accent-primary);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.1);
         }
 
         /* Responsive */
@@ -4443,6 +4481,949 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .auto-send-timer {
                 order: 3;
             }
+        }
+
+        /* ========================================== */
+        /* AI PROMPT DICTIONARY SECTION - MODERN REDESIGN */
+        /* ========================================== */
+        .dictionary-section {
+            background: linear-gradient(145deg, rgba(15, 15, 35, 0.95), rgba(20, 20, 45, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .dictionary-header {
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .dictionary-header h3 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .dictionary-header h3 i {
+            color: #a78bfa;
+            font-size: 0.85rem;
+        }
+
+        /* Admin Button */
+        .dict-admin-btn {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-admin-btn:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.2));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-admin-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dict-admin-btn:hover i {
+            transform: rotate(90deg);
+        }
+
+        /* Refresh Button */
+        .dict-refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: #34d399;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-refresh-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(52, 211, 153, 0.2));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .dict-refresh-btn i {
+            transition: transform 0.4s ease;
+        }
+
+        .dict-refresh-btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        /* Reset Filter Button */
+        .dict-reset-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dict-reset-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(248, 113, 113, 0.2));
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Admin Popup Modal */
+        .dict-admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        }
+
+        .dict-admin-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dict-admin-popup {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(139, 92, 246, 0.15);
+            animation: popupSlide 0.3s ease;
+        }
+
+        @keyframes popupSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dict-admin-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-admin-popup-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .dict-admin-popup-header h4 i {
+            color: #a78bfa;
+        }
+
+        .dict-admin-close-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dict-admin-close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.05);
+        }
+
+        .dict-admin-iframe {
+            width: 100%;
+            height: calc(100% - 48px);
+            border: none;
+            background: #fff;
+        }
+
+        .dictionary-wrapper {
+            padding: 0.75rem;
+        }
+
+        /* Group Filter - Compact Pills */
+        .group-slider-compact {
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0.6rem;
+            margin-bottom: 0.6rem;
+            overflow: hidden;
+        }
+
+        .slider-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.4rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .slider-label .label-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #a78bfa;
+        }
+
+        .slider-label .label-badge i {
+            font-size: 0.55rem;
+            color: #8b5cf6;
+        }
+
+        .slider-label .active-group {
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            padding-left: 0.3rem;
+            border-left: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .slider-label .reset-btn,
+        .slider-label .refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.6rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            opacity: 0.7;
+        }
+
+        .slider-label .reset-btn:hover {
+            color: #f87171;
+            opacity: 1;
+        }
+
+        .slider-label .refresh-btn:hover {
+            color: #34d399;
+            opacity: 1;
+        }
+
+        .slider-label .refresh-btn.spinning i {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .slider-bar-wrapper {
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .slider-bar-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-bar {
+            display: flex;
+            gap: 0.3rem;
+            position: relative;
+        }
+
+        .slider-option {
+            flex-shrink: 0;
+            padding: 0.25rem 0.6rem;
+            background: rgba(40, 40, 70, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .slider-option:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            color: var(--text-secondary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .slider-option.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.9), rgba(139, 92, 246, 0.9));
+            border-color: transparent;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Dictionary Search - Sleek */
+        .dict-search-container {
+            position: relative;
+            margin-bottom: 0.6rem;
+        }
+
+        .dict-search-container .search-icon {
+            position: absolute;
+            left: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(167, 139, 250, 0.5);
+            font-size: 0.75rem;
+        }
+
+        .dict-search-input {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 1.8rem;
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .dict-search-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+            background: rgba(30, 30, 60, 0.8);
+        }
+
+        .dict-search-input::placeholder {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .dict-search-loading {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+        }
+
+        .dict-search-loading.show {
+            display: block;
+        }
+
+        .spinner-small {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .dict-search-clear {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 0.2rem;
+            border-radius: 4px;
+            display: none;
+            transition: all 0.2s;
+        }
+
+        .dict-search-clear.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dict-search-clear:hover {
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Results Info & Limit Selector */
+        .dict-results-info {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .dict-results-info strong {
+            color: #a78bfa;
+        }
+
+        .dict-limit-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .dict-limit-selector label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .dict-limit-selector select {
+            background: rgba(40, 40, 70, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 4px;
+            color: #a78bfa;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .dict-limit-selector select:hover,
+        .dict-limit-selector select:focus {
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .dict-limit-selector select option {
+            background: #1a1a2e;
+            color: var(--text-primary);
+        }
+
+        .dict-limit-reset {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.5rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s;
+            padding: 0.15rem;
+        }
+
+        .dict-limit-reset:hover {
+            color: #a78bfa;
+            opacity: 1;
+        }
+
+        /* Loading Skeleton - Compact */
+        .dictionary-loading {
+            display: none;
+        }
+
+        .dictionary-loading.show {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .skeleton-card {
+            background: rgba(40, 40, 70, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+            border-radius: 6px;
+            padding: 0.6rem;
+            height: 42px;
+        }
+
+        .skeleton-card::before {
+            content: '';
+            display: block;
+            height: 10px;
+            width: 50%;
+            background: linear-gradient(90deg, rgba(60, 60, 90, 0.5) 25%, rgba(80, 80, 110, 0.5) 50%, rgba(60, 60, 90, 0.5) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 3px;
+            margin-bottom: 0.4rem;
+        }
+
+        .skeleton-card::after {
+            content: '';
+            display: block;
+            height: 8px;
+            width: 80%;
+            background: linear-gradient(90deg, rgba(60, 60, 90, 0.4) 25%, rgba(80, 80, 110, 0.4) 50%, rgba(60, 60, 90, 0.4) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 3px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Dictionary List - Compact Rows */
+        .dictionary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .dictionary-list.hidden {
+            display: none;
+        }
+
+        /* Card Styles - Original Layout with Labels */
+        .dict-card {
+            background: rgba(30, 30, 60, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+            padding: 0.5rem 0.6rem;
+            transition: all 0.2s ease;
+        }
+
+        .dict-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(40, 40, 80, 0.5);
+        }
+
+        .dict-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .dict-card-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .dict-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #8b5cf6;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
+
+        .dict-card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dict-card-group-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border-radius: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .dict-card-group-badge .dict-label {
+            color: #c4b5fd;
+            font-size: 0.55rem;
+        }
+
+        .dict-card-phrase {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+
+        .dict-card-phrase .dict-label {
+            padding-top: 0.1rem;
+        }
+
+        .dict-card-phrase p {
+            flex: 1;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .dict-btn-copy {
+            background: transparent;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            padding: 0.2rem 0.35rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dict-btn-copy:hover {
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .dict-btn-copy.copied {
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        /* Dictionary Field Checkboxes */
+        .dict-field-checks {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .dict-field-check {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            cursor: pointer;
+            padding: 0.15rem 0.3rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .dict-field-check:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-field-check.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dict-field-check input[type="checkbox"] {
+            display: none;
+        }
+
+        .dict-field-check .check-icon {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(139, 92, 246, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(30, 30, 60, 0.5);
+        }
+
+        .dict-field-check .check-icon i {
+            font-size: 0.5rem;
+            color: transparent;
+            transition: all 0.2s;
+        }
+
+        .dict-field-check.active .check-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-color: #10b981;
+        }
+
+        .dict-field-check.active .check-icon i {
+            color: #fff;
+        }
+
+        .dict-field-check .check-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            transition: color 0.2s;
+        }
+
+        .dict-field-check:hover .check-label {
+            color: #a78bfa;
+        }
+
+        .dict-field-check.active .check-label {
+            color: #34d399;
+        }
+
+        /* Preview - Collapsible Mini Thumbnail */
+        .dict-card-preview {
+            padding: 0.35rem 0.65rem 0.5rem;
+            background: transparent;
+            border-top: 1px solid rgba(99, 102, 241, 0.06);
+        }
+
+        .dict-preview-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 5px;
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: fit-content;
+            font-family: inherit;
+        }
+
+        .dict-preview-toggle:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+
+        .dict-preview-toggle.expanded {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .dict-preview-toggle i {
+            font-size: 0.55rem;
+            transition: transform 0.2s;
+        }
+
+        .dict-preview-toggle.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .dict-preview-content {
+            margin-top: 0.4rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .dict-preview-content.expanded {
+            max-height: 100px;
+        }
+
+        .dict-card-preview iframe {
+            width: 100%;
+            height: 80px;
+            border: none;
+            border-radius: 5px;
+            background: #fff;
+            display: block;
+        }
+
+        /* Empty State - Compact */
+        .dict-empty-state {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            display: none;
+        }
+
+        .dict-empty-state.show {
+            display: block;
+        }
+
+        .dict-empty-state-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .dict-empty-state-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 0 0 0.3rem;
+        }
+
+        .dict-empty-state-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Pagination - Minimal */
+        .dict-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding-top: 0.6rem;
+            margin-top: 0.6rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.08);
+        }
+
+        .dict-pagination.hidden {
+            display: none;
+        }
+
+        .dict-btn-pagination {
+            padding: 0.3rem 0.6rem;
+            background: rgba(40, 40, 70, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 5px;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .dict-btn-pagination:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #a78bfa;
+        }
+
+        .dict-btn-pagination:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .dict-pagination-info {
+            text-align: center;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        .dict-pagination-info span {
+            display: inline;
+        }
+
+        .dict-pagination-info #dict-page-info {
+            color: #a78bfa;
+            font-weight: 500;
+        }
+
+        .dict-pagination-info #dict-items-info {
+            margin-left: 0.3rem;
+            opacity: 0.7;
+        }
+
+        /* Error State - Compact */
+        .dict-error-state {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+            display: none;
+        }
+
+        .dict-error-state.show {
+            display: block;
+        }
+
+        .dict-error-state p {
+            color: #fca5a5;
+            font-size: 0.7rem;
+            margin: 0;
+        }
+
+        .dict-error-state button {
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.75rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 5px;
+            color: #fca5a5;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .dict-error-state button:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
         }
     </style>
 </head>
@@ -4583,6 +5564,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Work Distribution Slider -->
+            <div class="distribution-section">
+                <div class="distribution-header">
+                    <div class="distribution-title">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Steps</span>
+                    </div>
+                    <div class="distribution-value" id="distributionValue">
+                        <span class="value-number" id="valueNumber">1</span>
+                        <span class="value-label">/ 30</span>
+                    </div>
+                    <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
+                        <input type="checkbox" id="distributionEnabled">
+                        <span class="check-box"><i class="fas fa-check"></i></span>
+                    </label>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-track">
+                        <div class="slider-fill" id="sliderFill"></div>
+                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Prompts -->
+            <div class="saved-prompts-section">
+                <div class="saved-header">
+                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
+                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Select/Deselect All for Saved Prompts -->
+                <div class="saved-actions-bar">
+                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
+                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Select All</span>
+                    </label>
+                    <span class="saved-counter" id="savedCounter">0/0</span>
+                </div>
+                
+                <div class="saved-list" id="savedList">
+                    <!-- Saved prompts will be loaded here -->
+                </div>
+                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
+                    <i class="fas fa-grip-lines"></i>
+                </div>
+            </div>
+            
             <!-- Editor -->
             <div class="editor-container">
                 <div class="editor-header">
@@ -4781,72 +5818,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <!-- Work Distribution Slider -->
-            <div class="distribution-section">
-                <div class="distribution-header">
-                    <div class="distribution-title">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Work Distribution</span>
-                    </div>
-                    <div class="distribution-value" id="distributionValue">
-                        <span class="value-number" id="valueNumber">1</span>
-                        <span class="value-label">Part</span>
-                    </div>
+            <!-- AI Prompt Dictionary Section -->
+            <div class="dictionary-section">
+                <div class="dictionary-header">
+                    <h3><i class="fas fa-book"></i> AI Prompt Dictionary</h3>
+                    <button type="button" class="dict-admin-btn" onclick="openDictAdminPopup()" title="Open Admin Panel">
+                        <i class="fas fa-cog"></i>
+                        <span>Admin</span>
+                    </button>
+                    <button type="button" class="dict-refresh-btn" onclick="dictRefreshAPI()" title="Refresh from API">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button type="button" class="dict-reset-btn" id="dictClearGroupFilter" onclick="dictResetGroupFilter()" title="Reset filter to All">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 
-                <div class="slider-container">
-                    <div class="slider-track">
-                        <div class="slider-fill" id="sliderFill"></div>
-                        <input type="range" min="1" max="10" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                <div class="dictionary-wrapper" id="dictionaryWrapper">
+                    <!-- Group Filter Slider -->
+                    <div class="group-slider-compact" id="dictGroupSlider">
+                        <div class="slider-label">
+                            <span class="label-badge"><i class="fas fa-layer-group"></i> Group</span>
+                            <span class="active-group" id="dictActiveGroupName">All</span>
+                        </div>
+                        <div class="slider-bar-wrapper">
+                            <div class="slider-bar" id="dictSliderTrack">
+                                <!-- Groups loaded dynamically -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="slider-labels">
-                        <span class="slider-label" onclick="setDistribution(1)">1</span>
-                        <span class="slider-label" onclick="setDistribution(2)">2</span>
-                        <span class="slider-label" onclick="setDistribution(3)">3</span>
-                        <span class="slider-label" onclick="setDistribution(4)">4</span>
-                        <span class="slider-label" onclick="setDistribution(5)">5</span>
-                        <span class="slider-label" onclick="setDistribution(6)">6</span>
-                        <span class="slider-label" onclick="setDistribution(7)">7</span>
-                        <span class="slider-label" onclick="setDistribution(8)">8</span>
-                        <span class="slider-label" onclick="setDistribution(9)">9</span>
-                        <span class="slider-label" onclick="setDistribution(10)">10</span>
-                    </div>
-                </div>
-                
-                <div class="distribution-toggle">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="distributionEnabled" onchange="toggleDistribution()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-text">Add distribution instruction to prompt</span>
-                </div>
-            </div>
-            
-            <!-- Saved Prompts -->
-            <div class="saved-prompts-section">
-                <div class="saved-header">
-                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
-                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
+                    
+                    <!-- Search Bar -->
+                    <div class="dict-search-container">
+                        <span class="search-icon"><i class="fas fa-search"></i></span>
+                        <input type="text" 
+                               class="dict-search-input" 
+                               id="dictSearchInput"
+                               placeholder="Search prompts by title or phrase..." 
+                               autocomplete="off">
+                        <div class="dict-search-loading" id="dictSearchLoading">
+                            <div class="spinner-small"></div>
+                        </div>
+                        <button type="button" class="dict-search-clear" id="dictSearchClear" onclick="dictClearSearch()" title="Clear">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                </div>
-                
-                <!-- Select/Deselect All for Saved Prompts -->
-                <div class="saved-actions-bar">
-                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
-                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
-                        <span class="checkbox-custom"></span>
-                        <span class="checkbox-label">Select All</span>
-                    </label>
-                    <span class="saved-counter" id="savedCounter">0/0</span>
-                </div>
-                
-                <div class="saved-list" id="savedList">
-                    <!-- Saved prompts will be loaded here -->
+                    
+                    <!-- Results Info & Limit Selector -->
+                    <div class="dict-results-info" id="dictResultsInfo">
+                        <span>Showing <strong id="dictResultsCount">0</strong> prompts</span>
+                        <div class="dict-limit-selector">
+                            <label>Show:</label>
+                            <select id="dictLimitSelect" onchange="dictChangeLimit(this.value)">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="30" selected>30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <button type="button" class="dict-limit-reset" onclick="dictResetLimit()" title="Reset to 30">↻</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Skeleton -->
+                    <div class="dictionary-loading" id="dictLoading">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                    
+                    <!-- Error State -->
+                    <div class="dict-error-state" id="dictErrorState">
+                        <p id="dictErrorMessage">Failed to load prompts</p>
+                        <button type="button" onclick="dictLoadPrompts()">Try Again</button>
+                    </div>
+                    
+                    <!-- Prompts List -->
+                    <div class="dictionary-list" id="dictList">
+                        <!-- Prompt cards loaded dynamically -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="dict-empty-state" id="dictEmptyState">
+                        <div class="dict-empty-state-icon">📭</div>
+                        <h3 class="dict-empty-state-title">No prompts found</h3>
+                        <p class="dict-empty-state-text">Try adjusting your search or filters</p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="dict-pagination" id="dictPagination">
+                        <button type="button" class="dict-btn-pagination" id="dictBtnPrev" onclick="dictPrevPage()" disabled>← Previous</button>
+                        <div class="dict-pagination-info">
+                            <span id="dict-page-info">Page 1 of 1</span>
+                            <span id="dict-items-info">(0 items)</span>
+                        </div>
+                        <button type="button" class="dict-btn-pagination" id="dictBtnNext" onclick="dictNextPage()">Next →</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -5327,6 +6394,622 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Active saved prompts tracking
         let activeSavedPrompts = new Set();
+        
+        // ============================================
+        // AI PROMPT DICTIONARY - API INTEGRATION
+        // ============================================
+        // Uses PHP proxy to bypass CORS restrictions
+        
+        // Dictionary State - limit from localStorage (default 30)
+        const DICT_DEFAULT_LIMIT = 30;
+        const dictState = {
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: 0,
+            search: '',
+            groupId: null,
+            groupName: 'All',
+            items: [],
+            groups: [],
+            isLoading: false,
+            limit: parseInt(localStorage.getItem('dictLimit')) || DICT_DEFAULT_LIMIT,
+            debounceTimer: null
+        };
+        
+        // Initialize limit selector from localStorage
+        function dictInitLimitSelector() {
+            const select = document.getElementById('dictLimitSelect');
+            if (select) {
+                select.value = dictState.limit.toString();
+            }
+        }
+        
+        // Change limit and save to localStorage
+        async function dictChangeLimit(value) {
+            const newLimit = parseInt(value) || DICT_DEFAULT_LIMIT;
+            dictState.limit = newLimit;
+            dictState.currentPage = 1;
+            localStorage.setItem('dictLimit', newLimit.toString());
+            await dictLoadPrompts();
+        }
+        
+        // Reset limit to default (30)
+        async function dictResetLimit() {
+            const select = document.getElementById('dictLimitSelect');
+            dictState.limit = DICT_DEFAULT_LIMIT;
+            dictState.currentPage = 1;
+            localStorage.setItem('dictLimit', DICT_DEFAULT_LIMIT.toString());
+            if (select) {
+                select.value = DICT_DEFAULT_LIMIT.toString();
+            }
+            await dictLoadPrompts();
+            showToast('Limit reset to ' + DICT_DEFAULT_LIMIT, 'info');
+        }
+        
+        // Helper: Make API request DIRECTLY to frouty.com (bypassing PHP proxy)
+        const DICT_API_BASE = 'https://frouty.com/api/search-api.php';
+        
+        async function dictApiRequest(params) {
+            // Build URL with query parameters
+            const url = new URL(DICT_API_BASE);
+            
+            // Map our params to API params
+            if (params.api_action === 'groups') {
+                url.searchParams.append('action', 'groups');
+            } else if (params.api_action === 'search' && params.query) {
+                url.searchParams.append('action', 'search');
+                url.searchParams.append('q', params.query);
+            } else {
+                url.searchParams.append('action', 'list');
+            }
+            
+            // Add pagination
+            if (params.page) url.searchParams.append('page', params.page);
+            if (params.limit) url.searchParams.append('limit', params.limit);
+            if (params.group_id) url.searchParams.append('group_id', params.group_id);
+            
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Wrap in success format if API returns raw data
+                if (data.success === undefined) {
+                    return { success: true, data: data };
+                }
+                return data;
+            } catch (err) {
+                console.error('Dictionary API error:', err);
+                return { success: false, message: err.message };
+            }
+        }
+        
+        // Initialize Dictionary on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            dictInit();
+        });
+        
+        // Initialize dictionary
+        async function dictInit() {
+            dictInitLimitSelector();
+            await dictLoadGroups();
+            await dictLoadPrompts();
+            dictSetupSearchListener();
+        }
+        
+        // Load groups for filter
+        async function dictLoadGroups() {
+            try {
+                const data = await dictApiRequest({ api_action: 'groups' });
+                
+                if (data.success && data.data && data.data.items) {
+                    dictState.groups = data.data.items;
+                    dictRenderGroups();
+                }
+            } catch (err) {
+                console.error('Failed to load groups:', err);
+            }
+        }
+        
+        // Render group filter slider
+        function dictRenderGroups() {
+            const slider = document.getElementById('dictSliderTrack');
+            if (!slider) return;
+            
+            let html = `
+                <div class="slider-option ${dictState.groupId === null ? 'active' : ''}" 
+                     data-group-id="all" 
+                     data-group-name="All"
+                     onclick="dictSelectGroup(null, 'All')">
+                    <span>All</span>
+                </div>
+            `;
+            
+            dictState.groups.forEach(group => {
+                const isActive = dictState.groupId === group.id;
+                html += `
+                    <div class="slider-option ${isActive ? 'active' : ''}" 
+                         data-group-id="${group.id}" 
+                         data-group-name="${dictEscapeHtml(group.title)}"
+                         onclick="dictSelectGroup(${group.id}, '${dictEscapeHtml(group.title)}')">
+                        <span>${dictEscapeHtml(group.title)}</span>
+                    </div>
+                `;
+            });
+            
+            slider.innerHTML = html;
+        }
+        
+        // Select a group filter
+        async function dictSelectGroup(groupId, groupName) {
+            dictState.groupId = groupId;
+            dictState.groupName = groupName;
+            dictState.currentPage = 1;
+            
+            // Update UI
+            document.getElementById('dictActiveGroupName').textContent = groupName;
+            
+            // Update active state on buttons
+            document.querySelectorAll('#dictSliderTrack .slider-option').forEach(opt => {
+                const optGroupId = opt.dataset.groupId === 'all' ? null : parseInt(opt.dataset.groupId);
+                opt.classList.toggle('active', optGroupId === groupId);
+            });
+            
+            await dictLoadPrompts();
+        }
+        
+        // Reset group filter
+        async function dictResetGroupFilter() {
+            await dictSelectGroup(null, 'All');
+        }
+        
+        // Refresh from API (reload groups and prompts)
+        async function dictRefreshAPI() {
+            const btn = document.querySelector('.refresh-btn');
+            if (btn) {
+                btn.classList.add('spinning');
+            }
+            
+            try {
+                await dictLoadGroups();
+                await dictLoadPrompts();
+                showToast('✅ Dictionary refreshed from API', 'success');
+            } catch (err) {
+                showToast('❌ Failed to refresh', 'error');
+            } finally {
+                if (btn) {
+                    btn.classList.remove('spinning');
+                }
+            }
+        }
+        
+        // Setup search input listener with debounce
+        function dictSetupSearchListener() {
+            const searchInput = document.getElementById('dictSearchInput');
+            const clearBtn = document.getElementById('dictSearchClear');
+            
+            if (!searchInput) return;
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // Show/hide clear button
+                clearBtn.classList.toggle('show', query.length > 0);
+                
+                // Debounce search
+                if (dictState.debounceTimer) {
+                    clearTimeout(dictState.debounceTimer);
+                }
+                
+                if (query.length >= 2 || query.length === 0) {
+                    dictState.debounceTimer = setTimeout(() => {
+                        dictState.search = query;
+                        dictState.currentPage = 1;
+                        dictLoadPrompts();
+                    }, 400);
+                }
+            });
+        }
+        
+        // Clear search
+        async function dictClearSearch() {
+            const searchInput = document.getElementById('dictSearchInput');
+            const clearBtn = document.getElementById('dictSearchClear');
+            
+            searchInput.value = '';
+            clearBtn.classList.remove('show');
+            dictState.search = '';
+            dictState.currentPage = 1;
+            
+            await dictLoadPrompts();
+            searchInput.focus();
+        }
+        
+        // Load prompts from API
+        async function dictLoadPrompts() {
+            if (dictState.isLoading) return;
+            
+            dictState.isLoading = true;
+            dictShowLoading(true);
+            dictShowError(false);
+            
+            try {
+                const params = {
+                    api_action: dictState.search ? 'search' : 'list',
+                    query: dictState.search || '',
+                    page: dictState.currentPage,
+                    limit: dictState.limit,
+                    group_id: dictState.groupId || ''
+                };
+                
+                const data = await dictApiRequest(params);
+                
+                if (data.success && data.data) {
+                    dictState.items = data.data.items || [];
+                    
+                    if (data.data.pagination) {
+                        dictState.currentPage = data.data.pagination.current_page || 1;
+                        dictState.totalPages = data.data.pagination.total_pages || 1;
+                        dictState.totalItems = data.data.pagination.total_items || 0;
+                    } else {
+                        dictState.totalItems = dictState.items.length;
+                        dictState.totalPages = 1;
+                    }
+                    
+                    dictRenderPrompts();
+                    dictUpdatePagination();
+                    dictUpdateResultsInfo();
+                } else {
+                    throw new Error(data.message || 'Failed to load prompts');
+                }
+            } catch (err) {
+                console.error('Dictionary load error:', err);
+                dictShowError(true, err.message);
+            } finally {
+                dictState.isLoading = false;
+                dictShowLoading(false);
+            }
+        }
+        
+        // Render prompts list
+        function dictRenderPrompts() {
+            const listEl = document.getElementById('dictList');
+            const emptyEl = document.getElementById('dictEmptyState');
+            
+            if (!listEl) return;
+            
+            if (dictState.items.length === 0) {
+                listEl.classList.add('hidden');
+                emptyEl.classList.add('show');
+                return;
+            }
+            
+            listEl.classList.remove('hidden');
+            emptyEl.classList.remove('show');
+            
+            let html = '';
+            
+            dictState.items.forEach(item => {
+                const hasPreview = item.has_html || item.has_css || item.has_full_code;
+                const groupBadge = item.group_title 
+                    ? `<span class="dict-card-group-badge"><span class="dict-label">Group:</span> ${dictEscapeHtml(item.group_title)}</span>` 
+                    : '';
+                
+                // Truncate phrase for display
+                const phraseText = item.phrase || '';
+                const truncatedPhrase = phraseText.length > 80 ? phraseText.substring(0, 80) + '...' : phraseText;
+                
+                // Build checkboxes - get HTML code if available
+                const htmlCode = item.html_code || item.full_code || '';
+                const hasHtml = htmlCode.length > 0;
+                
+                const checkboxes = `
+                    <div class="dict-field-checks">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleField(event, '${item.id}', 'title', '${dictEscapeJs(item.title)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Title</span>
+                        </label>
+                        ${item.group_title ? `
+                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleField(event, '${item.id}', 'group', '${dictEscapeJs(item.group_title)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Group</span>
+                        </label>
+                        ` : ''}
+                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleField(event, '${item.id}', 'phrase', '${dictEscapeJs(phraseText)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Phrase</span>
+                        </label>
+                        ${hasHtml ? `
+                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleField(event, '${item.id}', 'html', '${dictEscapeJs(htmlCode)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">HTML</span>
+                        </label>
+                        ` : ''}
+                    </div>
+                `;
+                
+                html += `
+                    <div class="dict-card" data-id="${item.id}">
+                        <div class="dict-card-header">
+                            <div class="dict-card-title-wrap">
+                                <span class="dict-label">Title:</span>
+                                <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
+                            </div>
+                            ${checkboxes}
+                            ${groupBadge}
+                        </div>
+                        <div class="dict-card-phrase">
+                            <span class="dict-label">Phrase:</span>
+                            <p title="${dictEscapeHtml(phraseText)}">${dictEscapeHtml(truncatedPhrase)}</p>
+                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        ${hasPreview ? dictRenderPreview(item) : ''}
+                    </div>
+                `;
+            });
+            
+            listEl.innerHTML = html;
+        }
+        
+        // Render preview - collapsible
+        function dictRenderPreview(item) {
+            let srcdoc = '';
+            
+            if (item.full_code) {
+                srcdoc = item.full_code;
+            } else if (item.html_code || item.css_code) {
+                srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:12px;}${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
+            } else {
+                return '';
+            }
+            
+            // Escape for attribute
+            const escapedSrcdoc = srcdoc.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const previewId = `preview-${item.id}`;
+            
+            return `
+                <div class="dict-card-preview">
+                    <button type="button" class="dict-preview-toggle" onclick="dictTogglePreview('${previewId}', this)">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>Preview</span>
+                    </button>
+                    <div class="dict-preview-content" id="${previewId}">
+                        <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Toggle preview visibility
+        function dictTogglePreview(previewId, btn) {
+            const content = document.getElementById(previewId);
+            if (!content) return;
+            
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                content.classList.remove('expanded');
+                btn.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                btn.classList.add('expanded');
+            }
+        }
+        
+        // Copy phrase to clipboard
+        async function dictCopyPhrase(button, text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                button.classList.add('copied');
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 1500);
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+        }
+        
+        // Track active dictionary field selections
+        const dictActiveFields = new Map(); // key: "itemId-field", value: content
+        
+        // Toggle dictionary field - append/remove from editor
+        function dictToggleField(event, itemId, field, content) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const key = `${itemId}-${field}`;
+            const labelEl = event.currentTarget;
+            const checkbox = labelEl.querySelector('input[type="checkbox"]');
+            const editor = document.getElementById('promptEditor');
+            
+            if (!editor) {
+                console.error('Prompt editor not found');
+                return;
+            }
+            
+            const isActive = dictActiveFields.has(key);
+            
+            if (isActive) {
+                // Remove - uncheck
+                dictActiveFields.delete(key);
+                labelEl.classList.remove('active');
+                if (checkbox) checkbox.checked = false;
+                
+                // Rebuild editor content without this field
+                dictRebuildEditorFromFields();
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} removed`, 'info');
+            } else {
+                // Add - check
+                dictActiveFields.set(key, content);
+                labelEl.classList.add('active');
+                if (checkbox) checkbox.checked = true;
+                
+                // Append to editor
+                const currentValue = editor.value.trim();
+                if (currentValue) {
+                    editor.value = currentValue + '\n\n' + content;
+                } else {
+                    editor.value = content;
+                }
+                
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} added`, 'success');
+            }
+            
+            updateCounts();
+            if (typeof recordHistoryState === 'function') {
+                recordHistoryState(true);
+            }
+        }
+        
+        // Rebuild editor from all active fields (templates, saved, dictionary)
+        function dictRebuildEditorFromFields() {
+            const editor = document.getElementById('promptEditor');
+            const contents = [];
+            
+            // First add active template prompts
+            promptTemplates.forEach(prompt => {
+                if (activePrompts.has(prompt.id)) {
+                    contents.push(prompt.content);
+                }
+            });
+            
+            // Then add active saved prompts
+            savedPromptsList.forEach(prompt => {
+                if (activeSavedPrompts.has(prompt.id)) {
+                    contents.push(prompt.content);
+                }
+            });
+            
+            // Then add active dictionary fields
+            dictActiveFields.forEach((content, key) => {
+                contents.push(content);
+            });
+            
+            editor.value = contents.join('\n\n');
+            updateCounts();
+        }
+        
+        // Update pagination UI
+        function dictUpdatePagination() {
+            const paginationEl = document.getElementById('dictPagination');
+            const prevBtn = document.getElementById('dictBtnPrev');
+            const nextBtn = document.getElementById('dictBtnNext');
+            const pageInfo = document.getElementById('dict-page-info');
+            const itemsInfo = document.getElementById('dict-items-info');
+            
+            if (!paginationEl) return;
+            
+            // Hide pagination if only one page
+            paginationEl.classList.toggle('hidden', dictState.totalPages <= 1);
+            
+            // Update buttons
+            prevBtn.disabled = dictState.currentPage <= 1;
+            nextBtn.disabled = dictState.currentPage >= dictState.totalPages;
+            
+            // Update info
+            pageInfo.textContent = `Page ${dictState.currentPage} of ${dictState.totalPages}`;
+            itemsInfo.textContent = `(${dictState.totalItems} items)`;
+        }
+        
+        // Update results info
+        function dictUpdateResultsInfo() {
+            const countEl = document.getElementById('dictResultsCount');
+            if (countEl) {
+                countEl.textContent = dictState.items.length;
+            }
+        }
+        
+        // Navigate to previous page
+        async function dictPrevPage() {
+            if (dictState.currentPage > 1) {
+                dictState.currentPage--;
+                await dictLoadPrompts();
+                dictScrollToTop();
+            }
+        }
+        
+        // Navigate to next page
+        async function dictNextPage() {
+            if (dictState.currentPage < dictState.totalPages) {
+                dictState.currentPage++;
+                await dictLoadPrompts();
+                dictScrollToTop();
+            }
+        }
+        
+        // Scroll to top of dictionary wrapper
+        function dictScrollToTop() {
+            const wrapper = document.getElementById('dictionaryWrapper');
+            if (wrapper) {
+                wrapper.scrollTop = 0;
+            }
+        }
+        
+        // Show/hide loading state
+        function dictShowLoading(show) {
+            const loadingEl = document.getElementById('dictLoading');
+            const listEl = document.getElementById('dictList');
+            const searchLoading = document.getElementById('dictSearchLoading');
+            
+            if (loadingEl) {
+                loadingEl.classList.toggle('show', show);
+            }
+            if (listEl && show) {
+                listEl.classList.add('hidden');
+            }
+            if (searchLoading) {
+                searchLoading.classList.toggle('show', show);
+            }
+        }
+        
+        // Show/hide error state
+        function dictShowError(show, message = 'Failed to load prompts') {
+            const errorEl = document.getElementById('dictErrorState');
+            const messageEl = document.getElementById('dictErrorMessage');
+            const listEl = document.getElementById('dictList');
+            
+            if (errorEl) {
+                errorEl.classList.toggle('show', show);
+            }
+            if (messageEl && message) {
+                messageEl.textContent = message;
+            }
+            if (listEl && show) {
+                listEl.classList.add('hidden');
+            }
+        }
+        
+        // Escape HTML for safe display
+        function dictEscapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Escape text for JavaScript string
+        function dictEscapeJs(text) {
+            if (!text) return '';
+            return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+        }
         
         // Current saved prompt being previewed
         let currentPreviewSaved = null;
@@ -9489,17 +11172,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Update value display
             const valueNumber = document.getElementById('valueNumber');
-            const valueLabel = document.querySelector('.value-label');
             valueNumber.textContent = value;
-            valueLabel.textContent = value === 1 ? 'Part' : 'Parts';
             
-            // Update slider fill
+            // Update slider fill (30 steps)
             const fill = document.getElementById('sliderFill');
-            const percentage = ((value - 1) / 9) * 100;
+            const percentage = ((value - 1) / 29) * 100;
             fill.style.width = `${percentage}%`;
-            
-            // Update active label
-            updateActiveLabel(value);
             
             // If enabled, update the editor
             if (distributionState.enabled) {
@@ -9514,69 +11192,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateDistribution(value);
         }
         
-        // Update active label styling
-        function updateActiveLabel(value) {
-            const labels = document.querySelectorAll('.slider-label');
-            labels.forEach((label, index) => {
-                if (index + 1 === value) {
-                    label.classList.add('active');
-                } else {
-                    label.classList.remove('active');
-                }
-            });
-        }
-        
         // Get distribution messages based on value
         function getDistributionMessages(value) {
             if (value === 1) {
                 return {
                     short: 'Complete this task in a single comprehensive response.',
-                    full: '📋 WORK DISTRIBUTION: Single Part\n\nPlease complete this entire task in ONE comprehensive response.\nProvide a complete and thorough solution without breaking it into parts.'
+                    full: '📋 WORK DISTRIBUTION: Single Step\n\nPlease complete this entire task in ONE comprehensive response.\nProvide a complete and thorough solution without breaking it into parts.'
                 };
-            } else if (value === 2) {
+            } else if (value <= 5) {
                 return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:\n\n• Part 1/2: First half of the task\n• Part 2/2: Second half of the task\n\n✅ After completing each part, indicate "Part X Complete" before proceeding.`
+                    short: `Distribute the work into ${value} steps.`,
+                    full: `📋 WORK DISTRIBUTION: ${value} Steps\n\nPlease distribute and organize your work into ${value} distinct steps.\n\n✅ After completing each step, indicate "Step X/${value} Complete" before proceeding.`
                 };
             } else {
-                let partsBreakdown = '';
-                for (let i = 1; i <= value; i++) {
-                    partsBreakdown += `\n• Part ${i}/${value}: ${getPartDescription(i, value)}`;
-                }
-                
                 return {
-                    short: `Distribute the work into ${value} parts.`,
-                    full: `📋 WORK DISTRIBUTION: ${value} Parts\n\nPlease distribute and organize your work into ${value} distinct parts:${partsBreakdown}\n\n✅ After completing each part, indicate "Part X Complete" before proceeding to the next.`
+                    short: `Distribute the work into ${value} steps.`,
+                    full: `📋 WORK DISTRIBUTION: ${value} Steps\n\nPlease distribute and organize your work into ${value} distinct steps.\nBreak down the task systematically and work through each step methodically.\n\n✅ After completing each step, indicate "Step X/${value} Complete" before proceeding to the next.`
                 };
             }
         }
         
-        // Get part description based on position
-        function getPartDescription(part, total) {
-            const percentage = Math.round((1 / total) * 100);
+        // Toggle distribution append - checkbox behavior
+        function toggleDistributionAppend(event) {
+            event.preventDefault();
+            event.stopPropagation();
             
-            if (part === 1) return `Initial setup & foundation (~${percentage}% of work)`;
-            if (part === total) return `Final completion & review (~${percentage}% of work)`;
-            if (part === Math.ceil(total / 2)) return `Core implementation (~${percentage}% of work)`;
-            
-            return `Section ${part} implementation (~${percentage}% of work)`;
-        }
-        
-        // Toggle distribution on/off
-        function toggleDistribution() {
+            const label = document.getElementById('distAppendCheck');
             const checkbox = document.getElementById('distributionEnabled');
             const section = document.querySelector('.distribution-section');
+            const editor = document.getElementById('promptEditor');
             
-            distributionState.enabled = checkbox.checked;
+            if (!editor) return;
             
-            if (checkbox.checked) {
-                section.classList.add('active');
-                addDistributionToEditor();
-                showToast(`✅ Distribution (${distributionState.value} parts) added to prompt`, 'success');
-            } else {
+            const isActive = label.classList.contains('active');
+            
+            if (isActive) {
+                // Remove
+                label.classList.remove('active');
+                checkbox.checked = false;
                 section.classList.remove('active');
+                distributionState.enabled = false;
                 removeDistributionFromEditor();
-                showToast('Distribution instruction removed', 'info');
+                showToast('Steps removed', 'info');
+            } else {
+                // Add - append to editor
+                label.classList.add('active');
+                checkbox.checked = true;
+                section.classList.add('active');
+                distributionState.enabled = true;
+                
+                const messages = getDistributionMessages(distributionState.value);
+                const distributionBlock = `${distributionState.startMarker}\n${messages.full}\n${distributionState.endMarker}`;
+                
+                // Append to editor
+                if (editor.value.trim()) {
+                    editor.value = editor.value.trim() + '\n\n' + distributionBlock;
+                } else {
+                    editor.value = distributionBlock;
+                }
+                
+                showToast(`${distributionState.value} steps added`, 'success');
+                updateCounts();
+            }
+        }
+        
+        // Legacy toggle function for compatibility
+        function toggleDistribution() {
+            const label = document.getElementById('distAppendCheck');
+            if (label) {
+                toggleDistributionAppend({ preventDefault: () => {}, stopPropagation: () => {} });
             }
         }
         
@@ -9717,6 +11401,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Initialize resize handle on page load
         document.addEventListener('DOMContentLoaded', initResizeHandle);
+
+        // ============================================
+        // SAVED PROMPTS RESIZE HANDLE
+        // ============================================
+        function initSavedResize() {
+            const section = document.querySelector('.saved-prompts-section');
+            const handle = document.getElementById('savedResizeHandle');
+            
+            if (!section || !handle) return;
+            
+            let isResizing = false;
+            let startY = 0;
+            let startHeight = 0;
+            
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = section.offsetHeight;
+                section.classList.add('resizing');
+                document.body.style.cursor = 'ns-resize';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                
+                const deltaY = e.clientY - startY;
+                const newHeight = Math.min(Math.max(startHeight + deltaY, 120), 600);
+                section.style.height = newHeight + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    section.classList.remove('resizing');
+                    document.body.style.cursor = '';
+                    // Save height to localStorage
+                    localStorage.setItem('savedPromptsHeight', section.style.height);
+                }
+            });
+            
+            // Restore height from localStorage
+            const savedHeight = localStorage.getItem('savedPromptsHeight');
+            if (savedHeight) {
+                section.style.height = savedHeight;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', initSavedResize);
 
         // ============================================
         // EDITOR SEARCH SYSTEM (with Yellow Highlight Overlay)
@@ -9990,7 +11723,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Initialize editor search on page load
         document.addEventListener('DOMContentLoaded', initEditorSearch);
+        
+        // ============================================
+        // ADMIN POPUP IFRAME
+        // ============================================
+        function openDictAdminPopup() {
+            const modal = document.getElementById('dictAdminModal');
+            const iframe = document.getElementById('dictAdminIframe');
+            
+            if (modal) {
+                modal.classList.add('active');
+                iframe.src = 'https://frouty.com/pages/admin.php';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeDictAdminPopup() {
+            const modal = document.getElementById('dictAdminModal');
+            const iframe = document.getElementById('dictAdminIframe');
+            
+            if (modal) {
+                modal.classList.remove('active');
+                iframe.src = 'about:blank';
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeDictAdminPopup();
+            }
+        });
     </script>
+    
+    <!-- Admin Popup Modal -->
+    <div class="dict-admin-modal" id="dictAdminModal" onclick="if(event.target === this) closeDictAdminPopup()">
+        <div class="dict-admin-popup">
+            <div class="dict-admin-popup-header">
+                <h4><i class="fas fa-cog"></i> Dictionary Admin Panel</h4>
+                <button type="button" class="dict-admin-close-btn" onclick="closeDictAdminPopup()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <iframe class="dict-admin-iframe" id="dictAdminIframe" src="about:blank"></iframe>
+        </div>
+    </div>
 
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
