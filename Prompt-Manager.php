@@ -4533,26 +4533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dictionary-wrapper {
-            max-height: 380px;
-            overflow-y: auto;
             padding: 0.75rem;
-        }
-
-        .dictionary-wrapper::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .dictionary-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .dictionary-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(139, 92, 246, 0.4);
-            border-radius: 2px;
-        }
-
-        .dictionary-wrapper::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 92, 246, 0.6);
         }
 
         /* Group Filter - Compact Pills */
@@ -4764,19 +4745,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(239, 68, 68, 0.1);
         }
 
-        /* Results Info - Minimal */
+        /* Results Info & Limit Selector */
         .dict-results-info {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            padding-left: 0.2rem;
+            gap: 0.5rem;
+            justify-content: space-between;
         }
 
         .dict-results-info strong {
             color: #a78bfa;
+        }
+
+        .dict-limit-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .dict-limit-selector label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .dict-limit-selector select {
+            background: rgba(40, 40, 70, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 4px;
+            color: #a78bfa;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .dict-limit-selector select:hover,
+        .dict-limit-selector select:focus {
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .dict-limit-selector select option {
+            background: #1a1a2e;
+            color: var(--text-primary);
+        }
+
+        .dict-limit-reset {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.5rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s;
+            padding: 0.15rem;
+        }
+
+        .dict-limit-reset:hover {
+            color: #a78bfa;
+            opacity: 1;
         }
 
         /* Loading Skeleton - Compact */
@@ -5570,9 +5603,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </div>
                     
-                    <!-- Results Info -->
+                    <!-- Results Info & Limit Selector -->
                     <div class="dict-results-info" id="dictResultsInfo">
                         <span>Showing <strong id="dictResultsCount">0</strong> prompts</span>
+                        <div class="dict-limit-selector">
+                            <label>Show:</label>
+                            <select id="dictLimitSelect" onchange="dictChangeLimit(this.value)">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="30" selected>30</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <button type="button" class="dict-limit-reset" onclick="dictResetLimit()" title="Reset to 30">↻</button>
+                        </div>
                     </div>
                     
                     <!-- Loading Skeleton -->
@@ -6095,7 +6139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ============================================
         // Uses PHP proxy to bypass CORS restrictions
         
-        // Dictionary State
+        // Dictionary State - limit from localStorage (default 30)
+        const DICT_DEFAULT_LIMIT = 30;
         const dictState = {
             currentPage: 1,
             totalPages: 1,
@@ -6106,9 +6151,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             items: [],
             groups: [],
             isLoading: false,
-            limit: 15,
+            limit: parseInt(localStorage.getItem('dictLimit')) || DICT_DEFAULT_LIMIT,
             debounceTimer: null
         };
+        
+        // Initialize limit selector from localStorage
+        function dictInitLimitSelector() {
+            const select = document.getElementById('dictLimitSelect');
+            if (select) {
+                select.value = dictState.limit.toString();
+            }
+        }
+        
+        // Change limit and save to localStorage
+        async function dictChangeLimit(value) {
+            const newLimit = parseInt(value) || DICT_DEFAULT_LIMIT;
+            dictState.limit = newLimit;
+            dictState.currentPage = 1;
+            localStorage.setItem('dictLimit', newLimit.toString());
+            await dictLoadPrompts();
+        }
+        
+        // Reset limit to default (30)
+        async function dictResetLimit() {
+            const select = document.getElementById('dictLimitSelect');
+            dictState.limit = DICT_DEFAULT_LIMIT;
+            dictState.currentPage = 1;
+            localStorage.setItem('dictLimit', DICT_DEFAULT_LIMIT.toString());
+            if (select) {
+                select.value = DICT_DEFAULT_LIMIT.toString();
+            }
+            await dictLoadPrompts();
+            showToast('Limit reset to ' + DICT_DEFAULT_LIMIT, 'info');
+        }
         
         // Helper: Make API request DIRECTLY to frouty.com (bypassing PHP proxy)
         const DICT_API_BASE = 'https://frouty.com/api/search-api.php';
@@ -6164,6 +6239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Initialize dictionary
         async function dictInit() {
+            dictInitLimitSelector();
             await dictLoadGroups();
             await dictLoadPrompts();
             dictSetupSearchListener();
