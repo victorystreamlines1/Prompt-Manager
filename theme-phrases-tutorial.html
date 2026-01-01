@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Theme Whisperer - Design Phrases Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0d0d1a;
+            --bg-secondary: #161625;
+            --bg-card: #1e1e32;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-green: #22c55e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+        }
+
+        .floating-orbs {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            background: rgba(168, 85, 247, 0.3);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            background: rgba(236, 72, 153, 0.25);
+            top: 60%;
+            right: 15%;
+            animation-delay: -5s;
+        }
+
+        .orb:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            background: rgba(6, 182, 212, 0.2);
+            bottom: 20%;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 50px) scale(0.9); }
+            75% { transform: translate(30px, 20px) scale(1.05); }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 80px 20px 60px;
+        }
+
+        .logo-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-cyan);
+            margin: 60px 0 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--accent-cyan), transparent);
+        }
+
+        /* Phrase Cards */
+        .phrase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .phrase-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .phrase-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-visual {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .phrase-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--accent-purple);
+            background: rgba(168, 85, 247, 0.1);
+            padding: 12px 18px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-purple);
+            margin-bottom: 15px;
+        }
+
+        .phrase-meaning {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .phrase-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tag-color { background: rgba(236, 72, 153, 0.2); color: var(--accent-pink); }
+        .tag-layout { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+        .tag-animation { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .tag-theme { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+
+        /* Visual Demos */
+
+        /* 1. Deep Charcoal with Purple Highlights */
+        .demo-charcoal {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .charcoal-box {
+            width: 120px;
+            height: 120px;
+            background: #2d2d4a;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 
+                0 0 60px rgba(168, 85, 247, 0.4),
+                inset 0 0 30px rgba(168, 85, 247, 0.1);
+            animation: glow-purple 3s infinite ease-in-out;
+        }
+
+        .charcoal-box::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #a855f7, #c084fc);
+            border-radius: 50%;
+            filter: blur(10px);
+            animation: highlight-move 4s infinite ease-in-out;
+        }
+
+        @keyframes glow-purple {
+            0%, 100% { box-shadow: 0 0 60px rgba(168, 85, 247, 0.4), inset 0 0 30px rgba(168, 85, 247, 0.1); }
+            50% { box-shadow: 0 0 80px rgba(168, 85, 247, 0.6), inset 0 0 40px rgba(168, 85, 247, 0.2); }
+        }
+
+        @keyframes highlight-move {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-10px, 10px); }
+        }
+
+        /* 2. Highlights Demo - Lake Effect */
+        .demo-highlights {
+            background: linear-gradient(180deg, #1e3a5f 0%, #0c1929 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lake-surface {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(180deg, 
+                rgba(30, 80, 130, 0.8) 0%,
+                rgba(15, 40, 70, 0.9) 100%
+            );
+        }
+
+        .sun-rays {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ffd700 0%, rgba(255, 215, 0, 0) 70%);
+            border-radius: 50%;
+            animation: sun-pulse 2s infinite;
+        }
+
+        .shimmer {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .shimmer-line {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            border-radius: 2px;
+            animation: shimmer 2s infinite;
+        }
+
+        .shimmer-line:nth-child(2) { animation-delay: 0.3s; width: 100px; }
+        .shimmer-line:nth-child(3) { animation-delay: 0.6s; width: 60px; }
+
+        @keyframes sun-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1.2); }
+        }
+
+        /* 3. Fixed Header Demo */
+        .demo-fixed-header {
+            background: var(--bg-secondary);
+            position: relative;
+        }
+
+        .mini-browser {
+            width: 90%;
+            height: 170px;
+            margin: 15px auto;
+            background: #0a0a15;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mini-header {
+            height: 35px;
+            background: linear-gradient(90deg, #1e40af, #3b82f6);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+        }
+
+        .header-dot {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .mini-content {
+            height: calc(100% - 35px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scroll-content {
+            animation: scroll-demo 4s infinite;
+        }
+
+        .content-line {
+            height: 15px;
+            margin: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .content-line:nth-child(odd) { width: 80%; }
+        .content-line:nth-child(even) { width: 60%; }
+
+        @keyframes scroll-demo {
+            0%, 20% { transform: translateY(0); }
+            40%, 60% { transform: translateY(-60px); }
+            80%, 100% { transform: translateY(0); }
+        }
+
+        /* 4. Hover Scale Demo */
+        .demo-hover-scale {
+            background: linear-gradient(135deg, #1a1a2e, #2d2d4a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scale-button {
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: button-demo 3s infinite;
+        }
+
+        @keyframes button-demo {
+            0%, 40%, 100% { transform: scale(1); box-shadow: 0 5px 20px rgba(168, 85, 247, 0.3); }
+            50%, 70% { transform: scale(1.05); box-shadow: 0 10px 40px rgba(168, 85, 247, 0.5); }
+        }
+
+        .scale-indicator {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .scale-value {
+            color: var(--accent-green);
+            animation: scale-text 3s infinite;
+        }
+
+        @keyframes scale-text {
+            0%, 40%, 100% { content: '100%'; }
+            50%, 70% { content: '105%'; }
+        }
+
+        /* 5. Smooth Transitions Demo */
+        .demo-smooth {
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .transition-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .smooth-box {
+            background: var(--accent-cyan);
+            animation: smooth-move 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bumpy-box {
+            background: #ef4444;
+            animation: bumpy-move 3s infinite steps(10);
+        }
+
+        @keyframes smooth-move {
+            0%, 100% { transform: translateX(-30px) rotate(0deg); }
+            50% { transform: translateX(30px) rotate(180deg); }
+        }
+
+        @keyframes bumpy-move {
+            0%, 100% { transform: translateX(-30px) rotate(0deg); }
+            50% { transform: translateX(30px) rotate(180deg); }
+        }
+
+        .box-label {
+            position: absolute;
+            bottom: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .box-label.left { left: 40px; }
+        .box-label.right { right: 40px; }
+
+        /* 6. Spotify Theme Demo */
+        .demo-spotify {
+            background: #121212;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .spotify-card {
+            width: 140px;
+            background: #181818;
+            border-radius: 8px;
+            padding: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .spotify-card:hover {
+            background: #282828;
+        }
+
+        .spotify-cover {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #1db954, #169c46);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .spotify-icon {
+            font-size: 2.5rem;
+        }
+
+        .spotify-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .spotify-subtext {
+            font-size: 0.75rem;
+            color: #b3b3b3;
+        }
+
+        .spotify-play {
+            position: absolute;
+            bottom: 80px;
+            right: 50px;
+            width: 40px;
+            height: 40px;
+            background: #1db954;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            animation: play-bounce 2s infinite;
+        }
+
+        @keyframes play-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 7. Discord Theme Demo */
+        .demo-discord {
+            background: #36393f;
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .discord-sidebar {
+            width: 50px;
+            background: #202225;
+            border-radius: 8px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .discord-server {
+            width: 40px;
+            height: 40px;
+            background: #5865f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: border-radius 0.3s ease, background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .discord-server:hover {
+            border-radius: 30%;
+            background: #4752c4;
+        }
+
+        .discord-server.inactive {
+            background: #40444b;
+        }
+
+        .discord-main {
+            flex: 1;
+            background: #2f3136;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .discord-channel {
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #96989d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s ease, color 0.15s ease;
+            cursor: pointer;
+        }
+
+        .discord-channel:hover {
+            background: rgba(79, 84, 92, 0.4);
+            color: #dcddde;
+        }
+
+        .discord-channel.active {
+            background: rgba(79, 84, 92, 0.6);
+            color: white;
+        }
+
+        /* 8. VS Code Dark+ Demo */
+        .demo-vscode {
+            background: #1e1e1e;
+            padding: 15px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 10px;
+            padding: 2px 0;
+        }
+
+        .line-num {
+            color: #858585;
+            min-width: 20px;
+            text-align: right;
+        }
+
+        .keyword { color: #569cd6; }
+        .function { color: #dcdcaa; }
+        .string { color: #ce9178; }
+        .variable { color: #9cdcfe; }
+        .comment { color: #6a9955; }
+        .bracket { color: #ffd700; }
+        .operator { color: #d4d4d4; }
+
+        /* 9. Cozy Modern Aesthetic Demo */
+        .demo-cozy {
+            background: linear-gradient(135deg, #1a1b26, #24283b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cozy-wrapper {
+            text-align: center;
+        }
+
+        .cozy-window {
+            width: 180px;
+            height: 120px;
+            background: #16161e;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            position: relative;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 0 60px rgba(122, 162, 247, 0.05);
+        }
+
+        .cozy-dots {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .cozy-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .cozy-dot.red { background: #f7768e; }
+        .cozy-dot.yellow { background: #e0af68; }
+        .cozy-dot.green { background: #9ece6a; }
+
+        .cozy-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cozy-line {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(122, 162, 247, 0.2);
+        }
+
+        .cozy-line:nth-child(1) { width: 90%; }
+        .cozy-line:nth-child(2) { width: 70%; }
+        .cozy-line:nth-child(3) { width: 85%; }
+
+        .cozy-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(122, 162, 247, 0.3), transparent);
+            filter: blur(30px);
+            pointer-events: none;
+        }
+
+        /* 10. Theme Description Language Intro */
+        .demo-tdl {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tdl-center {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .tdl-brain {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: brain-pulse 2s infinite;
+        }
+
+        @keyframes brain-pulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.5)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8)); }
+        }
+
+        .tdl-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .tdl-words {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: rgba(168, 85, 247, 0.4);
+            animation: float-word 8s infinite linear;
+        }
+
+        .tdl-words:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+        .tdl-words:nth-child(2) { top: 70%; left: 15%; animation-delay: -2s; }
+        .tdl-words:nth-child(3) { top: 30%; right: 10%; animation-delay: -4s; }
+        .tdl-words:nth-child(4) { bottom: 25%; right: 20%; animation-delay: -6s; }
+
+        @keyframes float-word {
+            0%, 100% { opacity: 0; transform: translateY(20px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Full Width Card */
+        .phrase-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .phrase-card.full-width .card-visual {
+            height: 250px;
+        }
+
+        /* Interactive Tips Section */
+        .tips-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 60px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tips-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink), var(--accent-cyan));
+        }
+
+        .tips-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tip-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .tip-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .tip-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tip-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-purple);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .phrase-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .phrase-card.full-width .card-visual {
+                height: 200px;
+            }
+
+            header {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="floating-orbs">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <header>
+        <div class="logo-icon">🎨</div>
+        <h1>The Theme Whisperer</h1>
+        <p class="subtitle">Master the art of describing design themes to AI. Learn the phrases that transform your vision into reality!</p>
+    </header>
+
+    <main class="container">
+        
+        <!-- Introduction -->
+        <h2 class="section-title">🧠 Core Concept</h2>
+        
+        <div class="phrase-grid">
+            <div class="phrase-card full-width">
+                <div class="card-visual demo-tdl">
+                    <span class="tdl-words">"deep colors"</span>
+                    <span class="tdl-words">"smooth transitions"</span>
+                    <span class="tdl-words">"vibrant accents"</span>
+                    <span class="tdl-words">"rounded elements"</span>
+                    <div class="tdl-center">
+                        <div class="tdl-brain">🧠</div>
+                        <div class="tdl-text">Your Words → AI Magic → Beautiful Theme</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Theme Description Language"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> A way of communicating your design vision using precise terms and phrases so AI can understand and create exactly what you imagine. It's like explaining your dream room to an interior designer—your words are your tools!
+                    </p>
+                    <span class="phrase-tag tag-theme">Core Concept</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Descriptions -->
+        <h2 class="section-title">🎨 Color Descriptions</h2>
+        
+        <div class="phrase-grid">
+            <div class="phrase-card">
+                <div class="card-visual demo-charcoal">
+                    <div class="charcoal-box"></div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Rich, deep charcoal gray with soft purple highlights"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> A dark gray background (charcoal) that feels luxurious and premium, with gentle purple accents that add depth and visual interest. The "richness" comes from the color's saturation.
+                    </p>
+                    <span class="phrase-tag tag-color">Color</span>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <div class="card-visual demo-highlights">
+                    <div class="sun-rays"></div>
+                    <div class="lake-surface"></div>
+                    <div class="shimmer">
+                        <div class="shimmer-line"></div>
+                        <div class="shimmer-line"></div>
+                        <div class="shimmer-line"></div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Highlights"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> The lighter parts of a color that add depth and dimension. Think of sunlight gleaming off a lake surface—it gives life to the color and makes flat surfaces feel three-dimensional!
+                    </p>
+                    <span class="phrase-tag tag-color">Color</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layout Descriptions -->
+        <h2 class="section-title">📐 Layout Descriptions</h2>
+        
+        <div class="phrase-grid">
+            <div class="phrase-card">
+                <div class="card-visual demo-fixed-header">
+                    <div class="mini-browser">
+                        <div class="mini-header">
+                            <div class="header-dot"></div>
+                            <div class="header-dot"></div>
+                            <div class="header-dot"></div>
+                        </div>
+                        <div class="mini-content">
+                            <div class="scroll-content">
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                                <div class="content-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Fixed header that stays visible when scrolling"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> A navigation bar at the top that remains in place even as you scroll down the page. It provides a constant point of reference so users can always access navigation!
+                    </p>
+                    <span class="phrase-tag tag-layout">Layout</span>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <div class="card-visual demo-cozy">
+                    <div class="cozy-glow"></div>
+                    <div class="cozy-wrapper">
+                        <div class="cozy-window">
+                            <div class="cozy-dots">
+                                <div class="cozy-dot red"></div>
+                                <div class="cozy-dot yellow"></div>
+                                <div class="cozy-dot green"></div>
+                            </div>
+                            <div class="cozy-lines">
+                                <div class="cozy-line"></div>
+                                <div class="cozy-line"></div>
+                                <div class="cozy-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Cozy, modern aesthetic with deep colors that enhance focus"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> An interface that feels warm and comfortable (cozy), with contemporary design (modern), using dark, saturated colors that reduce eye strain and help you concentrate on your work!
+                    </p>
+                    <span class="phrase-tag tag-layout">Layout</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animation Descriptions -->
+        <h2 class="section-title">✨ Animation & Interactivity</h2>
+        
+        <div class="phrase-grid">
+            <div class="phrase-card">
+                <div class="card-visual demo-hover-scale">
+                    <button class="scale-button">Hover Me</button>
+                    <div class="scale-indicator">Scale: <span class="scale-value">105%</span></div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"When hovered over, the button should scale up by 5%"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> When your mouse moves over a button, it grows slightly larger (5% bigger). This gentle visual feedback tells users "yes, this is clickable!" without being overwhelming.
+                    </p>
+                    <span class="phrase-tag tag-animation">Animation</span>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <div class="card-visual demo-smooth">
+                    <div class="transition-box smooth-box">✓</div>
+                    <div class="transition-box bumpy-box">✗</div>
+                    <span class="box-label left">Smooth ✓</span>
+                    <span class="box-label right">Bumpy ✗</span>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Smooth transitions"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> Animations that flow naturally from one state to another, like silk through your fingers. A bumpy interface is like driving on a pothole-filled road—nobody wants that! Smooth = professional.
+                    </p>
+                    <span class="phrase-tag tag-animation">Animation</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme Examples -->
+        <h2 class="section-title">🖥️ Theme Style Examples</h2>
+        
+        <div class="phrase-grid">
+            <div class="phrase-card">
+                <div class="card-visual demo-spotify">
+                    <div class="spotify-card">
+                        <div class="spotify-cover">
+                            <span class="spotify-icon">🎵</span>
+                        </div>
+                        <div class="spotify-text">Daily Mix 1</div>
+                        <div class="spotify-subtext">Made for you</div>
+                    </div>
+                    <div class="spotify-play">▶</div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Deep black background with vibrant green accents and rounded elements"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> The Spotify aesthetic! Pure black (#121212) creates depth, while the signature bright green (#1DB954) pops as the accent color. Rounded corners on cards and buttons create a friendly, modern feel.
+                    </p>
+                    <span class="phrase-tag tag-theme">Theme Style</span>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <div class="card-visual demo-discord">
+                    <div class="discord-sidebar">
+                        <div class="discord-server">D</div>
+                        <div class="discord-server inactive">🎮</div>
+                        <div class="discord-server inactive">📚</div>
+                    </div>
+                    <div class="discord-main">
+                        <div class="discord-channel"># welcome</div>
+                        <div class="discord-channel active"># general</div>
+                        <div class="discord-channel"># help</div>
+                        <div class="discord-channel"># off-topic</div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"Dark gray palette with subtle accents and smooth transitions"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> The Discord style! Multiple shades of dark gray create depth without being pure black. Subtle accent colors (like blurple #5865F2) highlight interactive elements. Hover effects are gentle and fluid.
+                    </p>
+                    <span class="phrase-tag tag-theme">Theme Style</span>
+                </div>
+            </div>
+
+            <div class="phrase-card">
+                <div class="card-visual demo-vscode">
+                    <div class="code-line">
+                        <span class="line-num">1</span>
+                        <span class="keyword">const</span> <span class="variable">theme</span> <span class="operator">=</span> <span class="bracket">{</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-num">2</span>
+                        &nbsp;&nbsp;<span class="variable">name</span><span class="operator">:</span> <span class="string">"Dark+"</span><span class="operator">,</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-num">3</span>
+                        &nbsp;&nbsp;<span class="variable">mood</span><span class="operator">:</span> <span class="string">"cozy"</span><span class="operator">,</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-num">4</span>
+                        &nbsp;&nbsp;<span class="comment">// Focus-enhancing colors</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-num">5</span>
+                        &nbsp;&nbsp;<span class="function">enhance</span><span class="bracket">()</span> <span class="bracket">{</span> <span class="keyword">return</span> <span class="string">"✨"</span> <span class="bracket">}</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-num">6</span>
+                        <span class="bracket">}</span><span class="operator">;</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="phrase-text">"VS Code Dark+ aesthetic"</div>
+                    <p class="phrase-meaning">
+                        <strong>What it means:</strong> Microsoft's iconic dark theme for coding. Features a #1E1E1E background, syntax highlighting with blues (#569CD6), yellows (#DCDCAA), and oranges (#CE9178). It's designed for long coding sessions without eye strain.
+                    </p>
+                    <span class="phrase-tag tag-theme">Theme Style</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pro Tips -->
+        <div class="tips-section">
+            <h3 class="tips-title">💡 Pro Tips for Theme Whispering</h3>
+            <div class="tips-grid">
+                <div class="tip-item">
+                    <div class="tip-icon">🎯</div>
+                    <p class="tip-text"><strong>Be Specific:</strong> "Navy blue" is better than just "blue". "80 pixels" beats "medium-sized".</p>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">🖼️</div>
+                    <p class="tip-text"><strong>Paint with Words:</strong> Use analogies! "Like sunlight on water" or "warm blanket feeling".</p>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">📊</div>
+                    <p class="tip-text"><strong>Structure Matters:</strong> Start with mood → colors → layout → components → animations.</p>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon">🔄</div>
+                    <p class="tip-text"><strong>Iterate:</strong> If results aren't perfect, refine your descriptions. One word can change everything!</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Built with 💜 for aspiring Theme Whisperers | Inspired by Emily & Michael's Podcast</p>
+    </footer>
+
+    <script>
+        // Add intersection observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.phrase-card, .tip-item').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Interactive hover for Discord demo
+        const discordChannels = document.querySelectorAll('.discord-channel');
+        discordChannels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                discordChannels.forEach(c => c.classList.remove('active'));
+                channel.classList.add('active');
+            });
+        });
+
+        // Interactive hover for Discord servers
+        const discordServers = document.querySelectorAll('.discord-server');
+        discordServers.forEach(server => {
+            server.addEventListener('click', () => {
+                discordServers.forEach(s => s.classList.remove('active'));
+                discordServers.forEach(s => s.classList.add('inactive'));
+                server.classList.remove('inactive');
+            });
+        });
+    </script>
+</body>
+</html>
+
+
