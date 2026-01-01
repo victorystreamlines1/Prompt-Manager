@@ -4870,33 +4870,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: none;
         }
 
-        /* Dictionary Card - Sleek Row Design */
+        /* Card Styles - Original Layout with Labels */
         .dict-card {
-            background: rgba(35, 35, 65, 0.6);
-            border: 1px solid rgba(99, 102, 241, 0.08);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.2s;
+            background: rgba(30, 30, 60, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+            padding: 0.5rem 0.6rem;
+            transition: all 0.2s ease;
         }
 
         .dict-card:hover {
             border-color: rgba(139, 92, 246, 0.3);
-            background: rgba(45, 45, 75, 0.7);
-            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
+            background: rgba(40, 40, 80, 0.5);
         }
 
-        /* Compact Card Header */
         .dict-card-header {
-            padding: 0.45rem 0.65rem;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 0.4rem;
-            border-bottom: none;
-            background: transparent;
+            margin-bottom: 0.3rem;
+        }
+
+        .dict-card-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .dict-label {
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: #8b5cf6;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
         }
 
         .dict-card-title {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-primary);
             margin: 0;
@@ -4904,70 +4918,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            letter-spacing: 0.2px;
         }
 
         .dict-card-group-badge {
-            font-size: 0.55rem;
-            padding: 0.12rem 0.4rem;
-            background: rgba(139, 92, 246, 0.2);
-            color: #c4b5fd;
-            border-radius: 10px;
-            white-space: nowrap;
-            font-weight: 500;
-            letter-spacing: 0.2px;
-        }
-
-        /* Compact Phrase Section */
-        .dict-card-phrase {
-            padding: 0 0.65rem 0.45rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.2rem;
+            font-size: 0.5rem;
+            padding: 0.1rem 0.3rem;
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+            border-radius: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .dict-card-group-badge .dict-label {
+            color: #c4b5fd;
+            font-size: 0.45rem;
+        }
+
+        .dict-card-phrase {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+
+        .dict-card-phrase .dict-label {
+            padding-top: 0.1rem;
         }
 
         .dict-card-phrase p {
             flex: 1;
-            font-size: 0.68rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
-            line-height: 1.4;
             margin: 0;
-            max-height: 32px;
+            line-height: 1.4;
             overflow: hidden;
-            font-family: 'JetBrains Mono', monospace;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .dict-btn-copy {
-            flex-shrink: 0;
-            padding: 0.25rem 0.5rem;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 5px;
-            color: #a78bfa;
-            font-size: 0.6rem;
+            background: transparent;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            color: var(--text-muted);
+            font-size: 0.55rem;
+            padding: 0.2rem 0.35rem;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-weight: 500;
+            flex-shrink: 0;
         }
 
         .dict-btn-copy:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.4);
-            color: #34d399;
-            transform: scale(1.02);
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.4);
+            background: rgba(139, 92, 246, 0.1);
         }
 
         .dict-btn-copy.copied {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: #34d399;
             color: #34d399;
-        }
-
-        .dict-btn-copy i {
-            font-size: 0.55rem;
+            border-color: rgba(16, 185, 129, 0.4);
         }
 
         /* Preview - Collapsible Mini Thumbnail */
@@ -6440,7 +6454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             dictState.items.forEach(item => {
                 const hasPreview = item.has_html || item.has_css || item.has_full_code;
                 const groupBadge = item.group_title 
-                    ? `<span class="dict-card-group-badge">${dictEscapeHtml(item.group_title)}</span>` 
+                    ? `<span class="dict-card-group-badge"><span class="dict-label">Group:</span> ${dictEscapeHtml(item.group_title)}</span>` 
                     : '';
                 
                 // Truncate phrase for display
@@ -6450,10 +6464,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 html += `
                     <div class="dict-card" data-id="${item.id}">
                         <div class="dict-card-header">
-                            <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
+                            <div class="dict-card-title-wrap">
+                                <span class="dict-label">Title:</span>
+                                <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
+                            </div>
                             ${groupBadge}
                         </div>
                         <div class="dict-card-phrase">
+                            <span class="dict-label">Phrase:</span>
                             <p title="${dictEscapeHtml(phraseText)}">${dictEscapeHtml(truncatedPhrase)}</p>
                             <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
                                 <i class="fas fa-copy"></i>
