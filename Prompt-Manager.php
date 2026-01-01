@@ -5381,6 +5381,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Work Distribution Slider -->
+            <div class="distribution-section">
+                <div class="distribution-header">
+                    <div class="distribution-title">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Steps</span>
+                    </div>
+                    <div class="distribution-value" id="distributionValue">
+                        <span class="value-number" id="valueNumber">1</span>
+                        <span class="value-label">/ 30</span>
+                    </div>
+                    <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
+                        <input type="checkbox" id="distributionEnabled">
+                        <span class="check-box"><i class="fas fa-check"></i></span>
+                    </label>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-track">
+                        <div class="slider-fill" id="sliderFill"></div>
+                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Saved Prompts -->
+            <div class="saved-prompts-section">
+                <div class="saved-header">
+                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
+                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Select/Deselect All for Saved Prompts -->
+                <div class="saved-actions-bar">
+                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
+                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Select All</span>
+                    </label>
+                    <span class="saved-counter" id="savedCounter">0/0</span>
+                </div>
+                
+                <div class="saved-list" id="savedList">
+                    <!-- Saved prompts will be loaded here -->
+                </div>
+                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
+                    <i class="fas fa-grip-lines"></i>
+                </div>
+            </div>
+            
             <!-- Editor -->
             <div class="editor-container">
                 <div class="editor-header">
@@ -5576,62 +5632,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-text-width"></i>
                         <span id="wordCount">0</span> words
                     </div>
-                </div>
-            </div>
-            
-            <!-- Work Distribution Slider -->
-            <div class="distribution-section">
-                <div class="distribution-header">
-                    <div class="distribution-title">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Steps</span>
-                    </div>
-                    <div class="distribution-value" id="distributionValue">
-                        <span class="value-number" id="valueNumber">1</span>
-                        <span class="value-label">/ 30</span>
-                    </div>
-                    <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
-                        <input type="checkbox" id="distributionEnabled">
-                        <span class="check-box"><i class="fas fa-check"></i></span>
-                    </label>
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-track">
-                        <div class="slider-fill" id="sliderFill"></div>
-                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Saved Prompts -->
-            <div class="saved-prompts-section">
-                <div class="saved-header">
-                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
-                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Select/Deselect All for Saved Prompts -->
-                <div class="saved-actions-bar">
-                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
-                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
-                        <span class="checkbox-custom"></span>
-                        <span class="checkbox-label">Select All</span>
-                    </label>
-                    <span class="saved-counter" id="savedCounter">0/0</span>
-                </div>
-                
-                <div class="saved-list" id="savedList">
-                    <!-- Saved prompts will be loaded here -->
-                </div>
-                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
-                    <i class="fas fa-grip-lines"></i>
                 </div>
             </div>
             
