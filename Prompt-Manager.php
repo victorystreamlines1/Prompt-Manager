@@ -4984,6 +4984,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(16, 185, 129, 0.4);
         }
 
+        /* Dictionary Field Checkboxes */
+        .dict-field-checks {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .dict-field-check {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            cursor: pointer;
+            padding: 0.15rem 0.3rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .dict-field-check:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-field-check.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .dict-field-check input[type="checkbox"] {
+            display: none;
+        }
+
+        .dict-field-check .check-icon {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(139, 92, 246, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background: rgba(30, 30, 60, 0.5);
+        }
+
+        .dict-field-check .check-icon i {
+            font-size: 0.5rem;
+            color: transparent;
+            transition: all 0.2s;
+        }
+
+        .dict-field-check.active .check-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-color: #10b981;
+        }
+
+        .dict-field-check.active .check-icon i {
+            color: #fff;
+        }
+
+        .dict-field-check .check-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            transition: color 0.2s;
+        }
+
+        .dict-field-check:hover .check-label {
+            color: #a78bfa;
+        }
+
+        .dict-field-check.active .check-label {
+            color: #34d399;
+        }
+
         /* Preview - Collapsible Mini Thumbnail */
         .dict-card-preview {
             padding: 0.35rem 0.65rem 0.5rem;
@@ -6461,6 +6540,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const phraseText = item.phrase || '';
                 const truncatedPhrase = phraseText.length > 80 ? phraseText.substring(0, 80) + '...' : phraseText;
                 
+                // Build checkboxes - get HTML code if available
+                const htmlCode = item.html_code || item.full_code || '';
+                const hasHtml = htmlCode.length > 0;
+                
+                const checkboxes = `
+                    <div class="dict-field-checks">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleField(event, '${item.id}', 'title', '${dictEscapeJs(item.title)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Title</span>
+                        </label>
+                        ${item.group_title ? `
+                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleField(event, '${item.id}', 'group', '${dictEscapeJs(item.group_title)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Group</span>
+                        </label>
+                        ` : ''}
+                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleField(event, '${item.id}', 'phrase', '${dictEscapeJs(phraseText)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">Phrase</span>
+                        </label>
+                        ${hasHtml ? `
+                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleField(event, '${item.id}', 'html', '${dictEscapeJs(htmlCode)}')">
+                            <input type="checkbox">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <span class="check-label">HTML</span>
+                        </label>
+                        ` : ''}
+                    </div>
+                `;
+                
                 html += `
                     <div class="dict-card" data-id="${item.id}">
                         <div class="dict-card-header">
@@ -6468,6 +6580,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="dict-label">Title:</span>
                                 <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
                             </div>
+                            ${checkboxes}
                             ${groupBadge}
                         </div>
                         <div class="dict-card-phrase">
@@ -6544,6 +6657,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (err) {
                 console.error('Copy failed:', err);
             }
+        }
+        
+        // Track active dictionary field selections
+        const dictActiveFields = new Map(); // key: "itemId-field", value: content
+        
+        // Toggle dictionary field - append/remove from editor
+        function dictToggleField(event, itemId, field, content) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const key = `${itemId}-${field}`;
+            const labelEl = event.currentTarget;
+            const checkbox = labelEl.querySelector('input[type="checkbox"]');
+            const editor = document.getElementById('promptEditor');
+            
+            if (!editor) {
+                console.error('Prompt editor not found');
+                return;
+            }
+            
+            const isActive = dictActiveFields.has(key);
+            
+            if (isActive) {
+                // Remove - uncheck
+                dictActiveFields.delete(key);
+                labelEl.classList.remove('active');
+                if (checkbox) checkbox.checked = false;
+                
+                // Rebuild editor content without this field
+                dictRebuildEditorFromFields();
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} removed`, 'info');
+            } else {
+                // Add - check
+                dictActiveFields.set(key, content);
+                labelEl.classList.add('active');
+                if (checkbox) checkbox.checked = true;
+                
+                // Append to editor
+                const currentValue = editor.value.trim();
+                if (currentValue) {
+                    editor.value = currentValue + '\n\n' + content;
+                } else {
+                    editor.value = content;
+                }
+                
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} added`, 'success');
+            }
+            
+            updateCounts();
+            if (typeof recordHistoryState === 'function') {
+                recordHistoryState(true);
+            }
+        }
+        
+        // Rebuild editor from all active fields (templates, saved, dictionary)
+        function dictRebuildEditorFromFields() {
+            const editor = document.getElementById('promptEditor');
+            const contents = [];
+            
+            // First add active template prompts
+            promptTemplates.forEach(prompt => {
+                if (activePrompts.has(prompt.id)) {
+                    contents.push(prompt.content);
+                }
+            });
+            
+            // Then add active saved prompts
+            savedPromptsList.forEach(prompt => {
+                if (activeSavedPrompts.has(prompt.id)) {
+                    contents.push(prompt.content);
+                }
+            });
+            
+            // Then add active dictionary fields
+            dictActiveFields.forEach((content, key) => {
+                contents.push(content);
+            });
+            
+            editor.value = contents.join('\n\n');
+            updateCounts();
         }
         
         // Update pagination UI
