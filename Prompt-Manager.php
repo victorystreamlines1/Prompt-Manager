@@ -5190,16 +5190,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dict-card-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.4rem;
-            margin-bottom: 0.3rem;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+            width: 100%;
         }
 
         .dict-card-title-wrap {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            flex: 1;
+            flex: 0 1 auto;
+            min-width: 120px;
+            max-width: 280px;
             overflow: hidden;
         }
 
@@ -5213,11 +5215,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-card-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-primary);
             margin: 0;
-            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -5227,13 +5228,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.65rem;
-            padding: 0.15rem 0.4rem;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.35rem;
             background: rgba(139, 92, 246, 0.15);
             color: #a78bfa;
             border-radius: 3px;
             white-space: nowrap;
             flex-shrink: 0;
+            margin-left: auto;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dict-card-group-badge .dict-label {
@@ -5325,19 +5330,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dict-field-checks {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-left: auto;
-            margin-right: 0.5rem;
+            gap: 0.4rem;
             flex-shrink: 0;
         }
 
         .dict-field-check {
             display: flex;
             align-items: center;
-            gap: 0.2rem;
+            gap: 0.15rem;
             cursor: pointer;
-            padding: 0.15rem 0.3rem;
-            border-radius: 4px;
+            padding: 0.1rem 0.25rem;
+            border-radius: 3px;
             transition: all 0.2s;
             background: transparent;
             border: 1px solid transparent;
@@ -5358,10 +5361,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-icon {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 1.5px solid rgba(139, 92, 246, 0.4);
-            border-radius: 3px;
+            border-radius: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -5370,7 +5373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-icon i {
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             color: transparent;
             transition: all 0.2s;
         }
@@ -5385,7 +5388,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--text-muted);
             font-weight: 500;
             letter-spacing: 0.2px;
@@ -5400,68 +5403,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #34d399;
         }
 
-        /* Preview - Collapsible Mini Thumbnail */
-        .dict-card-preview {
-            padding: 0.35rem 0.65rem 0.5rem;
-            background: transparent;
-            border-top: 1px solid rgba(99, 102, 241, 0.06);
-        }
-
-        .dict-preview-toggle {
-            display: flex;
+        /* Preview Button - Opens in new tab */
+        .dict-preview-btn {
+            display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.25rem 0.5rem;
-            background: rgba(30, 30, 60, 0.5);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            border-radius: 5px;
-            color: var(--text-muted);
+            gap: 0.35rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15));
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
             font-size: 0.6rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: fit-content;
-            font-family: inherit;
-        }
-
-        .dict-preview-toggle:hover {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: rgba(139, 92, 246, 0.3);
-            color: #a78bfa;
-        }
-
-        .dict-preview-toggle.expanded {
-            background: rgba(139, 92, 246, 0.15);
-            color: #a78bfa;
-        }
-
-        .dict-preview-toggle i {
-            font-size: 0.55rem;
-            transition: transform 0.2s;
-        }
-
-        .dict-preview-toggle.expanded i {
-            transform: rotate(180deg);
-        }
-
-        .dict-preview-content {
-            margin-top: 0.4rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
+            font-weight: 600;
+            padding: 0.3rem 0.6rem;
             border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 0.4rem;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .dict-preview-content.expanded {
-            max-height: 100px;
-        }
-
-        .dict-card-preview iframe {
+        .dict-preview-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
-            height: 80px;
-            border: none;
-            border-radius: 5px;
-            background: #fff;
-            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .dict-preview-btn:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.25));
+            border-color: rgba(139, 92, 246, 0.6);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .dict-preview-btn:hover::before {
+            left: 100%;
+        }
+
+        .dict-preview-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
+        }
+
+        .dict-preview-btn i {
+            font-size: 0.65rem;
+            filter: drop-shadow(0 0 2px rgba(139, 92, 246, 0.5));
         }
 
         /* Empty State - Compact */
@@ -6872,6 +6866,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             let html = '';
             
+            // Clear content map for fresh render
+            dictFieldContentMap.clear();
+            
             dictState.items.forEach(item => {
                 const hasPreview = item.has_html || item.has_css || item.has_full_code;
                 const groupBadge = item.group_title 
@@ -6886,6 +6883,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const htmlCode = item.html_code || item.full_code || '';
                 const hasHtml = htmlCode.length > 0;
                 
+<<<<<<< HEAD
                 if (hasHtml) {
                     dictCodeCache.set(`html-${item.id}`, htmlCode);
                 }
@@ -6899,24 +6897,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const checkboxes = `
                     <div class="dict-field-checks">
                         <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldSafe(event, ${item.id}, 'title')">
+=======
+                // Store content in map to avoid massive inline attributes
+                dictFieldContentMap.set(`${item.id}-title`, item.title);
+                dictFieldContentMap.set(`${item.id}-phrase`, phraseText);
+                if (item.group_title) {
+                    dictFieldContentMap.set(`${item.id}-group`, item.group_title);
+                }
+                if (hasHtml) {
+                    dictFieldContentMap.set(`${item.id}-html`, htmlCode);
+                }
+                
+                const checkboxes = `
+                    <div class="dict-field-checks">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldById(event, '${item.id}', 'title')">
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Title</span>
                         </label>
                         ${item.group_title ? `
+<<<<<<< HEAD
                         <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldSafe(event, ${item.id}, 'group')">
+=======
+                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldById(event, '${item.id}', 'group')">
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Group</span>
                         </label>
                         ` : ''}
+<<<<<<< HEAD
                         <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldSafe(event, ${item.id}, 'phrase')">
+=======
+                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldById(event, '${item.id}', 'phrase')">
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Phrase</span>
                         </label>
                         ${hasHtml ? `
+<<<<<<< HEAD
                         <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldSafe(event, ${item.id}, 'html')">
+=======
+                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldById(event, '${item.id}', 'html')">
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">HTML</span>
@@ -6949,7 +6974,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dict-btn-copy" onclick="dictCopyPhraseById(this, ${item.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
+<<<<<<< HEAD
                             ${viewCodeBtn}
+=======
+                            ${hasPreview ? `<button type="button" class="dict-preview-btn" onclick="openDictPreviewInTab(${item.id})" title="Preview in new tab"><i class="fas fa-eye"></i><span>Preview</span></button>` : ''}
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                         </div>
                     </div>
                 `;
@@ -6968,6 +6997,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             listEl.innerHTML = html;
         }
         
+<<<<<<< HEAD
         // Safe toggle field - gets content from cache instead of onclick attribute
         function dictToggleFieldSafe(event, itemId, field) {
             event.preventDefault();
@@ -7129,9 +7159,47 @@ ${itemData.html_code || ''}
             if (isExpanded) {
                 content.classList.remove('expanded');
                 btn.classList.remove('expanded');
+=======
+        // Open preview in new browser tab
+        function openDictPreviewInTab(itemId) {
+            const item = dictState.items.find(i => i.id === itemId);
+            if (!item) return;
+            
+            let htmlContent = '';
+            
+            if (item.full_code) {
+                htmlContent = item.full_code;
+            } else if (item.html_code || item.css_code) {
+                htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${item.title || 'Preview'}</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; font-size: 14px; }
+${item.css_code || ''}
+</style>
+</head>
+<body>
+${item.html_code || ''}
+</body>
+</html>`;
             } else {
-                content.classList.add('expanded');
-                btn.classList.add('expanded');
+                showToast('No preview content available', 'info');
+                return;
+            }
+            
+            // Open in new tab
+            const newTab = window.open('', '_blank');
+            if (newTab) {
+                newTab.document.open();
+                newTab.document.write(htmlContent);
+                newTab.document.close();
+>>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
+            } else {
+                showToast('Please allow popups to view preview', 'warning');
             }
         }
         
@@ -7153,6 +7221,25 @@ ${itemData.html_code || ''}
         
         // Track active dictionary field selections
         const dictActiveFields = new Map(); // key: "itemId-field", value: content
+        
+        // Store field content to avoid massive inline attributes
+        const dictFieldContentMap = new Map(); // key: "itemId-field", value: content
+        
+        // Toggle dictionary field by ID - retrieve from map
+        function dictToggleFieldById(event, itemId, field) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const key = `${itemId}-${field}`;
+            const content = dictFieldContentMap.get(key);
+            
+            if (!content) {
+                console.error('Content not found for', key);
+                return;
+            }
+            
+            dictToggleField(event, itemId, field, content);
+        }
         
         // Toggle dictionary field - append/remove from editor
         function dictToggleField(event, itemId, field, content) {
@@ -10185,14 +10272,14 @@ ${itemData.html_code || ''}
                         content = await readFileAsText(file);
                         console.log('✅ File read successfully, content length:', content.length);
                     } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${file.name} | Size: ${formatFileSize(file.size)} | Type: ${file.type || 'unknown'}]`;
+                        // Just create a reference - simple format
+                        content = `[📎 ${file.name}]`;
                         isReference = true;
                         console.log('✅ File reference created:', file.name);
                     }
                     
-                    // Create unique marker for this file
-                    const marker = `<!-- FILE:${file.name}:${Date.now()} -->`;
+                    // Create simple marker without timestamp
+                    const marker = `<!-- FILE:${file.name} -->`;
                     
                     // Append to editor with spacing
                     let textToAdd = '';
@@ -10395,13 +10482,15 @@ ${itemData.html_code || ''}
                         return;
                     }
                 } else {
-                    // Just create a reference
-                    content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                    // Just create a reference - extract direct parent folder from path
+                    const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                    const folder = folderMatch ? folderMatch[1] : 'root';
+                    content = `[📎 ${filename} | Folder: ${folder}]`;
                     isReference = true;
                 }
                 
-                // Create unique marker
-                const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
+                // Create simple marker without timestamp
+                const marker = `<!-- FILE:${filename} -->`;
                 
                 // Append with spacing
                 let textToAdd = '';
@@ -10469,13 +10558,15 @@ ${itemData.html_code || ''}
                             return;
                         }
                     } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                        // Just create a reference - extract direct parent folder from path
+                        const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                        const folder = folderMatch ? folderMatch[1] : 'root';
+                        content = `[📎 ${filename} | Folder: ${folder}]`;
                         isReference = true;
                     }
                     
-                    // Create unique marker
-                    const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
+                    // Create simple marker without timestamp
+                    const marker = `<!-- FILE:${filename} -->`;
                     
                     // Append with spacing
                     let textToAdd = '';
@@ -10550,12 +10641,15 @@ ${itemData.html_code || ''}
                                 continue;
                             }
                         } else {
-                            content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                            // Just create a reference - extract direct parent folder from path
+                            const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                            const folder = folderMatch ? folderMatch[1] : 'root';
+                            content = `[📎 ${filename} | Folder: ${folder}]`;
                             isReference = true;
                         }
                         
-                        const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
-                        const endMarker = `<!-- /END  FILE:${filename}:${Date.now()} -->`;
+                        const marker = `<!-- FILE:${filename} -->`;
+                        const endMarker = `<!-- /END  FILE:${filename} -->`;
                         const editor = document.getElementById('promptEditor');
                         
                         // Add to editor
@@ -12049,203 +12143,21 @@ ${itemData.html_code || ''}
         document.addEventListener('DOMContentLoaded', initEditorSearch);
         
         // ============================================
-        // ADMIN POPUP IFRAME
+        // ADMIN - Open in new tab
         // ============================================
         function openDictAdminPopup() {
-            const modal = document.getElementById('dictAdminModal');
-            const iframe = document.getElementById('dictAdminIframe');
-            
-            if (modal) {
-                modal.classList.add('active');
-                iframe.src = 'https://frouty.com/pages/admin.php';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        
-        function closeDictAdminPopup() {
-            const modal = document.getElementById('dictAdminModal');
-            const iframe = document.getElementById('dictAdminIframe');
-            
-            if (modal) {
-                modal.classList.remove('active');
-                iframe.src = 'about:blank';
-                document.body.style.overflow = '';
-            }
+            window.open('https://frouty.com/pages/admin.php', '_blank');
         }
 
         // ============================================
-        // QUIZ POPUP IFRAME
+        // QUIZ - Open in new tab
         // ============================================
         function openDictQuizPopup() {
-            const modal = document.getElementById('dictQuizModal');
-            const iframe = document.getElementById('dictQuizIframe');
-            
-            if (modal) {
-                modal.classList.add('active');
-                iframe.src = 'https://frouty.com/pages/quiz.php';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        
-        function closeDictQuizPopup() {
-            const modal = document.getElementById('dictQuizModal');
-            const iframe = document.getElementById('dictQuizIframe');
-            
-            if (modal) {
-                modal.classList.remove('active');
-                iframe.src = 'about:blank';
-                document.body.style.overflow = '';
-            }
+            window.open('https://frouty.com/pages/quiz.php', '_blank');
         }
 
-        // Make Quiz popup draggable
-        (function() {
-            let isDragging = false;
-            let isResizing = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-            let xOffset = 0;
-            let yOffset = 0;
-            
-            let resizeStartX;
-            let resizeStartY;
-            let resizeStartWidth;
-            let resizeStartHeight;
-
-            document.addEventListener('DOMContentLoaded', function() {
-                const popup = document.getElementById('dictQuizPopup');
-                const header = document.getElementById('dictQuizPopupHeader');
-                const resizeHandle = document.getElementById('dictQuizResizeHandle');
-                
-                if (!popup || !header || !resizeHandle) return;
-
-                // Dragging functionality
-                header.addEventListener('mousedown', dragStart);
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('mouseup', dragEnd);
-
-                // Resizing functionality
-                resizeHandle.addEventListener('mousedown', resizeStart);
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', resizeEnd);
-
-                function dragStart(e) {
-                    if (e.target.closest('.dict-quiz-close-btn')) return;
-                    
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
-                    
-                    if (e.target === header || header.contains(e.target)) {
-                        isDragging = true;
-                        popup.style.transition = 'none';
-                    }
-                }
-
-                function drag(e) {
-                    if (isDragging) {
-                        e.preventDefault();
-                        
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                        
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        
-                        popup.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                    }
-                }
-
-                function dragEnd() {
-                    if (isDragging) {
-                        initialX = currentX;
-                        initialY = currentY;
-                        isDragging = false;
-                        popup.style.transition = '';
-                    }
-                }
-
-                function resizeStart(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    isResizing = true;
-                    resizeStartX = e.clientX;
-                    resizeStartY = e.clientY;
-                    resizeStartWidth = popup.offsetWidth;
-                    resizeStartHeight = popup.offsetHeight;
-                    popup.style.transition = 'none';
-                }
-
-                function resize(e) {
-                    if (isResizing) {
-                        e.preventDefault();
-                        const width = resizeStartWidth + (e.clientX - resizeStartX);
-                        const height = resizeStartHeight + (e.clientY - resizeStartY);
-                        
-                        if (width >= 400) {
-                            popup.style.width = width + 'px';
-                        }
-                        if (height >= 300) {
-                            popup.style.height = height + 'px';
-                        }
-                    }
-                }
-
-                function resizeEnd() {
-                    if (isResizing) {
-                        isResizing = false;
-                        popup.style.transition = '';
-                    }
-                }
-
-                // Reset position when modal is closed
-                document.getElementById('dictQuizModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        popup.style.transform = 'translate(0, 0)';
-                        xOffset = 0;
-                        yOffset = 0;
-                    }
-                });
-            });
-        })();
-        
-        // Close on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeDictAdminPopup();
-                closeDictQuizPopup();
-            }
-        });
     </script>
     
-    <!-- Admin Popup Modal -->
-    <div class="dict-admin-modal" id="dictAdminModal" onclick="if(event.target === this) closeDictAdminPopup()">
-        <div class="dict-admin-popup">
-            <div class="dict-admin-popup-header">
-                <h4><i class="fas fa-cog"></i> Dictionary Admin Panel</h4>
-                <button type="button" class="dict-admin-close-btn" onclick="closeDictAdminPopup()" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe class="dict-admin-iframe" id="dictAdminIframe" src="about:blank"></iframe>
-        </div>
-    </div>
-
-    <!-- Quiz Popup Modal -->
-    <div class="dict-quiz-modal" id="dictQuizModal" onclick="if(event.target === this) closeDictQuizPopup()">
-        <div class="dict-quiz-popup" id="dictQuizPopup">
-            <div class="dict-quiz-popup-header" id="dictQuizPopupHeader">
-                <h4><i class="fas fa-question-circle"></i> Quiz</h4>
-                <button type="button" class="dict-quiz-close-btn" onclick="closeDictQuizPopup()" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe class="dict-quiz-iframe" id="dictQuizIframe" src="about:blank"></iframe>
-            <div class="dict-quiz-resize-handle" id="dictQuizResizeHandle"></div>
-        </div>
-    </div>
-
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
