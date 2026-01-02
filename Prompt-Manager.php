@@ -6907,7 +6907,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            ${hasPreview ? `<button type="button" class="dict-preview-btn" onclick="openDictPreviewInTab(${item.id})" title="Preview in new tab"><i class="fas fa-external-link-alt"></i></button>` : ''}
+                            ${hasPreview ? `<button type="button" class="dict-preview-btn" onclick="openDictPreviewInTab(${item.id})" title="Preview in new tab"><i class="fas fa-eye"></i><span>Preview</span></button>` : ''}
                         </div>
                     </div>
                 `;
