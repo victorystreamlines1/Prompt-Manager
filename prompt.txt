@@ -1,10 +1,9 @@
 <!-- FILE:Prompt-Manager.php -->
-[📎 Prompt-Manager.php | Folder: uploads]
+[📎 Prompt-Manager.php | Folder: root]
 <!-- /END  FILE:Prompt-Manager.php -->
 
 <!-- FILE:admin.php -->
-[📎 admin.php | Folder: uploads]
+[📎 admin.php | Folder: root]
 <!-- /END  FILE:admin.php -->
 
-Look at the display. It's not putting the parent folder correctly. The parent folder is not right. Whereas the file is correct. 
-So please detect the parent folder and put it from the file path, original path. I want the direct parent for this file to be displayed on the display of the file reference. 
+Yes, it's working—look at the display. Now I want to add one more line that shows the complete path from the child folder through each parent to the root folder, with a notation indicating when the root is reached. Essentially, I need the full file path displayed all the way to the final destination folder.
