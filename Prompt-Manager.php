@@ -10018,14 +10018,14 @@ ${item.html_code || ''}
                         content = await readFileAsText(file);
                         console.log('✅ File read successfully, content length:', content.length);
                     } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${file.name} | Size: ${formatFileSize(file.size)} | Type: ${file.type || 'unknown'}]`;
+                        // Just create a reference - simple format
+                        content = `[📎 ${file.name}]`;
                         isReference = true;
                         console.log('✅ File reference created:', file.name);
                     }
                     
-                    // Create unique marker for this file
-                    const marker = `<!-- FILE:${file.name}:${Date.now()} -->`;
+                    // Create simple marker without timestamp
+                    const marker = `<!-- FILE:${file.name} -->`;
                     
                     // Append to editor with spacing
                     let textToAdd = '';
@@ -10228,13 +10228,15 @@ ${item.html_code || ''}
                         return;
                     }
                 } else {
-                    // Just create a reference
-                    content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                    // Just create a reference - extract direct parent folder from path
+                    const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                    const folder = folderMatch ? folderMatch[1] : 'root';
+                    content = `[📎 ${filename} | Folder: ${folder}]`;
                     isReference = true;
                 }
                 
-                // Create unique marker
-                const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
+                // Create simple marker without timestamp
+                const marker = `<!-- FILE:${filename} -->`;
                 
                 // Append with spacing
                 let textToAdd = '';
@@ -10302,13 +10304,15 @@ ${item.html_code || ''}
                             return;
                         }
                     } else {
-                        // Just create a reference
-                        content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                        // Just create a reference - extract direct parent folder from path
+                        const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                        const folder = folderMatch ? folderMatch[1] : 'root';
+                        content = `[📎 ${filename} | Folder: ${folder}]`;
                         isReference = true;
                     }
                     
-                    // Create unique marker
-                    const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
+                    // Create simple marker without timestamp
+                    const marker = `<!-- FILE:${filename} -->`;
                     
                     // Append with spacing
                     let textToAdd = '';
@@ -10383,12 +10387,15 @@ ${item.html_code || ''}
                                 continue;
                             }
                         } else {
-                            content = `[📎 File Reference: ${filename} | Path: ${filepath}]`;
+                            // Just create a reference - extract direct parent folder from path
+                            const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                            const folder = folderMatch ? folderMatch[1] : 'root';
+                            content = `[📎 ${filename} | Folder: ${folder}]`;
                             isReference = true;
                         }
                         
-                        const marker = `<!-- FILE:${filename}:${Date.now()} -->`;
-                        const endMarker = `<!-- /END  FILE:${filename}:${Date.now()} -->`;
+                        const marker = `<!-- FILE:${filename} -->`;
+                        const endMarker = `<!-- /END  FILE:${filename} -->`;
                         const editor = document.getElementById('promptEditor');
                         
                         // Add to editor
