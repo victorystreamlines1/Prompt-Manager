@@ -5189,10 +5189,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-card-header {
             display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .dict-card-header-row {
+            display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.4rem;
-            margin-bottom: 0.3rem;
+            width: 100%;
         }
 
         .dict-card-title-wrap {
@@ -5200,6 +5207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 0.3rem;
             flex: 1;
+            min-width: 0;
             overflow: hidden;
         }
 
@@ -5234,6 +5242,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 3px;
             white-space: nowrap;
             flex-shrink: 0;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dict-card-group-badge .dict-label {
@@ -5292,9 +5303,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-left: auto;
-            margin-right: 0.5rem;
-            flex-shrink: 0;
+            flex-wrap: wrap;
+            width: 100%;
         }
 
         .dict-field-check {
@@ -5366,68 +5376,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #34d399;
         }
 
-        /* Preview - Collapsible Mini Thumbnail */
-        .dict-card-preview {
-            padding: 0.35rem 0.65rem 0.5rem;
+        /* Preview Button - Opens in new tab */
+        .dict-preview-btn {
             background: transparent;
-            border-top: 1px solid rgba(99, 102, 241, 0.06);
-        }
-
-        .dict-preview-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.25rem 0.5rem;
-            background: rgba(30, 30, 60, 0.5);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            border-radius: 5px;
+            border: 1px solid rgba(99, 102, 241, 0.15);
             color: var(--text-muted);
-            font-size: 0.6rem;
+            font-size: 0.55rem;
+            padding: 0.2rem 0.35rem;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s;
-            width: fit-content;
-            font-family: inherit;
+            margin-left: 0.3rem;
+            flex-shrink: 0;
         }
 
-        .dict-preview-toggle:hover {
+        .dict-preview-btn:hover {
             background: rgba(139, 92, 246, 0.1);
             border-color: rgba(139, 92, 246, 0.3);
             color: #a78bfa;
         }
 
-        .dict-preview-toggle.expanded {
-            background: rgba(139, 92, 246, 0.15);
-            color: #a78bfa;
-        }
-
-        .dict-preview-toggle i {
+        .dict-preview-btn i {
             font-size: 0.55rem;
-            transition: transform 0.2s;
-        }
-
-        .dict-preview-toggle.expanded i {
-            transform: rotate(180deg);
-        }
-
-        .dict-preview-content {
-            margin-top: 0.4rem;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            border-radius: 6px;
-        }
-
-        .dict-preview-content.expanded {
-            max-height: 100px;
-        }
-
-        .dict-card-preview iframe {
-            width: 100%;
-            height: 80px;
-            border: none;
-            border-radius: 5px;
-            background: #fff;
-            display: block;
         }
 
         /* Empty State - Compact */
@@ -6832,6 +6802,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             let html = '';
             
+            // Clear content map for fresh render
+            dictFieldContentMap.clear();
+            
             dictState.items.forEach(item => {
                 const hasPreview = item.has_html || item.has_css || item.has_full_code;
                 const groupBadge = item.group_title 
@@ -6846,27 +6819,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const htmlCode = item.html_code || item.full_code || '';
                 const hasHtml = htmlCode.length > 0;
                 
+                // Store content in map to avoid massive inline attributes
+                dictFieldContentMap.set(`${item.id}-title`, item.title);
+                dictFieldContentMap.set(`${item.id}-phrase`, phraseText);
+                if (item.group_title) {
+                    dictFieldContentMap.set(`${item.id}-group`, item.group_title);
+                }
+                if (hasHtml) {
+                    dictFieldContentMap.set(`${item.id}-html`, htmlCode);
+                }
+                
                 const checkboxes = `
                     <div class="dict-field-checks">
-                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleField(event, '${item.id}', 'title', '${dictEscapeJs(item.title)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldById(event, '${item.id}', 'title')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Title</span>
                         </label>
                         ${item.group_title ? `
-                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleField(event, '${item.id}', 'group', '${dictEscapeJs(item.group_title)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldById(event, '${item.id}', 'group')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Group</span>
                         </label>
                         ` : ''}
-                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleField(event, '${item.id}', 'phrase', '${dictEscapeJs(phraseText)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldById(event, '${item.id}', 'phrase')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Phrase</span>
                         </label>
                         ${hasHtml ? `
-                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleField(event, '${item.id}', 'html', '${dictEscapeJs(htmlCode)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldById(event, '${item.id}', 'html')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">HTML</span>
@@ -6878,12 +6861,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 html += `
                     <div class="dict-card" data-id="${item.id}">
                         <div class="dict-card-header">
-                            <div class="dict-card-title-wrap">
-                                <span class="dict-label">Title:</span>
-                                <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
+                            <div class="dict-card-header-row">
+                                <div class="dict-card-title-wrap">
+                                    <span class="dict-label">Title:</span>
+                                    <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
+                                </div>
+                                ${groupBadge}
                             </div>
                             ${checkboxes}
-                            ${groupBadge}
                         </div>
                         <div class="dict-card-phrase">
                             <span class="dict-label">Phrase:</span>
@@ -6891,8 +6876,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
+                            ${hasPreview ? `<button type="button" class="dict-preview-btn" onclick="openDictPreviewInTab(${item.id})" title="Preview in new tab"><i class="fas fa-external-link-alt"></i></button>` : ''}
                         </div>
-                        ${hasPreview ? dictRenderPreview(item) : ''}
                     </div>
                 `;
             });
@@ -6900,48 +6885,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             listEl.innerHTML = html;
         }
         
-        // Render preview - collapsible
-        function dictRenderPreview(item) {
-            let srcdoc = '';
+        // Open preview in new browser tab
+        function openDictPreviewInTab(itemId) {
+            const item = dictState.items.find(i => i.id === itemId);
+            if (!item) return;
+            
+            let htmlContent = '';
             
             if (item.full_code) {
-                srcdoc = item.full_code;
+                htmlContent = item.full_code;
             } else if (item.html_code || item.css_code) {
-                srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:12px;}${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
+                htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${item.title || 'Preview'}</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; font-size: 14px; }
+${item.css_code || ''}
+</style>
+</head>
+<body>
+${item.html_code || ''}
+</body>
+</html>`;
             } else {
-                return '';
+                showToast('No preview content available', 'info');
+                return;
             }
             
-            // Escape for attribute
-            const escapedSrcdoc = srcdoc.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            const previewId = `preview-${item.id}`;
-            
-            return `
-                <div class="dict-card-preview">
-                    <button type="button" class="dict-preview-toggle" onclick="dictTogglePreview('${previewId}', this)">
-                        <i class="fas fa-chevron-down"></i>
-                        <span>Preview</span>
-                    </button>
-                    <div class="dict-preview-content" id="${previewId}">
-                        <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Toggle preview visibility
-        function dictTogglePreview(previewId, btn) {
-            const content = document.getElementById(previewId);
-            if (!content) return;
-            
-            const isExpanded = content.classList.contains('expanded');
-            
-            if (isExpanded) {
-                content.classList.remove('expanded');
-                btn.classList.remove('expanded');
+            // Open in new tab
+            const newTab = window.open('', '_blank');
+            if (newTab) {
+                newTab.document.open();
+                newTab.document.write(htmlContent);
+                newTab.document.close();
             } else {
-                content.classList.add('expanded');
-                btn.classList.add('expanded');
+                showToast('Please allow popups to view preview', 'warning');
             }
         }
         
@@ -6963,6 +6945,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Track active dictionary field selections
         const dictActiveFields = new Map(); // key: "itemId-field", value: content
+        
+        // Store field content to avoid massive inline attributes
+        const dictFieldContentMap = new Map(); // key: "itemId-field", value: content
+        
+        // Toggle dictionary field by ID - retrieve from map
+        function dictToggleFieldById(event, itemId, field) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const key = `${itemId}-${field}`;
+            const content = dictFieldContentMap.get(key);
+            
+            if (!content) {
+                console.error('Content not found for', key);
+                return;
+            }
+            
+            dictToggleField(event, itemId, field, content);
+        }
         
         // Toggle dictionary field - append/remove from editor
         function dictToggleField(event, itemId, field, content) {
