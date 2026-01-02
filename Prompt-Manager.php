@@ -6845,6 +6845,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Cache for storing HTML code (to avoid putting it in onclick attributes)
         const dictCodeCache = new Map();
         
+        // Store field content to avoid massive inline attributes
+        const dictFieldContentMap = new Map();
+        
         // Render prompts list
         function dictRenderPrompts() {
             const listEl = document.getElementById('dictList');
@@ -6883,21 +6886,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const htmlCode = item.html_code || item.full_code || '';
                 const hasHtml = htmlCode.length > 0;
                 
-<<<<<<< HEAD
-                if (hasHtml) {
-                    dictCodeCache.set(`html-${item.id}`, htmlCode);
-                }
-                
-                // Store phrase in cache if it's long
-                if (phraseText.length > 200) {
-                    dictCodeCache.set(`phrase-${item.id}`, phraseText);
-                }
-                
-                // Build checkboxes - use data attributes and cache for large content
-                const checkboxes = `
-                    <div class="dict-field-checks">
-                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldSafe(event, ${item.id}, 'title')">
-=======
                 // Store content in map to avoid massive inline attributes
                 dictFieldContentMap.set(`${item.id}-title`, item.title);
                 dictFieldContentMap.set(`${item.id}-phrase`, phraseText);
@@ -6908,40 +6896,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     dictFieldContentMap.set(`${item.id}-html`, htmlCode);
                 }
                 
+                // Also store in cache for other functions
+                dictCodeCache.set(`item-${item.id}`, {
+                    title: item.title,
+                    group_title: item.group_title || '',
+                    phrase: phraseText,
+                    html_code: htmlCode,
+                    css_code: item.css_code || '',
+                    full_code: item.full_code || ''
+                });
+                
                 const checkboxes = `
                     <div class="dict-field-checks">
                         <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldById(event, '${item.id}', 'title')">
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Title</span>
                         </label>
                         ${item.group_title ? `
-<<<<<<< HEAD
-                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldSafe(event, ${item.id}, 'group')">
-=======
                         <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldById(event, '${item.id}', 'group')">
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Group</span>
                         </label>
                         ` : ''}
-<<<<<<< HEAD
-                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldSafe(event, ${item.id}, 'phrase')">
-=======
                         <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldById(event, '${item.id}', 'phrase')">
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Phrase</span>
                         </label>
                         ${hasHtml ? `
-<<<<<<< HEAD
-                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldSafe(event, ${item.id}, 'html')">
-=======
                         <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldById(event, '${item.id}', 'html')">
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">HTML</span>
@@ -6949,14 +6934,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ` : ''}
                     </div>
                 `;
-                
-                // Build View Code button if has preview content
-                const viewCodeBtn = hasPreview ? `
-                    <button type="button" class="dict-view-code-btn" onclick="dictOpenCodeInNewTab(${item.id})" title="View code in new tab">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span>View Code</span>
-                    </button>
-                ` : '';
                 
                 html += `
                     <div class="dict-card" data-id="${item.id}">
@@ -6974,30 +6951,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dict-btn-copy" onclick="dictCopyPhraseById(this, ${item.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
-<<<<<<< HEAD
-                            ${viewCodeBtn}
-=======
                             ${hasPreview ? `<button type="button" class="dict-preview-btn" onclick="openDictPreviewInTab(${item.id})" title="Preview in new tab"><i class="fas fa-eye"></i><span>Preview</span></button>` : ''}
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
                         </div>
                     </div>
                 `;
-                
-                // Store item data in cache for later retrieval
-                dictCodeCache.set(`item-${item.id}`, {
-                    title: item.title,
-                    group_title: item.group_title || '',
-                    phrase: phraseText,
-                    html_code: htmlCode,
-                    css_code: item.css_code || '',
-                    full_code: item.full_code || ''
-                });
             });
             
             listEl.innerHTML = html;
         }
         
-<<<<<<< HEAD
         // Safe toggle field - gets content from cache instead of onclick attribute
         function dictToggleFieldSafe(event, itemId, field) {
             event.preventDefault();
@@ -7143,23 +7105,6 @@ ${itemData.html_code || ''}
             }
         }
         
-        // Legacy function for backward compatibility (no longer used for HTML)
-        function dictRenderPreview(item) {
-            // Preview is now handled by "View Code" button instead of inline iframe
-            return '';
-        }
-        
-        // Toggle preview visibility
-        function dictTogglePreview(previewId, btn) {
-            const content = document.getElementById(previewId);
-            if (!content) return;
-            
-            const isExpanded = content.classList.contains('expanded');
-            
-            if (isExpanded) {
-                content.classList.remove('expanded');
-                btn.classList.remove('expanded');
-=======
         // Open preview in new browser tab
         function openDictPreviewInTab(itemId) {
             const item = dictState.items.find(i => i.id === itemId);
@@ -7197,7 +7142,6 @@ ${item.html_code || ''}
                 newTab.document.open();
                 newTab.document.write(htmlContent);
                 newTab.document.close();
->>>>>>> e6997466f5fddfc44405da5b34eeda29453cb47b
             } else {
                 showToast('Please allow popups to view preview', 'warning');
             }
@@ -7221,9 +7165,6 @@ ${item.html_code || ''}
         
         // Track active dictionary field selections
         const dictActiveFields = new Map(); // key: "itemId-field", value: content
-        
-        // Store field content to avoid massive inline attributes
-        const dictFieldContentMap = new Map(); // key: "itemId-field", value: content
         
         // Toggle dictionary field by ID - retrieve from map
         function dictToggleFieldById(event, itemId, field) {
