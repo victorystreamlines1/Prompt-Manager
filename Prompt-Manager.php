@@ -5378,26 +5378,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Preview Button - Opens in new tab */
         .dict-preview-btn {
-            background: transparent;
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            color: var(--text-muted);
-            font-size: 0.55rem;
-            padding: 0.2rem 0.35rem;
-            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15));
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+            font-size: 0.6rem;
+            font-weight: 600;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-left: 0.3rem;
+            transition: all 0.3s ease;
+            margin-left: 0.4rem;
             flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dict-preview-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
         }
 
         .dict-preview-btn:hover {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: rgba(139, 92, 246, 0.3);
-            color: #a78bfa;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(99, 102, 241, 0.25));
+            border-color: rgba(139, 92, 246, 0.6);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .dict-preview-btn:hover::before {
+            left: 100%;
+        }
+
+        .dict-preview-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.2);
         }
 
         .dict-preview-btn i {
-            font-size: 0.55rem;
+            font-size: 0.65rem;
+            filter: drop-shadow(0 0 2px rgba(139, 92, 246, 0.5));
         }
 
         /* Empty State - Compact */
@@ -11860,203 +11891,21 @@ ${item.html_code || ''}
         document.addEventListener('DOMContentLoaded', initEditorSearch);
         
         // ============================================
-        // ADMIN POPUP IFRAME
+        // ADMIN - Open in new tab
         // ============================================
         function openDictAdminPopup() {
-            const modal = document.getElementById('dictAdminModal');
-            const iframe = document.getElementById('dictAdminIframe');
-            
-            if (modal) {
-                modal.classList.add('active');
-                iframe.src = 'https://frouty.com/pages/admin.php';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        
-        function closeDictAdminPopup() {
-            const modal = document.getElementById('dictAdminModal');
-            const iframe = document.getElementById('dictAdminIframe');
-            
-            if (modal) {
-                modal.classList.remove('active');
-                iframe.src = 'about:blank';
-                document.body.style.overflow = '';
-            }
+            window.open('https://frouty.com/pages/admin.php', '_blank');
         }
 
         // ============================================
-        // QUIZ POPUP IFRAME
+        // QUIZ - Open in new tab
         // ============================================
         function openDictQuizPopup() {
-            const modal = document.getElementById('dictQuizModal');
-            const iframe = document.getElementById('dictQuizIframe');
-            
-            if (modal) {
-                modal.classList.add('active');
-                iframe.src = 'https://frouty.com/pages/quiz.php';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        
-        function closeDictQuizPopup() {
-            const modal = document.getElementById('dictQuizModal');
-            const iframe = document.getElementById('dictQuizIframe');
-            
-            if (modal) {
-                modal.classList.remove('active');
-                iframe.src = 'about:blank';
-                document.body.style.overflow = '';
-            }
+            window.open('https://frouty.com/pages/quiz.php', '_blank');
         }
 
-        // Make Quiz popup draggable
-        (function() {
-            let isDragging = false;
-            let isResizing = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-            let xOffset = 0;
-            let yOffset = 0;
-            
-            let resizeStartX;
-            let resizeStartY;
-            let resizeStartWidth;
-            let resizeStartHeight;
-
-            document.addEventListener('DOMContentLoaded', function() {
-                const popup = document.getElementById('dictQuizPopup');
-                const header = document.getElementById('dictQuizPopupHeader');
-                const resizeHandle = document.getElementById('dictQuizResizeHandle');
-                
-                if (!popup || !header || !resizeHandle) return;
-
-                // Dragging functionality
-                header.addEventListener('mousedown', dragStart);
-                document.addEventListener('mousemove', drag);
-                document.addEventListener('mouseup', dragEnd);
-
-                // Resizing functionality
-                resizeHandle.addEventListener('mousedown', resizeStart);
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', resizeEnd);
-
-                function dragStart(e) {
-                    if (e.target.closest('.dict-quiz-close-btn')) return;
-                    
-                    initialX = e.clientX - xOffset;
-                    initialY = e.clientY - yOffset;
-                    
-                    if (e.target === header || header.contains(e.target)) {
-                        isDragging = true;
-                        popup.style.transition = 'none';
-                    }
-                }
-
-                function drag(e) {
-                    if (isDragging) {
-                        e.preventDefault();
-                        
-                        currentX = e.clientX - initialX;
-                        currentY = e.clientY - initialY;
-                        
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        
-                        popup.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                    }
-                }
-
-                function dragEnd() {
-                    if (isDragging) {
-                        initialX = currentX;
-                        initialY = currentY;
-                        isDragging = false;
-                        popup.style.transition = '';
-                    }
-                }
-
-                function resizeStart(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    isResizing = true;
-                    resizeStartX = e.clientX;
-                    resizeStartY = e.clientY;
-                    resizeStartWidth = popup.offsetWidth;
-                    resizeStartHeight = popup.offsetHeight;
-                    popup.style.transition = 'none';
-                }
-
-                function resize(e) {
-                    if (isResizing) {
-                        e.preventDefault();
-                        const width = resizeStartWidth + (e.clientX - resizeStartX);
-                        const height = resizeStartHeight + (e.clientY - resizeStartY);
-                        
-                        if (width >= 400) {
-                            popup.style.width = width + 'px';
-                        }
-                        if (height >= 300) {
-                            popup.style.height = height + 'px';
-                        }
-                    }
-                }
-
-                function resizeEnd() {
-                    if (isResizing) {
-                        isResizing = false;
-                        popup.style.transition = '';
-                    }
-                }
-
-                // Reset position when modal is closed
-                document.getElementById('dictQuizModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        popup.style.transform = 'translate(0, 0)';
-                        xOffset = 0;
-                        yOffset = 0;
-                    }
-                });
-            });
-        })();
-        
-        // Close on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeDictAdminPopup();
-                closeDictQuizPopup();
-            }
-        });
     </script>
     
-    <!-- Admin Popup Modal -->
-    <div class="dict-admin-modal" id="dictAdminModal" onclick="if(event.target === this) closeDictAdminPopup()">
-        <div class="dict-admin-popup">
-            <div class="dict-admin-popup-header">
-                <h4><i class="fas fa-cog"></i> Dictionary Admin Panel</h4>
-                <button type="button" class="dict-admin-close-btn" onclick="closeDictAdminPopup()" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe class="dict-admin-iframe" id="dictAdminIframe" src="about:blank"></iframe>
-        </div>
-    </div>
-
-    <!-- Quiz Popup Modal -->
-    <div class="dict-quiz-modal" id="dictQuizModal" onclick="if(event.target === this) closeDictQuizPopup()">
-        <div class="dict-quiz-popup" id="dictQuizPopup">
-            <div class="dict-quiz-popup-header" id="dictQuizPopupHeader">
-                <h4><i class="fas fa-question-circle"></i> Quiz</h4>
-                <button type="button" class="dict-quiz-close-btn" onclick="closeDictQuizPopup()" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <iframe class="dict-quiz-iframe" id="dictQuizIframe" src="about:blank"></iframe>
-            <div class="dict-quiz-resize-handle" id="dictQuizResizeHandle"></div>
-        </div>
-    </div>
-
 <!-- Back to Catalog Button -->
 <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">

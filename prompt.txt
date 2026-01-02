@@ -1,1 +1,5 @@
-There is a problem with the item list. Some of them because of the large code, the group, title, and the group. Label is not showing. Make sure that all items, the group, title, and label is showing, the group title is knocked out of the border to the right. to the right that must write and also and only the check boxes are showing and some of them that have a lot of code and the field of the preview. So please make sure all the items are the same. Specifically the label of the group and the title and make sure everything is the same between the item and the search list. 
+I want you to modify the AI prompt dictionary so that the two buttons "Quiz" and "Admin" open in a new tab instead of an iframe. These should open as independent tabs alongside my current tab. This applies On the following page or file. .
+
+<!-- FILE:Prompt-Manager.php:1767346450583 -->
+[📎 File Reference: Prompt-Manager.php | Size: 455.79 KB | Type: unknown]
+<!-- /END  FILE:Prompt-Manager.php:1767346450583 -->
