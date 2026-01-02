@@ -5287,6 +5287,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(16, 185, 129, 0.4);
         }
 
+        /* View Code Button */
+        .dict-view-code-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.2));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a78bfa;
+            font-size: 0.6rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            margin-left: 0.4rem;
+        }
+
+        .dict-view-code-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.35));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .dict-view-code-btn:active {
+            transform: translateY(0);
+        }
+
+        .dict-view-code-btn i {
+            font-size: 0.55rem;
+        }
+
         /* Dictionary Field Checkboxes */
         .dict-field-checks {
             display: flex;
@@ -6814,6 +6848,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        // Cache for storing HTML code (to avoid putting it in onclick attributes)
+        const dictCodeCache = new Map();
+        
         // Render prompts list
         function dictRenderPrompts() {
             const listEl = document.getElementById('dictList');
@@ -6830,6 +6867,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             listEl.classList.remove('hidden');
             emptyEl.classList.remove('show');
             
+            // Clear the code cache
+            dictCodeCache.clear();
+            
             let html = '';
             
             dictState.items.forEach(item => {
@@ -6842,31 +6882,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const phraseText = item.phrase || '';
                 const truncatedPhrase = phraseText.length > 80 ? phraseText.substring(0, 80) + '...' : phraseText;
                 
-                // Build checkboxes - get HTML code if available
+                // Store HTML code in cache (NOT in onclick attributes)
                 const htmlCode = item.html_code || item.full_code || '';
                 const hasHtml = htmlCode.length > 0;
                 
+                if (hasHtml) {
+                    dictCodeCache.set(`html-${item.id}`, htmlCode);
+                }
+                
+                // Store phrase in cache if it's long
+                if (phraseText.length > 200) {
+                    dictCodeCache.set(`phrase-${item.id}`, phraseText);
+                }
+                
+                // Build checkboxes - use data attributes and cache for large content
                 const checkboxes = `
                     <div class="dict-field-checks">
-                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleField(event, '${item.id}', 'title', '${dictEscapeJs(item.title)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="title" onclick="dictToggleFieldSafe(event, ${item.id}, 'title')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Title</span>
                         </label>
                         ${item.group_title ? `
-                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleField(event, '${item.id}', 'group', '${dictEscapeJs(item.group_title)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="group" onclick="dictToggleFieldSafe(event, ${item.id}, 'group')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Group</span>
                         </label>
                         ` : ''}
-                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleField(event, '${item.id}', 'phrase', '${dictEscapeJs(phraseText)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="phrase" onclick="dictToggleFieldSafe(event, ${item.id}, 'phrase')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">Phrase</span>
                         </label>
                         ${hasHtml ? `
-                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleField(event, '${item.id}', 'html', '${dictEscapeJs(htmlCode)}')">
+                        <label class="dict-field-check" data-id="${item.id}" data-field="html" onclick="dictToggleFieldSafe(event, ${item.id}, 'html')">
                             <input type="checkbox">
                             <span class="check-icon"><i class="fas fa-check"></i></span>
                             <span class="check-label">HTML</span>
@@ -6874,6 +6924,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ` : ''}
                     </div>
                 `;
+                
+                // Build View Code button if has preview content
+                const viewCodeBtn = hasPreview ? `
+                    <button type="button" class="dict-view-code-btn" onclick="dictOpenCodeInNewTab(${item.id})" title="View code in new tab">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span>View Code</span>
+                    </button>
+                ` : '';
                 
                 html += `
                     <div class="dict-card" data-id="${item.id}">
@@ -6888,45 +6946,177 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="dict-card-phrase">
                             <span class="dict-label">Phrase:</span>
                             <p title="${dictEscapeHtml(phraseText)}">${dictEscapeHtml(truncatedPhrase)}</p>
-                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhrase(this, '${dictEscapeJs(phraseText)}')" title="Copy">
+                            <button type="button" class="dict-btn-copy" onclick="dictCopyPhraseById(this, ${item.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
+                            ${viewCodeBtn}
                         </div>
-                        ${hasPreview ? dictRenderPreview(item) : ''}
                     </div>
                 `;
+                
+                // Store item data in cache for later retrieval
+                dictCodeCache.set(`item-${item.id}`, {
+                    title: item.title,
+                    group_title: item.group_title || '',
+                    phrase: phraseText,
+                    html_code: htmlCode,
+                    css_code: item.css_code || '',
+                    full_code: item.full_code || ''
+                });
             });
             
             listEl.innerHTML = html;
         }
         
-        // Render preview - collapsible
-        function dictRenderPreview(item) {
-            let srcdoc = '';
+        // Safe toggle field - gets content from cache instead of onclick attribute
+        function dictToggleFieldSafe(event, itemId, field) {
+            event.preventDefault();
+            event.stopPropagation();
             
-            if (item.full_code) {
-                srcdoc = item.full_code;
-            } else if (item.html_code || item.css_code) {
-                srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:8px;font-family:system-ui,sans-serif;font-size:12px;}${item.css_code || ''}</style></head><body>${item.html_code || ''}</body></html>`;
-            } else {
-                return '';
+            const itemData = dictCodeCache.get(`item-${itemId}`);
+            if (!itemData) {
+                showToast('Item data not found', 'error');
+                return;
             }
             
-            // Escape for attribute
-            const escapedSrcdoc = srcdoc.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-            const previewId = `preview-${item.id}`;
+            let content = '';
+            switch(field) {
+                case 'title':
+                    content = itemData.title;
+                    break;
+                case 'group':
+                    content = itemData.group_title;
+                    break;
+                case 'phrase':
+                    content = itemData.phrase;
+                    break;
+                case 'html':
+                    content = itemData.html_code || itemData.full_code;
+                    break;
+                default:
+                    content = '';
+            }
             
-            return `
-                <div class="dict-card-preview">
-                    <button type="button" class="dict-preview-toggle" onclick="dictTogglePreview('${previewId}', this)">
-                        <i class="fas fa-chevron-down"></i>
-                        <span>Preview</span>
-                    </button>
-                    <div class="dict-preview-content" id="${previewId}">
-                        <iframe srcdoc="${escapedSrcdoc}" sandbox="allow-scripts" loading="lazy"></iframe>
-                    </div>
-                </div>
-            `;
+            // Call the original toggle function with the content
+            const key = `${itemId}-${field}`;
+            const labelEl = event.currentTarget;
+            const checkbox = labelEl.querySelector('input[type="checkbox"]');
+            const editor = document.getElementById('promptEditor');
+            
+            if (!editor) {
+                console.error('Prompt editor not found');
+                return;
+            }
+            
+            const isActive = dictActiveFields.has(key);
+            
+            if (isActive) {
+                // Remove - uncheck
+                dictActiveFields.delete(key);
+                labelEl.classList.remove('active');
+                if (checkbox) checkbox.checked = false;
+                
+                // Rebuild editor content without this field
+                dictRebuildEditorFromFields();
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} removed`, 'info');
+            } else {
+                // Add - check
+                dictActiveFields.set(key, content);
+                labelEl.classList.add('active');
+                if (checkbox) checkbox.checked = true;
+                
+                // Append to editor
+                const currentValue = editor.value.trim();
+                if (currentValue) {
+                    editor.value = currentValue + '\n\n' + content;
+                } else {
+                    editor.value = content;
+                }
+                
+                showToast(`${field.charAt(0).toUpperCase() + field.slice(1)} added`, 'success');
+            }
+            
+            updateCounts();
+            if (typeof recordHistoryState === 'function') {
+                recordHistoryState(true);
+            }
+        }
+        
+        // Copy phrase by ID from cache
+        async function dictCopyPhraseById(button, itemId) {
+            const itemData = dictCodeCache.get(`item-${itemId}`);
+            if (!itemData) {
+                showToast('Item not found', 'error');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(itemData.phrase);
+                button.classList.add('copied');
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = '<i class="fas fa-copy"></i>';
+                }, 1500);
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+        }
+        
+        // Open code in new tab
+        function dictOpenCodeInNewTab(itemId) {
+            const itemData = dictCodeCache.get(`item-${itemId}`);
+            if (!itemData) {
+                showToast('Item not found', 'error');
+                return;
+            }
+            
+            let htmlContent = '';
+            
+            if (itemData.full_code) {
+                htmlContent = itemData.full_code;
+            } else if (itemData.html_code || itemData.css_code) {
+                htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${dictEscapeHtml(itemData.title)} - Preview</title>
+    <style>
+        body { margin: 0; padding: 16px; font-family: system-ui, -apple-system, sans-serif; }
+        ${itemData.css_code || ''}
+    </style>
+</head>
+<body>
+${itemData.html_code || ''}
+</body>
+</html>`;
+            } else {
+                showToast('No code available to preview', 'info');
+                return;
+            }
+            
+            // Create blob and open in new tab
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const newTab = window.open(url, '_blank');
+            
+            // Clean up the URL after a delay
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 1000);
+            
+            if (!newTab) {
+                showToast('Popup blocked! Please allow popups for this site.', 'error');
+            }
+        }
+        
+        // Legacy function for backward compatibility (no longer used for HTML)
+        function dictRenderPreview(item) {
+            // Preview is now handled by "View Code" button instead of inline iframe
+            return '';
         }
         
         // Toggle preview visibility
