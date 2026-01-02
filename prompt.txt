@@ -1,5 +1,1 @@
-I want you to modify the AI prompt dictionary so that the two buttons "Quiz" and "Admin" open in a new tab instead of an iframe. These should open as independent tabs alongside my current tab. This applies On the following page or file. .
-
-<!-- FILE:Prompt-Manager.php:1767346450583 -->
-[📎 File Reference: Prompt-Manager.php | Size: 455.79 KB | Type: unknown]
-<!-- /END  FILE:Prompt-Manager.php:1767346450583 -->
+Now I want you to reorganize the layout of the item list in AI prompt dictionary. I want you to pull the preview and the copy button slightly to the left towards the title line. since the title line is a title and title does not is not so long so there is space we can take to the left but make sure when you do this you pull up the checkboxes the four checkboxes should be on the same line of the title label and the title description try to make it in a good and nice artistic and a aesthetic approach make sure you do it in a clever way you don't mess up the organization so we can optimize the item list container into two lines instead of it is now three lines 

@@ -5189,16 +5189,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-card-header {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .dict-card-header-row {
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
             width: 100%;
         }
 
@@ -5206,8 +5199,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            flex: 1;
-            min-width: 0;
+            flex: 0 1 auto;
+            min-width: 120px;
+            max-width: 280px;
             overflow: hidden;
         }
 
@@ -5221,11 +5215,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-card-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-primary);
             margin: 0;
-            flex: 1;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -5235,14 +5228,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.65rem;
-            padding: 0.15rem 0.4rem;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.35rem;
             background: rgba(139, 92, 246, 0.15);
             color: #a78bfa;
             border-radius: 3px;
             white-space: nowrap;
             flex-shrink: 0;
-            max-width: 200px;
+            margin-left: auto;
+            max-width: 150px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -5302,18 +5296,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dict-field-checks {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            width: 100%;
+            gap: 0.4rem;
+            flex-shrink: 0;
         }
 
         .dict-field-check {
             display: flex;
             align-items: center;
-            gap: 0.2rem;
+            gap: 0.15rem;
             cursor: pointer;
-            padding: 0.15rem 0.3rem;
-            border-radius: 4px;
+            padding: 0.1rem 0.25rem;
+            border-radius: 3px;
             transition: all 0.2s;
             background: transparent;
             border: 1px solid transparent;
@@ -5334,10 +5327,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-icon {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 1.5px solid rgba(139, 92, 246, 0.4);
-            border-radius: 3px;
+            border-radius: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -5346,7 +5339,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-icon i {
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             color: transparent;
             transition: all 0.2s;
         }
@@ -5361,7 +5354,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--text-muted);
             font-weight: 500;
             letter-spacing: 0.2px;
@@ -6892,14 +6885,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 html += `
                     <div class="dict-card" data-id="${item.id}">
                         <div class="dict-card-header">
-                            <div class="dict-card-header-row">
-                                <div class="dict-card-title-wrap">
-                                    <span class="dict-label">Title:</span>
-                                    <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
-                                </div>
-                                ${groupBadge}
+                            <div class="dict-card-title-wrap">
+                                <span class="dict-label">Title:</span>
+                                <h3 class="dict-card-title" title="${dictEscapeHtml(item.title)}">${dictEscapeHtml(item.title)}</h3>
                             </div>
                             ${checkboxes}
+                            ${groupBadge}
                         </div>
                         <div class="dict-card-phrase">
                             <span class="dict-label">Phrase:</span>
