@@ -7755,7 +7755,7 @@ ${item.html_code || ''}
                     data.connections.forEach(conn => {
                         const option = document.createElement('option');
                         option.value = conn.id;
-                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                        option.textContent = `🌐 ${conn.name}`;
                         option.dataset.host = conn.host;
                         option.dataset.dbname = conn.dbName;
                         option.dataset.username = conn.username;
@@ -7793,7 +7793,7 @@ ${item.html_code || ''}
                 connections.forEach(conn => {
                     const option = document.createElement('option');
                     option.value = conn.id;
-                    option.textContent = `${conn.name} (${conn.dbName})`;
+                    option.textContent = `${conn.name}`;
                     option.dataset.host = conn.host;
                     option.dataset.dbname = conn.dbName;
                     option.dataset.username = conn.username;
@@ -7840,7 +7840,7 @@ ${item.html_code || ''}
                     data.connections.forEach(conn => {
                         const option = document.createElement('option');
                         option.value = conn.id;
-                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                        option.textContent = `🌐 ${conn.name}`;
                         option.dataset.host = conn.host;
                         option.dataset.dbname = conn.dbName;
                         option.dataset.username = conn.username;
