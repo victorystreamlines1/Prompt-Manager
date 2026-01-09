@@ -6739,7 +6739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check" id="backendMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn backend-arrow" title="Insert to prompt">
+                                    <button type="button" class="dash-arrow-btn backend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('backend')">
                                         <i class="fas fa-chevron-down"></i>
                                     </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
@@ -6763,7 +6763,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check dash-page-check" id="pageMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn page-arrow" title="Insert to prompt">
+                                    <button type="button" class="dash-arrow-btn page-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('page')">
                                         <i class="fas fa-chevron-down"></i>
                                     </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
@@ -6787,7 +6787,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check dash-frontend-check" id="frontendMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn frontend-arrow" title="Insert to prompt">
+                                    <button type="button" class="dash-arrow-btn frontend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('frontend')">
                                         <i class="fas fa-chevron-down"></i>
                                     </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
@@ -9011,7 +9011,7 @@ ${item.html_code || ''}
         let lastAddedRemoteCredId = null;
         let lastAddedLocalhostCredId = null;
 
-        // Append database selection to prompt editor (arrow button)
+        // Append database selection to prompt editor (arrow button) - BOTH Remote & Localhost
         function appendDatabaseToPrompt() {
             const dropdown = document.getElementById('dbDropdown');
             const selectedOption = dropdown.options[dropdown.selectedIndex];
@@ -9027,30 +9027,142 @@ ${item.html_code || ''}
                 host: selectedOption.dataset.host,
                 dbName: selectedOption.dataset.dbname,
                 username: selectedOption.dataset.username,
-                port: selectedOption.dataset.port || '3306'
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
             };
             
-            // Create database info block
-            const dbBlock = `
-📦 DATABASE CONNECTION
-━━━━━━━━━━━━━━━━━━━━━━
-• Name: ${conn.name}
-• Host: ${conn.host}
-• Database: ${conn.dbName}
-• Username: ${conn.username}
-• Port: ${conn.port}
-━━━━━━━━━━━━━━━━━━━━━━
+            // Create REMOTE credentials block
+            const remoteBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  🌐  DATABASE CREDENTIALS - REMOTE CONNECTION               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${conn.host.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`.trim();
 
-`;
+            // Create LOCALHOST credentials block
+            const localhostBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  🖥️  DATABASE CREDENTIALS - LOCALHOST (ON-SERVER)           ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${'localhost'.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`.trim();
+            
+            // Combine both blocks
+            const fullBlock = remoteBlock + '\n\n' + localhostBlock;
             
             // Append to editor
-            editor.value = editor.value + dbBlock;
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
             
-            // Trigger input event to update any listeners
-            editor.dispatchEvent(new Event('input', { bubbles: true }));
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
             
             // Show success toast
-            showToast('📦 Database info appended to prompt', 'success');
+            showToast('📦 Database credentials (Remote + Localhost) appended', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Append section (Backend/Page/Frontend) to prompt editor
+        function appendSectionToPrompt(section) {
+            const editor = document.getElementById('promptEditor');
+            
+            // Get file picker and prompt textarea based on section
+            let filePicker, promptArea, sectionName, sectionIcon;
+            
+            switch(section) {
+                case 'backend':
+                    filePicker = document.getElementById('dashFilePicker');
+                    promptArea = document.getElementById('backendPromptArea');
+                    sectionName = 'BACKEND';
+                    sectionIcon = '📄';
+                    break;
+                case 'page':
+                    filePicker = document.getElementById('pageFilePicker');
+                    promptArea = document.getElementById('pagePromptArea');
+                    sectionName = 'PAGE';
+                    sectionIcon = '🪟';
+                    break;
+                case 'frontend':
+                    filePicker = document.getElementById('frontendFilePicker');
+                    promptArea = document.getElementById('frontendPromptArea');
+                    sectionName = 'FRONTEND';
+                    sectionIcon = '🎨';
+                    break;
+                default:
+                    return;
+            }
+            
+            // Get selected files
+            const files = filePicker ? filePicker.files : [];
+            const fileNames = Array.from(files).map(f => f.name);
+            
+            // Get prompt text
+            const promptText = promptArea ? promptArea.value.trim() : '';
+            
+            // Check if there's anything to send
+            if (fileNames.length === 0 && !promptText) {
+                showToast(`⚠️ No files or prompt for ${sectionName}`, 'warning');
+                return;
+            }
+            
+            // Build the block
+            let blockContent = '';
+            
+            // Add files section if any
+            if (fileNames.length > 0) {
+                blockContent += `📁 Files (${fileNames.length}):\n`;
+                fileNames.forEach((name, idx) => {
+                    blockContent += `   ${idx + 1}. ${name}\n`;
+                });
+            }
+            
+            // Add prompt section if any
+            if (promptText) {
+                if (blockContent) blockContent += '\n';
+                blockContent += `📝 Prompt:\n${promptText}`;
+            }
+            
+            // Create full block
+            const fullBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  ${sectionIcon}  ${sectionName} SECTION                                          ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            const itemCount = fileNames.length + (promptText ? 1 : 0);
+            showToast(`${sectionIcon} ${sectionName} appended (${itemCount} item${itemCount > 1 ? 's' : ''})`, 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
