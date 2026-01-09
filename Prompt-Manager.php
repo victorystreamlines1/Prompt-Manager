@@ -3462,6 +3462,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 4px;
         }
         
+        /* Arrow Buttons */
+        .dash-arrow-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 6px;
+            color: #818cf8;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dash-arrow-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            transform: translateY(1px);
+        }
+        
+        /* Color variants for arrows */
+        .dash-arrow-btn.db-arrow {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border-color: rgba(251, 191, 36, 0.25);
+            color: #fbbf24;
+        }
+        .dash-arrow-btn.db-arrow:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fcd34d;
+        }
+        
+        .dash-arrow-btn.backend-arrow {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-color: rgba(6, 182, 212, 0.25);
+            color: #22d3ee;
+        }
+        .dash-arrow-btn.backend-arrow:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #67e8f9;
+        }
+        
+        .dash-arrow-btn.page-arrow {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.1) 100%);
+            border-color: rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+        }
+        .dash-arrow-btn.page-arrow:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(167, 139, 250, 0.2) 100%);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #c4b5fd;
+        }
+        
+        .dash-arrow-btn.frontend-arrow {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border-color: rgba(251, 146, 60, 0.25);
+            color: #fb923c;
+        }
+        .dash-arrow-btn.frontend-arrow:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border-color: rgba(251, 146, 60, 0.4);
+            color: #fdba74;
+        }
+        
+        .dash-arrow-btn.generate-arrow {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #10b981;
+        }
+        .dash-arrow-btn.generate-arrow:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+        
+        /* Generate Checkbox */
+        .dash-generate-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #10b981;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
         .dash-db-separator {
             width: 1px;
             height: 24px;
@@ -6572,6 +6660,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="dash-db-widget" id="databaseSelector">
                         <div class="dash-db-tools">
                             <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
+                            <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
                             <div class="dash-db-dropdown-wrap">
                                 <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                     <option value="">-- Select Connection --</option>
@@ -6600,6 +6691,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check" id="backendMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn backend-arrow" title="Insert to prompt">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
                                         <input type="file" id="dashFilePicker" multiple accept="*/*">
                                         <div class="dash-file-btn">
@@ -6621,6 +6715,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check dash-page-check" id="pageMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn page-arrow" title="Insert to prompt">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
                                         <input type="file" id="pageFilePicker" multiple accept="*/*">
                                         <div class="dash-file-btn dash-page-btn">
@@ -6642,6 +6739,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-backend-check dash-frontend-check" id="frontendMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn frontend-arrow" title="Insert to prompt">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
                                     <label class="dash-file-input-wrap" title="Choose Files">
                                         <input type="file" id="frontendFilePicker" multiple accept="*/*">
                                         <div class="dash-file-btn dash-frontend-btn">
@@ -6657,6 +6757,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="dash-db-separator"></div>
+                            <input type="checkbox" class="dash-generate-check" id="generateMainCheckbox">
+                            <button type="button" class="dash-arrow-btn generate-arrow" title="Insert to prompt">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
                             <button type="button" class="dash-generate-btn" id="dashGenerateBtn">
                                 <i class="fas fa-magic"></i>
                                 <span>Generate</span>
