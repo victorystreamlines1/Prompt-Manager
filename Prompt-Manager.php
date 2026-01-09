@@ -3562,8 +3562,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
             border-color: rgba(16, 185, 129, 0.25);
             color: #10b981;
-            align-self: flex-end;
-            margin-bottom: 4px;
+            align-self: center;
         }
         .dash-arrow-btn.generate-arrow:hover {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
@@ -3577,7 +3576,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(251, 191, 36, 0.2);
             margin: 0 0.25rem;
             align-self: stretch;
-            margin-top: 18px;
         }
 
         .dash-db-label-old {
@@ -3898,6 +3896,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.4rem;
         }
         
+        .dash-db-cred-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.3rem;
+            width: 100%;
+        }
+        
+        .dash-db-cred-row .dash-cred-btn {
+            flex: 1;
+        }
+        
+        .dash-db-cred-row .dash-cred-btn span {
+            justify-content: center;
+            width: 100%;
+        }
+        
         .dash-database-label {
             color: #fbbf24 !important;
         }
@@ -3921,8 +3935,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            align-self: flex-end;
-            margin-bottom: 4px;
+            align-self: center;
+            height: fit-content;
         }
         
         .dash-generate-btn::before {
@@ -6722,6 +6736,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
                                         <i class="fas fa-cog"></i>
                                     </button>
+                                </div>
+                                <div class="dash-db-cred-row">
                                     <label class="dash-cred-btn remote" title="Append Remote Credentials">
                                         <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
                                         <span><i class="fas fa-globe"></i> Remote</span>
