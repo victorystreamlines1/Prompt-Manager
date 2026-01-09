@@ -3477,7 +3477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .dash-db-tools {
             display: flex;
-            align-items: flex-start;
+            align-items: stretch;
             gap: 0.5rem;
             flex-wrap: wrap;
         }
@@ -3563,7 +3563,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(16, 185, 129, 0.25);
             color: #10b981;
             align-self: flex-end;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .dash-arrow-btn.generate-arrow:hover {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
@@ -3574,11 +3574,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .dash-db-separator {
             width: 1px;
-            height: 32px;
             background: rgba(251, 191, 36, 0.2);
             margin: 0 0.25rem;
-            align-self: flex-end;
-            margin-bottom: 4px;
+            align-self: stretch;
+            margin-top: 18px;
         }
 
         .dash-db-label-old {
@@ -3755,7 +3754,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
-            align-self: flex-start;
+            align-self: stretch;
         }
         
         .dash-backend-label {
@@ -3766,8 +3765,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
             color: #06b6d4;
             padding-left: 0.1rem;
-            height: 18px;
-            line-height: 18px;
+            min-height: 18px;
+            line-height: 1;
         }
         
         .dash-backend-label i {
@@ -3778,6 +3777,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.4rem;
+            min-height: 32px;
         }
         
         .dash-backend-check {
@@ -3890,6 +3890,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* Database Section - Golden Theme */
+        .dash-database-group {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        .dash-database-group .dash-backend-controls {
+            gap: 0.4rem;
+        }
+        
         .dash-database-label {
             color: #fbbf24 !important;
         }
@@ -3914,7 +3923,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.2);
             align-self: flex-end;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         
         .dash-generate-btn::before {
