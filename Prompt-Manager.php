@@ -3674,17 +3674,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .dash-backend-prompt {
-            width: 140px;
-            height: 32px;
-            padding: 0.4rem 0.6rem;
+            width: 200px;
+            height: 50px;
+            min-width: 120px;
+            min-height: 36px;
+            max-width: 400px;
+            max-height: 150px;
+            padding: 0.5rem 0.7rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             color: var(--text-primary);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-family: inherit;
-            resize: none;
-            transition: all 0.2s ease;
+            resize: both;
+            overflow: auto;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         
         .dash-backend-prompt::placeholder {
