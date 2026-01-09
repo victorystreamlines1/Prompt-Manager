@@ -3665,6 +3665,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.4rem;
         }
         
+        .dash-backend-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #06b6d4;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .dash-backend-prompt {
+            width: 140px;
+            height: 32px;
+            padding: 0.4rem 0.6rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            font-family: inherit;
+            resize: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dash-backend-prompt::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .dash-backend-prompt:focus {
+            outline: none;
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1);
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -6439,6 +6471,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-file-code"></i> Backend
                                 </span>
                                 <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check" id="backendMainCheckbox">
                                     <label class="dash-file-input-wrap" title="Choose Files">
                                         <input type="file" id="dashFilePicker" multiple accept="*/*">
                                         <div class="dash-file-btn">
@@ -6450,6 +6483,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="fas fa-paperclip"></i>
                                         <span>None</span>
                                     </div>
+                                    <textarea class="dash-backend-prompt" id="backendPromptArea" placeholder="Prompt..."></textarea>
                                 </div>
                             </div>
                         </div>
