@@ -3862,6 +3862,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.1) !important;
         }
         
+        /* Database Section - Golden Theme */
+        .dash-database-label {
+            color: #fbbf24 !important;
+        }
+        
         /* Generate Button - Shiny Green */
         .dash-generate-btn {
             display: flex;
@@ -6644,11 +6649,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="dev-icon">⚡</span>
                             <span class="dev-text">Development Dashboard</span>
                         </div>
-                        <div class="dev-dashboard-tabs">
-                            <span class="dev-tab active" data-tab="database">
-                                <i class="fas fa-database"></i> Database
-                            </span>
-                        </div>
                     </div>
                     <div class="dev-dashboard-status">
                         <span class="status-dot"></span>
@@ -6659,31 +6659,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Database Connection Widget -->
                     <div class="dash-db-widget" id="databaseSelector">
                         <div class="dash-db-tools">
-                            <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
-                            <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <div class="dash-db-dropdown-wrap">
-                                <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
-                                    <option value="">-- Select Connection --</option>
-                                </select>
-                                <i class="fas fa-chevron-down"></i>
+                            <div class="dash-backend-group dash-database-group">
+                                <span class="dash-backend-label dash-database-label">
+                                    <i class="fas fa-database"></i> Database
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="dash-db-dropdown-wrap">
+                                        <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
+                                            <option value="">-- Select Connection --</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                    <label class="dash-cred-btn remote" title="Append Remote Credentials">
+                                        <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
+                                        <span><i class="fas fa-globe"></i> Remote</span>
+                                    </label>
+                                    <label class="dash-cred-btn localhost" title="Append Localhost Credentials">
+                                        <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
+                                        <span><i class="fas fa-server"></i> Localhost</span>
+                                    </label>
+                                </div>
                             </div>
-                            <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                            <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
-                                <i class="fas fa-cog"></i>
-                            </button>
-                            <div class="dash-db-separator"></div>
-                            <label class="dash-cred-btn remote" title="Append Remote Credentials">
-                                <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
-                                <span><i class="fas fa-globe"></i> Remote</span>
-                            </label>
-                            <label class="dash-cred-btn localhost" title="Append Localhost Credentials">
-                                <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
-                                <span><i class="fas fa-server"></i> Localhost</span>
-                            </label>
                             <div class="dash-db-separator"></div>
                             <div class="dash-backend-group">
                                 <span class="dash-backend-label">
