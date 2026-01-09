@@ -3738,6 +3738,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
         }
         
+        /* Frontend Section - Orange Theme */
+        .dash-frontend-label {
+            color: #fb923c !important;
+        }
+        
+        .dash-frontend-check {
+            accent-color: #fb923c !important;
+        }
+        
+        .dash-frontend-btn {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%) !important;
+            border-color: rgba(251, 146, 60, 0.25) !important;
+            color: #fb923c !important;
+        }
+        
+        .dash-file-input-wrap:hover .dash-frontend-btn {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(249, 115, 22, 0.15) 100%) !important;
+            border-color: rgba(251, 146, 60, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(251, 146, 60, 0.2) !important;
+        }
+        
+        .dash-frontend-group .dash-file-info i {
+            color: #fb923c;
+        }
+        
+        .dash-frontend-group .dash-file-info.has-files {
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.3);
+            background: rgba(251, 146, 60, 0.08);
+        }
+        
+        .dash-frontend-prompt:focus {
+            border-color: rgba(251, 146, 60, 0.5) !important;
+            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.1) !important;
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -6548,6 +6584,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea class="dash-backend-prompt dash-page-prompt" id="pagePromptArea" placeholder="Prompt..."></textarea>
                                 </div>
                             </div>
+                            <div class="dash-db-separator"></div>
+                            <div class="dash-backend-group dash-frontend-group">
+                                <span class="dash-backend-label dash-frontend-label">
+                                    <i class="fas fa-palette"></i> Frontend
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check dash-frontend-check" id="frontendMainCheckbox">
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="frontendFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn dash-frontend-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="frontendFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
+                                    <textarea class="dash-backend-prompt dash-frontend-prompt" id="frontendPromptArea" placeholder="Prompt..."></textarea>
+                                </div>
+                            </div>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
                             <span>No databases found</span>
@@ -8536,6 +8593,26 @@ ${item.html_code || ''}
                     } else {
                         pageFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
                         pageFileInfo.classList.add('has-files');
+                    }
+                });
+            }
+            
+            // Frontend file picker
+            const frontendFilePicker = document.getElementById('frontendFilePicker');
+            const frontendFileInfo = document.getElementById('frontendFileInfo');
+            
+            if (frontendFilePicker && frontendFileInfo) {
+                frontendFilePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        frontendFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+                        frontendFileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        frontendFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        frontendFileInfo.classList.add('has-files');
+                    } else {
+                        frontendFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
+                        frontendFileInfo.classList.add('has-files');
                     }
                 });
             }
