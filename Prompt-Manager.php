@@ -3454,6 +3454,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-wrap: wrap;
         }
         
+        .dash-db-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #fbbf24;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
         .dash-db-separator {
             width: 1px;
             height: 24px;
@@ -6305,6 +6313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Database Connection Widget -->
                     <div class="dash-db-widget" id="databaseSelector">
                         <div class="dash-db-tools">
+                            <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
                             <div class="dash-db-dropdown-wrap">
                                 <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                     <option value="">-- Select Connection --</option>
