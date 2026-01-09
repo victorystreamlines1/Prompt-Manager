@@ -3774,6 +3774,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.1) !important;
         }
         
+        /* Generate Button - Shiny Green */
+        .dash-generate-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .dash-generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .dash-generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .dash-generate-btn:hover::before {
+            left: 100%;
+        }
+        
+        .dash-generate-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+        }
+        
+        .dash-generate-btn i {
+            font-size: 0.9rem;
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -6605,6 +6656,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea class="dash-backend-prompt dash-frontend-prompt" id="frontendPromptArea" placeholder="Prompt..."></textarea>
                                 </div>
                             </div>
+                            <div class="dash-db-separator"></div>
+                            <button type="button" class="dash-generate-btn" id="dashGenerateBtn">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate</span>
+                            </button>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
                             <span>No databases found</span>
