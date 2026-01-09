@@ -3449,7 +3449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .dash-db-tools {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 0.5rem;
             flex-wrap: wrap;
         }
@@ -3534,6 +3534,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
             border-color: rgba(16, 185, 129, 0.25);
             color: #10b981;
+            align-self: flex-end;
+            margin-bottom: 6px;
         }
         .dash-arrow-btn.generate-arrow:hover {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
@@ -3541,20 +3543,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #34d399;
         }
         
-        /* Generate Checkbox */
-        .dash-generate-check {
-            width: 18px;
-            height: 18px;
-            accent-color: #10b981;
-            cursor: pointer;
-            border-radius: 4px;
-        }
         
         .dash-db-separator {
             width: 1px;
-            height: 24px;
+            height: 32px;
             background: rgba(251, 191, 36, 0.2);
             margin: 0 0.25rem;
+            align-self: flex-end;
+            margin-bottom: 4px;
         }
 
         .dash-db-label-old {
@@ -3730,7 +3726,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dash-backend-group {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.3rem;
+            align-self: flex-start;
         }
         
         .dash-backend-label {
@@ -3741,6 +3738,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
             color: #06b6d4;
             padding-left: 0.1rem;
+            height: 18px;
+            line-height: 18px;
         }
         
         .dash-backend-label i {
@@ -3886,6 +3885,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            align-self: flex-end;
+            margin-bottom: 2px;
         }
         
         .dash-generate-btn::before {
@@ -6763,7 +6764,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="dash-db-separator"></div>
-                            <input type="checkbox" class="dash-generate-check" id="generateMainCheckbox">
                             <button type="button" class="dash-arrow-btn generate-arrow" title="Insert to prompt">
                                 <i class="fas fa-chevron-down"></i>
                             </button>
