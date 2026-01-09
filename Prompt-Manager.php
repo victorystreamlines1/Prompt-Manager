@@ -3638,6 +3638,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
         
+        /* Backend Group with Label */
+        .dash-backend-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        
+        .dash-backend-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #06b6d4;
+            padding-left: 0.1rem;
+        }
+        
+        .dash-backend-label i {
+            font-size: 0.65rem;
+        }
+        
+        .dash-backend-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -6373,9 +6400,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="dev-tab active" data-tab="database">
                                 <i class="fas fa-database"></i> Database
                             </span>
-                            <span class="dev-tab" data-tab="files">
-                                <i class="fas fa-file-code"></i> Files
-                            </span>
                         </div>
                     </div>
                     <div class="dev-dashboard-status">
@@ -6410,16 +6434,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span><i class="fas fa-server"></i> Localhost</span>
                             </label>
                             <div class="dash-db-separator"></div>
-                            <label class="dash-file-input-wrap" title="Choose Files">
-                                <input type="file" id="dashFilePicker" multiple accept="*/*">
-                                <div class="dash-file-btn">
-                                    <i class="fas fa-folder-open"></i>
-                                    <span>Files</span>
+                            <div class="dash-backend-group">
+                                <span class="dash-backend-label">
+                                    <i class="fas fa-file-code"></i> Backend
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="dashFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="dashFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
                                 </div>
-                            </label>
-                            <div class="dash-file-info" id="dashFileInfo">
-                                <i class="fas fa-paperclip"></i>
-                                <span>None</span>
                             </div>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
