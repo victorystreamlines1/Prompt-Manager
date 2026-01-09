@@ -6805,7 +6805,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="dash-db-separator"></div>
-                            <button type="button" class="dash-arrow-btn generate-arrow" title="Insert to prompt">
+                            <button type="button" class="dash-arrow-btn generate-arrow" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
                                 <i class="fas fa-chevron-down"></i>
                             </button>
                             <button type="button" class="dash-generate-btn" id="dashGenerateBtn">
