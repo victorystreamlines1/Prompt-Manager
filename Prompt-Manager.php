@@ -3402,9 +3402,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dev-dashboard-content {
-            min-height: 80px;
-            padding: 1.25rem 1.5rem;
+            min-height: 60px;
+            padding: 1rem 1.5rem;
             background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
+        }
+
+        /* Dashboard Database Widget */
+        .dash-db-widget {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .dash-db-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fbbf24;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .dash-db-label i {
+            font-size: 1rem;
+        }
+
+        .dash-db-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .dash-db-dropdown-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 320px;
+        }
+
+        .dash-db-dropdown {
+            width: 100%;
+            padding: 0.6rem 2.5rem 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            appearance: none;
+        }
+
+        .dash-db-dropdown:hover {
+            border-color: rgba(251, 191, 36, 0.5);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+        }
+
+        .dash-db-dropdown:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .dash-db-dropdown option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        .dash-db-dropdown-wrap i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fbbf24;
+            font-size: 0.7rem;
+            pointer-events: none;
+        }
+
+        .dash-db-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+        }
+
+        .dash-db-btn.refresh {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 184, 148, 0.1) 100%);
+            color: #00d4aa;
+        }
+
+        .dash-db-btn.refresh:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 184, 148, 0.2) 100%);
+            transform: rotate(180deg);
+        }
+
+        .dash-db-btn.refresh.spinning i {
+            animation: dbRefreshSpin 0.8s linear infinite;
+        }
+
+        .dash-db-btn.manage {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+            color: #a78bfa;
+        }
+
+        .dash-db-btn.manage:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
+            transform: rotate(90deg);
+        }
+
+        .dash-db-creds {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .dash-cred-btn {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .dash-cred-btn input {
+            display: none;
+        }
+
+        .dash-cred-btn span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.85rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .dash-cred-btn:hover span {
+            border-color: rgba(251, 191, 36, 0.4);
+            color: var(--text-secondary);
+        }
+
+        .dash-cred-btn.remote input:checked + span {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .dash-cred-btn.localhost input:checked + span {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .dash-db-empty {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #fca5a5;
+        }
+
+        .dash-db-empty a {
+            color: #fbbf24;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .dash-db-empty a:hover {
+            text-decoration: underline;
         }
 
         .saved-header {
@@ -5819,51 +6005,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="sidebar-content">
-                <!-- Database Selector -->
-                <div class="database-selector" id="databaseSelector">
-                    <div class="db-selector-header">
-                        <i class="fas fa-database"></i> Hostinger Database
-                        <button type="button" class="db-manage-btn" onclick="openDbManager()" title="Manage Databases">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                    </div>
-                    <!-- Dropdown Row -->
-                    <div class="db-dropdown-row" id="dbSelectorRow">
-                        <div class="db-dropdown-wrapper" style="flex: 1;">
-                            <select class="db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
-                                <option value="">-- Select Database --</option>
-                            </select>
-                            <i class="fas fa-chevron-down db-dropdown-arrow"></i>
-                        </div>
-                        <button type="button" class="db-refresh-btn" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh Database List">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                    <!-- Credentials Checkboxes Row -->
-                    <div class="db-credentials-row" id="dbCredentialsRow">
-                        <!-- Remote Checkbox -->
-                        <label class="db-cred-option remote" title="Use for external connections (AI IDEs, local dev)">
-                            <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
-                            <div class="db-cred-box">
-                                <i class="fas fa-globe"></i>
-                                <span>Remote</span>
-                            </div>
-                        </label>
-                        <!-- Localhost Checkbox -->
-                        <label class="db-cred-option localhost" title="Use when code runs on Hostinger server (faster)">
-                            <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
-                            <div class="db-cred-box">
-                                <i class="fas fa-server"></i>
-                                <span>Localhost</span>
-                            </div>
-                        </label>
-                    </div>
-                    <div class="db-no-connections" id="dbNoConnections" style="display: none;">
-                        No databases found.<br>
-                        <a href="javascript:void(0)" onclick="openDbManager()">Add Database →</a>
-                    </div>
-                </div>
-                
                 <!-- File Upload -->
                 <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
                 
@@ -6034,7 +6175,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="dev-dashboard-content" id="devDashboardContent">
-                    <!-- Dashboard content will go here -->
+                    <!-- Database Connection Widget -->
+                    <div class="dash-db-widget" id="databaseSelector">
+                        <div class="dash-db-label">
+                            <i class="fas fa-database"></i>
+                            <span>Database</span>
+                        </div>
+                        <div class="dash-db-controls">
+                            <div class="dash-db-dropdown-wrap">
+                                <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
+                                    <option value="">-- Select Connection --</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                        <div class="dash-db-creds">
+                            <label class="dash-cred-btn remote" title="Append Remote Credentials">
+                                <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
+                                <span><i class="fas fa-globe"></i> Remote</span>
+                            </label>
+                            <label class="dash-cred-btn localhost" title="Append Localhost Credentials">
+                                <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
+                                <span><i class="fas fa-server"></i> Localhost</span>
+                            </label>
+                        </div>
+                        <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
+                            <span>No databases found</span>
+                            <a href="javascript:void(0)" onclick="openDbManager()">+ Add</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             
