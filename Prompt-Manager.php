@@ -3686,6 +3686,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
+            /* Hide default browser scrollbar */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        /* Hide default scrollbar for saved-list (Chrome, Safari, Opera) */
+        .saved-list::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
         }
 
         .saved-list:empty::after {
