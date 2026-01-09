@@ -669,7 +669,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Manager - AI Prompt Generator</title>
     <link rel="icon" type="image/png" href="logoPM.png">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -3323,6 +3323,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(139, 92, 246, 0.15);
         }
 
+        /* Development Dashboard Section */
+        .dev-dashboard-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .dev-dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+        }
+
+        .dev-dashboard-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .dev-dashboard-title .dev-icon {
+            font-size: 1.2rem;
+            animation: devIconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes devIconPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .dev-dashboard-title .dev-text {
+            font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
+            font-size: 1.4rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        .dev-dashboard-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 20px;
+        }
+
+        .dev-dashboard-status .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: statusBlink 2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dev-dashboard-status .status-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #22c55e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dev-dashboard-content {
+            min-height: 80px;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
+        }
+
         .saved-header {
             display: flex;
             align-items: center;
@@ -5934,6 +6018,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
                     <i class="fas fa-grip-lines"></i>
+                </div>
+            </div>
+            
+            <!-- Development Dashboard -->
+            <div class="dev-dashboard-section">
+                <div class="dev-dashboard-header">
+                    <div class="dev-dashboard-title">
+                        <span class="dev-icon">⚡</span>
+                        <span class="dev-text">Development Dashboard</span>
+                    </div>
+                    <div class="dev-dashboard-status">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Ready</span>
+                    </div>
+                </div>
+                <div class="dev-dashboard-content" id="devDashboardContent">
+                    <!-- Dashboard content will go here -->
                 </div>
             </div>
             
