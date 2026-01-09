@@ -3403,6 +3403,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.5px;
         }
 
+        .dev-dashboard-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .dash-reset-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dash-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            transform: rotate(-180deg);
+        }
+        
         .dev-dashboard-status {
             display: flex;
             align-items: center;
@@ -6651,9 +6679,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="dev-text">Development Dashboard</span>
                         </div>
                     </div>
-                    <div class="dev-dashboard-status">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Ready</span>
+                    <div class="dev-dashboard-actions">
+                        <button type="button" class="dash-reset-btn" id="dashResetBtn" onclick="resetDashboard()" title="Reset Dashboard">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <div class="dev-dashboard-status">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Ready</span>
+                        </div>
                     </div>
                 </div>
                 <div class="dev-dashboard-content" id="devDashboardContent">
@@ -8721,8 +8754,158 @@ ${item.html_code || ''}
             }
         }
 
+        // Development Dashboard LocalStorage
+        const DASHBOARD_STORAGE_KEY = 'devDashboardSettings';
+        
+        // Save dashboard settings to localStorage
+        function saveDashboardSettings() {
+            const settings = {
+                // Checkboxes
+                dbMainCheckbox: document.getElementById('dbMainCheckbox')?.checked || false,
+                dbCredentialsCheckbox: document.getElementById('dbCredentialsCheckbox')?.checked || false,
+                dbLocalhostCheckbox: document.getElementById('dbLocalhostCheckbox')?.checked || false,
+                backendMainCheckbox: document.getElementById('backendMainCheckbox')?.checked || false,
+                pageMainCheckbox: document.getElementById('pageMainCheckbox')?.checked || false,
+                frontendMainCheckbox: document.getElementById('frontendMainCheckbox')?.checked || false,
+                
+                // Database dropdown
+                dbDropdown: document.getElementById('dbDropdown')?.value || '',
+                
+                // Textareas
+                backendPromptArea: document.getElementById('backendPromptArea')?.value || '',
+                pagePromptArea: document.getElementById('pagePromptArea')?.value || '',
+                frontendPromptArea: document.getElementById('frontendPromptArea')?.value || ''
+            };
+            
+            localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(settings));
+        }
+        
+        // Load dashboard settings from localStorage
+        function loadDashboardSettings() {
+            const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+            if (!saved) return;
+            
+            try {
+                const settings = JSON.parse(saved);
+                
+                // Restore checkboxes
+                const dbMainCheckbox = document.getElementById('dbMainCheckbox');
+                if (dbMainCheckbox) dbMainCheckbox.checked = settings.dbMainCheckbox || false;
+                
+                const dbCredentialsCheckbox = document.getElementById('dbCredentialsCheckbox');
+                if (dbCredentialsCheckbox) dbCredentialsCheckbox.checked = settings.dbCredentialsCheckbox || false;
+                
+                const dbLocalhostCheckbox = document.getElementById('dbLocalhostCheckbox');
+                if (dbLocalhostCheckbox) dbLocalhostCheckbox.checked = settings.dbLocalhostCheckbox || false;
+                
+                const backendMainCheckbox = document.getElementById('backendMainCheckbox');
+                if (backendMainCheckbox) backendMainCheckbox.checked = settings.backendMainCheckbox || false;
+                
+                const pageMainCheckbox = document.getElementById('pageMainCheckbox');
+                if (pageMainCheckbox) pageMainCheckbox.checked = settings.pageMainCheckbox || false;
+                
+                const frontendMainCheckbox = document.getElementById('frontendMainCheckbox');
+                if (frontendMainCheckbox) frontendMainCheckbox.checked = settings.frontendMainCheckbox || false;
+                
+                // Restore database dropdown (after options are loaded)
+                if (settings.dbDropdown) {
+                    setTimeout(() => {
+                        const dbDropdown = document.getElementById('dbDropdown');
+                        if (dbDropdown) {
+                            dbDropdown.value = settings.dbDropdown;
+                        }
+                    }, 1000);
+                }
+                
+                // Restore textareas
+                const backendPromptArea = document.getElementById('backendPromptArea');
+                if (backendPromptArea) backendPromptArea.value = settings.backendPromptArea || '';
+                
+                const pagePromptArea = document.getElementById('pagePromptArea');
+                if (pagePromptArea) pagePromptArea.value = settings.pagePromptArea || '';
+                
+                const frontendPromptArea = document.getElementById('frontendPromptArea');
+                if (frontendPromptArea) frontendPromptArea.value = settings.frontendPromptArea || '';
+                
+                console.log('✅ Dashboard settings loaded from localStorage');
+            } catch (error) {
+                console.error('Failed to load dashboard settings:', error);
+            }
+        }
+        
+        // Reset dashboard to default
+        function resetDashboard() {
+            if (!confirm('Reset all dashboard settings to default?')) return;
+            
+            // Clear localStorage
+            localStorage.removeItem(DASHBOARD_STORAGE_KEY);
+            
+            // Reset checkboxes
+            document.getElementById('dbMainCheckbox').checked = false;
+            document.getElementById('dbCredentialsCheckbox').checked = false;
+            document.getElementById('dbLocalhostCheckbox').checked = false;
+            document.getElementById('backendMainCheckbox').checked = false;
+            document.getElementById('pageMainCheckbox').checked = false;
+            document.getElementById('frontendMainCheckbox').checked = false;
+            
+            // Reset dropdown
+            document.getElementById('dbDropdown').value = '';
+            
+            // Reset textareas
+            document.getElementById('backendPromptArea').value = '';
+            document.getElementById('pagePromptArea').value = '';
+            document.getElementById('frontendPromptArea').value = '';
+            
+            // Reset file pickers display
+            document.getElementById('dashFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('dashFileInfo').classList.remove('has-files');
+            document.getElementById('pageFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('pageFileInfo').classList.remove('has-files');
+            document.getElementById('frontendFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('frontendFileInfo').classList.remove('has-files');
+            
+            // Reset file inputs
+            document.getElementById('dashFilePicker').value = '';
+            document.getElementById('pageFilePicker').value = '';
+            document.getElementById('frontendFilePicker').value = '';
+            
+            showToast('🔄 Dashboard reset to default', 'info');
+        }
+        
+        // Auto-save on changes
+        function initDashboardAutoSave() {
+            // Checkboxes
+            ['dbMainCheckbox', 'dbCredentialsCheckbox', 'dbLocalhostCheckbox', 
+             'backendMainCheckbox', 'pageMainCheckbox', 'frontendMainCheckbox'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', saveDashboardSettings);
+            });
+            
+            // Dropdown
+            const dbDropdown = document.getElementById('dbDropdown');
+            if (dbDropdown) dbDropdown.addEventListener('change', saveDashboardSettings);
+            
+            // Textareas (debounced)
+            ['backendPromptArea', 'pagePromptArea', 'frontendPromptArea'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    let timeout;
+                    el.addEventListener('input', () => {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(saveDashboardSettings, 500);
+                    });
+                }
+            });
+        }
+
         // Handle file picker change
         document.addEventListener('DOMContentLoaded', function() {
+            // Load saved settings
+            loadDashboardSettings();
+            
+            // Initialize auto-save
+            initDashboardAutoSave();
+            
             // Backend file picker
             const filePicker = document.getElementById('dashFilePicker');
             const fileInfo = document.getElementById('dashFileInfo');
