@@ -3891,9 +3891,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         /* Database Section - Golden Theme - Align with other sections */
         .dash-database-group {
-            padding-top: 0;
-            position: relative;
-            top: 3px;
+            gap: 0.3rem !important;
         }
         
         .dash-database-group .dash-backend-controls {
