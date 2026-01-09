@@ -2148,6 +2148,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             gap: 1.5rem;
             background: var(--gradient-dark);
+            max-width: calc(100vw - 320px);
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        
+        /* Ensure all main content children respect container width */
+        .main-content > * {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Editor Container */
@@ -2159,6 +2168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 16px;
             overflow: visible;
             box-shadow: var(--shadow-card);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .editor-header {
@@ -3280,11 +3292,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            overflow: visible;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             position: relative;
             margin-bottom: 1rem;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .saved-resize-handle {
@@ -3294,6 +3309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .saved-actions-bar {
             padding: 0.5rem 1rem !important;
             border-bottom: none !important;
+            flex-shrink: 0;
         }
 
         /* Development Dashboard Section */
@@ -3304,6 +3320,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow: hidden;
             margin-bottom: 1.5rem;
             position: relative;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .dev-dashboard-header {
@@ -3656,38 +3675,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
+            align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem 0.75rem 0.6rem 0.75rem;
-            overflow-x: scroll;
+            padding: 0.5rem 0.75rem;
+            padding-bottom: 0.4rem;
+            overflow-x: auto;
             overflow-y: hidden;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-        }
-
-        .saved-list::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .saved-list::-webkit-scrollbar-track {
-            background: rgba(99, 102, 241, 0.08);
-            border-radius: 10px;
-        }
-
-        .saved-list::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 10px;
-        }
-
-        .saved-list::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(90deg, #818cf8, #a78bfa);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .saved-list:empty::after {
             content: 'No saved prompts yet';
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-style: italic;
-            padding: 0.5rem;
+            white-space: nowrap;
+        }
+
+        /* Custom Scrollbar Track - Full Width Bar */
+        .saved-scrollbar-track {
+            width: calc(100% - 1.5rem);
+            height: 14px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 7px;
+            margin: 0.25rem 0.75rem 0.5rem 0.75rem;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            box-sizing: border-box;
+        }
+
+        .saved-scrollbar-thumb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 80px;
+            min-width: 50px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 6px;
+            cursor: grab;
+            transition: background 0.2s, box-shadow 0.2s, left 0.1s ease-out;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .saved-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #818cf8, #a78bfa);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+            transform: scaleY(1.2);
+        }
+
+        .saved-scrollbar-thumb:active,
+        .saved-scrollbar-thumb.dragging {
+            cursor: grabbing;
+            background: linear-gradient(90deg, #a5b4fc, #c4b5fd);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+            transform: scaleY(1.3);
         }
 
         .saved-item {
@@ -4849,6 +4901,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 width: 280px;
                 min-width: 280px;
             }
+            
+            .main-content {
+                max-width: calc(100vw - 280px);
+            }
         }
 
         @media (max-width: 768px) {
@@ -4866,6 +4922,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             .main-content {
                 padding: 1rem;
+                max-width: 100vw;
             }
 
             .editor-actions {
@@ -4909,6 +4966,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 1rem;
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .dictionary-header {
@@ -6163,8 +6223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="saved-list" id="savedList">
                     <!-- Saved prompts will be loaded here -->
                 </div>
-                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
-                    <i class="fas fa-grip-lines"></i>
+                <div class="saved-scrollbar-track" id="savedScrollbarTrack">
+                    <div class="saved-scrollbar-thumb" id="savedScrollbarThumb"></div>
                 </div>
             </div>
             
@@ -11432,6 +11492,7 @@ ${item.html_code || ''}
                         </div>
                     `;
                     updateSavedCounter();
+                    setTimeout(updateSavedScrollbar, 100);
                 }
             } catch (err) {
                 console.error('Error loading prompts:', err);
@@ -11499,6 +11560,9 @@ ${item.html_code || ''}
             }).join('');
             
             updateSavedCounter();
+            
+            // Update scrollbar after content change
+            setTimeout(updateSavedScrollbar, 100);
         }
         
         // Escape HTML for display (without breaking newlines)
@@ -11549,6 +11613,158 @@ ${item.html_code || ''}
             updateSelectAllSavedCheckbox();
             recordHistoryState(true); // Record saved prompt toggle in history
         }
+        
+        // Custom Scrollbar for Saved Prompts
+        let savedScrollbar = {
+            list: null,
+            track: null,
+            thumb: null,
+            isDragging: false,
+            startX: 0,
+            startScrollLeft: 0
+        };
+        
+        function updateSavedScrollbar() {
+            const list = savedScrollbar.list || document.getElementById('savedList');
+            const track = savedScrollbar.track || document.getElementById('savedScrollbarTrack');
+            const thumb = savedScrollbar.thumb || document.getElementById('savedScrollbarThumb');
+            
+            if (!list || !track || !thumb) return;
+            
+            // Store references
+            savedScrollbar.list = list;
+            savedScrollbar.track = track;
+            savedScrollbar.thumb = thumb;
+            
+            // Wait a frame for proper dimensions
+            requestAnimationFrame(() => {
+                const listWidth = list.scrollWidth;
+                const viewWidth = list.clientWidth;
+                const trackWidth = track.clientWidth;
+                
+                console.log('Scrollbar update:', { listWidth, viewWidth, trackWidth });
+                
+                // Check if scrolling is needed
+                if (listWidth <= viewWidth || listWidth === 0 || trackWidth === 0) {
+                    track.style.opacity = '0.3';
+                    thumb.style.width = '100%';
+                    thumb.style.left = '0px';
+                    return;
+                }
+                
+                track.style.opacity = '1';
+                
+                // Calculate thumb width (proportional to visible area)
+                const ratio = viewWidth / listWidth;
+                const thumbWidth = Math.max(60, Math.min(trackWidth - 20, ratio * trackWidth));
+                thumb.style.width = thumbWidth + 'px';
+                
+                // Calculate thumb position
+                const maxScroll = listWidth - viewWidth;
+                const scrollRatio = maxScroll > 0 ? (list.scrollLeft / maxScroll) : 0;
+                const maxThumbLeft = trackWidth - thumbWidth;
+                const thumbLeft = Math.max(0, Math.min(maxThumbLeft, scrollRatio * maxThumbLeft));
+                thumb.style.left = thumbLeft + 'px';
+            });
+        }
+        
+        (function initSavedScrollbar() {
+            document.addEventListener('DOMContentLoaded', () => {
+                const list = document.getElementById('savedList');
+                const track = document.getElementById('savedScrollbarTrack');
+                const thumb = document.getElementById('savedScrollbarThumb');
+                
+                if (!list || !track || !thumb) return;
+                
+                savedScrollbar.list = list;
+                savedScrollbar.track = track;
+                savedScrollbar.thumb = thumb;
+                
+                // Sync list scroll when dragging thumb
+                function onThumbMouseDown(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    savedScrollbar.isDragging = true;
+                    savedScrollbar.startX = e.clientX;
+                    savedScrollbar.startScrollLeft = list.scrollLeft;
+                    thumb.classList.add('dragging');
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'grabbing';
+                }
+                
+                function onMouseMove(e) {
+                    if (!savedScrollbar.isDragging) return;
+                    
+                    const deltaX = e.clientX - savedScrollbar.startX;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const maxThumbLeft = trackWidth - thumbWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxThumbLeft > 0) {
+                        const scrollDelta = (deltaX / maxThumbLeft) * maxScroll;
+                        list.scrollLeft = savedScrollbar.startScrollLeft + scrollDelta;
+                    }
+                }
+                
+                function onMouseUp() {
+                    if (savedScrollbar.isDragging) {
+                        savedScrollbar.isDragging = false;
+                        thumb.classList.remove('dragging');
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                    }
+                }
+                
+                // Click on track to jump
+                function onTrackClick(e) {
+                    if (e.target === thumb) return;
+                    
+                    const trackRect = track.getBoundingClientRect();
+                    const clickX = e.clientX - trackRect.left;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxScroll <= 0) return;
+                    
+                    const targetRatio = Math.max(0, Math.min(1, (clickX - thumbWidth / 2) / (trackWidth - thumbWidth)));
+                    const targetScroll = targetRatio * maxScroll;
+                    
+                    list.scrollTo({
+                        left: targetScroll,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                // Event listeners
+                thumb.addEventListener('mousedown', onThumbMouseDown);
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                track.addEventListener('click', onTrackClick);
+                
+                // Update on list scroll
+                list.addEventListener('scroll', updateSavedScrollbar);
+                
+                // Update on window resize
+                window.addEventListener('resize', updateSavedScrollbar);
+                
+                // Initial update with delays
+                setTimeout(updateSavedScrollbar, 200);
+                setTimeout(updateSavedScrollbar, 500);
+                setTimeout(updateSavedScrollbar, 1000);
+                
+                // MutationObserver for content changes
+                const observer = new MutationObserver(() => {
+                    setTimeout(updateSavedScrollbar, 50);
+                });
+                observer.observe(list, { childList: true, subtree: true });
+            });
+        })();
         
         // Rebuild editor from active saved prompts
         function rebuildEditorFromSaved() {
