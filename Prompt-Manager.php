@@ -912,6 +912,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .db-selector-header {
             font-size: 0.7rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #fbbf24;
@@ -923,6 +926,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .db-selector-header i {
             color: #fbbf24;
+        }
+
+        .db-manage-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            font-size: 0.7rem;
+        }
+
+        .db-manage-btn:hover {
+            background: rgba(251, 191, 36, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .db-manage-btn i {
+            font-size: 0.7rem;
         }
 
         .db-selector-row {
@@ -5672,6 +5699,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="database-selector" id="databaseSelector">
                     <div class="db-selector-header">
                         <i class="fas fa-database"></i> Hostinger Database
+                        <button type="button" class="db-manage-btn" onclick="openDbManager()" title="Manage Databases">
+                            <i class="fas fa-cog"></i>
+                        </button>
                     </div>
                     <!-- Dropdown Row -->
                     <div class="db-dropdown-row" id="dbSelectorRow">
@@ -5703,7 +5733,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="db-no-connections" id="dbNoConnections" style="display: none;">
                         No databases found.<br>
-                        <a href="PHP-Dashboard.php" target="_blank">Add in Dashboard →</a>
+                        <a href="javascript:void(0)" onclick="openDbManager()">Add Database →</a>
                     </div>
                 </div>
                 
@@ -12252,6 +12282,243 @@ ${item.html_code || ''}
 }
 </style>
 <!-- End Back to Catalog Button -->
+
+<!-- Database Manager Modal -->
+<div id="dbManagerModal" class="db-manager-modal" onclick="if(event.target === this) closeDbManager()">
+    <div class="db-manager-container">
+        <div class="db-manager-header">
+            <div class="db-manager-title">
+                <i class="fas fa-database"></i>
+                <span>Database Manager</span>
+            </div>
+            <div class="db-manager-actions">
+                <button type="button" class="db-manager-refresh" onclick="refreshDbManagerFrame()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button type="button" class="db-manager-close" onclick="closeDbManager()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="db-manager-body">
+            <iframe id="dbManagerFrame" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Database Manager Modal */
+.db-manager-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    animation: dbModalFadeIn 0.3s ease;
+}
+
+@keyframes dbModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.db-manager-modal.active {
+    display: flex;
+}
+
+.db-manager-container {
+    width: 100%;
+    max-width: 1400px;
+    height: 90vh;
+    background: linear-gradient(135deg, #0a0e17 0%, #111827 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(0, 212, 170, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dbModalSlideIn 0.4s ease;
+}
+
+@keyframes dbModalSlideIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.9) translateY(30px);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0);
+    }
+}
+
+.db-manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+    border-bottom: 1px solid rgba(0, 212, 170, 0.2);
+}
+
+.db-manager-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00d4aa;
+}
+
+.db-manager-title i {
+    font-size: 1.4rem;
+}
+
+.db-manager-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.db-manager-refresh,
+.db-manager-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+}
+
+.db-manager-refresh {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.db-manager-refresh:hover {
+    background: rgba(0, 212, 170, 0.3);
+    transform: rotate(180deg);
+}
+
+.db-manager-close {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.db-manager-close:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: scale(1.1);
+}
+
+.db-manager-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.db-manager-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #0a0e17;
+}
+
+/* Loading state */
+.db-manager-body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+    border: 4px solid rgba(0, 212, 170, 0.2);
+    border-top-color: #00d4aa;
+    border-radius: 50%;
+    animation: dbSpinner 0.8s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.db-manager-body.loaded::before {
+    display: none;
+}
+
+@keyframes dbSpinner {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+// Database Manager Modal Functions
+function openDbManager() {
+    const modal = document.getElementById('dbManagerModal');
+    const iframe = document.getElementById('dbManagerFrame');
+    const body = document.querySelector('.db-manager-body');
+    
+    // Remove loaded class to show spinner
+    body.classList.remove('loaded');
+    
+    // Load the iframe
+    iframe.src = 'report-prompt-databases.php';
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Mark as loaded when iframe loads
+    iframe.onload = function() {
+        body.classList.add('loaded');
+    };
+}
+
+function closeDbManager() {
+    const modal = document.getElementById('dbManagerModal');
+    const iframe = document.getElementById('dbManagerFrame');
+    
+    // Hide modal
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Clear iframe to stop any processes
+    iframe.src = '';
+    
+    // Refresh the database dropdown after closing (in case user added/modified databases)
+    loadHostingerDatabases();
+}
+
+function refreshDbManagerFrame() {
+    const iframe = document.getElementById('dbManagerFrame');
+    const body = document.querySelector('.db-manager-body');
+    
+    // Show spinner
+    body.classList.remove('loaded');
+    
+    // Reload iframe
+    iframe.src = iframe.src;
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('dbManagerModal');
+        if (modal.classList.contains('active')) {
+            closeDbManager();
+        }
+    }
+});
+</script>
+<!-- End Database Manager Modal -->
+
 </body>
 </html>
 
