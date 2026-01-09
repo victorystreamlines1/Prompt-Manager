@@ -3637,6 +3637,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dash-db-empty a:hover {
             text-decoration: underline;
         }
+        
+        /* File Picker - Inline Style */
+        .dash-file-input-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .dash-file-input-wrap input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .dash-file-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.45rem 0.7rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.25);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+        
+        .dash-file-btn i {
+            font-size: 0.75rem;
+        }
+        
+        .dash-file-input-wrap:hover .dash-file-btn {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+        
+        .dash-file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.6rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            max-width: 120px;
+            overflow: hidden;
+        }
+        
+        .dash-file-info i {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            color: #06b6d4;
+        }
+        
+        .dash-file-info span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .dash-file-info.has-files {
+            color: #22d3ee;
+            border-color: rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.08);
+        }
 
         /* Responsive for smaller screens */
         @media (max-width: 900px) {
@@ -6302,6 +6373,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="dev-tab active" data-tab="database">
                                 <i class="fas fa-database"></i> Database
                             </span>
+                            <span class="dev-tab" data-tab="files">
+                                <i class="fas fa-file-code"></i> Files
+                            </span>
                         </div>
                     </div>
                     <div class="dev-dashboard-status">
@@ -6335,6 +6409,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
                                 <span><i class="fas fa-server"></i> Localhost</span>
                             </label>
+                            <div class="dash-db-separator"></div>
+                            <label class="dash-file-input-wrap" title="Choose Files">
+                                <input type="file" id="dashFilePicker" multiple accept="*/*">
+                                <div class="dash-file-btn">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Files</span>
+                                </div>
+                            </label>
+                            <div class="dash-file-info" id="dashFileInfo">
+                                <i class="fas fa-paperclip"></i>
+                                <span>None</span>
+                            </div>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
                             <span>No databases found</span>
@@ -8284,6 +8370,28 @@ ${item.html_code || ''}
                 }, 500);
             }
         }
+
+        // Handle file picker change
+        document.addEventListener('DOMContentLoaded', function() {
+            const filePicker = document.getElementById('dashFilePicker');
+            const fileInfo = document.getElementById('dashFileInfo');
+            
+            if (filePicker && fileInfo) {
+                filePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        fileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>No files selected</span>';
+                        fileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        fileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        fileInfo.classList.add('has-files');
+                    } else {
+                        fileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files selected</span>`;
+                        fileInfo.classList.add('has-files');
+                    }
+                });
+            }
+        });
 
         // Handle database selection change
         function onDatabaseSelect() {
