@@ -952,6 +952,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.7rem;
         }
 
+        /* Database Refresh Button */
+        .db-refresh-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 184, 148, 0.1) 100%);
+            color: #00d4aa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .db-refresh-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 184, 148, 0.2) 100%);
+            transform: rotate(180deg);
+            box-shadow: 0 0 15px rgba(0, 212, 170, 0.3);
+        }
+
+        .db-refresh-btn:active {
+            transform: rotate(360deg) scale(0.95);
+        }
+
+        .db-refresh-btn.spinning i {
+            animation: dbRefreshSpin 0.8s linear infinite;
+        }
+
+        @keyframes dbRefreshSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .db-refresh-btn i {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
         .db-selector-row {
             display: flex;
             align-items: center;
@@ -5711,6 +5751,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                             <i class="fas fa-chevron-down db-dropdown-arrow"></i>
                         </div>
+                        <button type="button" class="db-refresh-btn" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh Database List">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                     <!-- Credentials Checkboxes Row -->
                     <div class="db-credentials-row" id="dbCredentialsRow">
@@ -7761,6 +7804,75 @@ ${item.html_code || ''}
                 });
                 
                 console.log('⚠️ Using localStorage fallback');
+            }
+        }
+
+        // Manual refresh database list with visual feedback
+        async function refreshDatabaseList() {
+            const refreshBtn = document.getElementById('dbRefreshBtn');
+            const dropdown = document.getElementById('dbDropdown');
+            
+            // Prevent double-clicking
+            if (refreshBtn.classList.contains('spinning')) return;
+            
+            // Add spinning animation
+            refreshBtn.classList.add('spinning');
+            
+            // Store current selection
+            const currentSelection = dropdown.value;
+            
+            try {
+                // Force fresh fetch (bypass any cache)
+                const response = await fetch(DATABASE_HUB_API + '&_t=' + Date.now());
+                const data = await response.json();
+                
+                // Clear existing options
+                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                
+                const selectorRow = document.getElementById('dbSelectorRow');
+                const noConnections = document.getElementById('dbNoConnections');
+                
+                if (data.success && data.connections && data.connections.length > 0) {
+                    selectorRow.style.display = 'flex';
+                    noConnections.style.display = 'none';
+                    
+                    // Add database options
+                    data.connections.forEach(conn => {
+                        const option = document.createElement('option');
+                        option.value = conn.id;
+                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                        option.dataset.host = conn.host;
+                        option.dataset.dbname = conn.dbName;
+                        option.dataset.username = conn.username;
+                        option.dataset.password = conn.password || '';
+                        option.dataset.port = conn.port || '3306';
+                        option.dataset.type = conn.type || 'shared';
+                        dropdown.appendChild(option);
+                    });
+                    
+                    // Restore previous selection if still exists
+                    if (currentSelection) {
+                        const stillExists = Array.from(dropdown.options).some(opt => opt.value === currentSelection);
+                        if (stillExists) {
+                            dropdown.value = currentSelection;
+                        }
+                    }
+                    
+                    showToast(`🔄 Refreshed! ${data.connections.length} database(s) loaded`, 'success');
+                } else {
+                    selectorRow.style.display = 'none';
+                    noConnections.style.display = 'block';
+                    showToast('📭 No databases found', 'info');
+                }
+                
+            } catch (error) {
+                console.error('Refresh error:', error);
+                showToast('❌ Failed to refresh databases', 'error');
+            } finally {
+                // Remove spinning animation after a minimum delay for visual feedback
+                setTimeout(() => {
+                    refreshBtn.classList.remove('spinning');
+                }, 500);
             }
         }
 
