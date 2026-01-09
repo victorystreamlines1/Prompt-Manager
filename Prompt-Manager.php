@@ -1038,6 +1038,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
 
+        /* Database Dropdown Row */
+        .db-dropdown-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        /* Credentials Checkboxes Row */
+        .db-credentials-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .db-cred-option {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .db-cred-option input {
+            display: none;
+        }
+
+        .db-cred-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.6rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.25s ease;
+        }
+
+        .db-cred-box i {
+            font-size: 0.8rem;
+        }
+
+        .db-cred-option:hover .db-cred-box {
+            border-color: rgba(251, 191, 36, 0.5);
+            background: rgba(251, 191, 36, 0.08);
+            color: var(--text-secondary);
+        }
+
+        /* Remote checkbox active state - Blue */
+        .db-cred-option.remote input:checked + .db-cred-box {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .db-cred-option.remote input:checked + .db-cred-box i {
+            color: white;
+        }
+
+        /* Localhost checkbox active state - Green */
+        .db-cred-option.localhost input:checked + .db-cred-box {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 0 3px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .db-cred-option.localhost input:checked + .db-cred-box i {
+            color: white;
+        }
+
         /* File Upload Area */
         /* Two-Level File Picker */
         .file-picker-container {
@@ -5601,19 +5673,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="db-selector-header">
                         <i class="fas fa-database"></i> Hostinger Database
                     </div>
-                    <div class="db-selector-row" id="dbSelectorRow">
-                        <label class="db-checkbox-wrapper">
-                            <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials()">
-                            <div class="db-checkbox-box">
-                                <i class="fas fa-check"></i>
-                            </div>
-                        </label>
-                        <div class="db-dropdown-wrapper">
+                    <!-- Dropdown Row -->
+                    <div class="db-dropdown-row" id="dbSelectorRow">
+                        <div class="db-dropdown-wrapper" style="flex: 1;">
                             <select class="db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                 <option value="">-- Select Database --</option>
                             </select>
                             <i class="fas fa-chevron-down db-dropdown-arrow"></i>
                         </div>
+                    </div>
+                    <!-- Credentials Checkboxes Row -->
+                    <div class="db-credentials-row" id="dbCredentialsRow">
+                        <!-- Remote Checkbox -->
+                        <label class="db-cred-option remote" title="Use for external connections (AI IDEs, local dev)">
+                            <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
+                            <div class="db-cred-box">
+                                <i class="fas fa-globe"></i>
+                                <span>Remote</span>
+                            </div>
+                        </label>
+                        <!-- Localhost Checkbox -->
+                        <label class="db-cred-option localhost" title="Use when code runs on Hostinger server (faster)">
+                            <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
+                            <div class="db-cred-box">
+                                <i class="fas fa-server"></i>
+                                <span>Localhost</span>
+                            </div>
+                        </label>
                     </div>
                     <div class="db-no-connections" id="dbNoConnections" style="display: none;">
                         No databases found.<br>
@@ -7651,7 +7737,8 @@ ${item.html_code || ''}
         // Handle database selection change
         function onDatabaseSelect() {
             const dropdown = document.getElementById('dbDropdown');
-            const checkbox = document.getElementById('dbCredentialsCheckbox');
+            const remoteCheckbox = document.getElementById('dbCredentialsCheckbox');
+            const localhostCheckbox = document.getElementById('dbLocalhostCheckbox');
             const selectedOption = dropdown.options[dropdown.selectedIndex];
             
             if (dropdown.value && selectedOption.dataset) {
@@ -7666,21 +7753,28 @@ ${item.html_code || ''}
                     type: selectedOption.dataset.type
                 };
                 
-                // If checkbox is checked and dropdown changed, append new credentials (don't replace)
-                if (checkbox.checked) {
-                    appendCredentialsToEditor();
+                // If remote checkbox is checked and dropdown changed, append new remote credentials
+                if (remoteCheckbox.checked) {
+                    appendCredentialsToEditor('remote');
+                }
+                // If localhost checkbox is checked and dropdown changed, append new localhost credentials
+                if (localhostCheckbox.checked) {
+                    appendCredentialsToEditor('localhost');
                 }
             } else {
                 selectedDatabaseConnection = null;
             }
         }
 
-        // Track the last added credentials ID for removal
-        let lastAddedCredentialsId = null;
+        // Track the last added credentials IDs for removal (separate for remote and localhost)
+        let lastAddedRemoteCredId = null;
+        let lastAddedLocalhostCredId = null;
 
         // Toggle database credentials in editor
-        function toggleDatabaseCredentials() {
-            const checkbox = document.getElementById('dbCredentialsCheckbox');
+        function toggleDatabaseCredentials(mode = 'remote') {
+            const checkbox = mode === 'localhost' 
+                ? document.getElementById('dbLocalhostCheckbox')
+                : document.getElementById('dbCredentialsCheckbox');
             const dropdown = document.getElementById('dbDropdown');
             
             if (checkbox.checked) {
@@ -7689,35 +7783,49 @@ ${item.html_code || ''}
                     checkbox.checked = false;
                     return;
                 }
-                appendCredentialsToEditor();
+                appendCredentialsToEditor(mode);
             } else {
-                // Remove only the last added credentials when unchecking
-                if (lastAddedCredentialsId) {
-                    removeCredentialsByIdFromEditor(lastAddedCredentialsId);
-                    lastAddedCredentialsId = null;
+                // Remove only the last added credentials for this mode when unchecking
+                if (mode === 'localhost' && lastAddedLocalhostCredId) {
+                    removeCredentialsByIdFromEditor(lastAddedLocalhostCredId);
+                    lastAddedLocalhostCredId = null;
+                } else if (mode === 'remote' && lastAddedRemoteCredId) {
+                    removeCredentialsByIdFromEditor(lastAddedRemoteCredId);
+                    lastAddedRemoteCredId = null;
                 }
             }
         }
 
         // Append credentials to the END of prompt editor (always append, never replace)
-        function appendCredentialsToEditor() {
+        function appendCredentialsToEditor(mode = 'remote') {
             if (!selectedDatabaseConnection) return;
             
             const editor = document.getElementById('promptEditor');
             const conn = selectedDatabaseConnection;
             
+            // Determine host based on mode
+            const host = mode === 'localhost' ? 'localhost' : conn.host;
+            const modeLabel = mode === 'localhost' ? 'LOCALHOST (ON-SERVER)' : 'REMOTE CONNECTION';
+            const modeIcon = mode === 'localhost' ? '🖥️' : '🌐';
+            
             // Create unique ID for this credentials block
-            const credId = `DB_${conn.id}_${Date.now()}`;
-            lastAddedCredentialsId = credId;
+            const credId = `DB_${mode}_${conn.id}_${Date.now()}`;
+            
+            // Track the credential ID based on mode
+            if (mode === 'localhost') {
+                lastAddedLocalhostCredId = credId;
+            } else {
+                lastAddedRemoteCredId = credId;
+            }
             
             // Create credentials block with ID marker
             const credentialsBlock = `
 <!-- CRED:${credId} -->
 ╔══════════════════════════════════════════════════════════════╗
-║  🗄️  DATABASE CREDENTIALS                                    ║
+║  ${modeIcon}  DATABASE CREDENTIALS - ${modeLabel.padEnd(30)}║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Name:     ${conn.name.padEnd(48)}║
-║  Host:     ${conn.host.padEnd(48)}║
+║  Host:     ${host.padEnd(48)}║
 ║  Database: ${conn.dbName.padEnd(48)}║
 ║  Username: ${conn.username.padEnd(48)}║
 ║  Password: ${conn.password.padEnd(48)}║
@@ -7735,7 +7843,11 @@ ${item.html_code || ''}
             
             updateCounts();
             recordHistoryState(true);
-            showToast(`🗄️ ${conn.name} credentials appended`, 'success');
+            
+            const toastMsg = mode === 'localhost' 
+                ? `🖥️ Localhost credentials appended` 
+                : `🌐 Remote credentials appended`;
+            showToast(toastMsg, 'success');
         }
 
         // Remove specific credentials block by ID
