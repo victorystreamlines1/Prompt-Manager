@@ -1651,7 +1651,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Prompt Checkboxes */
         .prompt-list {
             margin-top: 0;
-            max-height: 400px;
+            max-height: calc(100vh - 480px);
+            min-height: 300px;
             overflow-y: auto;
         }
 
