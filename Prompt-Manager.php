@@ -3702,6 +3702,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1);
         }
         
+        /* Page Section - Purple Theme */
+        .dash-page-label {
+            color: #a78bfa !important;
+        }
+        
+        .dash-page-check {
+            accent-color: #a78bfa !important;
+        }
+        
+        .dash-page-btn {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(167, 139, 250, 0.08) 100%) !important;
+            border-color: rgba(139, 92, 246, 0.25) !important;
+            color: #a78bfa !important;
+        }
+        
+        .dash-file-input-wrap:hover .dash-page-btn {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(167, 139, 250, 0.15) 100%) !important;
+            border-color: rgba(139, 92, 246, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2) !important;
+        }
+        
+        .dash-page-group .dash-file-info i {
+            color: #a78bfa;
+        }
+        
+        .dash-page-group .dash-file-info.has-files {
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.08);
+        }
+        
+        .dash-page-prompt:focus {
+            border-color: rgba(139, 92, 246, 0.5) !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -6491,6 +6527,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea class="dash-backend-prompt" id="backendPromptArea" placeholder="Prompt..."></textarea>
                                 </div>
                             </div>
+                            <div class="dash-db-separator"></div>
+                            <div class="dash-backend-group dash-page-group">
+                                <span class="dash-backend-label dash-page-label">
+                                    <i class="fas fa-window-maximize"></i> Page
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check dash-page-check" id="pageMainCheckbox">
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="pageFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn dash-page-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="pageFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
+                                    <textarea class="dash-backend-prompt dash-page-prompt" id="pagePromptArea" placeholder="Prompt..."></textarea>
+                                </div>
+                            </div>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
                             <span>No databases found</span>
@@ -8443,6 +8500,7 @@ ${item.html_code || ''}
 
         // Handle file picker change
         document.addEventListener('DOMContentLoaded', function() {
+            // Backend file picker
             const filePicker = document.getElementById('dashFilePicker');
             const fileInfo = document.getElementById('dashFileInfo');
             
@@ -8450,14 +8508,34 @@ ${item.html_code || ''}
                 filePicker.addEventListener('change', function() {
                     const files = this.files;
                     if (files.length === 0) {
-                        fileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>No files selected</span>';
+                        fileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
                         fileInfo.classList.remove('has-files');
                     } else if (files.length === 1) {
                         fileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
                         fileInfo.classList.add('has-files');
                     } else {
-                        fileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files selected</span>`;
+                        fileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
                         fileInfo.classList.add('has-files');
+                    }
+                });
+            }
+            
+            // Page file picker
+            const pageFilePicker = document.getElementById('pageFilePicker');
+            const pageFileInfo = document.getElementById('pageFileInfo');
+            
+            if (pageFilePicker && pageFileInfo) {
+                pageFilePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        pageFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+                        pageFileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        pageFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        pageFileInfo.classList.add('has-files');
+                    } else {
+                        pageFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
+                        pageFileInfo.classList.add('has-files');
                     }
                 });
             }
