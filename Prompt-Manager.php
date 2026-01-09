@@ -3275,53 +3275,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-secondary);
         }
 
-        /* Saved Prompts Section */
+        /* Saved Prompts Section - Horizontal Layout */
         .saved-prompts-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            overflow: hidden;
-            height: 220px;
-            min-height: 120px;
-            max-height: 600px;
+            overflow: visible;
             display: flex;
             flex-direction: column;
             position: relative;
+            margin-bottom: 1rem;
         }
 
         .saved-resize-handle {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 12px;
-            background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.1));
-            cursor: ns-resize;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.5;
-            transition: all 0.2s;
-            z-index: 10;
+            display: none;
         }
 
-        .saved-resize-handle:hover {
-            opacity: 1;
-            background: linear-gradient(to bottom, transparent, rgba(139, 92, 246, 0.2));
-        }
-
-        .saved-resize-handle i {
-            font-size: 0.6rem;
-            color: #a78bfa;
-        }
-
-        .saved-prompts-section.resizing {
-            user-select: none;
-        }
-
-        .saved-prompts-section.resizing .saved-resize-handle {
-            opacity: 1;
-            background: rgba(139, 92, 246, 0.15);
+        .saved-actions-bar {
+            padding: 0.5rem 1rem !important;
+            border-bottom: none !important;
         }
 
         /* Development Dashboard Section */
@@ -3403,25 +3375,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dev-dashboard-content {
-            min-height: 60px;
-            padding: 1rem 1.5rem;
+            padding: 0.85rem 1rem;
             background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
         }
 
         /* Dashboard Database Widget */
         .dash-db-widget {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
             align-items: center;
-            gap: 1.25rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
         }
 
         .dash-db-label {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             color: #fbbf24;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -3429,31 +3400,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dash-db-label i {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .dash-db-controls {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-            min-width: 280px;
+            gap: 0.4rem;
         }
 
         .dash-db-dropdown-wrap {
             position: relative;
+            min-width: 180px;
+            max-width: 280px;
             flex: 1;
-            max-width: 320px;
         }
 
         .dash-db-dropdown {
             width: 100%;
-            padding: 0.6rem 2.5rem 0.6rem 1rem;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
             border: 1px solid rgba(251, 191, 36, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             color: var(--text-primary);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-family: 'JetBrains Mono', monospace;
             cursor: pointer;
             transition: all 0.25s ease;
@@ -3479,25 +3449,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dash-db-dropdown-wrap i {
             position: absolute;
-            right: 1rem;
+            right: 0.75rem;
             top: 50%;
             transform: translateY(-50%);
             color: #fbbf24;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             pointer-events: none;
         }
 
         .dash-db-btn {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.25s ease;
             flex-shrink: 0;
+            font-size: 0.8rem;
         }
 
         .dash-db-btn.refresh {
@@ -3526,7 +3497,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dash-db-creds {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .dash-cred-btn {
@@ -3541,12 +3512,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dash-cred-btn span {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.85rem;
+            gap: 0.35rem;
+            padding: 0.45rem 0.7rem;
             background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
             border-radius: 8px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-muted);
             transition: all 0.25s ease;
@@ -3573,8 +3544,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dash-db-empty {
+            grid-column: 1 / -1;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 0.75rem;
             padding: 0.5rem 1rem;
             background: rgba(239, 68, 68, 0.1);
@@ -3594,25 +3567,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
 
+        /* Responsive for smaller screens */
+        @media (max-width: 900px) {
+            .dash-db-widget {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            
+            .dash-db-controls {
+                flex-wrap: wrap;
+            }
+            
+            .dash-db-dropdown-wrap {
+                min-width: 100%;
+            }
+        }
+
         .saved-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.5rem;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
             background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border-color);
         }
 
         .saved-header h3 {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            white-space: nowrap;
         }
 
         .saved-header h3 i {
             color: var(--success);
+            font-size: 0.85rem;
+        }
+
+        .saved-header .search-box {
+            max-width: 200px;
+        }
+
+        .saved-header .search-box input {
+            padding: 0.35rem 0.75rem 0.35rem 2rem;
+            font-size: 0.75rem;
+        }
+
+        .saved-header .search-box i {
+            font-size: 0.7rem;
+            left: 0.65rem;
         }
 
         .search-box {
@@ -3648,40 +3653,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.75rem;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem 0.6rem 0.75rem;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         .saved-list::-webkit-scrollbar {
-            width: 6px;
+            height: 6px;
         }
 
         .saved-list::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
+            background: rgba(99, 102, 241, 0.08);
+            border-radius: 10px;
         }
 
         .saved-list::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+        }
+
+        .saved-list::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #818cf8, #a78bfa);
+        }
+
+        .saved-list:empty::after {
+            content: 'No saved prompts yet';
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-style: italic;
+            padding: 0.5rem;
         }
 
         .saved-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1rem;
-            background: var(--bg-card);
+            gap: 0.4rem;
+            padding: 0.35rem 0.6rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
+            border-radius: 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .saved-item:hover {
             border-color: var(--accent-primary);
-            transform: translateX(5px);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.2);
         }
 
         .saved-icon {
@@ -3813,28 +3839,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
 
-        /* Updated Saved Item - Like Prompt Templates */
-        .saved-item {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-            gap: 0.5rem;
-        }
-
-        .saved-item:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-            transform: translateX(3px);
-        }
-
+        /* Updated Saved Item - Horizontal Pill Style */
         .saved-item.checked {
             border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
 
         .saved-item-checkbox {
@@ -3846,10 +3855,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-checkbox .checkbox-box {
-            width: 22px;
-            height: 22px;
+            width: 16px;
+            height: 16px;
             border: 2px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3859,7 +3868,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-checkbox .checkbox-box i {
-            font-size: 0.7rem;
+            font-size: 0.5rem;
             color: white;
             opacity: 0;
             transform: scale(0);
@@ -3877,41 +3886,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-content {
-            flex: 1;
-            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
             cursor: pointer;
         }
 
         .saved-item-name {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-primary);
+            max-width: 120px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .saved-item-preview {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 2px;
+            display: none;
         }
 
         .saved-item-date {
-            font-size: 0.65rem;
-            color: var(--accent-secondary);
-            margin-top: 2px;
+            display: none;
         }
 
         .saved-item-actions {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
-            opacity: 0.5;
-            transition: opacity 0.2s;
+            opacity: 0;
+            transition: all 0.2s;
         }
 
         .saved-item:hover .saved-item-actions {
@@ -3919,17 +3923,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-action-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
             border: none;
-            background: var(--bg-tertiary);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            font-size: 0.55rem;
             font-size: 0.7rem;
         }
 
@@ -8011,7 +8016,9 @@ ${item.html_code || ''}
         async function loadHostingerDatabases() {
             const dropdown = document.getElementById('dbDropdown');
             const noConnections = document.getElementById('dbNoConnections');
-            const selectorRow = document.getElementById('dbSelectorRow');
+            const dbWidget = document.getElementById('databaseSelector');
+            const dbControls = dbWidget ? dbWidget.querySelector('.dash-db-controls') : null;
+            const dbCreds = dbWidget ? dbWidget.querySelector('.dash-db-creds') : null;
             
             // Show loading state
             dropdown.innerHTML = '<option value="">-- Loading... --</option>';
@@ -8022,11 +8029,13 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 // Clear existing options
-                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (data.success && data.connections && data.connections.length > 0) {
-                    selectorRow.style.display = 'flex';
-                    noConnections.style.display = 'none';
+                    // Show controls, hide empty message
+                    if (dbControls) dbControls.style.display = 'flex';
+                    if (dbCreds) dbCreds.style.display = 'flex';
+                    if (noConnections) noConnections.style.display = 'none';
                     
                     // Add database options from hub
                     data.connections.forEach(conn => {
@@ -8045,8 +8054,9 @@ ${item.html_code || ''}
                     console.log('✅ Loaded ' + data.connections.length + ' connections from Database Hub');
                 } else {
                     // No connections in hub
-                    selectorRow.style.display = 'none';
-                    noConnections.style.display = 'block';
+                    if (dbControls) dbControls.style.display = 'none';
+                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
                 }
             } catch (error) {
                 console.error('❌ Failed to load from Database Hub:', error);
@@ -8055,16 +8065,18 @@ ${item.html_code || ''}
                 const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
                 const connections = saved ? JSON.parse(saved) : [];
                 
-                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (connections.length === 0) {
-                    selectorRow.style.display = 'none';
-                    noConnections.style.display = 'block';
+                    if (dbControls) dbControls.style.display = 'none';
+                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
                     return;
                 }
                 
-                selectorRow.style.display = 'flex';
-                noConnections.style.display = 'none';
+                if (dbControls) dbControls.style.display = 'flex';
+                if (dbCreds) dbCreds.style.display = 'flex';
+                if (noConnections) noConnections.style.display = 'none';
                 
                 // Add database options from localStorage fallback
                 connections.forEach(conn => {
@@ -8088,6 +8100,10 @@ ${item.html_code || ''}
         async function refreshDatabaseList() {
             const refreshBtn = document.getElementById('dbRefreshBtn');
             const dropdown = document.getElementById('dbDropdown');
+            const dbWidget = document.getElementById('databaseSelector');
+            const dbControls = dbWidget ? dbWidget.querySelector('.dash-db-controls') : null;
+            const dbCreds = dbWidget ? dbWidget.querySelector('.dash-db-creds') : null;
+            const noConnections = document.getElementById('dbNoConnections');
             
             // Prevent double-clicking
             if (refreshBtn.classList.contains('spinning')) return;
@@ -8104,14 +8120,12 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 // Clear existing options
-                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
-                
-                const selectorRow = document.getElementById('dbSelectorRow');
-                const noConnections = document.getElementById('dbNoConnections');
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (data.success && data.connections && data.connections.length > 0) {
-                    selectorRow.style.display = 'flex';
-                    noConnections.style.display = 'none';
+                    if (dbControls) dbControls.style.display = 'flex';
+                    if (dbCreds) dbCreds.style.display = 'flex';
+                    if (noConnections) noConnections.style.display = 'none';
                     
                     // Add database options
                     data.connections.forEach(conn => {
@@ -8137,8 +8151,9 @@ ${item.html_code || ''}
                     
                     showToast(`🔄 Refreshed! ${data.connections.length} database(s) loaded`, 'success');
                 } else {
-                    selectorRow.style.display = 'none';
-                    noConnections.style.display = 'block';
+                    if (dbControls) dbControls.style.display = 'none';
+                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
                     showToast('📭 No databases found', 'info');
                 }
                 
