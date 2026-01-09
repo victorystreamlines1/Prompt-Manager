@@ -9168,6 +9168,160 @@ ${blockContent}
             saveDashboardSettings();
         }
 
+        // Append ALL sections to prompt editor (Generate arrow button)
+        function appendAllSectionsToPrompt() {
+            const editor = document.getElementById('promptEditor');
+            let sectionsAdded = 0;
+            let allBlocks = [];
+            
+            // 1. DATABASE SECTION
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (dropdown.value && selectedOption.dataset) {
+                const conn = {
+                    name: selectedOption.textContent.replace('🌐 ', ''),
+                    host: selectedOption.dataset.host,
+                    dbName: selectedOption.dataset.dbname,
+                    username: selectedOption.dataset.username,
+                    password: selectedOption.dataset.password || '',
+                    port: selectedOption.dataset.port || '3306',
+                    type: selectedOption.dataset.type || 'shared'
+                };
+                
+                // Remote block
+                const remoteBlock = `╔══════════════════════════════════════════════════════════════╗
+║  🌐  DATABASE CREDENTIALS - REMOTE CONNECTION               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${conn.host.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`;
+
+                // Localhost block
+                const localhostBlock = `╔══════════════════════════════════════════════════════════════╗
+║  🖥️  DATABASE CREDENTIALS - LOCALHOST (ON-SERVER)           ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${'localhost'.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`;
+                
+                allBlocks.push(remoteBlock);
+                allBlocks.push(localhostBlock);
+                sectionsAdded++;
+            }
+            
+            // 2. BACKEND SECTION
+            const backendFiles = document.getElementById('dashFilePicker')?.files || [];
+            const backendPrompt = document.getElementById('backendPromptArea')?.value.trim() || '';
+            
+            if (backendFiles.length > 0 || backendPrompt) {
+                let blockContent = '';
+                if (backendFiles.length > 0) {
+                    blockContent += `📁 Files (${backendFiles.length}):\n`;
+                    Array.from(backendFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (backendPrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${backendPrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  📄  BACKEND SECTION                                          ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // 3. PAGE SECTION
+            const pageFiles = document.getElementById('pageFilePicker')?.files || [];
+            const pagePrompt = document.getElementById('pagePromptArea')?.value.trim() || '';
+            
+            if (pageFiles.length > 0 || pagePrompt) {
+                let blockContent = '';
+                if (pageFiles.length > 0) {
+                    blockContent += `📁 Files (${pageFiles.length}):\n`;
+                    Array.from(pageFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (pagePrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${pagePrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  🪟  PAGE SECTION                                             ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // 4. FRONTEND SECTION
+            const frontendFiles = document.getElementById('frontendFilePicker')?.files || [];
+            const frontendPrompt = document.getElementById('frontendPromptArea')?.value.trim() || '';
+            
+            if (frontendFiles.length > 0 || frontendPrompt) {
+                let blockContent = '';
+                if (frontendFiles.length > 0) {
+                    blockContent += `📁 Files (${frontendFiles.length}):\n`;
+                    Array.from(frontendFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (frontendPrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${frontendPrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  🎨  FRONTEND SECTION                                         ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // Check if anything to add
+            if (allBlocks.length === 0) {
+                showToast('⚠️ No data in any section to append', 'warning');
+                return;
+            }
+            
+            // Combine all blocks
+            const fullBlock = allBlocks.join('\n\n');
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast(`✨ All sections appended (${sectionsAdded} section${sectionsAdded > 1 ? 's' : ''})`, 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
         // Toggle database credentials in editor
         function toggleDatabaseCredentials(mode = 'remote') {
             const checkbox = mode === 'localhost' 
