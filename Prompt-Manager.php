@@ -6707,7 +6707,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </span>
                                 <div class="dash-backend-controls">
                                     <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt">
+                                    <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt" onclick="appendDatabaseToPrompt()">
                                         <i class="fas fa-chevron-down"></i>
                                     </button>
                                     <div class="dash-db-dropdown-wrap">
@@ -9010,6 +9010,51 @@ ${item.html_code || ''}
         // Track the last added credentials IDs for removal (separate for remote and localhost)
         let lastAddedRemoteCredId = null;
         let lastAddedLocalhostCredId = null;
+
+        // Append database selection to prompt editor (arrow button)
+        function appendDatabaseToPrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                port: selectedOption.dataset.port || '3306'
+            };
+            
+            // Create database info block
+            const dbBlock = `
+📦 DATABASE CONNECTION
+━━━━━━━━━━━━━━━━━━━━━━
+• Name: ${conn.name}
+• Host: ${conn.host}
+• Database: ${conn.dbName}
+• Username: ${conn.username}
+• Port: ${conn.port}
+━━━━━━━━━━━━━━━━━━━━━━
+
+`;
+            
+            // Append to editor
+            editor.value = editor.value + dbBlock;
+            
+            // Trigger input event to update any listeners
+            editor.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Show success toast
+            showToast('📦 Database info appended to prompt', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
 
         // Toggle database credentials in editor
         function toggleDatabaseCredentials(mode = 'remote') {
