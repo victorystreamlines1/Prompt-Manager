@@ -998,22 +998,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     header('Content-Type: application/json');
     
     try {
-        // Get connections from POST data (sent from JavaScript localStorage)
-        $hostingerConnections = [];
-        if (isset($_POST['connections'])) {
-            $hostingerConnections = json_decode($_POST['connections'], true) ?: [];
-        }
-        
-        // Test each connection and return only active ones
         $activeConnections = [];
         
-        // Test localhost first (Laragon)
+        // ========================================
+        // FETCH FROM report_prompt_databases TABLE
+        // ========================================
+        $hubDbHost = 'srv1788.hstgr.io';
+        $hubDbName = 'u419999707_Mohamed';
+        $hubDbUser = 'u419999707_Abuammar';
+        $hubDbPass = 'P@master5007';
+        $hubDbPort = 3306;
+        $hubTableName = 'report_prompt_databases';
+        
         try {
-            $pdo = new PDO("mysql:host=localhost;port=3306", 'root', '');
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $hubPdo = new PDO(
+                "mysql:host=$hubDbHost;port=$hubDbPort;dbname=$hubDbName;charset=utf8mb4",
+                $hubDbUser,
+                $hubDbPass,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            
+            // Fetch all connections from the hub table
+            $stmt = $hubPdo->query("SELECT * FROM `$hubTableName` ORDER BY createdAt DESC");
+            $hubConnections = $stmt->fetchAll();
+            
+            // Add all connections from the hub table
+            foreach ($hubConnections as $conn) {
+                $connId = $conn['id'] ?? uniqid();
+                $connName = $conn['name'] ?? $conn['dbName'];
+                $connType = $conn['type'] ?? 'remote';
+                $host = $conn['host'] ?? '';
+                $dbName = $conn['dbName'] ?? '';
+                $username = $conn['username'] ?? '';
+                $password = $conn['password'] ?? '';
+                $port = $conn['port'] ?? '3306';
+                
+                // Determine icon based on type
+                $icon = '🌐';
+                if ($connType === 'local') $icon = '🖥️';
+                elseif ($connType === 'cloud') $icon = '☁️';
+                elseif ($connType === 'vps') $icon = '🖧';
+                elseif ($connType === 'dedicated') $icon = '🏢';
+                elseif ($connType === 'shared') $icon = '🌐';
+                
+                $activeConnections[] = [
+                    'id' => $connId,
+                    'name' => "{$icon} {$connName}",
+                    'type' => $connType,
+                    'host' => $host,
+                    'dbName' => $dbName,
+                    'username' => $username,
+                    'password' => $password,
+                    'port' => $port,
+                    'status' => 'available',
+                    'source' => 'hub'
+                ];
+            }
+        } catch (Exception $e) {
+            // Hub database not available, log error but continue
+            error_log('Hub DB connection failed: ' . $e->getMessage());
+        }
+        
+        // ========================================
+        // ALSO ADD LOCALHOST DATABASES (Laragon)
+        // ========================================
+        try {
+            $localPdo = new PDO("mysql:host=localhost;port=3306", 'root', '');
+            $localPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
             // Get databases
-            $stmt = $pdo->query("SHOW DATABASES");
+            $stmt = $localPdo->query("SHOW DATABASES");
             $databases = $stmt->fetchAll(PDO::FETCH_COLUMN);
             
             foreach ($databases as $db) {
@@ -1027,58 +1085,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         'username' => 'root',
                         'password' => '',
                         'port' => '3306',
-                        'status' => 'connected'
+                        'status' => 'connected',
+                        'source' => 'localhost'
                     ];
                 }
             }
         } catch (Exception $e) {
-            // Localhost not available, continue with Hostinger connections
-        }
-        
-        // Test Hostinger/Remote connections (from localStorage via POST)
-        foreach ($hostingerConnections as $conn) {
-            try {
-                $host = $conn['host'] ?? '';
-                $port = $conn['port'] ?? '3306';
-                $dbName = $conn['dbName'] ?? '';
-                $username = $conn['username'] ?? '';
-                $password = $conn['password'] ?? '';
-                $connName = $conn['name'] ?? $dbName;
-                $connId = $conn['id'] ?? uniqid();
-                $connType = $conn['type'] ?? 'remote';
-                
-                if (empty($host) || empty($dbName) || empty($username)) {
-                    continue; // Skip incomplete connections
-                }
-                
-                $dsn = "mysql:host={$host};port={$port};dbname={$dbName}";
-                
-                if ($password === '' || $password === null) {
-                    $pdo = new PDO($dsn, $username);
-                } else {
-                    $pdo = new PDO($dsn, $username, $password);
-                }
-                
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                
-                // Test query
-                $stmt = $pdo->query("SELECT 1");
-                
-                // Connection successful
-                $activeConnections[] = [
-                    'id' => $connId,
-                    'name' => "🌐 Remote: {$connName}",
-                    'type' => $connType,
-                    'host' => $host,
-                    'dbName' => $dbName,
-                    'username' => $username,
-                    'password' => $password,
-                    'port' => $port,
-                    'status' => 'connected'
-                ];
-            } catch (Exception $e) {
-                // Connection failed, skip it
-            }
+            // Localhost not available, continue
         }
         
         echo json_encode([
@@ -7339,27 +7352,15 @@ usort($fileList, function($a, $b) {
         // ========================================
         // DATABASE CONNECTIONS MANAGEMENT
         // ========================================
-        
-        // localStorage key for Hostinger connections (same as PHP-Dashboard.php)
-        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections';
+        // Connections are now fetched from report_prompt_databases table
         
         let activeConnections = [];
         let selectedConnection = null;
         
-        // Get saved Hostinger connections from localStorage
-        function getHostingerConnections() {
-            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
-            return saved ? JSON.parse(saved) : [];
-        }
-        
         async function loadDatabaseConnections() {
             try {
-                // Get Hostinger connections from localStorage (synced with PHP-Dashboard.php)
-                const hostingerConnections = getHostingerConnections();
-                
                 const formData = new FormData();
                 formData.append('action', 'get_active_connections');
-                formData.append('connections', JSON.stringify(hostingerConnections));
                 
                 const response = await fetch('index.php', {
                     method: 'POST',
@@ -7382,9 +7383,27 @@ usort($fileList, function($a, $b) {
                         document.getElementById('showCredentialsBtn').disabled = true;
                     } else {
                         let options = '<option value="" style="color: #64748b;">Select a database...</option>';
-                        activeConnections.forEach(conn => {
-                            options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
-                        });
+                        
+                        // Group connections by source
+                        const hubConns = activeConnections.filter(c => c.source === 'hub');
+                        const localConns = activeConnections.filter(c => c.source === 'localhost');
+                        
+                        if (hubConns.length > 0) {
+                            options += '<optgroup label="📦 Hub Databases">';
+                            hubConns.forEach(conn => {
+                                options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
+                        if (localConns.length > 0) {
+                            options += '<optgroup label="🖥️ Localhost Databases">';
+                            localConns.forEach(conn => {
+                                options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
                         select.innerHTML = options;
                         connStatusText.textContent = 'Connected';
                         connCount.textContent = activeConnections.length;

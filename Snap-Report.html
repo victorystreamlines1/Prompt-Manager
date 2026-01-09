@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Node.js Installation via WINGET - Interactive Guide</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #68d391;
+            --secondary: #4fd1c5;
+            --accent: #f6e05e;
+            --purple: #b794f4;
+            --pink: #f687b3;
+            --orange: #f6ad55;
+            --bg-dark: #1a202c;
+            --bg-darker: #0d1117;
+            --text: #e2e8f0;
+            --text-muted: #a0aec0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #0d1117 0%, #1a202c 50%, #0d1117 100%);
+            overflow: hidden;
+        }
+
+        .floating-icon {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-30px) rotate(10deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(30px) rotate(-10deg);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, rgba(104, 211, 145, 0.15), rgba(79, 209, 197, 0.1));
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid rgba(104, 211, 145, 0.3);
+            position: relative;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .node-logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            animation: pulse 2s infinite;
+            box-shadow: 0 10px 40px rgba(104, 211, 145, 0.4);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 10px 40px rgba(104, 211, 145, 0.4);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 50px rgba(104, 211, 145, 0.6);
+            }
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+
+            50% {
+                filter: brightness(1.3);
+            }
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 50px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Section Cards */
+        .section {
+            background: rgba(26, 32, 44, 0.8);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(104, 211, 145, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .section-number {
+            background: var(--accent);
+            color: var(--bg-dark);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Command Box */
+        .command-box {
+            background: var(--bg-darker);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Fira Code', monospace;
+            position: relative;
+            border: 1px solid rgba(104, 211, 145, 0.2);
+        }
+
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red {
+            background: #ff5f56;
+        }
+
+        .dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .dot.green {
+            background: #27ca40;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: var(--bg-dark);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent);
+        }
+
+        .command-text {
+            color: var(--primary);
+            font-size: 1.1rem;
+            word-break: break-all;
+        }
+
+        .command-text .prompt {
+            color: var(--accent);
+        }
+
+        .command-text .flag {
+            color: var(--pink);
+        }
+
+        /* Info Cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .info-card:hover {
+            background: rgba(104, 211, 145, 0.1);
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+
+        .info-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Steps */
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            margin: 1rem 0;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .step:hover {
+            background: rgba(104, 211, 145, 0.05);
+            border-color: rgba(104, 211, 145, 0.2);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--bg-dark);
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Interactive Quiz */
+        .quiz-container {
+            background: linear-gradient(135deg, rgba(183, 148, 244, 0.1), rgba(246, 135, 179, 0.1));
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(183, 148, 244, 0.3);
+        }
+
+        .quiz-title {
+            font-size: 1.3rem;
+            color: var(--purple);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .quiz-option.correct {
+            background: rgba(104, 211, 145, 0.2);
+            border-color: var(--primary);
+        }
+
+        .quiz-option.wrong {
+            background: rgba(245, 101, 101, 0.2);
+            border-color: #f56565;
+        }
+
+        .quiz-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            display: none;
+            font-weight: 600;
+        }
+
+        /* Animated Checkmarks */
+        .feature-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: rgba(104, 211, 145, 0.1);
+            transform: translateX(10px);
+        }
+
+        .check-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-dark);
+            font-size: 0.8rem;
+        }
+
+        /* Celebration */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            color: var(--accent);
+            cursor: help;
+            border-bottom: 1px dashed var(--accent);
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            background: var(--bg-dark);
+            color: var(--text);
+            padding: 0.8rem;
+            border-radius: 8px;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
+            z-index: 100;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Fun Counter */
+        .counter-box {
+            background: linear-gradient(135deg, var(--accent), var(--orange));
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--bg-dark);
+            margin: 1.5rem 0;
+        }
+
+        .counter-number {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .counter-label {
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(0, 0, 0, 0.3);
+            margin-top: 2rem;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.2rem;
+        }
+
+        .badge-green {
+            background: rgba(104, 211, 145, 0.2);
+            color: var(--primary);
+        }
+
+        .badge-blue {
+            background: rgba(79, 209, 197, 0.2);
+            color: var(--secondary);
+        }
+
+        .badge-yellow {
+            background: rgba(246, 224, 94, 0.2);
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+    <div class="celebration" id="celebration"></div>
+
+    <header class="header">
+        <div class="logo-container">
+            <div class="node-logo">⬢</div>
+            <div>
+                <h1 class="title">Node.js Installation via WINGET</h1>
+                <p class="subtitle">🎮 The Ultimate Interactive Command Line Guide</p>
+            </div>
+        </div>
+        <div>
+            <span class="badge badge-green">Windows Package Manager</span>
+            <span class="badge badge-blue">Node.js LTS</span>
+            <span class="badge badge-yellow">CLI Tools</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+            <p class="progress-text">Scroll to explore • <span id="progressPercent">0</span>% Complete</p>
+        </div>
+
+        <!-- Section 1: What is WINGET -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <span class="section-number">1</span>
+                <div class="section-icon">📦</div>
+                <h2 class="section-title">What is WINGET?</h2>
+            </div>
+
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                <strong style="color: var(--primary);">WINGET</strong> (Windows Package Manager) is Microsoft's official
+                <span class="tooltip">CLI tool
+                    <span class="tooltip-text">Command Line Interface - A text-based way to interact with your
+                        computer</span>
+                </span>
+                for installing, updating, and managing software packages on Windows 10/11. Think of it as an "app store"
+                you control from the command line! 🚀
+            </p>
+
+            <div class="info-grid">
+                <div class="info-card" onclick="this.classList.toggle('active')">
+                    <div class="info-card-icon">⚡</div>
+                    <h3 class="info-card-title">Lightning Fast</h3>
+                    <p class="info-card-text">Install apps in seconds with a single command. No clicking through
+                        installers!</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-icon">🔄</div>
+                    <h3 class="info-card-title">Easy Updates</h3>
+                    <p class="info-card-text">Update all your apps at once with `winget upgrade --all`</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-icon">🔍</div>
+                    <h3 class="info-card-title">Search Anything</h3>
+                    <p class="info-card-text">Find software from Microsoft's massive repository of packages</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Prerequisites -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <span class="section-number">2</span>
+                <div class="section-icon">✅</div>
+                <h2 class="section-title">Prerequisites Check</h2>
+            </div>
+
+            <p style="margin-bottom: 1.5rem;">Before installing Node.js, make sure you have:</p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="check-icon">✓</span>
+                    <span><strong>Windows 10 (1809+)</strong> or Windows 11</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check-icon">✓</span>
+                    <span><strong>WINGET installed</strong> (comes pre-installed on Windows 11)</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check-icon">✓</span>
+                    <span><strong>PowerShell</strong> or Command Prompt (Run as Administrator recommended)</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check-icon">✓</span>
+                    <span><strong>Internet connection</strong> to download packages</span>
+                </div>
+            </div>
+
+            <div class="command-box">
+                <div class="command-header">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <button class="copy-btn" onclick="copyCommand(this, 'winget --version')">📋 Copy</button>
+                </div>
+                <code
+                    class="command-text"><span class="prompt">PS C:\></span> winget <span class="flag">--version</span></code>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Run this to check if WINGET is installed. You should
+                see a version number like "v1.x.x"</p>
+        </section>
+
+        <!-- Section 3: Installation Commands -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <span class="section-number">3</span>
+                <div class="section-icon">🚀</div>
+                <h2 class="section-title">Install Node.js - The Main Event!</h2>
+            </div>
+
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4 class="step-title">Open PowerShell as Administrator</h4>
+                    <p class="step-desc">Right-click the Start button → Select "Windows Terminal (Admin)" or "PowerShell
+                        (Admin)"</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4 class="step-title">Run the Installation Command</h4>
+                    <p class="step-desc">Copy and paste the command below:</p>
+                </div>
+            </div>
+
+            <div class="command-box" style="border-color: var(--primary); box-shadow: 0 0 20px rgba(104,211,145,0.2);">
+                <div class="command-header">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <button class="copy-btn" onclick="copyCommand(this, 'winget install OpenJS.NodeJS.LTS')">📋
+                        Copy</button>
+                </div>
+                <code class="command-text"
+                    style="font-size: 1.3rem;"><span class="prompt">PS C:\></span> winget install <span class="flag">OpenJS.NodeJS.LTS</span></code>
+            </div>
+
+            <div class="counter-box">
+                <div class="counter-number" id="downloadCounter">0</div>
+                <div class="counter-label">🎉 People installed Node.js today using WINGET!</div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4 class="step-title">Wait for Installation</h4>
+                    <p class="step-desc">WINGET will download and install Node.js automatically. This usually takes 1-2
+                        minutes.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4 class="step-title">Verify Installation</h4>
+                    <p class="step-desc">Close and reopen your terminal, then run:</p>
+                </div>
+            </div>
+
+            <div class="command-box">
+                <div class="command-header">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <button class="copy-btn" onclick="copyCommand(this, 'node --version && npm --version')">📋
+                        Copy</button>
+                </div>
+                <code
+                    class="command-text"><span class="prompt">PS C:\></span> node <span class="flag">--version</span> && npm <span class="flag">--version</span></code>
+            </div>
+        </section>
+
+        <!-- Section 4: All Available Commands -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <span class="section-number">4</span>
+                <div class="section-icon">📚</div>
+                <h2 class="section-title">All Node.js WINGET Commands</h2>
+            </div>
+
+            <div class="info-grid">
+                <div class="command-box">
+                    <p style="color: var(--accent); margin-bottom: 0.5rem; font-weight: 600;">🆕 Latest LTS
+                        (Recommended)</p>
+                    <code class="command-text" style="font-size: 0.9rem;">winget install OpenJS.NodeJS.LTS</code>
+                </div>
+                <div class="command-box">
+                    <p style="color: var(--pink); margin-bottom: 0.5rem; font-weight: 600;">⚡ Latest Current Version</p>
+                    <code class="command-text" style="font-size: 0.9rem;">winget install OpenJS.NodeJS</code>
+                </div>
+                <div class="command-box">
+                    <p style="color: var(--purple); margin-bottom: 0.5rem; font-weight: 600;">🔄 Update Node.js</p>
+                    <code class="command-text" style="font-size: 0.9rem;">winget upgrade OpenJS.NodeJS.LTS</code>
+                </div>
+                <div class="command-box">
+                    <p style="color: var(--orange); margin-bottom: 0.5rem; font-weight: 600;">🗑️ Uninstall Node.js</p>
+                    <code class="command-text" style="font-size: 0.9rem;">winget uninstall OpenJS.NodeJS.LTS</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section class="section fade-in">
+            <div class="quiz-container">
+                <h3 class="quiz-title">🎮 Quick Quiz: Test Your Knowledge!</h3>
+                <p style="margin-bottom: 1rem;">What command installs the LTS version of Node.js?</p>
+
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    <code>npm install nodejs</code>
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, true)">
+                    <code>winget install OpenJS.NodeJS.LTS</code>
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    <code>install node --global</code>
+                </div>
+
+                <div class="quiz-result" id="quizResult"></div>
+            </div>
+        </section>
+
+        <!-- Section 6: Troubleshooting -->
+        <section class="section fade-in">
+            <div class="section-header">
+                <span class="section-number">5</span>
+                <div class="section-icon">🔧</div>
+                <h2 class="section-title">Troubleshooting Common Issues</h2>
+            </div>
+
+            <div class="step">
+                <div class="step-number">❓</div>
+                <div class="step-content">
+                    <h4 class="step-title">"winget" is not recognized</h4>
+                    <p class="step-desc">Install App Installer from Microsoft Store, or update Windows to the latest
+                        version.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">❓</div>
+                <div class="step-content">
+                    <h4 class="step-title">"node" not found after install</h4>
+                    <p class="step-desc">Close ALL terminal windows and open a new one. The PATH needs to refresh!</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">❓</div>
+                <div class="step-content">
+                    <h4 class="step-title">Permission denied errors</h4>
+                    <p class="step-desc">Make sure you're running PowerShell as Administrator (right-click → Run as
+                        Admin)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Success Section -->
+        <section class="section fade-in"
+            style="background: linear-gradient(135deg, rgba(104,211,145,0.15), rgba(79,209,197,0.1)); border-color: var(--primary);">
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎉</div>
+                <h2 style="color: var(--primary); font-size: 2rem; margin-bottom: 1rem;">Congratulations!</h2>
+                <p style="font-size: 1.1rem; color: var(--text-muted);">You're now ready to build amazing things with
+                    Node.js!</p>
+                <button class="copy-btn" style="margin-top: 1.5rem; padding: 1rem 2rem; font-size: 1rem;"
+                    onclick="celebrate()">
+                    🎊 Celebrate!
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p class="footer-text">Made with 💚 for Node.js developers everywhere</p>
+        <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">Interactive Guide © 2024</p>
+    </footer>
+
+    <script>
+        // Floating background icons
+        function createFloatingIcons() {
+            const icons = ['⬢', '📦', '⚡', '🚀', '💻', '🔧', '✨'];
+            const bg = document.getElementById('bgAnimation');
+
+            for (let i = 0; i < 15; i++) {
+                const icon = document.createElement('div');
+                icon.className = 'floating-icon';
+                icon.textContent = icons[Math.floor(Math.random() * icons.length)];
+                icon.style.left = Math.random() * 100 + '%';
+                icon.style.top = Math.random() * 100 + '%';
+                icon.style.animationDelay = Math.random() * 10 + 's';
+                icon.style.animationDuration = (15 + Math.random() * 10) + 's';
+                bg.appendChild(icon);
+            }
+        }
+
+        // Progress bar
+        function updateProgress() {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = (window.scrollY / scrollHeight) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+            document.getElementById('progressPercent').textContent = Math.round(scrolled);
+        }
+
+        // Fade in sections
+        function handleScroll() {
+            const sections = document.querySelectorAll('.fade-in');
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top < window.innerHeight - 100) {
+                    section.classList.add('visible');
+                }
+            });
+            updateProgress();
+        }
+
+        // Copy command
+        function copyCommand(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Quiz
+        function checkAnswer(element, isCorrect) {
+            const options = document.querySelectorAll('.quiz-option');
+            const result = document.getElementById('quizResult');
+
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                result.style.display = 'block';
+                result.style.background = 'rgba(104,211,145,0.2)';
+                result.style.color = '#68d391';
+                result.textContent = '🎉 Correct! You\'re a WINGET pro!';
+                celebrate();
+            } else {
+                element.classList.add('wrong');
+                result.style.display = 'block';
+                result.style.background = 'rgba(245,101,101,0.2)';
+                result.style.color = '#f56565';
+                result.textContent = '❌ Not quite! The correct answer is: winget install OpenJS.NodeJS.LTS';
+            }
+        }
+
+        // Celebration confetti
+        function celebrate() {
+            const colors = ['#68d391', '#4fd1c5', '#f6e05e', '#b794f4', '#f687b3', '#f6ad55'];
+            const celebration = document.getElementById('celebration');
+
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    celebration.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // Animate counter
+        function animateCounter() {
+            const counter = document.getElementById('downloadCounter');
+            const target = Math.floor(Math.random() * 5000) + 10000;
+            let current = 0;
+
+            const interval = setInterval(() => {
+                current += Math.ceil((target - current) / 20);
+                counter.textContent = current.toLocaleString();
+                if (current >= target) {
+                    counter.textContent = target.toLocaleString();
+                    clearInterval(interval);
+                }
+            }, 50);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createFloatingIcons();
+            handleScroll();
+            animateCounter();
+        });
+
+        window.addEventListener('scroll', handleScroll);
+    </script>
+</body>
+
+</html>
