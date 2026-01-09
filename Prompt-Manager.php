@@ -3329,19 +3329,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
             border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+        }
+
+        .dev-dashboard-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
         .dev-dashboard-title {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
+        }
+        
+        .dev-dashboard-tabs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dev-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dev-tab:hover {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.12);
+        }
+        
+        .dev-tab.active {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+        
+        .dev-tab i {
+            font-size: 0.7rem;
         }
 
         .dev-dashboard-title .dev-icon {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             animation: devIconPulse 2s ease-in-out infinite;
         }
 
@@ -3352,7 +3394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dev-dashboard-title .dev-text {
             font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 600;
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
             -webkit-background-clip: text;
@@ -3394,20 +3436,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dev-dashboard-content {
-            padding: 0.85rem 1rem;
+            padding: 0.65rem 1rem;
             background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
         }
 
         /* Dashboard Database Widget */
         .dash-db-widget {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .dash-db-tools {
+            display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .dash-db-separator {
+            width: 1px;
+            height: 24px;
+            background: rgba(251, 191, 36, 0.2);
+            margin: 0 0.25rem;
         }
 
-        .dash-db-label {
-            display: flex;
+        .dash-db-label-old {
+            display: none;
             align-items: center;
             gap: 0.4rem;
             color: #fbbf24;
@@ -3418,20 +3473,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             white-space: nowrap;
         }
 
-        .dash-db-label i {
+        .dash-db-label-old i {
             font-size: 0.9rem;
-        }
-
-        .dash-db-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
         }
 
         .dash-db-dropdown-wrap {
             position: relative;
-            min-width: 180px;
-            max-width: 280px;
+            min-width: 200px;
+            max-width: 320px;
             flex: 1;
         }
 
@@ -3514,11 +3563,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: rotate(90deg);
         }
 
-        .dash-db-creds {
-            display: flex;
-            gap: 0.4rem;
-        }
-
         .dash-cred-btn {
             cursor: pointer;
             user-select: none;
@@ -3532,7 +3576,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.35rem;
-            padding: 0.45rem 0.7rem;
+            padding: 0.4rem 0.65rem;
             background: var(--bg-tertiary);
             border: 2px solid var(--border-color);
             border-radius: 8px;
@@ -3588,17 +3632,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Responsive for smaller screens */
         @media (max-width: 900px) {
-            .dash-db-widget {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .dash-db-controls {
+            .dash-db-tools {
                 flex-wrap: wrap;
             }
             
             .dash-db-dropdown-wrap {
                 min-width: 100%;
+                max-width: 100%;
+            }
+            
+            .dash-db-separator {
+                display: none;
             }
         }
 
@@ -6241,9 +6285,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Development Dashboard -->
             <div class="dev-dashboard-section">
                 <div class="dev-dashboard-header">
-                    <div class="dev-dashboard-title">
-                        <span class="dev-icon">⚡</span>
-                        <span class="dev-text">Development Dashboard</span>
+                    <div class="dev-dashboard-left">
+                        <div class="dev-dashboard-title">
+                            <span class="dev-icon">⚡</span>
+                            <span class="dev-text">Development Dashboard</span>
+                        </div>
+                        <div class="dev-dashboard-tabs">
+                            <span class="dev-tab active" data-tab="database">
+                                <i class="fas fa-database"></i> Database
+                            </span>
+                        </div>
                     </div>
                     <div class="dev-dashboard-status">
                         <span class="status-dot"></span>
@@ -6253,11 +6304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="dev-dashboard-content" id="devDashboardContent">
                     <!-- Database Connection Widget -->
                     <div class="dash-db-widget" id="databaseSelector">
-                        <div class="dash-db-label">
-                            <i class="fas fa-database"></i>
-                            <span>Database</span>
-                        </div>
-                        <div class="dash-db-controls">
+                        <div class="dash-db-tools">
                             <div class="dash-db-dropdown-wrap">
                                 <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                     <option value="">-- Select Connection --</option>
@@ -6270,8 +6317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
                                 <i class="fas fa-cog"></i>
                             </button>
-                        </div>
-                        <div class="dash-db-creds">
+                            <div class="dash-db-separator"></div>
                             <label class="dash-cred-btn remote" title="Append Remote Credentials">
                                 <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
                                 <span><i class="fas fa-globe"></i> Remote</span>
@@ -8087,8 +8133,7 @@ ${item.html_code || ''}
             const dropdown = document.getElementById('dbDropdown');
             const noConnections = document.getElementById('dbNoConnections');
             const dbWidget = document.getElementById('databaseSelector');
-            const dbControls = dbWidget ? dbWidget.querySelector('.dash-db-controls') : null;
-            const dbCreds = dbWidget ? dbWidget.querySelector('.dash-db-creds') : null;
+            const dbTools = dbWidget ? dbWidget.querySelector('.dash-db-tools') : null;
             
             // Show loading state
             dropdown.innerHTML = '<option value="">-- Loading... --</option>';
@@ -8103,8 +8148,7 @@ ${item.html_code || ''}
                 
                 if (data.success && data.connections && data.connections.length > 0) {
                     // Show controls, hide empty message
-                    if (dbControls) dbControls.style.display = 'flex';
-                    if (dbCreds) dbCreds.style.display = 'flex';
+                    if (dbTools) dbTools.style.display = 'flex';
                     if (noConnections) noConnections.style.display = 'none';
                     
                     // Add database options from hub
@@ -8124,8 +8168,7 @@ ${item.html_code || ''}
                     console.log('✅ Loaded ' + data.connections.length + ' connections from Database Hub');
                 } else {
                     // No connections in hub
-                    if (dbControls) dbControls.style.display = 'none';
-                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (dbTools) dbTools.style.display = 'none';
                     if (noConnections) noConnections.style.display = 'flex';
                 }
             } catch (error) {
@@ -8138,14 +8181,12 @@ ${item.html_code || ''}
                 dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (connections.length === 0) {
-                    if (dbControls) dbControls.style.display = 'none';
-                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (dbTools) dbTools.style.display = 'none';
                     if (noConnections) noConnections.style.display = 'flex';
                     return;
                 }
                 
-                if (dbControls) dbControls.style.display = 'flex';
-                if (dbCreds) dbCreds.style.display = 'flex';
+                if (dbTools) dbTools.style.display = 'flex';
                 if (noConnections) noConnections.style.display = 'none';
                 
                 // Add database options from localStorage fallback
@@ -8171,8 +8212,7 @@ ${item.html_code || ''}
             const refreshBtn = document.getElementById('dbRefreshBtn');
             const dropdown = document.getElementById('dbDropdown');
             const dbWidget = document.getElementById('databaseSelector');
-            const dbControls = dbWidget ? dbWidget.querySelector('.dash-db-controls') : null;
-            const dbCreds = dbWidget ? dbWidget.querySelector('.dash-db-creds') : null;
+            const dbTools = dbWidget ? dbWidget.querySelector('.dash-db-tools') : null;
             const noConnections = document.getElementById('dbNoConnections');
             
             // Prevent double-clicking
@@ -8193,8 +8233,7 @@ ${item.html_code || ''}
                 dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (data.success && data.connections && data.connections.length > 0) {
-                    if (dbControls) dbControls.style.display = 'flex';
-                    if (dbCreds) dbCreds.style.display = 'flex';
+                    if (dbTools) dbTools.style.display = 'flex';
                     if (noConnections) noConnections.style.display = 'none';
                     
                     // Add database options
@@ -8221,8 +8260,7 @@ ${item.html_code || ''}
                     
                     showToast(`🔄 Refreshed! ${data.connections.length} database(s) loaded`, 'success');
                 } else {
-                    if (dbControls) dbControls.style.display = 'none';
-                    if (dbCreds) dbCreds.style.display = 'none';
+                    if (dbTools) dbTools.style.display = 'none';
                     if (noConnections) noConnections.style.display = 'flex';
                     showToast('📭 No databases found', 'info');
                 }
