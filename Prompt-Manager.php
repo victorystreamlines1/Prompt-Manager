@@ -3889,10 +3889,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.1) !important;
         }
         
-        /* Database Section - Golden Theme */
+        /* Database Section - Golden Theme - Align with other sections */
         .dash-database-group {
-            margin-top: 0;
             padding-top: 0;
+            position: relative;
+            top: 3px;
         }
         
         .dash-database-group .dash-backend-controls {
