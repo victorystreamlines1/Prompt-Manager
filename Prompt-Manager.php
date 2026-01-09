@@ -3912,6 +3912,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
         }
         
+        .dash-db-prompt-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            width: 100%;
+            padding: 0.45rem 0.65rem;
+            margin-top: 0.3rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #a855f7;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dash-db-prompt-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            color: #c084fc;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(168, 85, 247, 0.3);
+        }
+        
+        .dash-db-prompt-btn:active {
+            transform: translateY(0);
+        }
+        
+        .dash-db-prompt-btn i {
+            font-size: 0.75rem;
+        }
+        
         .dash-database-label {
             color: #fbbf24 !important;
         }
@@ -6747,6 +6781,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span><i class="fas fa-server"></i> Localhost</span>
                                     </label>
                                 </div>
+                                <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Generate Smart Connection Prompt">
+                                    <i class="fas fa-code"></i> Prompt
+                                </button>
                             </div>
                             <div class="dash-db-separator"></div>
                             <div class="dash-backend-group">
@@ -9092,6 +9129,229 @@ ${item.html_code || ''}
             
             // Show success toast
             showToast('📦 Database credentials (Remote + Localhost) appended', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Generate Smart Database Connection Prompt (with auto-switch toggle)
+        function generateDatabasePrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
+            };
+            
+            const smartPrompt = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  🔄  SMART DATABASE CONNECTION - AUTO-SWITCH IMPLEMENTATION                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Please implement a smart database connection system with the following requirements:
+
+────────────────────────────────────────────────────────────────────────────────
+📦 DATABASE CREDENTIALS
+────────────────────────────────────────────────────────────────────────────────
+
+🌐 REMOTE CONNECTION:
+   • Host:     ${conn.host}
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+🖥️ LOCALHOST CONNECTION (On-Server):
+   • Host:     localhost
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+────────────────────────────────────────────────────────────────────────────────
+⚙️ IMPLEMENTATION REQUIREMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+1. **Connection Logic (PHP):**
+   - Create a database connection class/function that tries BOTH connections
+   - Use try-catch blocks to test each connection
+   - Default to LOCALHOST first (faster when running on server)
+   - If localhost fails, automatically switch to REMOTE
+   - Store the working connection type in a session/cookie
+
+2. **Toggle Switch (Frontend):**
+   - Add a small, elegant toggle switch in the TOP RIGHT corner of the page
+   - Make it subtle/minimal so regular users don't notice it (for admin use)
+   - Two positions: "Local" (left/default) and "Remote" (right)
+   - Use a smooth sliding animation
+
+3. **Toggle Behavior:**
+   - When user switches from Local to Remote:
+     • Try to connect using REMOTE credentials
+     • If successful: keep toggle on Remote
+     • If fails: automatically slide back to Local with a subtle notification
+   
+   - When user switches from Remote to Local:
+     • Try to connect using LOCALHOST credentials  
+     • If successful: keep toggle on Local
+     • If fails: automatically slide back to Remote with a subtle notification
+
+4. **Visual Design:**
+   - Toggle size: approximately 40px width, 20px height
+   - Position: fixed, top: 10px, right: 10px (or similar corner position)
+   - Colors: Green for Local (active), Blue for Remote (active)
+   - Include tiny labels "L" and "R" or icons on each side
+   - Add a subtle tooltip on hover explaining the toggle
+
+5. **Example PHP Code Structure:**
+   ~~~php
+   class DatabaseConnection {
+       private @@instance = null;
+       private @@connection = null;
+       private @@connectionType = 'localhost'; // default
+       
+       private @@credentials = [
+           'localhost' => [
+               'host' => 'localhost',
+               'dbname' => '` + conn.dbName + `',
+               'username' => '` + conn.username + `',
+               'password' => '` + conn.password + `',
+               'port' => '` + conn.port + `'
+           ],
+           'remote' => [
+               'host' => '` + conn.host + `',
+               'dbname' => '` + conn.dbName + `',
+               'username' => '` + conn.username + `',
+               'password' => '` + conn.password + `',
+               'port' => '` + conn.port + `'
+           ]
+       ];
+       
+       public function connect(@@preferredType = 'localhost') {
+           // Try preferred connection first
+           try {
+               @@cred = @@this->credentials[@@preferredType];
+               @@this->connection = new PDO(
+                   "mysql:host={@@cred['host']};dbname={@@cred['dbname']};port={@@cred['port']}",
+                   @@cred['username'],
+                   @@cred['password'],
+                   [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+               );
+               @@this->connectionType = @@preferredType;
+               return ['success' => true, 'type' => @@preferredType];
+           } catch (PDOException @@e) {
+               // Try fallback connection
+               @@fallbackType = (@@preferredType === 'localhost') ? 'remote' : 'localhost';
+               try {
+                   @@cred = @@this->credentials[@@fallbackType];
+                   @@this->connection = new PDO(
+                       "mysql:host={@@cred['host']};dbname={@@cred['dbname']};port={@@cred['port']}",
+                       @@cred['username'],
+                       @@cred['password'],
+                       [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+                   );
+                   @@this->connectionType = @@fallbackType;
+                   return ['success' => true, 'type' => @@fallbackType, 'fallback' => true];
+               } catch (PDOException @@e2) {
+                   return ['success' => false, 'error' => @@e2->getMessage()];
+               }
+           }
+       }
+       
+       public function getConnectionType() {
+           return @@this->connectionType;
+       }
+   }
+   ~~~
+   (Note: Replace @@ with $ in actual PHP code)
+
+6. **Example Toggle HTML/CSS:**
+   ~~~html
+   <div class="db-toggle-container" title="Database Connection: Local/Remote">
+       <span class="toggle-label local">L</span>
+       <label class="db-toggle">
+           <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)">
+           <span class="toggle-slider"></span>
+       </label>
+       <span class="toggle-label remote">R</span>
+   </div>
+   ~~~
+
+   ~~~css
+   .db-toggle-container {
+       position: fixed;
+       top: 10px;
+       right: 10px;
+       display: flex;
+       align-items: center;
+       gap: 4px;
+       padding: 4px 8px;
+       background: rgba(0,0,0,0.6);
+       border-radius: 20px;
+       z-index: 9999;
+       opacity: 0.4;
+       transition: opacity 0.3s;
+   }
+   .db-toggle-container:hover { opacity: 1; }
+   .toggle-label { font-size: 9px; color: #888; }
+   .toggle-label.local { color: #22c55e; }
+   .toggle-label.remote { color: #3b82f6; }
+   .db-toggle { position: relative; width: 36px; height: 18px; }
+   .db-toggle input { opacity: 0; width: 0; height: 0; }
+   .toggle-slider {
+       position: absolute; cursor: pointer;
+       top: 0; left: 0; right: 0; bottom: 0;
+       background: #22c55e; border-radius: 18px;
+       transition: 0.3s;
+   }
+   .toggle-slider:before {
+       position: absolute; content: "";
+       height: 14px; width: 14px;
+       left: 2px; bottom: 2px;
+       background: white; border-radius: 50%;
+       transition: 0.3s;
+   }
+   .db-toggle input:checked + .toggle-slider { background: #3b82f6; }
+   .db-toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+   ~~~
+
+────────────────────────────────────────────────────────────────────────────────
+📝 NOTES
+────────────────────────────────────────────────────────────────────────────────
+
+• The toggle should be BARELY visible by default (low opacity)
+• Only becomes fully visible on hover
+• The auto-switch mechanism ensures the app always works regardless of environment
+• Store user preference in localStorage to remember their choice
+• The connection type should be available to JavaScript via a global variable or data attribute
+
+`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + smartPrompt;
+            } else {
+                editor.value = smartPrompt;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast('🔄 Smart database connection prompt generated', 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
