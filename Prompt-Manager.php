@@ -315,61 +315,161 @@ function showLoginPage($error = null) {
 <?php
 }
 
-// Database Connection Configuration
-// Updated to use u419999707_prompt_manager database
-$host = 'srv1788.hstgr.io';
-$dbname = 'u419999707_prompt_manager';
-$username = 'u419999707_prompt_manager';
-$password = 'P@master5007';
-$port = '3306';
+// ============================================================================
+// SMART DATABASE CONNECTION - Localhost/Remote Auto-Switch
+// ============================================================================
+// Tries LOCALHOST first (faster when on Hostinger server)
+// Falls back to REMOTE if localhost fails (when accessing from anywhere)
+// ============================================================================
 
+$dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ],
+    'remote' => [
+        'host' => 'srv1788.hstgr.io',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ]
+];
+
+// Connection state variables
 $pdo = null;
 $dbError = null;
+$connectionType = 'localhost'; // Will be updated after connection
+$connectionFallback = false;
 
-try {
-    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+// Handle AJAX request for testing/switching connection
+if (isset($_GET['switch_db'])) {
+    header('Content-Type: application/json');
+    $requestedType = $_GET['switch_db'];
     
-    // Delete old tables with generic names (cleanup - remove after first run)
-    $pdo->exec("DROP TABLE IF EXISTS saved_prompts");
-    $pdo->exec("DROP TABLE IF EXISTS uploaded_files");
+    if (!isset($dbCredentials[$requestedType])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid connection type']);
+        exit;
+    }
     
-    // Create tables if not exist (prefixed with reporter_prompt_ to avoid conflicts)
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_saved_prompts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
+    $cred = $dbCredentials[$requestedType];
+    try {
+        $testPdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        setcookie('pm_db_connection_type', $requestedType, time() + (86400 * 30), '/');
+        echo json_encode(['success' => true, 'type' => $requestedType, 'message' => "Connected to $requestedType"]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'type' => $requestedType, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Get preferred connection type from cookie (if set)
+$preferredType = isset($_COOKIE['pm_db_connection_type']) ? $_COOKIE['pm_db_connection_type'] : 'localhost';
+if (!in_array($preferredType, ['localhost', 'remote'])) {
+    $preferredType = 'localhost';
+}
+
+// Smart Connection Function
+function connectToDatabase($credentials, $preferredType) {
+    global $connectionType, $connectionFallback, $dbError;
     
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_uploaded_files (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        filename VARCHAR(255) NOT NULL,
-        filepath VARCHAR(500) NOT NULL,
-        filesize INT,
-        filetype VARCHAR(100),
-        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
+    // Try preferred connection first
+    $cred = $credentials[$preferredType];
+    try {
+        $pdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        $connectionType = $preferredType;
+        $connectionFallback = false;
+        return $pdo;
+    } catch (PDOException $e) {
+        // Try fallback connection
+        $fallbackType = ($preferredType === 'localhost') ? 'remote' : 'localhost';
+        $cred = $credentials[$fallbackType];
+        
+        try {
+            $pdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            $connectionType = $fallbackType;
+            $connectionFallback = true;
+            return $pdo;
+        } catch (PDOException $e2) {
+            $dbError = $e2->getMessage();
+            return null;
+        }
+    }
+}
+
+// Establish connection
+$pdo = connectToDatabase($dbCredentials, $preferredType);
+
+if ($pdo) {
+    // Set cookie to remember working connection type
+    setcookie('pm_db_connection_type', $connectionType, time() + (86400 * 30), '/');
     
-    // Create prompt templates table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_templates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        sort_order INT DEFAULT 0,
-        is_active TINYINT(1) DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
-    
-    // Note: No auto-insertion of default templates
-    // User will add templates manually via the UI
-    
-} catch(PDOException $e) {
-    $dbError = $e->getMessage();
+    try {
+        // Delete old tables with generic names (cleanup - remove after first run)
+        $pdo->exec("DROP TABLE IF EXISTS saved_prompts");
+        $pdo->exec("DROP TABLE IF EXISTS uploaded_files");
+        
+        // Create tables if not exist (prefixed with reporter_prompt_ to avoid conflicts)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_saved_prompts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_uploaded_files (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            filename VARCHAR(255) NOT NULL,
+            filepath VARCHAR(500) NOT NULL,
+            filesize INT,
+            filetype VARCHAR(100),
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Create prompt templates table
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_templates (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            sort_order INT DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        // Note: No auto-insertion of default templates
+        // User will add templates manually via the UI
+        
+    } catch(PDOException $e) {
+        $dbError = $e->getMessage();
+    }
 }
 
 // Handle AJAX requests
@@ -6557,9 +6657,327 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(239, 68, 68, 0.3);
             color: #fecaca;
         }
+
+        /* ========================================
+           DATABASE CONNECTION TOGGLE SWITCH
+           ======================================== */
+        .db-toggle-container {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 25px;
+            z-index: 99999;
+            opacity: 0.35;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle-container:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        
+        .toggle-label.local {
+            color: #22c55e;
+        }
+        
+        .toggle-label.remote {
+            color: #3b82f6;
+        }
+        
+        .db-toggle-container[data-active="local"] .toggle-label.local,
+        .db-toggle-container[data-active="remote"] .toggle-label.remote {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .db-toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        .db-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-radius: 22px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .db-toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        .db-toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .connection-status {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .fallback-badge {
+            background: var(--warning);
+            color: #000;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* ========================================
+           SPEED MONITOR BOX
+           ======================================== */
+        .speed-monitor {
+            position: fixed;
+            top: 12px;
+            right: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            z-index: 99999;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 200px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+        }
+        
+        .speed-monitor:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .speed-monitor-title {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .speed-row:last-child {
+            border-bottom: none;
+        }
+        
+        .speed-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-label .op-type {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+        
+        .speed-value {
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .speed-value.local {
+            color: var(--success);
+        }
+        
+        .speed-value.remote {
+            color: var(--accent-secondary);
+        }
+        
+        .speed-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 8px;
+            margin-top: 4px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .speed-comparison.faster {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .speed-comparison.slower {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .speed-comparison.equal {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .speed-diff {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .speed-winner {
+            font-size: 14px;
+        }
+        
+        .no-data {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 8px;
+            font-style: italic;
+        }
+        
+        @keyframes speed-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .speed-new {
+            animation: speed-pulse 0.5s ease;
+        }
+        
+        /* Toast for connection switch */
+        .db-switch-toast {
+            position: fixed;
+            top: 60px;
+            right: 12px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(50px); }
+        }
     </style>
 </head>
 <body>
+    <!-- Database Connection Toggle Switch -->
+    <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)" data-active="<?php echo $connectionType; ?>">
+        <span class="toggle-label local" id="labelLocal">🖥️</span>
+        <label class="db-toggle">
+            <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" <?php echo ($connectionType === 'remote') ? 'checked' : ''; ?>>
+            <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label remote" id="labelRemote">🌐</span>
+        <div class="connection-status" id="connectionStatus">
+            <?php echo ($connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+            <?php if ($connectionFallback): ?>
+                <span class="fallback-badge">⚡ Auto</span>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Speed Monitor Box -->
+    <div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+        <div class="speed-monitor-title">
+            <span>⚡</span> Speed Monitor
+        </div>
+        <div id="speedContent">
+            <div class="no-data">Perform an action to see speed...</div>
+        </div>
+    </div>
     <div class="bg-effects"></div>
     
     <div class="app-container">
@@ -14425,6 +14843,251 @@ in each section carefully and maintain proper connections between components.
         // ============================================
         function openDictQuizPopup() {
             window.open('https://frouty.com/pages/quiz.php', '_blank');
+        }
+
+        // ============================================
+        // DATABASE CONNECTION TOGGLE & SPEED MONITOR
+        // ============================================
+        const DB_CONNECTION_KEY = 'pm_db_connection_type';
+        const SPEED_HISTORY_KEY = 'pm_db_speed_history';
+        
+        // Current connection type from PHP
+        let currentConnectionType = '<?php echo $connectionType; ?>';
+        let connectionFallback = <?php echo $connectionFallback ? 'true' : 'false'; ?>;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize speed monitor
+            initSpeedMonitor();
+            
+            // Show fallback notification if auto-switched
+            if (connectionFallback) {
+                showDbSwitchToast(`⚡ Auto-switched to ${currentConnectionType === 'localhost' ? '🖥️ Local' : '🌐 Remote'} (preferred unavailable)`, 'warning', 5000);
+            }
+        });
+        
+        // Switch database connection
+        async function switchDbConnection(isRemote) {
+            const targetType = isRemote ? 'remote' : 'localhost';
+            const toggle = document.getElementById('dbConnectionToggle');
+            const container = document.getElementById('dbToggleContainer');
+            const statusEl = document.getElementById('connectionStatus');
+            
+            // Disable toggle during switch
+            toggle.disabled = true;
+            
+            showDbSwitchToast(`Switching to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}...`, 'info', 0);
+            
+            try {
+                // Test the connection via PHP
+                const response = await fetch(`?switch_db=${targetType}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Connection successful
+                    currentConnectionType = result.type;
+                    container.setAttribute('data-active', result.type);
+                    statusEl.innerHTML = result.type === 'remote' ? '🌐 Remote' : '🖥️ Local';
+                    
+                    // Save to localStorage as backup
+                    localStorage.setItem(DB_CONNECTION_KEY, result.type);
+                    
+                    showDbSwitchToast(`✅ Connected to ${result.type === 'remote' ? '🌐 Remote' : '🖥️ Localhost'}`, 'success');
+                    
+                    // Reload page to use new connection
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Connection failed - revert toggle
+                    toggle.checked = (currentConnectionType === 'remote');
+                    container.setAttribute('data-active', currentConnectionType);
+                    
+                    showDbSwitchToast(
+                        `❌ Failed to connect to ${isRemote ? 'Remote' : 'Localhost'}. Error: ${result.error}`,
+                        'error',
+                        5000
+                    );
+                }
+            } catch (error) {
+                // Network error - revert toggle
+                toggle.checked = (currentConnectionType === 'remote');
+                container.setAttribute('data-active', currentConnectionType);
+                
+                showDbSwitchToast(`❌ Connection error: ${error.message}`, 'error', 5000);
+            }
+            
+            // Re-enable toggle
+            toggle.disabled = false;
+        }
+        
+        // Show toast notification for db switch
+        function showDbSwitchToast(message, type = 'info', duration = 3000) {
+            const existingToast = document.getElementById('dbSwitchToast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.id = 'dbSwitchToast';
+            toast.className = `db-switch-toast ${type}`;
+            
+            const icons = { 'success': '✅', 'error': '❌', 'info': '🔄', 'warning': '⚠️' };
+            toast.innerHTML = `<span>${icons[type] || '📢'}</span><span>${message}</span>`;
+            
+            document.body.appendChild(toast);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        
+        // ========================================
+        // SPEED MONITOR FUNCTIONALITY
+        // ========================================
+        
+        function initSpeedMonitor() {
+            if (window.latestOperation) {
+                addSpeedEntry(window.latestOperation);
+            }
+            updateSpeedMonitor();
+        }
+        
+        function getSpeedHistory() {
+            try {
+                const data = localStorage.getItem(SPEED_HISTORY_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        
+        function saveSpeedHistory(history) {
+            try {
+                if (history.length > 10) history = history.slice(-10);
+                localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) {
+                console.error('Failed to save speed history:', e);
+            }
+        }
+        
+        function addSpeedEntry(operation) {
+            const history = getSpeedHistory();
+            const isDuplicate = history.some(h => 
+                h.timestamp === operation.timestamp && 
+                h.type === operation.type && 
+                h.time === operation.time
+            );
+            
+            if (!isDuplicate) {
+                history.push({
+                    time: operation.time,
+                    type: operation.type,
+                    connection: operation.connection,
+                    timestamp: operation.timestamp
+                });
+                saveSpeedHistory(history);
+            }
+        }
+        
+        function updateSpeedMonitor() {
+            const content = document.getElementById('speedContent');
+            if (!content) return;
+            
+            const history = getSpeedHistory();
+            
+            if (history.length === 0) {
+                content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+                return;
+            }
+            
+            const lastTwo = history.slice(-2);
+            let html = '';
+            
+            lastTwo.forEach((entry, idx) => {
+                const isLatest = idx === lastTwo.length - 1;
+                const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+                const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+                
+                html += `
+                    <div class="speed-row ${isLatest ? 'speed-new' : ''}">
+                        <span class="speed-label">${connIcon} <span class="op-type">${entry.type}</span></span>
+                        <span class="speed-value ${connClass}">${entry.time}ms</span>
+                    </div>
+                `;
+            });
+            
+            if (lastTwo.length === 2) {
+                const [first, second] = lastTwo;
+                const diff = Math.abs(first.time - second.time).toFixed(2);
+                const percentage = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+                
+                let comparisonClass, comparisonText, winner;
+                
+                if (second.time < first.time) {
+                    comparisonClass = 'faster';
+                    winner = second.connection === 'localhost' ? '🖥️' : '🌐';
+                    comparisonText = `${winner} ${percentage}% faster`;
+                } else if (second.time > first.time) {
+                    comparisonClass = 'slower';
+                    winner = first.connection === 'localhost' ? '🖥️' : '🌐';
+                    comparisonText = `${winner} ${percentage}% faster`;
+                } else {
+                    comparisonClass = 'equal';
+                    comparisonText = '⚖️ Equal speed';
+                }
+                
+                html += `
+                    <div class="speed-comparison ${comparisonClass}">
+                        <span class="speed-winner">${comparisonClass !== 'equal' ? winner : '⚖️'}</span>
+                        <span class="speed-diff">Δ ${diff}ms</span>
+                        <span>${comparisonText}</span>
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div style="text-align: center; margin-top: 6px;">
+                    <button onclick="clearSpeedHistory()" style="
+                        background: rgba(255,255,255,0.1);
+                        border: none;
+                        color: var(--text-secondary);
+                        font-size: 8px;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='rgba(255,255,255,0.2)'" 
+                       onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        Clear History
+                    </button>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+        }
+        
+        function clearSpeedHistory() {
+            localStorage.removeItem(SPEED_HISTORY_KEY);
+            updateSpeedMonitor();
+        }
+        
+        function recordOperationSpeed(type, startTime, connection) {
+            const endTime = performance.now();
+            const operationTime = (endTime - startTime).toFixed(2);
+            
+            const operation = {
+                time: parseFloat(operationTime),
+                type: type,
+                connection: connection || (document.getElementById('dbConnectionToggle')?.checked ? 'remote' : 'localhost'),
+                timestamp: Date.now()
+            };
+            
+            addSpeedEntry(operation);
+            updateSpeedMonitor();
+            
+            return operationTime;
         }
 
     </script>
