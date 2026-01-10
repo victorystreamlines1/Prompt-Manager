@@ -4067,18 +4067,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
         }
         
+        .dash-db-prompt-row {
+            display: flex;
+            gap: 0.3rem;
+            width: 100%;
+            margin-top: 0.3rem;
+        }
+        
         .dash-db-prompt-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
-            width: 100%;
-            padding: 0.45rem 0.65rem;
-            margin-top: 0.3rem;
+            gap: 0.3rem;
+            flex: 1;
+            padding: 0.45rem 0.5rem;
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
             border: 2px solid rgba(168, 85, 247, 0.3);
             border-radius: 8px;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: #a855f7;
             cursor: pointer;
@@ -4098,7 +4104,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .dash-db-prompt-btn i {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
+        }
+        
+        .dash-db-prompt-full {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .dash-db-prompt-full:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.2) 100%);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #4ade80;
+            box-shadow: 0 3px 12px rgba(34, 197, 94, 0.3);
         }
         
         .dash-database-label {
@@ -7254,9 +7273,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span><i class="fas fa-server"></i> Localhost</span>
                                     </label>
                                 </div>
-                                <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Generate Smart Connection Prompt">
-                                    <i class="fas fa-code"></i> Prompt
-                                </button>
+                                <div class="dash-db-prompt-row">
+                                    <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Generate Smart Connection Prompt">
+                                        <i class="fas fa-code"></i> Prompt
+                                    </button>
+                                    <button type="button" class="dash-db-prompt-btn dash-db-prompt-full" onclick="generateFullDatabasePrompt()" title="Generate Full Prompt with Toggle & Speed Monitor">
+                                        <i class="fas fa-tachometer-alt"></i> Full
+                                    </button>
+                                </div>
                             </div>
                             <div class="dash-db-separator"></div>
                             <div class="dash-backend-group">
@@ -9825,6 +9849,423 @@ Please implement a smart database connection system with the following requireme
             
             // Show success toast
             showToast('🔄 Smart database connection prompt generated', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Generate FULL Database Prompt with Toggle AND Speed Monitor
+        function generateFullDatabasePrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
+            };
+            
+            const fullPrompt = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  🔄  FULL SMART DATABASE CONNECTION WITH TOGGLE & SPEED MONITOR              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Please implement a comprehensive database connection system with:
+1. Smart auto-switch between Localhost and Remote
+2. Toggle switch for manual control
+3. Speed monitor to track and compare operation performance
+
+════════════════════════════════════════════════════════════════════════════════
+📦 PART 1: DATABASE CREDENTIALS
+════════════════════════════════════════════════════════════════════════════════
+
+🌐 REMOTE CONNECTION (from anywhere):
+   • Host:     ${conn.host}
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+🖥️ LOCALHOST CONNECTION (on-server, faster):
+   • Host:     localhost
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+════════════════════════════════════════════════════════════════════════════════
+⚙️ PART 2: PHP SMART CONNECTION CLASS
+════════════════════════════════════════════════════════════════════════════════
+
+~~~php
+` + '<' + `?php
+// Database credentials configuration
+@@dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => '${conn.dbName}',
+        'username' => '${conn.username}',
+        'password' => '${conn.password}',
+        'port' => '${conn.port}'
+    ],
+    'remote' => [
+        'host' => '${conn.host}',
+        'dbname' => '${conn.dbName}',
+        'username' => '${conn.username}',
+        'password' => '${conn.password}',
+        'port' => '${conn.port}'
+    ]
+];
+
+// Connection state
+@@pdo = null;
+@@connectionType = 'localhost';
+@@connectionFallback = false;
+
+// Handle AJAX connection switch request
+if (isset(@@_GET['switch_db'])) {
+    header('Content-Type: application/json');
+    @@requestedType = @@_GET['switch_db'];
+    
+    if (!isset(@@dbCredentials[@@requestedType])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid connection type']);
+        exit;
+    }
+    
+    @@cred = @@dbCredentials[@@requestedType];
+    try {
+        @@testPdo = new PDO(
+            "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+            @@cred['username'],
+            @@cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        setcookie('db_connection_type', @@requestedType, time() + (86400 * 30), '/');
+        echo json_encode(['success' => true, 'type' => @@requestedType]);
+    } catch (PDOException @@e) {
+        echo json_encode(['success' => false, 'error' => @@e->getMessage()]);
+    }
+    exit;
+}
+
+// Get preferred connection from cookie
+@@preferredType = isset(@@_COOKIE['db_connection_type']) ? @@_COOKIE['db_connection_type'] : 'localhost';
+
+// Smart connection function with try-catch fallback
+function connectToDatabase(@@credentials, @@preferredType) {
+    global @@connectionType, @@connectionFallback;
+    
+    // Try preferred connection first
+    @@cred = @@credentials[@@preferredType];
+    try {
+        @@pdo = new PDO(
+            "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+            @@cred['username'],
+            @@cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 5]
+        );
+        @@connectionType = @@preferredType;
+        @@connectionFallback = false;
+        return @@pdo;
+    } catch (PDOException @@e) {
+        // Try fallback
+        @@fallbackType = (@@preferredType === 'localhost') ? 'remote' : 'localhost';
+        @@cred = @@credentials[@@fallbackType];
+        try {
+            @@pdo = new PDO(
+                "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+                @@cred['username'],
+                @@cred['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 5]
+            );
+            @@connectionType = @@fallbackType;
+            @@connectionFallback = true;
+            return @@pdo;
+        } catch (PDOException @@e2) {
+            return null;
+        }
+    }
+}
+
+// Establish connection
+@@pdo = connectToDatabase(@@dbCredentials, @@preferredType);
+if (@@pdo) {
+    setcookie('db_connection_type', @@connectionType, time() + (86400 * 30), '/');
+}
+
+// For API operations - add timing measurement:
+// @@startTime = microtime(true);
+// ... your database operation ...
+// @@operationTime = round((microtime(true) - @@startTime) * 1000, 2);
+// Return in JSON: 'operationTime' => @@operationTime, 'connectionType' => @@connectionType
+~~~
+(Note: Replace @@ with $ in actual PHP code)
+
+════════════════════════════════════════════════════════════════════════════════
+🎨 PART 3: TOGGLE SWITCH (HTML + CSS)
+════════════════════════════════════════════════════════════════════════════════
+
+Add this HTML right after <body>:
+
+~~~html
+<!-- Database Connection Toggle Switch -->
+<div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local/Remote" data-active="` + '<' + `?php echo @@connectionType; ?>">
+    <span class="toggle-label local">🖥️</span>
+    <label class="db-toggle">
+        <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" ` + '<' + `?php echo (@@connectionType === 'remote') ? 'checked' : ''; ?>>
+        <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label remote">🌐</span>
+    <div class="connection-status" id="connectionStatus">
+        ` + '<' + `?php echo (@@connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+        ` + '<' + `?php if (@@connectionFallback): ?><span class="fallback-badge">⚡ Auto</span>` + '<' + `?php endif; ?>
+    </div>
+</div>
+
+<!-- Speed Monitor Box -->
+<div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+    <div class="speed-monitor-title"><span>⚡</span> Speed Monitor</div>
+    <div id="speedContent"><div class="no-data">Perform an action to see speed...</div></div>
+</div>
+~~~
+
+CSS for both:
+
+~~~css
+/* Toggle Container */
+.db-toggle-container {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 25px;
+    z-index: 99999;
+    opacity: 0.35;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+.db-toggle-container:hover { opacity: 1; }
+
+.toggle-label { font-size: 14px; opacity: 0.5; transition: all 0.3s; }
+.toggle-label.local { color: #22c55e; }
+.toggle-label.remote { color: #3b82f6; }
+.db-toggle-container[data-active="local"] .toggle-label.local,
+.db-toggle-container[data-active="remote"] .toggle-label.remote { opacity: 1; transform: scale(1.1); }
+
+.db-toggle { position: relative; width: 42px; height: 22px; cursor: pointer; }
+.db-toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border-radius: 22px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.toggle-slider:before {
+    position: absolute; content: "";
+    height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.db-toggle input:checked + .toggle-slider { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.db-toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+.connection-status { font-size: 10px; color: rgba(255,255,255,0.6); padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.1); }
+.fallback-badge { background: #f59e0b; color: #000; padding: 1px 5px; border-radius: 8px; font-size: 8px; font-weight: 600; }
+
+/* Speed Monitor */
+.speed-monitor {
+    position: fixed;
+    top: 12px;
+    right: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 12px;
+    z-index: 99999;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 200px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.speed-monitor:hover { opacity: 1; }
+.speed-monitor-title { font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+.speed-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.speed-label { font-size: 10px; color: rgba(255,255,255,0.6); }
+.op-type { font-size: 8px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+.speed-value { font-size: 12px; font-weight: 600; }
+.speed-value.local { color: #22c55e; }
+.speed-value.remote { color: #8b5cf6; }
+.speed-comparison { display: flex; justify-content: center; gap: 6px; padding: 6px 8px; margin-top: 4px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+.speed-comparison.faster { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.speed-comparison.slower { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.no-data { font-size: 10px; color: rgba(255,255,255,0.4); text-align: center; padding: 8px; font-style: italic; }
+~~~
+
+════════════════════════════════════════════════════════════════════════════════
+📜 PART 4: JAVASCRIPT FUNCTIONALITY
+════════════════════════════════════════════════════════════════════════════════
+
+~~~javascript
+// Connection state
+let currentConnectionType = '` + '<' + `?php echo @@connectionType; ?>';
+let connectionFallback = ` + '<' + `?php echo @@connectionFallback ? 'true' : 'false'; ?>;
+const SPEED_HISTORY_KEY = 'db_speed_history';
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initSpeedMonitor();
+    if (connectionFallback) {
+        showToast('⚡ Auto-switched to ' + (currentConnectionType === 'localhost' ? '🖥️ Local' : '🌐 Remote'), 'warning');
+    }
+});
+
+// Switch connection
+async function switchDbConnection(isRemote) {
+    const targetType = isRemote ? 'remote' : 'localhost';
+    const toggle = document.getElementById('dbConnectionToggle');
+    const container = document.getElementById('dbToggleContainer');
+    const statusEl = document.getElementById('connectionStatus');
+    
+    toggle.disabled = true;
+    showToast('Switching to ' + (isRemote ? '🌐 Remote' : '🖥️ Localhost') + '...', 'info');
+    
+    try {
+        const response = await fetch('?switch_db=' + targetType);
+        const result = await response.json();
+        
+        if (result.success) {
+            currentConnectionType = result.type;
+            container.setAttribute('data-active', result.type);
+            statusEl.innerHTML = result.type === 'remote' ? '🌐 Remote' : '🖥️ Local';
+            showToast('✅ Connected to ' + (result.type === 'remote' ? '🌐 Remote' : '🖥️ Localhost'), 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            toggle.checked = (currentConnectionType === 'remote');
+            showToast('❌ Connection failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        toggle.checked = (currentConnectionType === 'remote');
+        showToast('❌ Network error', 'error');
+    }
+    toggle.disabled = false;
+}
+
+// Speed Monitor Functions
+function initSpeedMonitor() {
+    if (window.latestOperation) addSpeedEntry(window.latestOperation);
+    updateSpeedMonitor();
+}
+
+function getSpeedHistory() {
+    try { return JSON.parse(localStorage.getItem(SPEED_HISTORY_KEY)) || []; }
+    catch (e) { return []; }
+}
+
+function saveSpeedHistory(history) {
+    if (history.length > 10) history = history.slice(-10);
+    localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+}
+
+function addSpeedEntry(op) {
+    const history = getSpeedHistory();
+    if (!history.some(h => h.timestamp === op.timestamp && h.type === op.type)) {
+        history.push({ time: op.time, type: op.type, connection: op.connection, timestamp: op.timestamp });
+        saveSpeedHistory(history);
+    }
+}
+
+function updateSpeedMonitor() {
+    const content = document.getElementById('speedContent');
+    if (!content) return;
+    
+    const history = getSpeedHistory();
+    if (history.length === 0) {
+        content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+        return;
+    }
+    
+    const lastTwo = history.slice(-2);
+    let html = '';
+    
+    lastTwo.forEach((entry, idx) => {
+        const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+        const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+        html += '<div class="speed-row"><span class="speed-label">' + connIcon + ' <span class="op-type">' + entry.type + '</span></span><span class="speed-value ' + connClass + '">' + entry.time + 'ms</span></div>';
+    });
+    
+    if (lastTwo.length === 2) {
+        const [first, second] = lastTwo;
+        const diff = Math.abs(first.time - second.time).toFixed(2);
+        const pct = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+        let cls = second.time < first.time ? 'faster' : (second.time > first.time ? 'slower' : 'equal');
+        let winner = second.time < first.time ? (second.connection === 'localhost' ? '🖥️' : '🌐') : (first.connection === 'localhost' ? '🖥️' : '🌐');
+        html += '<div class="speed-comparison ' + cls + '"><span>' + winner + '</span><span>Δ ' + diff + 'ms</span><span>' + pct + '% faster</span></div>';
+    }
+    
+    html += '<div style="text-align:center;margin-top:6px"><button onclick="clearSpeedHistory()" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.5);font-size:8px;padding:2px 8px;border-radius:4px;cursor:pointer">Clear</button></div>';
+    content.innerHTML = html;
+}
+
+function clearSpeedHistory() {
+    localStorage.removeItem(SPEED_HISTORY_KEY);
+    updateSpeedMonitor();
+}
+
+// Record operation speed (call after API responses)
+function recordSpeed(type, time, connection) {
+    addSpeedEntry({ time: parseFloat(time), type: type, connection: connection || currentConnectionType, timestamp: Date.now() });
+    updateSpeedMonitor();
+}
+~~~
+(Note: Replace @@ with $ in PHP parts)
+
+════════════════════════════════════════════════════════════════════════════════
+📝 IMPLEMENTATION NOTES
+════════════════════════════════════════════════════════════════════════════════
+
+1. **Default Behavior:** Always tries LOCALHOST first (faster on-server), falls back to REMOTE
+2. **Toggle:** Users can manually switch; if connection fails, auto-reverts to working one
+3. **Speed Monitor:** Shows last 2 operations with timing comparison
+4. **Auto Badge:** Shows "⚡ Auto" when connection was automatically switched
+5. **Timing:** PHP measures with microtime(), returns in JSON, JS displays in monitor
+6. **Persistence:** Connection preference saved in cookie (30 days), speed history in localStorage
+
+`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullPrompt;
+            } else {
+                editor.value = fullPrompt;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast('🚀 Full prompt with Toggle & Speed Monitor generated', 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
