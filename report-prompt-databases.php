@@ -719,9 +719,9 @@ if (isset($_GET['edit'])) {
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1650px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 30px 25px;
         }
         
         /* Header */
@@ -879,8 +879,9 @@ if (isset($_GET['edit'])) {
         }
         
         .btn-sm {
-            padding: 8px 16px;
-            font-size: 0.85rem;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            white-space: nowrap;
         }
         
         /* Form Card */
@@ -980,12 +981,13 @@ if (isset($_GET['edit'])) {
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: auto;
         }
         
         th, td {
-            padding: 16px 18px;
+            padding: 12px 14px;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         th {
@@ -1039,7 +1041,8 @@ if (isset($_GET['edit'])) {
         
         .td-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: nowrap;
         }
         
         /* Import Modal */
