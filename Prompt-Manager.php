@@ -533,9 +533,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $title && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("INSERT INTO reporter_prompt_saved_prompts (title, content) VALUES (?, ?)");
                 $stmt->execute([$title, $content]);
-                echo json_encode(['success' => true, 'id' => $pdo->lastInsertId(), 'message' => 'Prompt saved successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'id' => $pdo->lastInsertId(), 
+                    'message' => 'Prompt saved successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'ADD_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -553,9 +562,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id && $title && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_saved_prompts SET title = ?, content = ? WHERE id = ?");
                 $stmt->execute([$title, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt updated successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Prompt updated successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'UPDATE_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -569,9 +586,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_saved_prompts WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Prompt deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -625,6 +650,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $name && $content) {
             try {
+                $startTime = microtime(true);
                 // Get max sort_order
                 $stmt = $pdo->query("SELECT MAX(sort_order) as max_order FROM reporter_prompt_templates");
                 $maxOrder = $stmt->fetch()['max_order'] ?? 0;
@@ -632,12 +658,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO reporter_prompt_templates (name, content, sort_order) VALUES (?, ?, ?)");
                 $stmt->execute([$name, $content, $maxOrder + 1]);
                 $id = $pdo->lastInsertId();
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
                 
                 echo json_encode([
                     'success' => true, 
                     'id' => $id, 
                     'message' => 'Template added successfully!',
-                    'template' => ['id' => $id, 'name' => $name, 'content' => $content]
+                    'template' => ['id' => $id, 'name' => $name, 'content' => $content],
+                    'operationTime' => $operationTime,
+                    'operationType' => 'ADD_TEMPLATE',
+                    'connectionType' => $connectionType
                 ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -656,9 +686,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id && $name && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_templates SET name = ?, content = ? WHERE id = ?");
                 $stmt->execute([$name, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Template updated successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Template updated successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'UPDATE_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -674,9 +712,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_templates WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Template deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Template deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -744,6 +790,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("SELECT filepath FROM reporter_prompt_uploaded_files WHERE id = ?");
                 $stmt->execute([$id]);
                 $file = $stmt->fetch();
@@ -754,7 +801,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_uploaded_files WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'File deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'File deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_FILE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -10753,7 +10807,17 @@ in each section carefully and maintain proper connections between components.
                 const data = await response.json();
                 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || (id ? 'UPDATE_TEMPLATE' : 'ADD_TEMPLATE'),
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     closeTemplateModal();
                     await loadPromptTemplates();
                 } else {
@@ -10800,13 +10864,24 @@ in each section carefully and maintain proper connections between components.
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || 'DELETE_TEMPLATE',
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    
                     // Remove from active prompts if selected
                     if (activePrompts.has(id)) {
                         activePrompts.delete(id);
                         rebuildEditor();
                     }
                     
-                    showToast(data.message, 'success');
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     await loadPromptTemplates();
                 } else {
                     showToast(data.message, 'error');
@@ -13427,7 +13502,17 @@ in each section carefully and maintain proper connections between components.
                 const data = await response.json();
                 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || (editId ? 'UPDATE' : 'ADD'),
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     closeModal('saveModal');
                     loadSavedPrompts();
                 } else {
@@ -14122,13 +14207,24 @@ in each section carefully and maintain proper connections between components.
                         const data = await response.json();
                         
                         if (data.success) {
+                            // Record operation speed
+                            if (data.operationTime) {
+                                addSpeedEntry({
+                                    time: data.operationTime,
+                                    type: data.operationType || 'DELETE',
+                                    connection: data.connectionType || currentConnectionType,
+                                    timestamp: Date.now()
+                                });
+                                updateSpeedMonitor();
+                            }
+                            
                             // Remove from active if selected
                             if (activeSavedPrompts.has(id)) {
                                 activeSavedPrompts.delete(id);
                                 rebuildEditorFromSaved();
                             }
                             
-                            showToast('Prompt deleted successfully!', 'success');
+                            showToast(`Prompt deleted! ⏱️ ${data.operationTime}ms`, 'success');
                             loadSavedPrompts();
                         } else {
                             showToast('Failed to delete prompt', 'error');
