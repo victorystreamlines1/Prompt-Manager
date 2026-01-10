@@ -3984,32 +3984,32 @@ if ($isApiRequest) {
                                         <span style="font-size: 24px;">📦</span>
                                         <span>Source Tables</span>
                                     </h3>
-                                    <p style="color: rgba(254, 243, 199, 0.7); margin: 5px 0 0 34px; font-size: 13px;" id="migrationSourceDbName">
+                                    <p style="color: rgba(254, 243, 199, 0.7); margin: 5px 0 0 34px; font-size: 13px;" id="dbMig_SourceDbName">
                                         No database selected
                                     </p>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="showDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
+                                    <button onclick="dbMig_showDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
                                         <span>🗄️</span> DB-Info
                                     </button>
-                                    <button onclick="refreshMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
+                                    <button onclick="dbMig_refreshMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
                                         <span>🔄</span>
                                     </button>
-                                    <button onclick="selectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
+                                    <button onclick="dbMig_selectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
                                         <span>✅</span>
                                     </button>
-                                    <button onclick="deselectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
+                                    <button onclick="dbMig_deselectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
                                         <span>❌</span>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Tables Grid - NOW ALSO A DROP ZONE (for reverse drag from Destination) -->
-                            <div id="migrationTablesContainer" 
+                            <div id="dbMig_TablesContainer" 
                                  class="migration-drop-zone"
-                                 ondrop="handleSourceDrop(event)"
-                                 ondragover="handleSourceDragOver(event)"
-                                 ondragleave="handleSourceDragLeave(event)"
+                                 ondrop="dbMig_handleSourceDrop(event)"
+                                 ondragover="dbMig_handleSourceDragOver(event)"
+                                 ondragleave="dbMig_handleSourceDragLeave(event)"
                                  style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 200px; max-height: 500px; overflow-y: auto; padding: 5px; transition: all 0.3s;">
                                 <!-- Tables will be loaded here dynamically -->
                                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
@@ -4020,8 +4020,8 @@ if ($isApiRequest) {
 
                             <!-- Selected Count -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(251, 191, 36, 0.2); color: rgba(254, 243, 199, 0.8); font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-                                <span id="migrationSelectedCount">0 tables selected</span>
-                                <span id="migrationTotalCount">0 tables total</span>
+                                <span id="dbMig_SelectedCount">0 tables selected</span>
+                                <span id="dbMig_TotalCount">0 tables total</span>
                             </div>
                         </div>
 
@@ -4046,16 +4046,16 @@ if ($isApiRequest) {
                                     </p>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="showDestinationDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
+                                    <button onclick="dbMig_showDestinationDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
                                         <span>🗄️</span> DB-Info
                                     </button>
-                                    <button onclick="refreshDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
+                                    <button onclick="dbMig_refreshDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
                                         <span>🔄</span>
                                     </button>
-                                    <button onclick="selectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
+                                    <button onclick="dbMig_selectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
                                         <span>✅</span>
                                     </button>
-                                    <button onclick="deselectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
+                                    <button onclick="dbMig_deselectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
                                         <span>❌</span>
                                     </button>
                                 </div>
@@ -4066,30 +4066,30 @@ if ($isApiRequest) {
                                 <label style="display: block; color: #fbbf24; font-size: 14px; font-weight: 500; margin-bottom: 10px;">
                                     🎯 Select Destination Database
                                 </label>
-                                <select id="migrationDestinationSelect" 
-                                        onchange="loadDestinationTables()"
+                                <select id="dbMig_DestinationSelect" 
+                                        onchange="dbMig_loadDestinationTables()"
                                         style="width: 100%; padding: 12px 15px; background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 8px; color: #fef3c7; font-size: 14px; cursor: pointer; outline: none; transition: all 0.3s;">
                                     <option value="">-- Select Destination --</option>
                                 </select>
                             </div>
 
                             <!-- Destination Info Display -->
-                            <div id="migrationDestinationInfo" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: none;">
+                            <div id="dbMig_DestinationInfo" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: none;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 20px;">🌐</span>
                                     <div style="flex: 1;">
-                                        <div style="color: #93c5fd; font-size: 13px; font-weight: 500;" id="migrationDestDbName">Database Name</div>
-                                        <div style="color: rgba(254, 243, 199, 0.6); font-size: 11px;" id="migrationDestHost">Host</div>
+                                        <div style="color: #93c5fd; font-size: 13px; font-weight: 500;" id="dbMig_DestDbName">Database Name</div>
+                                        <div style="color: rgba(254, 243, 199, 0.6); font-size: 11px;" id="dbMig_DestHost">Host</div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Destination Tables Container -->
-                            <div id="migrationDestinationTablesContainer" 
+                            <div id="dbMig_DestinationTablesContainer" 
                                  class="migration-drop-zone"
-                                 ondrop="handleDrop(event)"
-                                 ondragover="handleDragOver(event)"
-                                 ondragleave="handleDragLeave(event)"
+                                 ondrop="dbMig_handleDrop(event)"
+                                 ondragover="dbMig_handleDragOver(event)"
+                                 ondragleave="dbMig_handleDragLeave(event)"
                                  style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 200px; max-height: 340px; overflow-y: auto; padding: 5px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2); transition: all 0.3s;">
                                 <!-- Destination tables will be loaded here -->
                                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
@@ -4100,8 +4100,8 @@ if ($isApiRequest) {
 
                             <!-- Destination Tables Count -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(34, 197, 94, 0.2); color: rgba(254, 243, 199, 0.8); font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-                                <span id="migrationDestinationSelectedCount">0 tables selected</span>
-                                <span id="migrationDestinationCount">0 tables total</span>
+                                <span id="dbMig_DestinationSelectedCount">0 tables selected</span>
+                                <span id="dbMig_DestinationCount">0 tables total</span>
                             </div>
 
                             <!-- Drag & Drop Instruction - TWO-WAY SYSTEM -->
@@ -7029,6 +7029,26 @@ OVERVIEW:
             }
         }
 
+        // ========================================
+        // STUB FUNCTIONS for databaseMigrationTab
+        // (These are separate from the Create Table > Migration tab)
+        // ========================================
+        function dbMig_showDatabaseInfo() { console.log('dbMig_showDatabaseInfo - old tab'); }
+        function dbMig_refreshMigrationTables() { console.log('dbMig_refreshMigrationTables - old tab'); }
+        function dbMig_selectAllMigrationTables() { console.log('dbMig_selectAllMigrationTables - old tab'); }
+        function dbMig_deselectAllMigrationTables() { console.log('dbMig_deselectAllMigrationTables - old tab'); }
+        function dbMig_showDestinationDatabaseInfo() { console.log('dbMig_showDestinationDatabaseInfo - old tab'); }
+        function dbMig_refreshDestinationTables() { console.log('dbMig_refreshDestinationTables - old tab'); }
+        function dbMig_selectAllDestinationTables() { console.log('dbMig_selectAllDestinationTables - old tab'); }
+        function dbMig_deselectAllDestinationTables() { console.log('dbMig_deselectAllDestinationTables - old tab'); }
+        function dbMig_loadDestinationTables() { console.log('dbMig_loadDestinationTables - old tab'); }
+        function dbMig_handleSourceDrop(event) { event.preventDefault(); console.log('dbMig_handleSourceDrop - old tab'); }
+        function dbMig_handleSourceDragOver(event) { event.preventDefault(); }
+        function dbMig_handleSourceDragLeave(event) { console.log('dbMig_handleSourceDragLeave - old tab'); }
+        function dbMig_handleDrop(event) { event.preventDefault(); console.log('dbMig_handleDrop - old tab'); }
+        function dbMig_handleDragOver(event) { event.preventDefault(); }
+        function dbMig_handleDragLeave(event) { console.log('dbMig_handleDragLeave - old tab'); }
+
         // Execute SQL Query
         async function executeSQLQuery() {
             if (!selectedDatabaseId) {
@@ -8864,6 +8884,7 @@ ${errorDetails || 'Unknown error occurred'}
         }
 
         // Get connection object from ID (supports both Localhost and Hostinger)
+        // Sync version - uses cached data
         function getConnectionById(connId) {
             console.log('🔍 getConnectionById called with:', connId);
             console.log('🔍 connId type:', typeof connId);
@@ -8909,9 +8930,49 @@ ${errorDetails || 'Unknown error occurred'}
                     return hostingerConn;
                 } else {
                     console.error('❌ Hostinger connection not found for ID:', actualId);
+                    console.log('📋 Available connections:', connections.map(c => c.id));
                 }
             } else {
                 console.error('❌ Invalid connection ID format:', connId);
+            }
+            
+            return null;
+        }
+        
+        // Async version - fetches from database if cache is empty
+        async function getConnectionByIdAsync(connId) {
+            console.log('🔍 getConnectionByIdAsync called with:', connId);
+            
+            if (!connId) {
+                console.warn('⚠️ getConnectionByIdAsync called with null/undefined');
+                return null;
+            }
+            
+            if (connId.startsWith('localhost_')) {
+                // LOCALHOST database - no async needed
+                return getConnectionById(connId);
+            } else if (connId.startsWith('conn_')) {
+                // HOSTINGER connection - try cache first, then fetch
+                let conn = getConnectionById(connId);
+                
+                if (!conn) {
+                    // Cache miss - fetch from database
+                    console.log('📡 Cache miss, fetching connections from database...');
+                    const connections = await getHostingerConnectionsAsync();
+                    const actualId = connId.replace('conn_', '');
+                    const foundConn = connections.find(c => c.id === actualId);
+                    
+                    if (foundConn) {
+                        conn = {
+                            ...foundConn,
+                            id: connId,
+                            isLocalhost: false
+                        };
+                        console.log('🌐 Found Hostinger connection after fetch:', foundConn.name);
+                    }
+                }
+                
+                return conn;
             }
             
             return null;
@@ -10185,7 +10246,7 @@ ${errorDetails || 'Unknown error occurred'}
         }
 
         // Tab switching for create table
-        function switchTab(tabName) {
+        async function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -10199,8 +10260,16 @@ ${errorDetails || 'Unknown error occurred'}
             } else if (tabName === 'migration') {
                 document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
                 document.getElementById('migrationTab').classList.add('active');
-                loadMigrationTables();
-                loadDestinationDropdown();
+                
+                // Load migration data - both functions are async
+                console.log('📋 Switching to Migration tab...');
+                console.log('selectedDatabaseId:', selectedDatabaseId);
+                
+                // Load source tables from selected database
+                await loadMigrationTables();
+                
+                // Load destination dropdown with all available databases
+                await loadDestinationDropdown();
             }
         }
 
@@ -10308,10 +10377,18 @@ ${errorDetails || 'Unknown error occurred'}
             console.log('=== LOAD MIGRATION TABLES ===');
             console.log('Selected Database ID:', selectedDatabaseId);
             
+            const sourceDbNameEl = document.getElementById('migrationSourceDbName');
+            const tablesContainerEl = document.getElementById('migrationTablesContainer');
+            
+            if (!sourceDbNameEl || !tablesContainerEl) {
+                console.warn('⚠️ Migration elements not found in DOM');
+                return;
+            }
+            
             if (!selectedDatabaseId) {
                 console.warn('⚠️ No database selected');
-                document.getElementById('migrationSourceDbName').textContent = 'No database selected';
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                sourceDbNameEl.textContent = 'No database selected';
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
                         <p style="font-size: 14px;">Please select a database first from Dashboard</p>
@@ -10321,18 +10398,19 @@ ${errorDetails || 'Unknown error occurred'}
                 return;
             }
 
-            // Get connection using helper function
-            const conn = getConnectionById(selectedDatabaseId);
+            // Get connection using async helper function (fetches from DB if cache is empty)
+            const conn = await getConnectionByIdAsync(selectedDatabaseId);
             
             console.log('Connection Info:', conn);
             
             if (!conn) {
                 console.error('❌ Connection not found for ID:', selectedDatabaseId);
-                document.getElementById('migrationSourceDbName').textContent = 'Connection not found';
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                sourceDbNameEl.textContent = 'Connection not found';
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
-                        <p style="font-size: 14px;">Connection not found</p>
+                        <p style="font-size: 14px;">Connection not found for: ${selectedDatabaseId}</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Try reconnecting or selecting a different database</p>
                     </div>
                 `;
                 return;
@@ -10344,10 +10422,10 @@ ${errorDetails || 'Unknown error occurred'}
             console.log(`📡 Fetching migration tables from ${serverType}:`, conn.dbName);
             console.log('Connection details:', { host: conn.host, user: conn.username, port: conn.port });
             
-            document.getElementById('migrationSourceDbName').textContent = `${serverLabel}: ${conn.name}`;
+            sourceDbNameEl.textContent = `${serverLabel}: ${conn.name}`;
 
             // Show loading state
-            document.getElementById('migrationTablesContainer').innerHTML = `
+            tablesContainerEl.innerHTML = `
                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                     <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
                     <p style="font-size: 14px;">Loading tables from ${serverType}...</p>
@@ -10377,10 +10455,10 @@ ${errorDetails || 'Unknown error occurred'}
                     updateMigrationCounts();
                     
                     // Update destination dropdown to exclude current source
-                    loadDestinationDropdown();
+                    await loadDestinationDropdown();
                 } else {
                     console.warn('⚠️ No tables found or error:', result);
-                    document.getElementById('migrationTablesContainer').innerHTML = `
+                    tablesContainerEl.innerHTML = `
                         <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                             <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
                             <p style="font-size: 14px;">No tables found in this database</p>
@@ -10393,7 +10471,7 @@ ${errorDetails || 'Unknown error occurred'}
                 }
             } catch (error) {
                 console.error('❌ Error loading migration tables:', error);
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
                         <p style="font-size: 14px;">Error loading tables</p>
@@ -10557,75 +10635,108 @@ ${errorDetails || 'Unknown error occurred'}
         // MIGRATION: DESTINATION DATABASE
         // ========================================
 
-        // Load destination database dropdown
-        function loadDestinationDropdown() {
+        // Load destination database dropdown (async version to ensure fresh data)
+        async function loadDestinationDropdown() {
             const select = document.getElementById('migrationDestinationSelect');
-            if (!select) return;
+            if (!select) {
+                console.warn('⚠️ migrationDestinationSelect not found');
+                return;
+            }
 
             // Save current selection
             const currentSelection = select.value;
+            console.log('=== LOAD DESTINATION DROPDOWN ===');
             console.log('Current destination selection before reload:', currentSelection);
+            console.log('isLocalhostConnected:', isLocalhostConnected);
+            console.log('isHostingerConnected:', isHostingerConnected);
+            console.log('selectedDatabaseId:', selectedDatabaseId);
 
             // Clear and rebuild dropdown
             select.innerHTML = '<option value="">-- Select Destination --</option>';
 
-            // Add localhost databases (if connected)
-            if (isLocalhostConnected) {
-                const localhostDbs = getLocalhostDatabases();
-                if (localhostDbs.length > 0) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = '🖥️ LOCALHOST (LARAGON)';
+            let hasOptions = false;
+
+            // Add localhost databases - ALWAYS try to load if we have databases cached
+            // (even if isLocalhostConnected is false, we might have cached data)
+            const localhostDbs = getLocalhostDatabases();
+            console.log('Localhost databases:', localhostDbs);
+            
+            if (localhostDbs && localhostDbs.length > 0) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = '🖥️ LOCALHOST (LARAGON)';
+                
+                localhostDbs.forEach(dbName => {
+                    const localhostId = `localhost_${dbName}`;
                     
-                    localhostDbs.forEach(dbName => {
-                        const localhostId = `localhost_${dbName}`;
-                        
-                        // Skip if this is the source
-                        if (selectedDatabaseId === localhostId) {
-                            return;
-                        }
-                        
-                        const option = document.createElement('option');
-                        option.value = localhostId;
-                        option.textContent = `🖥️ ${dbName} (Localhost)`;
-                        option.style.background = 'rgba(0, 0, 0, 0.8)';
-                        option.style.color = '#93c5fd';
-                        optgroup.appendChild(option);
-                    });
-                    
-                    if (optgroup.children.length > 0) {
-                        select.appendChild(optgroup);
+                    // Skip if this is the source
+                    if (selectedDatabaseId === localhostId) {
+                        return;
                     }
+                    
+                    const option = document.createElement('option');
+                    option.value = localhostId;
+                    option.textContent = `🖥️ ${dbName} (Localhost)`;
+                    option.style.background = 'rgba(0, 0, 0, 0.8)';
+                    option.style.color = '#93c5fd';
+                    optgroup.appendChild(option);
+                });
+                
+                if (optgroup.children.length > 0) {
+                    select.appendChild(optgroup);
+                    hasOptions = true;
                 }
             }
 
-            // Add Hostinger connections (if connected)
-            if (isHostingerConnected) {
-                const allConnections = getHostingerConnections();
-                
-                if (allConnections.length > 0) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = '🌐 HOSTINGER';
-                    
-                    allConnections.forEach(conn => {
-                        const connId = `conn_${conn.id}`;
-                        
-                        // Skip if this is the source
-                        if (selectedDatabaseId === connId) {
-                            return;
-                        }
-
-                        const option = document.createElement('option');
-                        option.value = connId;
-                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
-                        option.style.background = 'rgba(0, 0, 0, 0.8)';
-                        option.style.color = '#fef3c7';
-                        optgroup.appendChild(option);
-                    });
-                    
-                    if (optgroup.children.length > 0) {
-                        select.appendChild(optgroup);
-                    }
+            // Add Hostinger connections - Try to get async if cache is empty
+            let allConnections = getHostingerConnections();
+            
+            // If no connections in cache, try to fetch asynchronously
+            if (!allConnections || allConnections.length === 0) {
+                console.log('📡 Cache empty, fetching Hostinger connections...');
+                try {
+                    allConnections = await getHostingerConnectionsAsync();
+                } catch (e) {
+                    console.error('Error fetching connections:', e);
+                    allConnections = [];
                 }
+            }
+            
+            console.log('Hostinger connections:', allConnections);
+            
+            if (allConnections && allConnections.length > 0) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = '🌐 HOSTINGER';
+                
+                allConnections.forEach(conn => {
+                    const connId = `conn_${conn.id}`;
+                    
+                    // Skip if this is the source
+                    if (selectedDatabaseId === connId) {
+                        return;
+                    }
+
+                    const option = document.createElement('option');
+                    option.value = connId;
+                    option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                    option.style.background = 'rgba(0, 0, 0, 0.8)';
+                    option.style.color = '#fef3c7';
+                    optgroup.appendChild(option);
+                });
+                
+                if (optgroup.children.length > 0) {
+                    select.appendChild(optgroup);
+                    hasOptions = true;
+                }
+            }
+
+            // If no options found, show helpful message
+            if (!hasOptions) {
+                console.warn('⚠️ No databases available for destination dropdown');
+                const noOptionMsg = document.createElement('option');
+                noOptionMsg.value = '';
+                noOptionMsg.textContent = '⚠️ No other databases available - Connect to a DB first';
+                noOptionMsg.disabled = true;
+                select.appendChild(noOptionMsg);
             }
 
             // Restore previous selection if it still exists
@@ -10639,7 +10750,7 @@ ${errorDetails || 'Unknown error occurred'}
                 }
             }
 
-            console.log('Destination dropdown loaded with Localhost + Hostinger, excluded source:', selectedDatabaseId);
+            console.log('✅ Destination dropdown loaded with', select.options.length - 1, 'options, excluded source:', selectedDatabaseId);
         }
 
         // Load destination tables
