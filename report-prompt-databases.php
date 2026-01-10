@@ -2,32 +2,125 @@
 /**
  * Report Prompt Databases - CRUD Management
  * Table: report_prompt_databases
+ * 
+ * Smart Auto-Switch Database Connection:
+ * - Tries LOCALHOST first (faster when on Hostinger server)
+ * - Falls back to REMOTE if localhost fails
+ * - Toggle switch allows manual override
  */
 
-// Database Configuration
-$dbHost = 'srv1788.hstgr.io';
-$dbName = 'u419999707_prompt_manager';
-$dbUser = 'u419999707_prompt_manager';
-$dbPass = 'P@master5007';
-$dbPort = 3306;
+// ========================================
+// SMART DATABASE CONNECTION SYSTEM
+// ========================================
 
-// Table name with prefix
+// Database Credentials - Both connections
+$dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ],
+    'remote' => [
+        'host' => 'srv1788.hstgr.io',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ]
+];
+
+// Table name
 $tableName = 'report_prompt_databases';
 
-// PDO Connection
-try {
-    $pdo = new PDO(
-        "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4",
-        $dbUser,
-        $dbPass,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]
-    );
-} catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+// Connection state variables
+$pdo = null;
+$connectionType = 'localhost'; // Will be updated after connection
+$connectionFallback = false;
+$connectionError = null;
+
+// Check if user manually selected a connection type via AJAX
+if (isset($_GET['switch_db']) && in_array($_GET['switch_db'], ['localhost', 'remote'])) {
+    header('Content-Type: application/json');
+    $requestedType = $_GET['switch_db'];
+    $cred = $dbCredentials[$requestedType];
+    
+    try {
+        $testPdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        echo json_encode(['success' => true, 'type' => $requestedType, 'message' => "Connected to $requestedType"]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'type' => $requestedType, 'error' => $e->getMessage()]);
+    }
+    exit;
 }
+
+// Get preferred connection type from cookie (if set)
+$preferredType = isset($_COOKIE['db_connection_type']) ? $_COOKIE['db_connection_type'] : 'localhost';
+if (!in_array($preferredType, ['localhost', 'remote'])) {
+    $preferredType = 'localhost';
+}
+
+// Smart Connection Function
+function connectToDatabase($credentials, $preferredType) {
+    global $connectionType, $connectionFallback, $connectionError;
+    
+    // Try preferred connection first
+    $cred = $credentials[$preferredType];
+    try {
+        $pdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        $connectionType = $preferredType;
+        $connectionFallback = false;
+        return $pdo;
+    } catch (PDOException $e) {
+        // Try fallback connection
+        $fallbackType = ($preferredType === 'localhost') ? 'remote' : 'localhost';
+        $cred = $credentials[$fallbackType];
+        
+        try {
+            $pdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            $connectionType = $fallbackType;
+            $connectionFallback = true;
+            return $pdo;
+        } catch (PDOException $e2) {
+            $connectionError = $e2->getMessage();
+            return null;
+        }
+    }
+}
+
+// Establish connection
+$pdo = connectToDatabase($dbCredentials, $preferredType);
+
+if (!$pdo) {
+    die("Connection failed: " . $connectionError);
+}
+
+// Set cookie to remember working connection type
+setcookie('db_connection_type', $connectionType, time() + (86400 * 30), '/'); // 30 days
 
 // Create table if not exists
 $createTableSQL = "CREATE TABLE IF NOT EXISTS `$tableName` (
@@ -256,6 +349,200 @@ if (isset($_GET['edit'])) {
             --border-color: #2d3a4f;
             --glow-primary: rgba(0, 212, 170, 0.3);
             --glow-secondary: rgba(124, 58, 237, 0.3);
+        }
+        
+        /* ========================================
+           DATABASE CONNECTION TOGGLE SWITCH
+           ======================================== */
+        .db-toggle-container {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 25px;
+            z-index: 99999;
+            opacity: 0.35;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle-container:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        
+        .toggle-label.local {
+            color: #22c55e;
+        }
+        
+        .toggle-label.remote {
+            color: #3b82f6;
+        }
+        
+        /* Active state for labels */
+        .db-toggle-container[data-active="local"] .toggle-label.local,
+        .db-toggle-container[data-active="remote"] .toggle-label.remote {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .db-toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        .db-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-radius: 22px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .db-toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        .db-toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .connection-status {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .fallback-badge {
+            background: var(--accent-warning);
+            color: #000;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Connection info in header */
+        .connection-info {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .connection-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .connection-badge.localhost {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(21, 128, 61, 0.2) 100%);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .connection-badge.remote {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .fallback-notice {
+            font-size: 0.75rem;
+            color: var(--accent-warning);
+            margin-left: 8px;
+        }
+        
+        /* Toast for connection switch */
+        .db-switch-toast {
+            position: fixed;
+            top: 60px;
+            right: 12px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            z-index: 99998;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .db-switch-toast.success {
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        
+        .db-switch-toast.error {
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        
+        .db-switch-toast .toast-icon {
+            font-size: 20px;
+        }
+        
+        .db-switch-toast .toast-message {
+            font-size: 12px;
+            color: var(--text-primary);
         }
         
         * {
@@ -771,11 +1058,33 @@ if (isset($_GET['edit'])) {
     </style>
 </head>
 <body>
+    <!-- Database Connection Toggle Switch -->
+    <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)">
+        <span class="toggle-label local" id="labelLocal">🖥️</span>
+        <label class="db-toggle">
+            <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" <?php echo ($connectionType === 'remote') ? 'checked' : ''; ?>>
+            <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label remote" id="labelRemote">🌐</span>
+        <div class="connection-status" id="connectionStatus">
+            <?php echo ($connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+            <?php if ($connectionFallback): ?>
+                <span class="fallback-badge">⚡ Auto</span>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
             <h1>🗄️ Report Prompt Databases</h1>
             <p>Database Connection Manager - Full CRUD Operations</p>
+            <div class="connection-info">
+                Connected via: <span class="connection-badge <?php echo $connectionType; ?>"><?php echo ($connectionType === 'localhost') ? '🖥️ Localhost' : '🌐 Remote'; ?></span>
+                <?php if ($connectionFallback): ?>
+                    <span class="fallback-notice">(auto-switched)</span>
+                <?php endif; ?>
+            </div>
         </div>
         
         <!-- Alert Message -->
@@ -965,6 +1274,139 @@ if (isset($_GET['edit'])) {
 </div>
 
 <script>
+// ========================================
+// DATABASE CONNECTION TOGGLE SYSTEM
+// ========================================
+
+// Current connection type from PHP
+const CURRENT_CONNECTION_TYPE = '<?php echo $connectionType; ?>';
+const CONNECTION_WAS_FALLBACK = <?php echo $connectionFallback ? 'true' : 'false'; ?>;
+
+// LocalStorage key for connection preference
+const DB_CONNECTION_KEY = 'db_connection_type';
+
+// Initialize toggle on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('dbToggleContainer');
+    const toggle = document.getElementById('dbConnectionToggle');
+    
+    if (container && toggle) {
+        // Set data attribute for styling
+        container.setAttribute('data-active', CURRENT_CONNECTION_TYPE);
+        
+        // Update toggle state
+        toggle.checked = (CURRENT_CONNECTION_TYPE === 'remote');
+        
+        // Show fallback notification if auto-switched
+        if (CONNECTION_WAS_FALLBACK) {
+            showDbSwitchToast(
+                `Auto-switched to ${CURRENT_CONNECTION_TYPE === 'localhost' ? '🖥️ Localhost' : '🌐 Remote'}`,
+                'warning'
+            );
+        }
+    }
+});
+
+// Switch database connection
+async function switchDbConnection(isRemote) {
+    const targetType = isRemote ? 'remote' : 'localhost';
+    const toggle = document.getElementById('dbConnectionToggle');
+    const container = document.getElementById('dbToggleContainer');
+    const statusEl = document.getElementById('connectionStatus');
+    
+    // Disable toggle during switch
+    toggle.disabled = true;
+    
+    // Show switching message
+    showDbSwitchToast(`Switching to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}...`, 'info', 0);
+    
+    try {
+        const response = await fetch(`?switch_db=${targetType}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Connection successful
+            container.setAttribute('data-active', targetType);
+            statusEl.innerHTML = `${isRemote ? '🌐 Remote' : '🖥️ Local'}`;
+            
+            // Save preference to cookie via reload
+            document.cookie = `db_connection_type=${targetType};path=/;max-age=${86400 * 30}`;
+            
+            // Save to localStorage as well
+            localStorage.setItem(DB_CONNECTION_KEY, targetType);
+            
+            showDbSwitchToast(`✅ Connected to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}`, 'success');
+            
+            // Reload page to use new connection
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+            
+        } else {
+            // Connection failed - revert toggle
+            toggle.checked = !isRemote;
+            container.setAttribute('data-active', isRemote ? 'localhost' : 'remote');
+            
+            showDbSwitchToast(
+                `❌ Failed to connect to ${isRemote ? 'Remote' : 'Localhost'}. Staying on ${!isRemote ? '🌐 Remote' : '🖥️ Localhost'}`,
+                'error'
+            );
+        }
+    } catch (error) {
+        // Network error - revert toggle
+        toggle.checked = !isRemote;
+        container.setAttribute('data-active', isRemote ? 'localhost' : 'remote');
+        
+        showDbSwitchToast(`❌ Connection error: ${error.message}`, 'error');
+    }
+    
+    // Re-enable toggle
+    toggle.disabled = false;
+}
+
+// Show toast notification for db switch
+function showDbSwitchToast(message, type = 'info', duration = 3000) {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('dbSwitchToast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.id = 'dbSwitchToast';
+    toast.className = `db-switch-toast ${type}`;
+    toast.style.display = 'flex';
+    
+    const icons = {
+        'success': '✅',
+        'error': '❌',
+        'info': '🔄',
+        'warning': '⚠️'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || '📢'}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-hide after duration (if not 0)
+    if (duration > 0) {
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, duration);
+    }
+}
+
+// ========================================
+// EXPORT FUNCTIONALITY
+// ========================================
+
 // LocalStorage key for remembering last export path
 const EXPORT_PATH_KEY = 'report_prompt_db_export_path';
 
