@@ -581,10 +581,11 @@ if ($isApiRequest) {
         
         if (in_array($action, $hostingerConnectionsActions)) {
             // Connect to the storage database (report_prompt_databases table)
+            // Updated to use u419999707_prompt_manager database
             $storageConfig = [
                 'host' => 'srv1788.hstgr.io',
-                'dbname' => 'u419999707_Mohamed',
-                'username' => 'u419999707_Abuammar',
+                'dbname' => 'u419999707_prompt_manager',
+                'username' => 'u419999707_prompt_manager',
                 'password' => 'P@master5007',
                 'port' => '3306',
                 'charset' => 'utf8mb4'

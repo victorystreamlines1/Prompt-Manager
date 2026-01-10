@@ -1002,10 +1002,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         // ========================================
         // FETCH FROM report_prompt_databases TABLE
+        // Updated to use u419999707_prompt_manager database
         // ========================================
         $hubDbHost = 'srv1788.hstgr.io';
-        $hubDbName = 'u419999707_Mohamed';
-        $hubDbUser = 'u419999707_Abuammar';
+        $hubDbName = 'u419999707_prompt_manager';
+        $hubDbUser = 'u419999707_prompt_manager';
         $hubDbPass = 'P@master5007';
         $hubDbPort = 3306;
         $hubTableName = 'report_prompt_databases';
