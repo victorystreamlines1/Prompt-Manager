@@ -6,8 +6,8 @@
 
 // Database Configuration
 $dbHost = 'srv1788.hstgr.io';
-$dbName = 'u419999707_Mohamed';
-$dbUser = 'u419999707_Abuammar';
+$dbName = 'u419999707_prompt_manager';
+$dbUser = 'u419999707_prompt_manager';
 $dbPass = 'P@master5007';
 $dbPort = 3306;
 
