@@ -159,26 +159,34 @@ if (isset($_GET['api']) && $_GET['api'] === 'list') {
 // Handle Actions
 $message = '';
 $messageType = '';
+$operationTime = 0; // Track operation time in milliseconds
+$operationType = ''; // Type of operation performed
 
 // DELETE SINGLE
 if (isset($_GET['delete'])) {
+    $startTime = microtime(true);
     $id = $_GET['delete'];
     $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
     $stmt->execute([$id]);
-    $message = 'Record deleted successfully!';
+    $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+    $operationType = 'DELETE';
+    $message = "Record deleted successfully! ⏱️ {$operationTime}ms";
     $messageType = 'success';
 }
 
 // DELETE MULTIPLE (Mass Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'mass_delete') {
     if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids']) && count($_POST['selected_ids']) > 0) {
+        $startTime = microtime(true);
         $count = 0;
         foreach ($_POST['selected_ids'] as $id) {
             $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
             $stmt->execute([$id]);
             $count++;
         }
-        $message = "$count record(s) deleted successfully!";
+        $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+        $operationType = 'MASS_DELETE';
+        $message = "$count record(s) deleted successfully! ⏱️ {$operationTime}ms";
         $messageType = 'success';
     } else {
         $message = 'No records selected for deletion!';
@@ -192,6 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // ADD
         if ($_POST['action'] === 'add') {
+            $startTime = microtime(true);
             $id = time() . rand(100, 999);
             $stmt = $pdo->prepare("INSERT INTO `$tableName` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
             $stmt->execute([
@@ -204,12 +213,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['password'],
                 $_POST['port']
             ]);
-            $message = 'Record added successfully!';
+            $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+            $operationType = 'ADD';
+            $message = "Record added successfully! ⏱️ {$operationTime}ms";
             $messageType = 'success';
         }
         
         // UPDATE
         if ($_POST['action'] === 'update') {
+            $startTime = microtime(true);
             $stmt = $pdo->prepare("UPDATE `$tableName` SET name=?, type=?, host=?, dbName=?, username=?, password=?, port=? WHERE id=?");
             $stmt->execute([
                 $_POST['name'],
@@ -221,12 +233,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['port'],
                 $_POST['id']
             ]);
-            $message = 'Record updated successfully!';
+            $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+            $operationType = 'UPDATE';
+            $message = "Record updated successfully! ⏱️ {$operationTime}ms";
             $messageType = 'success';
         }
         
         // IMPORT
         if ($_POST['action'] === 'import' && isset($_FILES['jsonFile'])) {
+            $startTime = microtime(true);
             $jsonContent = file_get_contents($_FILES['jsonFile']['tmp_name']);
             
             // Remove the markdown comments if present
@@ -260,7 +275,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $imported++;
                     }
                 }
-                $message = "$imported records imported successfully!";
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                $operationType = 'IMPORT';
+                $message = "$imported records imported successfully! ⏱️ {$operationTime}ms";
                 $messageType = 'success';
             } else {
                 $message = 'Invalid JSON format!';
@@ -475,6 +492,145 @@ if (isset($_GET['edit'])) {
         @keyframes pulse-badge {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
+        }
+        
+        /* ========================================
+           SPEED MONITOR BOX
+           ======================================== */
+        .speed-monitor {
+            position: fixed;
+            top: 12px;
+            right: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            z-index: 99999;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 180px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+        }
+        
+        .speed-monitor:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .speed-monitor-title {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .speed-row:last-child {
+            border-bottom: none;
+        }
+        
+        .speed-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-label .op-type {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+        
+        .speed-value {
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .speed-value.local {
+            color: var(--accent-success);
+        }
+        
+        .speed-value.remote {
+            color: var(--accent-secondary);
+        }
+        
+        .speed-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 8px;
+            margin-top: 4px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .speed-comparison.faster {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .speed-comparison.slower {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .speed-comparison.equal {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .speed-diff {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .speed-winner {
+            font-size: 14px;
+        }
+        
+        .no-data {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 8px;
+            font-style: italic;
+        }
+        
+        @keyframes speed-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .speed-new {
+            animation: speed-pulse 0.5s ease;
         }
         
         /* Connection info in header */
@@ -1073,6 +1229,29 @@ if (isset($_GET['edit'])) {
             <?php endif; ?>
         </div>
     </div>
+    
+    <!-- Speed Monitor Box -->
+    <div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+        <div class="speed-monitor-title">
+            <span>⚡</span> Speed Monitor
+        </div>
+        <div id="speedContent">
+            <div class="no-data">Perform an action to see speed...</div>
+        </div>
+    </div>
+    
+    <!-- Pass operation data to JavaScript -->
+    <?php if ($operationTime > 0): ?>
+    <script>
+        // Store latest operation data
+        window.latestOperation = {
+            time: <?php echo $operationTime; ?>,
+            type: '<?php echo $operationType; ?>',
+            connection: '<?php echo $connectionType; ?>',
+            timestamp: Date.now()
+        };
+    </script>
+    <?php endif; ?>
 
     <div class="container">
         <!-- Header -->
@@ -1760,7 +1939,184 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update initial state
     updateSelection();
+    
+    // Initialize speed monitor
+    initSpeedMonitor();
 });
+
+// ========================================
+// SPEED MONITOR FUNCTIONALITY
+// ========================================
+const SPEED_HISTORY_KEY = 'db_speed_history';
+
+// Initialize speed monitor
+function initSpeedMonitor() {
+    // Load saved history
+    const history = getSpeedHistory();
+    
+    // Check if there's a new operation from PHP
+    if (window.latestOperation) {
+        addSpeedEntry(window.latestOperation);
+    }
+    
+    // Update the display
+    updateSpeedMonitor();
+}
+
+// Get speed history from localStorage
+function getSpeedHistory() {
+    try {
+        const data = localStorage.getItem(SPEED_HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// Save speed history to localStorage
+function saveSpeedHistory(history) {
+    try {
+        // Keep only the last 10 entries
+        if (history.length > 10) {
+            history = history.slice(-10);
+        }
+        localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+    } catch (e) {
+        console.error('Failed to save speed history:', e);
+    }
+}
+
+// Add a new speed entry
+function addSpeedEntry(operation) {
+    const history = getSpeedHistory();
+    
+    // Avoid duplicate entries (same timestamp)
+    const isDuplicate = history.some(h => 
+        h.timestamp === operation.timestamp && 
+        h.type === operation.type && 
+        h.time === operation.time
+    );
+    
+    if (!isDuplicate) {
+        history.push({
+            time: operation.time,
+            type: operation.type,
+            connection: operation.connection,
+            timestamp: operation.timestamp
+        });
+        saveSpeedHistory(history);
+    }
+}
+
+// Update speed monitor display
+function updateSpeedMonitor() {
+    const content = document.getElementById('speedContent');
+    if (!content) return;
+    
+    const history = getSpeedHistory();
+    
+    if (history.length === 0) {
+        content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+        return;
+    }
+    
+    // Get last two entries
+    const lastTwo = history.slice(-2);
+    
+    let html = '';
+    
+    // Show the last two operations
+    lastTwo.forEach((entry, idx) => {
+        const isLatest = idx === lastTwo.length - 1;
+        const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+        const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+        
+        html += `
+            <div class="speed-row ${isLatest ? 'speed-new' : ''}">
+                <span class="speed-label">
+                    ${connIcon}
+                    <span class="op-type">${entry.type}</span>
+                </span>
+                <span class="speed-value ${connClass}">${entry.time}ms</span>
+            </div>
+        `;
+    });
+    
+    // Add comparison if we have two entries
+    if (lastTwo.length === 2) {
+        const [first, second] = lastTwo;
+        const diff = Math.abs(first.time - second.time).toFixed(2);
+        const percentage = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+        
+        let comparisonClass, comparisonText, winner;
+        
+        if (second.time < first.time) {
+            comparisonClass = 'faster';
+            winner = second.connection === 'localhost' ? '🖥️' : '🌐';
+            comparisonText = `${winner} ${percentage}% faster`;
+        } else if (second.time > first.time) {
+            comparisonClass = 'slower';
+            winner = first.connection === 'localhost' ? '🖥️' : '🌐';
+            comparisonText = `${winner} ${percentage}% faster`;
+        } else {
+            comparisonClass = 'equal';
+            comparisonText = '⚖️ Equal speed';
+        }
+        
+        html += `
+            <div class="speed-comparison ${comparisonClass}">
+                <span class="speed-winner">${comparisonClass !== 'equal' ? winner : '⚖️'}</span>
+                <span class="speed-diff">Δ ${diff}ms</span>
+                <span>${comparisonText}</span>
+            </div>
+        `;
+    }
+    
+    // Add clear button
+    html += `
+        <div style="text-align: center; margin-top: 6px;">
+            <button onclick="clearSpeedHistory()" style="
+                background: rgba(255,255,255,0.1);
+                border: none;
+                color: var(--text-secondary);
+                font-size: 8px;
+                padding: 2px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                Clear History
+            </button>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+}
+
+// Clear speed history
+function clearSpeedHistory() {
+    localStorage.removeItem(SPEED_HISTORY_KEY);
+    updateSpeedMonitor();
+    showToast('Speed history cleared', 'success', 1500);
+}
+
+// Record speed from JavaScript operations (for AJAX calls)
+function recordOperationSpeed(type, startTime, connection) {
+    const endTime = performance.now();
+    const operationTime = (endTime - startTime).toFixed(2);
+    
+    const operation = {
+        time: parseFloat(operationTime),
+        type: type,
+        connection: connection || (document.getElementById('dbConnectionToggle')?.checked ? 'remote' : 'localhost'),
+        timestamp: Date.now()
+    };
+    
+    addSpeedEntry(operation);
+    updateSpeedMonitor();
+    
+    return operationTime;
+}
 </script>
 
 <style>
