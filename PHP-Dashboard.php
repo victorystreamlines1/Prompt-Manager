@@ -581,10 +581,11 @@ if ($isApiRequest) {
         
         if (in_array($action, $hostingerConnectionsActions)) {
             // Connect to the storage database (report_prompt_databases table)
+            // Updated to use u419999707_prompt_manager database
             $storageConfig = [
                 'host' => 'srv1788.hstgr.io',
-                'dbname' => 'u419999707_Mohamed',
-                'username' => 'u419999707_Abuammar',
+                'dbname' => 'u419999707_prompt_manager',
+                'username' => 'u419999707_prompt_manager',
                 'password' => 'P@master5007',
                 'port' => '3306',
                 'charset' => 'utf8mb4'
@@ -2272,20 +2273,23 @@ if ($isApiRequest) {
         /* Migration Table Box Styles */
         .migration-table-box {
             flex: 0 0 calc(33.333% - 7px);
-            min-width: 120px;
+            min-width: 160px;
+            max-width: 100%;
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
             border: 2px solid rgba(251, 191, 36, 0.3);
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
             position: relative;
             user-select: none;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .migration-table-box:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             border-color: #fbbf24;
             box-shadow: 0 5px 15px rgba(251, 191, 36, 0.3);
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
@@ -2298,43 +2302,152 @@ if ($isApiRequest) {
         }
 
         .migration-table-box.selected:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             border-color: #86efac;
         }
 
+        /* Migration table action buttons row */
+        .migration-table-box .mig-action-row {
+            display: flex;
+            gap: 3px;
+            justify-content: space-between;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .migration-table-box .mig-action-btn {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 25%;
+            padding: 6px 4px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .migration-table-box .mig-action-btn span {
+            font-size: 14px;
+        }
+
+        /* Migration table info row (count + emoji + name) */
+        .migration-table-box .mig-info-row {
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .migration-table-box .mig-row-count {
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            flex-shrink: 0;
+        }
+
+        .migration-table-box .mig-emoji {
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            flex-shrink: 0;
+        }
+
+        .migration-table-box .mig-table-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fef3c7;
+            padding: 6px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+            word-break: break-word;
+            line-height: 1.3;
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        /* Migration table drag badges row */
+        .migration-table-box .mig-drag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .migration-table-box .mig-drag-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: grab;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.2s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
         .migration-table-emoji {
-            font-size: 32px;
+            font-size: 28px;
             margin-bottom: 8px;
             display: block;
         }
 
         .migration-table-name {
             color: #fef3c7;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             word-wrap: break-word;
+            word-break: break-word;
             line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .migration-table-box.selected .migration-table-name {
+        .migration-table-box.selected .migration-table-name,
+        .migration-table-box.selected .mig-table-name {
             color: #86efac;
         }
 
         .migration-check-icon {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 4px;
+            right: 4px;
             background: #22c55e;
             color: white;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 10px;
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 5;
         }
 
         .migration-table-box.selected .migration-check-icon {
@@ -2513,6 +2626,28 @@ if ($isApiRequest) {
 
             .migration-table-box {
                 flex: 0 0 calc(50% - 5px);
+                min-width: 140px;
+            }
+            
+            .migration-table-box .mig-action-btn {
+                padding: 5px 3px;
+            }
+            
+            .migration-table-box .mig-action-btn span {
+                font-size: 12px;
+            }
+            
+            .migration-table-box .mig-table-name {
+                font-size: 11px;
+            }
+            
+            .migration-table-box .mig-emoji {
+                font-size: 24px;
+            }
+            
+            .migration-table-box .mig-drag-badge {
+                font-size: 9px;
+                padding: 4px 8px;
             }
         }
 
@@ -3984,32 +4119,32 @@ if ($isApiRequest) {
                                         <span style="font-size: 24px;">📦</span>
                                         <span>Source Tables</span>
                                     </h3>
-                                    <p style="color: rgba(254, 243, 199, 0.7); margin: 5px 0 0 34px; font-size: 13px;" id="migrationSourceDbName">
+                                    <p style="color: rgba(254, 243, 199, 0.7); margin: 5px 0 0 34px; font-size: 13px;" id="dbMig_SourceDbName">
                                         No database selected
                                     </p>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="showDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
+                                    <button onclick="dbMig_showDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
                                         <span>🗄️</span> DB-Info
                                     </button>
-                                    <button onclick="refreshMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
+                                    <button onclick="dbMig_refreshMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
                                         <span>🔄</span>
                                     </button>
-                                    <button onclick="selectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
+                                    <button onclick="dbMig_selectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
                                         <span>✅</span>
                                     </button>
-                                    <button onclick="deselectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
+                                    <button onclick="dbMig_deselectAllMigrationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
                                         <span>❌</span>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Tables Grid - NOW ALSO A DROP ZONE (for reverse drag from Destination) -->
-                            <div id="migrationTablesContainer" 
+                            <div id="dbMig_TablesContainer" 
                                  class="migration-drop-zone"
-                                 ondrop="handleSourceDrop(event)"
-                                 ondragover="handleSourceDragOver(event)"
-                                 ondragleave="handleSourceDragLeave(event)"
+                                 ondrop="dbMig_handleSourceDrop(event)"
+                                 ondragover="dbMig_handleSourceDragOver(event)"
+                                 ondragleave="dbMig_handleSourceDragLeave(event)"
                                  style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 200px; max-height: 500px; overflow-y: auto; padding: 5px; transition: all 0.3s;">
                                 <!-- Tables will be loaded here dynamically -->
                                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
@@ -4020,8 +4155,8 @@ if ($isApiRequest) {
 
                             <!-- Selected Count -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(251, 191, 36, 0.2); color: rgba(254, 243, 199, 0.8); font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-                                <span id="migrationSelectedCount">0 tables selected</span>
-                                <span id="migrationTotalCount">0 tables total</span>
+                                <span id="dbMig_SelectedCount">0 tables selected</span>
+                                <span id="dbMig_TotalCount">0 tables total</span>
                             </div>
                         </div>
 
@@ -4046,16 +4181,16 @@ if ($isApiRequest) {
                                     </p>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <button onclick="showDestinationDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
+                                    <button onclick="dbMig_showDestinationDatabaseInfo()" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);" title="Show database credentials and selected tables info">
                                         <span>🗄️</span> DB-Info
                                     </button>
-                                    <button onclick="refreshDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
+                                    <button onclick="dbMig_refreshDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Refresh tables">
                                         <span>🔄</span>
                                     </button>
-                                    <button onclick="selectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
+                                    <button onclick="dbMig_selectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Select all">
                                         <span>✅</span>
                                     </button>
-                                    <button onclick="deselectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
+                                    <button onclick="dbMig_deselectAllDestinationTables()" class="btn btn-secondary" style="padding: 8px 12px; font-size: 12px;" title="Deselect all">
                                         <span>❌</span>
                                     </button>
                                 </div>
@@ -4066,30 +4201,30 @@ if ($isApiRequest) {
                                 <label style="display: block; color: #fbbf24; font-size: 14px; font-weight: 500; margin-bottom: 10px;">
                                     🎯 Select Destination Database
                                 </label>
-                                <select id="migrationDestinationSelect" 
-                                        onchange="loadDestinationTables()"
+                                <select id="dbMig_DestinationSelect" 
+                                        onchange="dbMig_loadDestinationTables()"
                                         style="width: 100%; padding: 12px 15px; background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%); border: 2px solid rgba(34, 197, 94, 0.4); border-radius: 8px; color: #fef3c7; font-size: 14px; cursor: pointer; outline: none; transition: all 0.3s;">
                                     <option value="">-- Select Destination --</option>
                                 </select>
                             </div>
 
                             <!-- Destination Info Display -->
-                            <div id="migrationDestinationInfo" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: none;">
+                            <div id="dbMig_DestinationInfo" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: none;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 20px;">🌐</span>
                                     <div style="flex: 1;">
-                                        <div style="color: #93c5fd; font-size: 13px; font-weight: 500;" id="migrationDestDbName">Database Name</div>
-                                        <div style="color: rgba(254, 243, 199, 0.6); font-size: 11px;" id="migrationDestHost">Host</div>
+                                        <div style="color: #93c5fd; font-size: 13px; font-weight: 500;" id="dbMig_DestDbName">Database Name</div>
+                                        <div style="color: rgba(254, 243, 199, 0.6); font-size: 11px;" id="dbMig_DestHost">Host</div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Destination Tables Container -->
-                            <div id="migrationDestinationTablesContainer" 
+                            <div id="dbMig_DestinationTablesContainer" 
                                  class="migration-drop-zone"
-                                 ondrop="handleDrop(event)"
-                                 ondragover="handleDragOver(event)"
-                                 ondragleave="handleDragLeave(event)"
+                                 ondrop="dbMig_handleDrop(event)"
+                                 ondragover="dbMig_handleDragOver(event)"
+                                 ondragleave="dbMig_handleDragLeave(event)"
                                  style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 200px; max-height: 340px; overflow-y: auto; padding: 5px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2); transition: all 0.3s;">
                                 <!-- Destination tables will be loaded here -->
                                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
@@ -4100,8 +4235,8 @@ if ($isApiRequest) {
 
                             <!-- Destination Tables Count -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(34, 197, 94, 0.2); color: rgba(254, 243, 199, 0.8); font-size: 13px; display: flex; justify-content: space-between; align-items: center;">
-                                <span id="migrationDestinationSelectedCount">0 tables selected</span>
-                                <span id="migrationDestinationCount">0 tables total</span>
+                                <span id="dbMig_DestinationSelectedCount">0 tables selected</span>
+                                <span id="dbMig_DestinationCount">0 tables total</span>
                             </div>
 
                             <!-- Drag & Drop Instruction - TWO-WAY SYSTEM -->
@@ -7029,6 +7164,26 @@ OVERVIEW:
             }
         }
 
+        // ========================================
+        // STUB FUNCTIONS for databaseMigrationTab
+        // (These are separate from the Create Table > Migration tab)
+        // ========================================
+        function dbMig_showDatabaseInfo() { console.log('dbMig_showDatabaseInfo - old tab'); }
+        function dbMig_refreshMigrationTables() { console.log('dbMig_refreshMigrationTables - old tab'); }
+        function dbMig_selectAllMigrationTables() { console.log('dbMig_selectAllMigrationTables - old tab'); }
+        function dbMig_deselectAllMigrationTables() { console.log('dbMig_deselectAllMigrationTables - old tab'); }
+        function dbMig_showDestinationDatabaseInfo() { console.log('dbMig_showDestinationDatabaseInfo - old tab'); }
+        function dbMig_refreshDestinationTables() { console.log('dbMig_refreshDestinationTables - old tab'); }
+        function dbMig_selectAllDestinationTables() { console.log('dbMig_selectAllDestinationTables - old tab'); }
+        function dbMig_deselectAllDestinationTables() { console.log('dbMig_deselectAllDestinationTables - old tab'); }
+        function dbMig_loadDestinationTables() { console.log('dbMig_loadDestinationTables - old tab'); }
+        function dbMig_handleSourceDrop(event) { event.preventDefault(); console.log('dbMig_handleSourceDrop - old tab'); }
+        function dbMig_handleSourceDragOver(event) { event.preventDefault(); }
+        function dbMig_handleSourceDragLeave(event) { console.log('dbMig_handleSourceDragLeave - old tab'); }
+        function dbMig_handleDrop(event) { event.preventDefault(); console.log('dbMig_handleDrop - old tab'); }
+        function dbMig_handleDragOver(event) { event.preventDefault(); }
+        function dbMig_handleDragLeave(event) { console.log('dbMig_handleDragLeave - old tab'); }
+
         // Execute SQL Query
         async function executeSQLQuery() {
             if (!selectedDatabaseId) {
@@ -8864,6 +9019,7 @@ ${errorDetails || 'Unknown error occurred'}
         }
 
         // Get connection object from ID (supports both Localhost and Hostinger)
+        // Sync version - uses cached data
         function getConnectionById(connId) {
             console.log('🔍 getConnectionById called with:', connId);
             console.log('🔍 connId type:', typeof connId);
@@ -8909,9 +9065,49 @@ ${errorDetails || 'Unknown error occurred'}
                     return hostingerConn;
                 } else {
                     console.error('❌ Hostinger connection not found for ID:', actualId);
+                    console.log('📋 Available connections:', connections.map(c => c.id));
                 }
             } else {
                 console.error('❌ Invalid connection ID format:', connId);
+            }
+            
+            return null;
+        }
+        
+        // Async version - fetches from database if cache is empty
+        async function getConnectionByIdAsync(connId) {
+            console.log('🔍 getConnectionByIdAsync called with:', connId);
+            
+            if (!connId) {
+                console.warn('⚠️ getConnectionByIdAsync called with null/undefined');
+                return null;
+            }
+            
+            if (connId.startsWith('localhost_')) {
+                // LOCALHOST database - no async needed
+                return getConnectionById(connId);
+            } else if (connId.startsWith('conn_')) {
+                // HOSTINGER connection - try cache first, then fetch
+                let conn = getConnectionById(connId);
+                
+                if (!conn) {
+                    // Cache miss - fetch from database
+                    console.log('📡 Cache miss, fetching connections from database...');
+                    const connections = await getHostingerConnectionsAsync();
+                    const actualId = connId.replace('conn_', '');
+                    const foundConn = connections.find(c => c.id === actualId);
+                    
+                    if (foundConn) {
+                        conn = {
+                            ...foundConn,
+                            id: connId,
+                            isLocalhost: false
+                        };
+                        console.log('🌐 Found Hostinger connection after fetch:', foundConn.name);
+                    }
+                }
+                
+                return conn;
             }
             
             return null;
@@ -10185,7 +10381,7 @@ ${errorDetails || 'Unknown error occurred'}
         }
 
         // Tab switching for create table
-        function switchTab(tabName) {
+        async function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
@@ -10199,8 +10395,16 @@ ${errorDetails || 'Unknown error occurred'}
             } else if (tabName === 'migration') {
                 document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
                 document.getElementById('migrationTab').classList.add('active');
-                loadMigrationTables();
-                loadDestinationDropdown();
+                
+                // Load migration data - both functions are async
+                console.log('📋 Switching to Migration tab...');
+                console.log('selectedDatabaseId:', selectedDatabaseId);
+                
+                // Load source tables from selected database
+                await loadMigrationTables();
+                
+                // Load destination dropdown with all available databases
+                await loadDestinationDropdown();
             }
         }
 
@@ -10308,10 +10512,18 @@ ${errorDetails || 'Unknown error occurred'}
             console.log('=== LOAD MIGRATION TABLES ===');
             console.log('Selected Database ID:', selectedDatabaseId);
             
+            const sourceDbNameEl = document.getElementById('migrationSourceDbName');
+            const tablesContainerEl = document.getElementById('migrationTablesContainer');
+            
+            if (!sourceDbNameEl || !tablesContainerEl) {
+                console.warn('⚠️ Migration elements not found in DOM');
+                return;
+            }
+            
             if (!selectedDatabaseId) {
                 console.warn('⚠️ No database selected');
-                document.getElementById('migrationSourceDbName').textContent = 'No database selected';
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                sourceDbNameEl.textContent = 'No database selected';
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
                         <p style="font-size: 14px;">Please select a database first from Dashboard</p>
@@ -10321,18 +10533,19 @@ ${errorDetails || 'Unknown error occurred'}
                 return;
             }
 
-            // Get connection using helper function
-            const conn = getConnectionById(selectedDatabaseId);
+            // Get connection using async helper function (fetches from DB if cache is empty)
+            const conn = await getConnectionByIdAsync(selectedDatabaseId);
             
             console.log('Connection Info:', conn);
             
             if (!conn) {
                 console.error('❌ Connection not found for ID:', selectedDatabaseId);
-                document.getElementById('migrationSourceDbName').textContent = 'Connection not found';
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                sourceDbNameEl.textContent = 'Connection not found';
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
-                        <p style="font-size: 14px;">Connection not found</p>
+                        <p style="font-size: 14px;">Connection not found for: ${selectedDatabaseId}</p>
+                        <p style="font-size: 12px; margin-top: 10px;">Try reconnecting or selecting a different database</p>
                     </div>
                 `;
                 return;
@@ -10344,10 +10557,10 @@ ${errorDetails || 'Unknown error occurred'}
             console.log(`📡 Fetching migration tables from ${serverType}:`, conn.dbName);
             console.log('Connection details:', { host: conn.host, user: conn.username, port: conn.port });
             
-            document.getElementById('migrationSourceDbName').textContent = `${serverLabel}: ${conn.name}`;
+            sourceDbNameEl.textContent = `${serverLabel}: ${conn.name}`;
 
             // Show loading state
-            document.getElementById('migrationTablesContainer').innerHTML = `
+            tablesContainerEl.innerHTML = `
                 <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                     <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
                     <p style="font-size: 14px;">Loading tables from ${serverType}...</p>
@@ -10377,10 +10590,10 @@ ${errorDetails || 'Unknown error occurred'}
                     updateMigrationCounts();
                     
                     // Update destination dropdown to exclude current source
-                    loadDestinationDropdown();
+                    await loadDestinationDropdown();
                 } else {
                     console.warn('⚠️ No tables found or error:', result);
-                    document.getElementById('migrationTablesContainer').innerHTML = `
+                    tablesContainerEl.innerHTML = `
                         <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                             <div style="font-size: 48px; margin-bottom: 15px;">📭</div>
                             <p style="font-size: 14px;">No tables found in this database</p>
@@ -10393,7 +10606,7 @@ ${errorDetails || 'Unknown error occurred'}
                 }
             } catch (error) {
                 console.error('❌ Error loading migration tables:', error);
-                document.getElementById('migrationTablesContainer').innerHTML = `
+                tablesContainerEl.innerHTML = `
                     <div style="width: 100%; text-align: center; padding: 40px 20px; color: rgba(254, 243, 199, 0.5);">
                         <div style="font-size: 48px; margin-bottom: 15px;">❌</div>
                         <p style="font-size: 14px;">Error loading tables</p>
@@ -10437,72 +10650,51 @@ ${errorDetails || 'Unknown error occurred'}
                          draggable="true"
                          ondragstart="handleDragStart(event, '${tableName}', false)"
                          ondragend="handleDragEnd(event)"
-                         style="cursor: grab; position: relative; display: grid; grid-template-rows: auto auto auto; gap: 10px; padding: 10px;">
+                         style="cursor: grab; display: grid; grid-template-rows: auto auto auto; gap: 8px;">
                         
                         <span class="migration-check-icon" onclick="toggleMigrationTable('${tableName}')">✓</span>
                         
-                        <!-- Row 1: 4 Action Buttons Only (Equal Distribution) -->
-                        <div style="display: flex; gap: 4px; justify-content: space-between;">
-                            <!-- Inject Button -->
-                            <button onclick="injectRandomIntoTable('${tableName}'); event.stopPropagation();" title="Inject 10 random records" style="flex: 1; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(59, 130, 246, 0.3)';"><span style="font-size: 16px;">🎲</span></button>
-                            
-                            <!-- Copy Button -->
-                            <button onclick="duplicateTable('${tableName}'); event.stopPropagation();" title="Duplicate table" style="flex: 1; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(139, 92, 246, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(139, 92, 246, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(139, 92, 246, 0.3)';"><span style="font-size: 16px;">📋</span></button>
-                            
-                            <!-- Empty Button -->
-                            <button onclick="emptyTableData('${tableName}'); event.stopPropagation();" title="Empty table data" style="flex: 1; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(245, 158, 11, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(245, 158, 11, 0.3)';"><span style="font-size: 16px;">🧹</span></button>
-                            
-                            <!-- Delete Button -->
-                            <button onclick="deleteTableFromMigration('${tableName}'); event.stopPropagation();" title="Delete table" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(239, 68, 68, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(239, 68, 68, 0.3)';"><span style="font-size: 16px;">🗑️</span></button>
+                        <!-- Row 1: 4 Action Buttons -->
+                        <div class="mig-action-row">
+                            <button class="mig-action-btn" onclick="injectRandomIntoTable('${tableName}'); event.stopPropagation();" title="Inject 10 random records" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);"><span>🎲</span></button>
+                            <button class="mig-action-btn" onclick="duplicateTable('${tableName}'); event.stopPropagation();" title="Duplicate table" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-color: rgba(139, 92, 246, 0.6); box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);"><span>📋</span></button>
+                            <button class="mig-action-btn" onclick="emptyTableData('${tableName}'); event.stopPropagation();" title="Empty table data" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);"><span>🧹</span></button>
+                            <button class="mig-action-btn" onclick="deleteTableFromMigration('${tableName}'); event.stopPropagation();" title="Delete table" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);"><span>🗑️</span></button>
                         </div>
                         
                         <!-- Row 2: Row Count + Emoji + Table Name -->
-                        <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: center;">
-                            <!-- Row Count Badge -->
-                            <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; border: 1px solid rgba(59, 130, 246, 0.6); box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 42px;">
-                                <div style="font-size: 12px; margin-bottom: 2px;">📊</div>
-                                <div style="font-size: 11px; font-weight: 700;">${typeof rowCount === 'number' ? rowCount.toLocaleString() : rowCount}</div>
+                        <div class="mig-info-row">
+                            <div class="mig-row-count" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border: 1px solid rgba(59, 130, 246, 0.6); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);">
+                                <div style="font-size: 11px; margin-bottom: 1px;">📊</div>
+                                <div style="font-size: 10px; font-weight: 700;">${typeof rowCount === 'number' ? rowCount.toLocaleString() : rowCount}</div>
                             </div>
-                            
-                            <!-- Table Emoji -->
-                            <div style="font-size: 36px; display: flex; align-items: center; justify-content: center; min-height: 42px;">
-                                ${emoji}
-                            </div>
-                            
-                            <!-- Table Name (Takes most space) -->
-                            <div oncontextmenu="startRenameTable('${tableName}', this); event.preventDefault(); event.stopPropagation(); return false;"
+                            <div class="mig-emoji">${emoji}</div>
+                            <div class="mig-table-name"
+                                 oncontextmenu="startRenameTable('${tableName}', this); event.preventDefault(); event.stopPropagation(); return false;"
                                  onclick="event.stopPropagation(); toggleMigrationTable('${tableName}')"
-                                 onmouseover="this.style.cursor='context-menu'; this.style.background='rgba(251, 191, 36, 0.2)'; this.style.transform='scale(1.02)';"
-                                 onmouseout="this.style.cursor='pointer'; this.style.background='transparent'; this.style.transform='scale(1)';"
-                                 title="Right-click to rename"
-                                 style="font-size: 16px; font-weight: 700; color: #fef3c7; padding: 8px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: all 0.2s; text-align: left;">
+                                 onmouseover="this.style.background='rgba(251, 191, 36, 0.2)';"
+                                 onmouseout="this.style.background='transparent';"
+                                 title="Right-click to rename">
                                 ${tableName}
                             </div>
                         </div>
                         
-                        <!-- Row 3: Structure (Left) + Data (Right) -->
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <!-- Structure Label (Left - Draggable) -->
-                            <div draggable="true"
+                        <!-- Row 3: Structure + Data Badges -->
+                        <div class="mig-drag-row">
+                            <div class="mig-drag-badge" draggable="true"
                                  ondragstart="handleDragStart(event, '${tableName}', false); event.stopPropagation();"
                                  ondragend="handleDragEnd(event)"
                                  onclick="event.stopPropagation();"
                                  title="🏗️ Drag to move Structure Only"
-                                 style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.6); cursor: grab; font-size: 11px; font-weight: bold; color: white; box-shadow: 0 2px 6px rgba(251, 191, 36, 0.3); transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-                                 onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(251, 191, 36, 0.5)';"
-                                 onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(251, 191, 36, 0.3)';">
+                                 style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: 1px solid rgba(251, 191, 36, 0.6); box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);">
                                 🏗️ Structure
                             </div>
-                            
-                            <!-- Data Badge (Right - Draggable) -->
-                            <div draggable="true"
+                            <div class="mig-drag-badge" draggable="true"
                                  ondragstart="handleDragStart(event, '${tableName}', true); event.stopPropagation();"
                                  ondragend="handleDragEnd(event)"
                                  onclick="event.stopPropagation();"
                                  title="✋ Drag for Structure + Data"
-                                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 6px 12px; border-radius: 6px; cursor: grab; border: 1px solid rgba(16, 185, 129, 0.6); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); transition: all 0.2s; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-                                 onmouseover="this.style.background='linear-gradient(135deg, #22c55e 0%, #15803d 100%)'; this.style.transform='scale(1.1)'; this.style.cursor='grab'; this.style.boxShadow='0 4px 10px rgba(34, 197, 94, 0.5)';"
-                                 onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(16, 185, 129, 0.3)';">
+                                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(16, 185, 129, 0.6); box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
                                 ✋ Data
                             </div>
                         </div>
@@ -10557,75 +10749,108 @@ ${errorDetails || 'Unknown error occurred'}
         // MIGRATION: DESTINATION DATABASE
         // ========================================
 
-        // Load destination database dropdown
-        function loadDestinationDropdown() {
+        // Load destination database dropdown (async version to ensure fresh data)
+        async function loadDestinationDropdown() {
             const select = document.getElementById('migrationDestinationSelect');
-            if (!select) return;
+            if (!select) {
+                console.warn('⚠️ migrationDestinationSelect not found');
+                return;
+            }
 
             // Save current selection
             const currentSelection = select.value;
+            console.log('=== LOAD DESTINATION DROPDOWN ===');
             console.log('Current destination selection before reload:', currentSelection);
+            console.log('isLocalhostConnected:', isLocalhostConnected);
+            console.log('isHostingerConnected:', isHostingerConnected);
+            console.log('selectedDatabaseId:', selectedDatabaseId);
 
             // Clear and rebuild dropdown
             select.innerHTML = '<option value="">-- Select Destination --</option>';
 
-            // Add localhost databases (if connected)
-            if (isLocalhostConnected) {
-                const localhostDbs = getLocalhostDatabases();
-                if (localhostDbs.length > 0) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = '🖥️ LOCALHOST (LARAGON)';
+            let hasOptions = false;
+
+            // Add localhost databases - ALWAYS try to load if we have databases cached
+            // (even if isLocalhostConnected is false, we might have cached data)
+            const localhostDbs = getLocalhostDatabases();
+            console.log('Localhost databases:', localhostDbs);
+            
+            if (localhostDbs && localhostDbs.length > 0) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = '🖥️ LOCALHOST (LARAGON)';
+                
+                localhostDbs.forEach(dbName => {
+                    const localhostId = `localhost_${dbName}`;
                     
-                    localhostDbs.forEach(dbName => {
-                        const localhostId = `localhost_${dbName}`;
-                        
-                        // Skip if this is the source
-                        if (selectedDatabaseId === localhostId) {
-                            return;
-                        }
-                        
-                        const option = document.createElement('option');
-                        option.value = localhostId;
-                        option.textContent = `🖥️ ${dbName} (Localhost)`;
-                        option.style.background = 'rgba(0, 0, 0, 0.8)';
-                        option.style.color = '#93c5fd';
-                        optgroup.appendChild(option);
-                    });
-                    
-                    if (optgroup.children.length > 0) {
-                        select.appendChild(optgroup);
+                    // Skip if this is the source
+                    if (selectedDatabaseId === localhostId) {
+                        return;
                     }
+                    
+                    const option = document.createElement('option');
+                    option.value = localhostId;
+                    option.textContent = `🖥️ ${dbName} (Localhost)`;
+                    option.style.background = 'rgba(0, 0, 0, 0.8)';
+                    option.style.color = '#93c5fd';
+                    optgroup.appendChild(option);
+                });
+                
+                if (optgroup.children.length > 0) {
+                    select.appendChild(optgroup);
+                    hasOptions = true;
                 }
             }
 
-            // Add Hostinger connections (if connected)
-            if (isHostingerConnected) {
-                const allConnections = getHostingerConnections();
-                
-                if (allConnections.length > 0) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = '🌐 HOSTINGER';
-                    
-                    allConnections.forEach(conn => {
-                        const connId = `conn_${conn.id}`;
-                        
-                        // Skip if this is the source
-                        if (selectedDatabaseId === connId) {
-                            return;
-                        }
-
-                        const option = document.createElement('option');
-                        option.value = connId;
-                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
-                        option.style.background = 'rgba(0, 0, 0, 0.8)';
-                        option.style.color = '#fef3c7';
-                        optgroup.appendChild(option);
-                    });
-                    
-                    if (optgroup.children.length > 0) {
-                        select.appendChild(optgroup);
-                    }
+            // Add Hostinger connections - Try to get async if cache is empty
+            let allConnections = getHostingerConnections();
+            
+            // If no connections in cache, try to fetch asynchronously
+            if (!allConnections || allConnections.length === 0) {
+                console.log('📡 Cache empty, fetching Hostinger connections...');
+                try {
+                    allConnections = await getHostingerConnectionsAsync();
+                } catch (e) {
+                    console.error('Error fetching connections:', e);
+                    allConnections = [];
                 }
+            }
+            
+            console.log('Hostinger connections:', allConnections);
+            
+            if (allConnections && allConnections.length > 0) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = '🌐 HOSTINGER';
+                
+                allConnections.forEach(conn => {
+                    const connId = `conn_${conn.id}`;
+                    
+                    // Skip if this is the source
+                    if (selectedDatabaseId === connId) {
+                        return;
+                    }
+
+                    const option = document.createElement('option');
+                    option.value = connId;
+                    option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                    option.style.background = 'rgba(0, 0, 0, 0.8)';
+                    option.style.color = '#fef3c7';
+                    optgroup.appendChild(option);
+                });
+                
+                if (optgroup.children.length > 0) {
+                    select.appendChild(optgroup);
+                    hasOptions = true;
+                }
+            }
+
+            // If no options found, show helpful message
+            if (!hasOptions) {
+                console.warn('⚠️ No databases available for destination dropdown');
+                const noOptionMsg = document.createElement('option');
+                noOptionMsg.value = '';
+                noOptionMsg.textContent = '⚠️ No other databases available - Connect to a DB first';
+                noOptionMsg.disabled = true;
+                select.appendChild(noOptionMsg);
             }
 
             // Restore previous selection if it still exists
@@ -10639,7 +10864,7 @@ ${errorDetails || 'Unknown error occurred'}
                 }
             }
 
-            console.log('Destination dropdown loaded with Localhost + Hostinger, excluded source:', selectedDatabaseId);
+            console.log('✅ Destination dropdown loaded with', select.options.length - 1, 'options, excluded source:', selectedDatabaseId);
         }
 
         // Load destination tables
@@ -10776,72 +11001,52 @@ ${errorDetails || 'Unknown error occurred'}
                          draggable="true"
                          ondragstart="handleDestinationDragStart(event, '${tableName}', false)"
                          ondragend="handleDestinationDragEnd(event)"
-                         style="cursor: grab; position: relative; display: grid; grid-template-rows: auto auto auto; gap: 10px; padding: 10px; border-color: rgba(34, 197, 94, 0.4); background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);">
+                         style="cursor: grab; display: grid; grid-template-rows: auto auto auto; gap: 8px; border-color: rgba(34, 197, 94, 0.4); background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);">
                         
                         <span class="migration-check-icon" onclick="toggleDestinationTable('${tableName}')" style="background: #22c55e;">✓</span>
                         
-                        <!-- Row 1: 4 Action Buttons Only (Equal Distribution) -->
-                        <div style="display: flex; gap: 4px; justify-content: space-between;">
-                            <!-- Inject Button -->
-                            <button onclick="injectRandomIntoDestinationTable('${tableName}'); event.stopPropagation();" title="Inject 10 random records" style="flex: 1; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(59, 130, 246, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(59, 130, 246, 0.3)';"><span style="font-size: 16px;">🎲</span></button>
-                            
-                            <!-- Copy Button -->
-                            <button onclick="duplicateDestinationTable('${tableName}'); event.stopPropagation();" title="Duplicate table" style="flex: 1; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(139, 92, 246, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(139, 92, 246, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(139, 92, 246, 0.3)';"><span style="font-size: 16px;">📋</span></button>
-                            
-                            <!-- Empty Button -->
-                            <button onclick="emptyDestinationTableData('${tableName}'); event.stopPropagation();" title="Empty table data" style="flex: 1; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(245, 158, 11, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(245, 158, 11, 0.3)';"><span style="font-size: 16px;">🧹</span></button>
-                            
-                            <!-- Delete Button -->
-                            <button onclick="deleteDestinationTableFromMigration('${tableName}'); event.stopPropagation();" title="Delete table" style="flex: 1; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 8px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.6); cursor: pointer; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(239, 68, 68, 0.6)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(239, 68, 68, 0.3)';"><span style="font-size: 16px;">🗑️</span></button>
+                        <!-- Row 1: 4 Action Buttons -->
+                        <div class="mig-action-row">
+                            <button class="mig-action-btn" onclick="injectRandomIntoDestinationTable('${tableName}'); event.stopPropagation();" title="Inject 10 random records" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);"><span>🎲</span></button>
+                            <button class="mig-action-btn" onclick="duplicateDestinationTable('${tableName}'); event.stopPropagation();" title="Duplicate table" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-color: rgba(139, 92, 246, 0.6); box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);"><span>📋</span></button>
+                            <button class="mig-action-btn" onclick="emptyDestinationTableData('${tableName}'); event.stopPropagation();" title="Empty table data" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);"><span>🧹</span></button>
+                            <button class="mig-action-btn" onclick="deleteDestinationTableFromMigration('${tableName}'); event.stopPropagation();" title="Delete table" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);"><span>🗑️</span></button>
                         </div>
                         
                         <!-- Row 2: Row Count + Emoji + Table Name -->
-                        <div style="display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: center;">
-                            <!-- Row Count Badge -->
-                            <div style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); padding: 8px 10px; border-radius: 8px; font-size: 10px; font-weight: bold; color: white; border: 1px solid rgba(34, 197, 94, 0.6); box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 42px;">
-                                <div style="font-size: 12px; margin-bottom: 2px;">📊</div>
-                                <div style="font-size: 11px; font-weight: 700;">${typeof rowCount === 'number' ? rowCount.toLocaleString() : rowCount}</div>
+                        <div class="mig-info-row">
+                            <div class="mig-row-count" style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: 1px solid rgba(34, 197, 94, 0.6); box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);">
+                                <div style="font-size: 11px; margin-bottom: 1px;">📊</div>
+                                <div style="font-size: 10px; font-weight: 700;">${typeof rowCount === 'number' ? rowCount.toLocaleString() : rowCount}</div>
                             </div>
-                            
-                            <!-- Table Emoji -->
-                            <div style="font-size: 36px; display: flex; align-items: center; justify-content: center; min-height: 42px;">
-                                ${emoji}
-                            </div>
-                            
-                            <!-- Table Name (Takes most space) -->
-                            <div oncontextmenu="startRenameDestinationTable('${tableName}', this); event.preventDefault(); event.stopPropagation(); return false;"
+                            <div class="mig-emoji">${emoji}</div>
+                            <div class="mig-table-name"
+                                 oncontextmenu="startRenameDestinationTable('${tableName}', this); event.preventDefault(); event.stopPropagation(); return false;"
                                  onclick="event.stopPropagation(); toggleDestinationTable('${tableName}')"
-                                 onmouseover="this.style.cursor='context-menu'; this.style.background='rgba(34, 197, 94, 0.2)'; this.style.transform='scale(1.02)';"
-                                 onmouseout="this.style.cursor='pointer'; this.style.background='transparent'; this.style.transform='scale(1)';"
+                                 onmouseover="this.style.background='rgba(34, 197, 94, 0.2)';"
+                                 onmouseout="this.style.background='transparent';"
                                  title="Right-click to rename"
-                                 style="font-size: 16px; font-weight: 700; color: #86efac; padding: 8px 12px; border-radius: 6px; cursor: pointer; user-select: none; transition: all 0.2s; text-align: left;">
+                                 style="color: #86efac;">
                                 ${tableName}
                             </div>
                         </div>
                         
-                        <!-- Row 3: Structure (Left) + Data (Right) - DRAGGABLE TO SOURCE -->
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <!-- Structure Label (Left - Draggable to Source) -->
-                            <div draggable="true"
+                        <!-- Row 3: Structure + Data Badges -->
+                        <div class="mig-drag-row">
+                            <div class="mig-drag-badge" draggable="true"
                                  ondragstart="handleDestinationDragStart(event, '${tableName}', false); event.stopPropagation();"
                                  ondragend="handleDestinationDragEnd(event)"
                                  onclick="event.stopPropagation();"
                                  title="🏗️ Drag to move Structure Only to Source"
-                                 style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.6); cursor: grab; font-size: 11px; font-weight: bold; color: white; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3); transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-                                 onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 10px rgba(34, 197, 94, 0.5)';"
-                                 onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(34, 197, 94, 0.3)';">
+                                 style="background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: 1px solid rgba(34, 197, 94, 0.6); box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);">
                                 🏗️ Structure
                             </div>
-                            
-                            <!-- Data Badge (Right - Draggable to Source) -->
-                            <div draggable="true"
+                            <div class="mig-drag-badge" draggable="true"
                                  ondragstart="handleDestinationDragStart(event, '${tableName}', true); event.stopPropagation();"
                                  ondragend="handleDestinationDragEnd(event)"
                                  onclick="event.stopPropagation();"
                                  title="✋ Drag for Structure + Data to Source"
-                                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 6px 12px; border-radius: 6px; cursor: grab; border: 1px solid rgba(16, 185, 129, 0.6); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); transition: all 0.2s; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);"
-                                 onmouseover="this.style.background='linear-gradient(135deg, #22c55e 0%, #15803d 100%)'; this.style.transform='scale(1.1)'; this.style.cursor='grab'; this.style.boxShadow='0 4px 10px rgba(34, 197, 94, 0.5)';"
-                                 onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(16, 185, 129, 0.3)';">
+                                 style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 1px solid rgba(16, 185, 129, 0.6); box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">
                                 ✋ Data
                             </div>
                         </div>

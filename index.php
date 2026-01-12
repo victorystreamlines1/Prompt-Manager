@@ -998,22 +998,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     header('Content-Type: application/json');
     
     try {
-        // Get connections from POST data (sent from JavaScript localStorage)
-        $hostingerConnections = [];
-        if (isset($_POST['connections'])) {
-            $hostingerConnections = json_decode($_POST['connections'], true) ?: [];
-        }
-        
-        // Test each connection and return only active ones
         $activeConnections = [];
         
-        // Test localhost first (Laragon)
+        // ========================================
+        // FETCH FROM report_prompt_databases TABLE
+        // Updated to use u419999707_prompt_manager database
+        // ========================================
+        $hubDbHost = 'srv1788.hstgr.io';
+        $hubDbName = 'u419999707_prompt_manager';
+        $hubDbUser = 'u419999707_prompt_manager';
+        $hubDbPass = 'P@master5007';
+        $hubDbPort = 3306;
+        $hubTableName = 'report_prompt_databases';
+        
         try {
-            $pdo = new PDO("mysql:host=localhost;port=3306", 'root', '');
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $hubPdo = new PDO(
+                "mysql:host=$hubDbHost;port=$hubDbPort;dbname=$hubDbName;charset=utf8mb4",
+                $hubDbUser,
+                $hubDbPass,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            
+            // Fetch all connections from the hub table
+            $stmt = $hubPdo->query("SELECT * FROM `$hubTableName` ORDER BY createdAt DESC");
+            $hubConnections = $stmt->fetchAll();
+            
+            // Add all connections from the hub table
+            foreach ($hubConnections as $conn) {
+                $connId = $conn['id'] ?? uniqid();
+                $connName = $conn['name'] ?? $conn['dbName'];
+                $connType = $conn['type'] ?? 'remote';
+                $host = $conn['host'] ?? '';
+                $dbName = $conn['dbName'] ?? '';
+                $username = $conn['username'] ?? '';
+                $password = $conn['password'] ?? '';
+                $port = $conn['port'] ?? '3306';
+                
+                // Determine icon based on type
+                $icon = '🌐';
+                if ($connType === 'local') $icon = '🖥️';
+                elseif ($connType === 'cloud') $icon = '☁️';
+                elseif ($connType === 'vps') $icon = '🖧';
+                elseif ($connType === 'dedicated') $icon = '🏢';
+                elseif ($connType === 'shared') $icon = '🌐';
+                
+                $activeConnections[] = [
+                    'id' => $connId,
+                    'name' => "{$icon} {$connName}",
+                    'type' => $connType,
+                    'host' => $host,
+                    'dbName' => $dbName,
+                    'username' => $username,
+                    'password' => $password,
+                    'port' => $port,
+                    'status' => 'available',
+                    'source' => 'hub'
+                ];
+            }
+        } catch (Exception $e) {
+            // Hub database not available, log error but continue
+            error_log('Hub DB connection failed: ' . $e->getMessage());
+        }
+        
+        // ========================================
+        // ALSO ADD LOCALHOST DATABASES (Laragon)
+        // ========================================
+        try {
+            $localPdo = new PDO("mysql:host=localhost;port=3306", 'root', '');
+            $localPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
             // Get databases
-            $stmt = $pdo->query("SHOW DATABASES");
+            $stmt = $localPdo->query("SHOW DATABASES");
             $databases = $stmt->fetchAll(PDO::FETCH_COLUMN);
             
             foreach ($databases as $db) {
@@ -1027,58 +1086,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         'username' => 'root',
                         'password' => '',
                         'port' => '3306',
-                        'status' => 'connected'
+                        'status' => 'connected',
+                        'source' => 'localhost'
                     ];
                 }
             }
         } catch (Exception $e) {
-            // Localhost not available, continue with Hostinger connections
-        }
-        
-        // Test Hostinger/Remote connections (from localStorage via POST)
-        foreach ($hostingerConnections as $conn) {
-            try {
-                $host = $conn['host'] ?? '';
-                $port = $conn['port'] ?? '3306';
-                $dbName = $conn['dbName'] ?? '';
-                $username = $conn['username'] ?? '';
-                $password = $conn['password'] ?? '';
-                $connName = $conn['name'] ?? $dbName;
-                $connId = $conn['id'] ?? uniqid();
-                $connType = $conn['type'] ?? 'remote';
-                
-                if (empty($host) || empty($dbName) || empty($username)) {
-                    continue; // Skip incomplete connections
-                }
-                
-                $dsn = "mysql:host={$host};port={$port};dbname={$dbName}";
-                
-                if ($password === '' || $password === null) {
-                    $pdo = new PDO($dsn, $username);
-                } else {
-                    $pdo = new PDO($dsn, $username, $password);
-                }
-                
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                
-                // Test query
-                $stmt = $pdo->query("SELECT 1");
-                
-                // Connection successful
-                $activeConnections[] = [
-                    'id' => $connId,
-                    'name' => "🌐 Remote: {$connName}",
-                    'type' => $connType,
-                    'host' => $host,
-                    'dbName' => $dbName,
-                    'username' => $username,
-                    'password' => $password,
-                    'port' => $port,
-                    'status' => 'connected'
-                ];
-            } catch (Exception $e) {
-                // Connection failed, skip it
-            }
+            // Localhost not available, continue
         }
         
         echo json_encode([
@@ -6748,60 +6762,131 @@ usort($fileList, function($a, $b) {
     
     <!-- Database Credentials Modal -->
     <div id="dbCredentialsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
-        <div style="background: linear-gradient(135deg, rgba(102,126,234,0.98) 0%, rgba(118,75,162,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 650px; width: 90%; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
+        <div style="background: linear-gradient(135deg, rgba(102,126,234,0.98) 0%, rgba(118,75,162,0.98) 100%); border-radius: 24px; padding: 40px; max-width: 700px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.3); animation: modalSlideIn 0.4s ease-out;">
             <!-- Header -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="font-size: 64px; margin-bottom: 15px;">🔑</div>
-                <h3 style="color: #fff; font-size: 28px; margin: 0 0 10px 0; font-weight: 700;">Database Credentials</h3>
-                <p id="dbCredentialsName" style="color: rgba(255,255,255,0.85); font-size: 15px; margin: 0;">Connection Details</p>
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 50px; margin-bottom: 10px;">🔑</div>
+                <h3 style="color: #fff; font-size: 24px; margin: 0 0 8px 0; font-weight: 700;">Database Credentials</h3>
+                <p id="dbCredentialsName" style="color: rgba(255,255,255,0.85); font-size: 14px; margin: 0;">Connection Details</p>
             </div>
             
-            <!-- Copy All Button -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <button onclick="copyAllCredentials()" style="padding: 14px 30px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; border-radius: 12px; color: #1e293b; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(251,191,36,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(251,191,36,0.4)'">
-                    <span style="font-size: 20px;">📋</span>
-                    <span>Copy All Information</span>
+            <!-- Tab Navigation -->
+            <div style="display: flex; gap: 0; margin-bottom: 20px; border-radius: 14px; overflow: hidden; background: rgba(0,0,0,0.3); padding: 5px;">
+                <button id="credTabRemote" onclick="switchCredentialsTab('remote')" style="flex: 1; padding: 14px 20px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border: none; color: white; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; border-radius: 10px;">
+                    <span style="font-size: 20px;">🌐</span>
+                    <span>Remote Connection</span>
+                </button>
+                <button id="credTabLocalhost" onclick="switchCredentialsTab('localhost')" style="flex: 1; padding: 14px 20px; background: transparent; border: none; color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; border-radius: 10px;">
+                    <span style="font-size: 20px;">🖥️</span>
+                    <span>Localhost (On-Server)</span>
                 </button>
             </div>
             
-            <!-- Credentials List -->
-            <div id="dbCredentialsList" style="margin-bottom: 25px;">
-                <!-- Will be populated dynamically -->
-            </div>
-            
-            <!-- Connection Examples -->
-            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
-                <div style="font-size: 14px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 18px;">📝</span>
-                    <span>Connection Examples:</span>
-                </div>
-                
-                <!-- PHP PDO Example -->
-                <div style="margin-bottom: 15px;">
-                    <div style="color: #fbbf24; font-size: 13px; font-weight: 600; margin-bottom: 6px;">PHP PDO:</div>
-                    <div style="position: relative; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto;">
-                        <code id="pdoExample"></code>
-                        <button onclick="copyCode('pdoExample')" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                            📋 Copy
-                        </button>
+            <!-- Tab Content: Remote Connection -->
+            <div id="credTabContentRemote" style="display: block;">
+                <!-- Info Banner Remote -->
+                <div style="background: linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(30,64,175,0.2) 100%); border: 2px solid #3b82f6; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 28px;">🌐</span>
+                        <div>
+                            <div style="color: #93c5fd; font-weight: 700; font-size: 14px;">Remote Connection Mode</div>
+                            <div style="color: rgba(147,197,253,0.8); font-size: 12px; margin-top: 3px;">Use this when connecting from external servers, local development, or AI IDEs</div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- MySQL CLI Example -->
-                <div>
-                    <div style="color: #fbbf24; font-size: 13px; font-weight: 600; margin-bottom: 6px;">MySQL CLI:</div>
-                    <div style="position: relative; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto;">
-                        <code id="cliExample"></code>
-                        <button onclick="copyCode('cliExample')" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                            📋 Copy
-                        </button>
+                <!-- Copy All Button Remote -->
+                <div style="text-align: center; margin-bottom: 18px;">
+                    <button onclick="copyAllCredentials('remote')" style="padding: 12px 28px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border: none; border-radius: 10px; color: #1e293b; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px) scale(1.03)'; this.style.boxShadow='0 6px 20px rgba(251,191,36,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(251,191,36,0.4)'">
+                        <span style="font-size: 18px;">📋</span>
+                        <span>Copy Remote Credentials for AI</span>
+                    </button>
+                </div>
+                
+                <!-- Credentials List Remote -->
+                <div id="dbCredentialsListRemote" style="margin-bottom: 20px;"></div>
+                
+                <!-- Connection Examples Remote -->
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px; border: 2px solid rgba(59,130,246,0.3);">
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px;">📝</span>
+                        <span>Remote Connection Examples:</span>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <div style="color: #93c5fd; font-size: 12px; font-weight: 600; margin-bottom: 5px;">PHP PDO:</div>
+                        <div style="position: relative; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 11px; color: #e2e8f0; overflow-x: auto;">
+                            <code id="pdoExampleRemote"></code>
+                            <button onclick="copyCode('pdoExampleRemote')" style="position: absolute; top: 6px; right: 6px; background: rgba(59,130,246,0.3); border: 1px solid #3b82f6; color: #93c5fd; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">📋</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #93c5fd; font-size: 12px; font-weight: 600; margin-bottom: 5px;">MySQL CLI:</div>
+                        <div style="position: relative; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 11px; color: #e2e8f0; overflow-x: auto;">
+                            <code id="cliExampleRemote"></code>
+                            <button onclick="copyCode('cliExampleRemote')" style="position: absolute; top: 6px; right: 6px; background: rgba(59,130,246,0.3); border: 1px solid #3b82f6; color: #93c5fd; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">📋</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Content: Localhost Connection -->
+            <div id="credTabContentLocalhost" style="display: none;">
+                <!-- Info Banner Localhost -->
+                <div style="background: linear-gradient(135deg, rgba(34,197,94,0.2) 0%, rgba(22,163,74,0.2) 100%); border: 2px solid #22c55e; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 28px;">🖥️</span>
+                        <div>
+                            <div style="color: #86efac; font-weight: 700; font-size: 14px;">Localhost Connection Mode (On-Server)</div>
+                            <div style="color: rgba(134,239,172,0.8); font-size: 12px; margin-top: 3px;">⚡ <strong>Faster!</strong> Use this when your code runs directly on Hostinger server</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Speed Notice -->
+                <div style="background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 10px; padding: 12px 15px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 22px;">⚡</span>
+                    <div style="font-size: 12px; color: #fbbf24; line-height: 1.5;">
+                        <strong>Performance Tip:</strong> Using <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">localhost</code> instead of the remote hostname is significantly faster when your PHP code runs on the same Hostinger server.
+                    </div>
+                </div>
+                
+                <!-- Copy All Button Localhost -->
+                <div style="text-align: center; margin-bottom: 18px;">
+                    <button onclick="copyAllCredentials('localhost')" style="padding: 12px 28px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border: none; border-radius: 10px; color: white; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(34,197,94,0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px) scale(1.03)'; this.style.boxShadow='0 6px 20px rgba(34,197,94,0.6)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(34,197,94,0.4)'">
+                        <span style="font-size: 18px;">📋</span>
+                        <span>Copy Localhost Credentials for AI</span>
+                    </button>
+                </div>
+                
+                <!-- Credentials List Localhost -->
+                <div id="dbCredentialsListLocalhost" style="margin-bottom: 20px;"></div>
+                
+                <!-- Connection Examples Localhost -->
+                <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 12px; border: 2px solid rgba(34,197,94,0.3);">
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px;">📝</span>
+                        <span>Localhost Connection Examples:</span>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <div style="color: #86efac; font-size: 12px; font-weight: 600; margin-bottom: 5px;">PHP PDO:</div>
+                        <div style="position: relative; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 11px; color: #e2e8f0; overflow-x: auto;">
+                            <code id="pdoExampleLocalhost"></code>
+                            <button onclick="copyCode('pdoExampleLocalhost')" style="position: absolute; top: 6px; right: 6px; background: rgba(34,197,94,0.3); border: 1px solid #22c55e; color: #86efac; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">📋</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="color: #86efac; font-size: 12px; font-weight: 600; margin-bottom: 5px;">MySQL CLI:</div>
+                        <div style="position: relative; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 11px; color: #e2e8f0; overflow-x: auto;">
+                            <code id="cliExampleLocalhost"></code>
+                            <button onclick="copyCode('cliExampleLocalhost')" style="position: absolute; top: 6px; right: 6px; background: rgba(34,197,94,0.3); border: 1px solid #22c55e; color: #86efac; padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">📋</button>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <!-- Close Button -->
-            <div style="text-align: center;">
-                <button onclick="closeDatabaseCredentials()" style="padding: 14px 35px; background: white; color: #667eea; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="closeDatabaseCredentials()" style="padding: 12px 30px; background: white; color: #667eea; border: none; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                     ✕ Close
                 </button>
             </div>
@@ -7339,27 +7424,15 @@ usort($fileList, function($a, $b) {
         // ========================================
         // DATABASE CONNECTIONS MANAGEMENT
         // ========================================
-        
-        // localStorage key for Hostinger connections (same as PHP-Dashboard.php)
-        const HOSTINGER_CONNECTIONS_KEY = 'hostinger_connections';
+        // Connections are now fetched from report_prompt_databases table
         
         let activeConnections = [];
         let selectedConnection = null;
         
-        // Get saved Hostinger connections from localStorage
-        function getHostingerConnections() {
-            const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
-            return saved ? JSON.parse(saved) : [];
-        }
-        
         async function loadDatabaseConnections() {
             try {
-                // Get Hostinger connections from localStorage (synced with PHP-Dashboard.php)
-                const hostingerConnections = getHostingerConnections();
-                
                 const formData = new FormData();
                 formData.append('action', 'get_active_connections');
-                formData.append('connections', JSON.stringify(hostingerConnections));
                 
                 const response = await fetch('index.php', {
                     method: 'POST',
@@ -7382,9 +7455,27 @@ usort($fileList, function($a, $b) {
                         document.getElementById('showCredentialsBtn').disabled = true;
                     } else {
                         let options = '<option value="" style="color: #64748b;">Select a database...</option>';
-                        activeConnections.forEach(conn => {
-                            options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
-                        });
+                        
+                        // Group connections by source
+                        const hubConns = activeConnections.filter(c => c.source === 'hub');
+                        const localConns = activeConnections.filter(c => c.source === 'localhost');
+                        
+                        if (hubConns.length > 0) {
+                            options += '<optgroup label="📦 Hub Databases">';
+                            hubConns.forEach(conn => {
+                                options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
+                        if (localConns.length > 0) {
+                            options += '<optgroup label="🖥️ Localhost Databases">';
+                            localConns.forEach(conn => {
+                                options += `<option value="${conn.id}" style="color: #1e293b; font-weight: 600;">${conn.name}</option>`;
+                            });
+                            options += '</optgroup>';
+                        }
+                        
                         select.innerHTML = options;
                         connStatusText.textContent = 'Connected';
                         connCount.textContent = activeConnections.length;
@@ -7413,6 +7504,30 @@ usort($fileList, function($a, $b) {
             loadDatabaseConnections();
         }
         
+        // Switch between Remote and Localhost tabs
+        function switchCredentialsTab(tab) {
+            const remoteTab = document.getElementById('credTabRemote');
+            const localhostTab = document.getElementById('credTabLocalhost');
+            const remoteContent = document.getElementById('credTabContentRemote');
+            const localhostContent = document.getElementById('credTabContentLocalhost');
+            
+            if (tab === 'remote') {
+                remoteTab.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)';
+                remoteTab.style.color = 'white';
+                localhostTab.style.background = 'transparent';
+                localhostTab.style.color = 'rgba(255,255,255,0.6)';
+                remoteContent.style.display = 'block';
+                localhostContent.style.display = 'none';
+            } else {
+                localhostTab.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+                localhostTab.style.color = 'white';
+                remoteTab.style.background = 'transparent';
+                remoteTab.style.color = 'rgba(255,255,255,0.6)';
+                remoteContent.style.display = 'none';
+                localhostContent.style.display = 'block';
+            }
+        }
+        
         function showDatabaseCredentials() {
             if (!selectedConnection) {
                 alert('Please select a database connection first');
@@ -7422,56 +7537,81 @@ usort($fileList, function($a, $b) {
             // Set modal title
             document.getElementById('dbCredentialsName').textContent = selectedConnection.name;
             
-            // Build credentials list
-            let credHtml = '';
+            // Build credentials for REMOTE connection
+            buildCredentialsList('Remote', selectedConnection.host);
+            
+            // Build credentials for LOCALHOST connection
+            buildCredentialsList('Localhost', 'localhost');
+            
+            // Generate connection examples for REMOTE
+            generateConnectionExamples('Remote', selectedConnection.host);
+            
+            // Generate connection examples for LOCALHOST
+            generateConnectionExamples('Localhost', 'localhost');
+            
+            // Reset to Remote tab
+            switchCredentialsTab('remote');
+            
+            // Show modal
+            document.getElementById('dbCredentialsModal').style.display = 'flex';
+        }
+        
+        function buildCredentialsList(mode, host) {
+            const suffix = mode;
+            const borderColor = mode === 'Remote' ? 'rgba(59,130,246,0.3)' : 'rgba(34,197,94,0.3)';
+            const highlightColor = mode === 'Remote' ? '#93c5fd' : '#86efac';
             
             const credentials = [
-                { label: '🏠 Host', value: selectedConnection.host, key: 'host' },
-                { label: '🗄️ Database Name', value: selectedConnection.dbName, key: 'dbName' },
-                { label: '👤 Username', value: selectedConnection.username, key: 'username' },
-                { label: '🔑 Password', value: selectedConnection.password || '(empty)', key: 'password', isPassword: true },
-                { label: '🔌 Port', value: selectedConnection.port, key: 'port' }
+                { label: '🏠 Host', value: host, key: 'host_' + mode, highlight: mode === 'Localhost' },
+                { label: '🗄️ Database Name', value: selectedConnection.dbName, key: 'dbName_' + mode },
+                { label: '👤 Username', value: selectedConnection.username, key: 'username_' + mode },
+                { label: '🔑 Password', value: selectedConnection.password || '(empty)', key: 'password_' + mode, isPassword: true },
+                { label: '🔌 Port', value: selectedConnection.port, key: 'port_' + mode }
             ];
             
+            let credHtml = '';
             credentials.forEach(cred => {
+                const bgStyle = cred.highlight 
+                    ? `background: linear-gradient(135deg, rgba(34,197,94,0.2) 0%, rgba(22,163,74,0.15) 100%); border: 2px solid #22c55e;`
+                    : `background: rgba(255,255,255,0.08); border: 1px solid ${borderColor};`;
+                const valueStyle = cred.highlight 
+                    ? `color: #86efac; font-size: 16px;` 
+                    : `color: #fff; font-size: 14px;`;
+                    
                 credHtml += `
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                    <div style="${bgStyle} padding: 12px 15px; border-radius: 10px; margin-bottom: 10px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                             <div style="flex: 1;">
-                                <div style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 4px;">${cred.label}</div>
-                                <div style="color: #fff; font-size: 15px; font-weight: 600; font-family: 'Consolas', monospace; word-break: break-all;">
+                                <div style="color: rgba(255,255,255,0.7); font-size: 11px; margin-bottom: 3px;">${cred.label}${cred.highlight ? ' <span style="color: #22c55e; font-weight: 700;">(LOCAL)</span>' : ''}</div>
+                                <div style="${valueStyle} font-weight: 600; font-family: 'Consolas', monospace; word-break: break-all;">
                                     ${cred.isPassword && cred.value !== '(empty)' ? '<span id="pwd_' + cred.key + '">••••••••</span><span id="pwd_' + cred.key + '_text" style="display:none;">' + cred.value + '</span>' : cred.value}
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 6px;">
-                                ${cred.isPassword && cred.value !== '(empty)' ? '<button onclick="togglePasswordVisibility(\'' + cred.key + '\')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 16px; cursor: pointer;" onmouseover="this.style.background=\'rgba(255,255,255,0.3)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.2)\'">👁️</button>' : ''}
-                                <button onclick="copyToClipboard('${cred.value}', '${cred.label} copied!')" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-                                    📋
-                                </button>
+                            <div style="display: flex; gap: 5px;">
+                                ${cred.isPassword && cred.value !== '(empty)' ? '<button onclick="togglePasswordVisibility(\'' + cred.key + '\')" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer;">👁️</button>' : ''}
+                                <button onclick="copyToClipboard(\'' + cred.value.replace(/'/g, "\\'") + '\', \'' + cred.label + ' copied!\')" style="background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;">📋</button>
                             </div>
                         </div>
                     </div>
                 `;
             });
             
-            document.getElementById('dbCredentialsList').innerHTML = credHtml;
-            
-            // Generate connection examples
+            document.getElementById('dbCredentialsList' + suffix).innerHTML = credHtml;
+        }
+        
+        function generateConnectionExamples(mode, host) {
             const pdoCode = `$pdo = new PDO(
-    "mysql:host=${selectedConnection.host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",
+    "mysql:host=${host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",
     "${selectedConnection.username}",
     "${selectedConnection.password || ''}"
 );`;
             
             const cliCode = selectedConnection.password 
-                ? `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}`
-                : `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}`;
+                ? `mysql -h ${host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}`
+                : `mysql -h ${host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}`;
             
-            document.getElementById('pdoExample').textContent = pdoCode;
-            document.getElementById('cliExample').textContent = cliCode;
-            
-            // Show modal
-            document.getElementById('dbCredentialsModal').style.display = 'flex';
+            document.getElementById('pdoExample' + mode).textContent = pdoCode;
+            document.getElementById('cliExample' + mode).textContent = cliCode;
         }
         
         function closeDatabaseCredentials() {
@@ -7491,22 +7631,30 @@ usort($fileList, function($a, $b) {
             }
         }
         
-        function copyAllCredentials() {
+        function copyAllCredentials(mode = 'remote') {
             if (!selectedConnection) {
                 alert('No connection selected');
                 return;
             }
             
+            const host = mode === 'localhost' ? 'localhost' : selectedConnection.host;
+            const modeLabel = mode === 'localhost' ? 'LOCALHOST (ON-SERVER)' : 'REMOTE CONNECTION';
+            const modeIcon = mode === 'localhost' ? '🖥️' : '🌐';
+            
             // Build formatted text with all information
-            let text = `=====================================\n`;
-            text += `DATABASE CONNECTION CREDENTIALS\n`;
-            text += `=====================================\n\n`;
+            let text = `=============================================\n`;
+            text += `${modeIcon} DATABASE CREDENTIALS - ${modeLabel}\n`;
+            text += `=============================================\n\n`;
             
             text += `Connection Name: ${selectedConnection.name}\n`;
-            text += `Connection Type: ${selectedConnection.type === 'local' ? 'Localhost (Laragon)' : 'Hostinger Remote'}\n\n`;
+            text += `Connection Mode: ${modeLabel}\n`;
+            if (mode === 'localhost') {
+                text += `⚡ Note: Using localhost for faster on-server connections\n`;
+            }
+            text += `\n`;
             
             text += `--- Connection Details ---\n`;
-            text += `Host: ${selectedConnection.host}\n`;
+            text += `Host: ${host}\n`;
             text += `Database Name: ${selectedConnection.dbName}\n`;
             text += `Username: ${selectedConnection.username}\n`;
             text += `Password: ${selectedConnection.password || '(empty)'}\n`;
@@ -7514,28 +7662,43 @@ usort($fileList, function($a, $b) {
             
             text += `--- PHP PDO Connection ---\n`;
             text += `$pdo = new PDO(\n`;
-            text += `    "mysql:host=${selectedConnection.host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",\n`;
+            text += `    "mysql:host=${host};port=${selectedConnection.port};dbname=${selectedConnection.dbName}",\n`;
             text += `    "${selectedConnection.username}",\n`;
             text += `    "${selectedConnection.password || ''}"\n`;
             text += `);\n\n`;
             
             text += `--- MySQL CLI Connection ---\n`;
             if (selectedConnection.password) {
-                text += `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}\n\n`;
+                text += `mysql -h ${host} -P ${selectedConnection.port} -u ${selectedConnection.username} -p${selectedConnection.password} ${selectedConnection.dbName}\n\n`;
             } else {
-                text += `mysql -h ${selectedConnection.host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}\n\n`;
+                text += `mysql -h ${host} -P ${selectedConnection.port} -u ${selectedConnection.username} ${selectedConnection.dbName}\n\n`;
             }
             
             text += `--- Connection URL ---\n`;
-            text += `mysql://${selectedConnection.username}:${selectedConnection.password || ''}@${selectedConnection.host}:${selectedConnection.port}/${selectedConnection.dbName}\n\n`;
+            text += `mysql://${selectedConnection.username}:${selectedConnection.password || ''}@${host}:${selectedConnection.port}/${selectedConnection.dbName}\n\n`;
             
-            text += `=====================================\n`;
+            if (mode === 'localhost') {
+                text += `--- IMPORTANT FOR AI/IDE ---\n`;
+                text += `This uses 'localhost' which only works when your code\n`;
+                text += `runs directly on the Hostinger server (same machine).\n`;
+                text += `For external connections, use the Remote credentials.\n\n`;
+            } else {
+                text += `--- IMPORTANT FOR AI/IDE ---\n`;
+                text += `This uses the remote hostname for external connections.\n`;
+                text += `If running code on Hostinger server, use Localhost for speed.\n\n`;
+            }
+            
+            text += `=============================================\n`;
             text += `Generated: ${new Date().toLocaleString()}\n`;
-            text += `=====================================`;
+            text += `=============================================`;
             
             // Copy to clipboard
+            const successMsg = mode === 'localhost' 
+                ? '✅ Localhost credentials copied!' 
+                : '✅ Remote credentials copied!';
+            
             navigator.clipboard.writeText(text).then(() => {
-                showToast('✅ All credentials copied to clipboard!', 'success');
+                showToast(successMsg, 'success');
             }).catch(err => {
                 console.error('Copy failed:', err);
                 
@@ -7549,7 +7712,7 @@ usort($fileList, function($a, $b) {
                 
                 try {
                     document.execCommand('copy');
-                    showToast('✅ All credentials copied to clipboard!', 'success');
+                    showToast(successMsg, 'success');
                 } catch (e) {
                     showToast('❌ Failed to copy', 'error');
                 }

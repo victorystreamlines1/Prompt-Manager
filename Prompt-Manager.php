@@ -315,60 +315,161 @@ function showLoginPage($error = null) {
 <?php
 }
 
-// Database Connection Configuration
-$host = 'srv1788.hstgr.io';
-$dbname = 'u419999707_Mohamed';
-$username = 'u419999707_Abuammar';
-$password = 'P@master5007';
-$port = '3306';
+// ============================================================================
+// SMART DATABASE CONNECTION - Localhost/Remote Auto-Switch
+// ============================================================================
+// Tries LOCALHOST first (faster when on Hostinger server)
+// Falls back to REMOTE if localhost fails (when accessing from anywhere)
+// ============================================================================
 
+$dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ],
+    'remote' => [
+        'host' => 'srv1788.hstgr.io',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ]
+];
+
+// Connection state variables
 $pdo = null;
 $dbError = null;
+$connectionType = 'localhost'; // Will be updated after connection
+$connectionFallback = false;
 
-try {
-    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn, $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+// Handle AJAX request for testing/switching connection
+if (isset($_GET['switch_db'])) {
+    header('Content-Type: application/json');
+    $requestedType = $_GET['switch_db'];
     
-    // Delete old tables with generic names (cleanup - remove after first run)
-    $pdo->exec("DROP TABLE IF EXISTS saved_prompts");
-    $pdo->exec("DROP TABLE IF EXISTS uploaded_files");
+    if (!isset($dbCredentials[$requestedType])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid connection type']);
+        exit;
+    }
     
-    // Create tables if not exist (prefixed with reporter_prompt_ to avoid conflicts)
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_saved_prompts (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
+    $cred = $dbCredentials[$requestedType];
+    try {
+        $testPdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        setcookie('pm_db_connection_type', $requestedType, time() + (86400 * 30), '/');
+        echo json_encode(['success' => true, 'type' => $requestedType, 'message' => "Connected to $requestedType"]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'type' => $requestedType, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Get preferred connection type from cookie (if set)
+$preferredType = isset($_COOKIE['pm_db_connection_type']) ? $_COOKIE['pm_db_connection_type'] : 'localhost';
+if (!in_array($preferredType, ['localhost', 'remote'])) {
+    $preferredType = 'localhost';
+}
+
+// Smart Connection Function
+function connectToDatabase($credentials, $preferredType) {
+    global $connectionType, $connectionFallback, $dbError;
     
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_uploaded_files (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        filename VARCHAR(255) NOT NULL,
-        filepath VARCHAR(500) NOT NULL,
-        filesize INT,
-        filetype VARCHAR(100),
-        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )");
+    // Try preferred connection first
+    $cred = $credentials[$preferredType];
+    try {
+        $pdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        $connectionType = $preferredType;
+        $connectionFallback = false;
+        return $pdo;
+    } catch (PDOException $e) {
+        // Try fallback connection
+        $fallbackType = ($preferredType === 'localhost') ? 'remote' : 'localhost';
+        $cred = $credentials[$fallbackType];
+        
+        try {
+            $pdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            $connectionType = $fallbackType;
+            $connectionFallback = true;
+            return $pdo;
+        } catch (PDOException $e2) {
+            $dbError = $e2->getMessage();
+            return null;
+        }
+    }
+}
+
+// Establish connection
+$pdo = connectToDatabase($dbCredentials, $preferredType);
+
+if ($pdo) {
+    // Set cookie to remember working connection type
+    setcookie('pm_db_connection_type', $connectionType, time() + (86400 * 30), '/');
     
-    // Create prompt templates table
-    $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_templates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        sort_order INT DEFAULT 0,
-        is_active TINYINT(1) DEFAULT 1,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    )");
-    
-    // Note: No auto-insertion of default templates
-    // User will add templates manually via the UI
-    
-} catch(PDOException $e) {
-    $dbError = $e->getMessage();
+    try {
+        // Delete old tables with generic names (cleanup - remove after first run)
+        $pdo->exec("DROP TABLE IF EXISTS saved_prompts");
+        $pdo->exec("DROP TABLE IF EXISTS uploaded_files");
+        
+        // Create tables if not exist (prefixed with reporter_prompt_ to avoid conflicts)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_saved_prompts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_uploaded_files (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            filename VARCHAR(255) NOT NULL,
+            filepath VARCHAR(500) NOT NULL,
+            filesize INT,
+            filetype VARCHAR(100),
+            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Create prompt templates table
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_templates (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            sort_order INT DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        // Note: No auto-insertion of default templates
+        // User will add templates manually via the UI
+        
+    } catch(PDOException $e) {
+        $dbError = $e->getMessage();
+    }
 }
 
 // Handle AJAX requests
@@ -432,9 +533,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $title && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("INSERT INTO reporter_prompt_saved_prompts (title, content) VALUES (?, ?)");
                 $stmt->execute([$title, $content]);
-                echo json_encode(['success' => true, 'id' => $pdo->lastInsertId(), 'message' => 'Prompt saved successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'id' => $pdo->lastInsertId(), 
+                    'message' => 'Prompt saved successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'ADD_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -452,9 +562,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id && $title && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_saved_prompts SET title = ?, content = ? WHERE id = ?");
                 $stmt->execute([$title, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt updated successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Prompt updated successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'UPDATE_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -468,9 +586,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_saved_prompts WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Prompt deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Prompt deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_PROMPT',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -524,6 +650,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $name && $content) {
             try {
+                $startTime = microtime(true);
                 // Get max sort_order
                 $stmt = $pdo->query("SELECT MAX(sort_order) as max_order FROM reporter_prompt_templates");
                 $maxOrder = $stmt->fetch()['max_order'] ?? 0;
@@ -531,12 +658,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO reporter_prompt_templates (name, content, sort_order) VALUES (?, ?, ?)");
                 $stmt->execute([$name, $content, $maxOrder + 1]);
                 $id = $pdo->lastInsertId();
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
                 
                 echo json_encode([
                     'success' => true, 
                     'id' => $id, 
                     'message' => 'Template added successfully!',
-                    'template' => ['id' => $id, 'name' => $name, 'content' => $content]
+                    'template' => ['id' => $id, 'name' => $name, 'content' => $content],
+                    'operationTime' => $operationTime,
+                    'operationType' => 'ADD_TEMPLATE',
+                    'connectionType' => $connectionType
                 ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -555,9 +686,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id && $name && $content) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_templates SET name = ?, content = ? WHERE id = ?");
                 $stmt->execute([$name, $content, $id]);
-                echo json_encode(['success' => true, 'message' => 'Template updated successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Template updated successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'UPDATE_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -573,9 +712,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_templates WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'Template deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Template deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -643,6 +790,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $id) {
             try {
+                $startTime = microtime(true);
                 $stmt = $pdo->prepare("SELECT filepath FROM reporter_prompt_uploaded_files WHERE id = ?");
                 $stmt->execute([$id]);
                 $file = $stmt->fetch();
@@ -653,7 +801,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_uploaded_files WHERE id = ?");
                 $stmt->execute([$id]);
-                echo json_encode(['success' => true, 'message' => 'File deleted successfully!']);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'File deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_FILE',
+                    'connectionType' => $connectionType
+                ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
@@ -669,7 +824,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Manager - AI Prompt Generator</title>
     <link rel="icon" type="image/png" href="logoPM.png">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -912,6 +1067,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .db-selector-header {
             font-size: 0.7rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #fbbf24;
@@ -923,6 +1081,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .db-selector-header i {
             color: #fbbf24;
+        }
+
+        .db-manage-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            font-size: 0.7rem;
+        }
+
+        .db-manage-btn:hover {
+            background: rgba(251, 191, 36, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .db-manage-btn i {
+            font-size: 0.7rem;
+        }
+
+        /* Database Refresh Button */
+        .db-refresh-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 184, 148, 0.1) 100%);
+            color: #00d4aa;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .db-refresh-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 184, 148, 0.2) 100%);
+            transform: rotate(180deg);
+            box-shadow: 0 0 15px rgba(0, 212, 170, 0.3);
+        }
+
+        .db-refresh-btn:active {
+            transform: rotate(360deg) scale(0.95);
+        }
+
+        .db-refresh-btn.spinning i {
+            animation: dbRefreshSpin 0.8s linear infinite;
+        }
+
+        @keyframes dbRefreshSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .db-refresh-btn i {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
         }
 
         .db-selector-row {
@@ -1036,6 +1258,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .db-no-connections a:hover {
             text-decoration: underline;
+        }
+
+        /* Database Dropdown Row */
+        .db-dropdown-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        /* Credentials Checkboxes Row */
+        .db-credentials-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .db-cred-option {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .db-cred-option input {
+            display: none;
+        }
+
+        .db-cred-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.6rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.25s ease;
+        }
+
+        .db-cred-box i {
+            font-size: 0.8rem;
+        }
+
+        .db-cred-option:hover .db-cred-box {
+            border-color: rgba(251, 191, 36, 0.5);
+            background: rgba(251, 191, 36, 0.08);
+            color: var(--text-secondary);
+        }
+
+        /* Remote checkbox active state - Blue */
+        .db-cred-option.remote input:checked + .db-cred-box {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .db-cred-option.remote input:checked + .db-cred-box i {
+            color: white;
+        }
+
+        /* Localhost checkbox active state - Green */
+        .db-cred-option.localhost input:checked + .db-cred-box {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 0 3px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .db-cred-option.localhost input:checked + .db-cred-box i {
+            color: white;
         }
 
         /* File Upload Area */
@@ -1512,7 +1806,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Prompt Checkboxes */
         .prompt-list {
             margin-top: 0;
-            max-height: 400px;
+            max-height: calc(100vh - 480px);
+            min-height: 300px;
             overflow-y: auto;
         }
 
@@ -2008,6 +2303,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             gap: 1.5rem;
             background: var(--gradient-dark);
+            max-width: calc(100vw - 320px);
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        
+        /* Ensure all main content children respect container width */
+        .main-content > * {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Editor Container */
@@ -2019,6 +2323,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 16px;
             overflow: visible;
             box-shadow: var(--shadow-card);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .editor-header {
@@ -3135,74 +3442,863 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-secondary);
         }
 
-        /* Saved Prompts Section */
+        /* Saved Prompts Section - Horizontal Layout */
         .saved-prompts-section {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             overflow: hidden;
-            height: 220px;
-            min-height: 120px;
-            max-height: 600px;
             display: flex;
             flex-direction: column;
             position: relative;
+            margin-bottom: 1rem;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .saved-resize-handle {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 12px;
-            background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.1));
-            cursor: ns-resize;
+            display: none;
+        }
+
+        .saved-actions-bar {
+            padding: 0.5rem 1rem !important;
+            border-bottom: none !important;
+            flex-shrink: 0;
+        }
+
+        /* Development Dashboard Section */
+        .dev-dashboard-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            position: relative;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .dev-dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+        }
+
+        .dev-dashboard-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .dev-dashboard-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dev-dashboard-tabs {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .dev-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dev-tab:hover {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.12);
+        }
+        
+        .dev-tab.active {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+        
+        .dev-tab i {
+            font-size: 0.7rem;
+        }
+
+        .dev-dashboard-title .dev-icon {
+            font-size: 1.1rem;
+            animation: devIconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes devIconPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .dev-dashboard-title .dev-text {
+            font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        .dev-dashboard-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .dash-reset-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.5;
-            transition: all 0.2s;
-            z-index: 10;
+            width: 30px;
+            height: 30px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dash-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            transform: rotate(-180deg);
+        }
+        
+        .dev-dashboard-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 20px;
         }
 
-        .saved-resize-handle:hover {
-            opacity: 1;
-            background: linear-gradient(to bottom, transparent, rgba(139, 92, 246, 0.2));
+        .dev-dashboard-status .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: statusBlink 2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
         }
 
-        .saved-resize-handle i {
-            font-size: 0.6rem;
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dev-dashboard-status .status-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #22c55e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dev-dashboard-content {
+            padding: 0.65rem 1rem;
+            background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
+        }
+
+        /* Dashboard Database Widget */
+        .dash-db-widget {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .dash-db-tools {
+            display: flex;
+            align-items: stretch;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .dash-db-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #fbbf24;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        /* Arrow Buttons */
+        .dash-arrow-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 6px;
+            color: #818cf8;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dash-arrow-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            transform: translateY(1px);
+        }
+        
+        /* Color variants for arrows */
+        .dash-arrow-btn.db-arrow {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border-color: rgba(251, 191, 36, 0.25);
+            color: #fbbf24;
+        }
+        .dash-arrow-btn.db-arrow:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fcd34d;
+        }
+        
+        .dash-arrow-btn.backend-arrow {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-color: rgba(6, 182, 212, 0.25);
+            color: #22d3ee;
+        }
+        .dash-arrow-btn.backend-arrow:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #67e8f9;
+        }
+        
+        .dash-arrow-btn.page-arrow {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.1) 100%);
+            border-color: rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+        }
+        .dash-arrow-btn.page-arrow:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(167, 139, 250, 0.2) 100%);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #c4b5fd;
+        }
+        
+        .dash-arrow-btn.frontend-arrow {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border-color: rgba(251, 146, 60, 0.25);
+            color: #fb923c;
+        }
+        .dash-arrow-btn.frontend-arrow:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border-color: rgba(251, 146, 60, 0.4);
+            color: #fdba74;
+        }
+        
+        .dash-arrow-btn.generate-arrow {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #10b981;
+            align-self: center;
+        }
+        .dash-arrow-btn.generate-arrow:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #34d399;
+        }
+        
+        
+        .dash-db-separator {
+            width: 1px;
+            background: rgba(251, 191, 36, 0.2);
+            margin: 0 0.25rem;
+            align-self: stretch;
+        }
+
+        .dash-db-label-old {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            color: #fbbf24;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .dash-db-label-old i {
+            font-size: 0.9rem;
+        }
+
+        .dash-db-dropdown-wrap {
+            position: relative;
+            min-width: 200px;
+            max-width: 320px;
+            flex: 1;
+        }
+
+        .dash-db-dropdown {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            appearance: none;
+        }
+
+        .dash-db-dropdown:hover {
+            border-color: rgba(251, 191, 36, 0.5);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+        }
+
+        .dash-db-dropdown:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .dash-db-dropdown option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+
+        .dash-db-dropdown-wrap i {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fbbf24;
+            font-size: 0.65rem;
+            pointer-events: none;
+        }
+
+        .dash-db-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            font-size: 0.8rem;
+        }
+
+        .dash-db-btn.refresh {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 184, 148, 0.1) 100%);
+            color: #00d4aa;
+        }
+
+        .dash-db-btn.refresh:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 184, 148, 0.2) 100%);
+            transform: rotate(180deg);
+        }
+
+        .dash-db-btn.refresh.spinning i {
+            animation: dbRefreshSpin 0.8s linear infinite;
+        }
+
+        .dash-db-btn.manage {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
             color: #a78bfa;
         }
 
-        .saved-prompts-section.resizing {
+        .dash-db-btn.manage:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
+            transform: rotate(90deg);
+        }
+
+        .dash-cred-btn {
+            cursor: pointer;
             user-select: none;
         }
 
-        .saved-prompts-section.resizing .saved-resize-handle {
-            opacity: 1;
-            background: rgba(139, 92, 246, 0.15);
+        .dash-cred-btn input {
+            display: none;
+        }
+
+        .dash-cred-btn span {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.65rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .dash-cred-btn:hover span {
+            border-color: rgba(251, 191, 36, 0.4);
+            color: var(--text-secondary);
+        }
+
+        .dash-cred-btn.remote input:checked + span {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .dash-cred-btn.localhost input:checked + span {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .dash-db-empty {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #fca5a5;
+        }
+
+        .dash-db-empty a {
+            color: #fbbf24;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .dash-db-empty a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Backend Group with Label */
+        .dash-backend-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            align-self: stretch;
+        }
+        
+        .dash-backend-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #06b6d4;
+            padding-left: 0.1rem;
+            min-height: 18px;
+            line-height: 1;
+        }
+        
+        .dash-backend-label i {
+            font-size: 0.65rem;
+        }
+        
+        .dash-backend-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-height: 32px;
+        }
+        
+        .dash-backend-check {
+            width: 18px;
+            height: 18px;
+            accent-color: #06b6d4;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .dash-backend-prompt {
+            width: 200px;
+            height: 50px;
+            min-width: 120px;
+            min-height: 36px;
+            max-width: 400px;
+            max-height: 150px;
+            padding: 0.5rem 0.7rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-family: inherit;
+            resize: both;
+            overflow: auto;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .dash-backend-prompt::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .dash-backend-prompt:focus {
+            outline: none;
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1);
+        }
+        
+        /* Page Section - Purple Theme */
+        .dash-page-label {
+            color: #a78bfa !important;
+        }
+        
+        .dash-page-check {
+            accent-color: #a78bfa !important;
+        }
+        
+        .dash-page-btn {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(167, 139, 250, 0.08) 100%) !important;
+            border-color: rgba(139, 92, 246, 0.25) !important;
+            color: #a78bfa !important;
+        }
+        
+        .dash-file-input-wrap:hover .dash-page-btn {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(167, 139, 250, 0.15) 100%) !important;
+            border-color: rgba(139, 92, 246, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2) !important;
+        }
+        
+        .dash-page-group .dash-file-info i {
+            color: #a78bfa;
+        }
+        
+        .dash-page-group .dash-file-info.has-files {
+            color: #a78bfa;
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.08);
+        }
+        
+        .dash-page-prompt:focus {
+            border-color: rgba(139, 92, 246, 0.5) !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1) !important;
+        }
+        
+        /* Frontend Section - Orange Theme */
+        .dash-frontend-label {
+            color: #fb923c !important;
+        }
+        
+        .dash-frontend-check {
+            accent-color: #fb923c !important;
+        }
+        
+        .dash-frontend-btn {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%) !important;
+            border-color: rgba(251, 146, 60, 0.25) !important;
+            color: #fb923c !important;
+        }
+        
+        .dash-file-input-wrap:hover .dash-frontend-btn {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2) 0%, rgba(249, 115, 22, 0.15) 100%) !important;
+            border-color: rgba(251, 146, 60, 0.4) !important;
+            box-shadow: 0 2px 8px rgba(251, 146, 60, 0.2) !important;
+        }
+        
+        .dash-frontend-group .dash-file-info i {
+            color: #fb923c;
+        }
+        
+        .dash-frontend-group .dash-file-info.has-files {
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.3);
+            background: rgba(251, 146, 60, 0.08);
+        }
+        
+        .dash-frontend-prompt:focus {
+            border-color: rgba(251, 146, 60, 0.5) !important;
+            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.1) !important;
+        }
+        
+        /* Database Section - Golden Theme - Align with other sections */
+        .dash-database-group {
+            gap: 0.3rem !important;
+        }
+        
+        .dash-database-group .dash-backend-controls {
+            gap: 0.4rem;
+        }
+        
+        .dash-db-cred-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.3rem;
+            width: 100%;
+        }
+        
+        .dash-db-cred-row .dash-cred-btn {
+            flex: 1;
+        }
+        
+        .dash-db-cred-row .dash-cred-btn span {
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .dash-db-prompt-row {
+            display: flex;
+            gap: 0.3rem;
+            width: 100%;
+            margin-top: 0.3rem;
+        }
+        
+        .dash-db-prompt-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            flex: 1;
+            padding: 0.45rem 0.5rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a855f7;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dash-db-prompt-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            color: #c084fc;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(168, 85, 247, 0.3);
+        }
+        
+        .dash-db-prompt-btn:active {
+            transform: translateY(0);
+        }
+        
+        .dash-db-prompt-btn i {
+            font-size: 0.7rem;
+        }
+        
+        .dash-db-prompt-full {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .dash-db-prompt-full:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.2) 100%);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #4ade80;
+            box-shadow: 0 3px 12px rgba(34, 197, 94, 0.3);
+        }
+        
+        .dash-database-label {
+            color: #fbbf24 !important;
+        }
+        
+        /* Generate Button - Shiny Green */
+        .dash-generate-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            align-self: center;
+            height: fit-content;
+        }
+        
+        .dash-generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .dash-generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        
+        .dash-generate-btn:hover::before {
+            left: 100%;
+        }
+        
+        .dash-generate-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+        }
+        
+        .dash-generate-btn i {
+            font-size: 0.9rem;
+        }
+        
+        /* File Picker - Inline Style */
+        .dash-file-input-wrap {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .dash-file-input-wrap input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .dash-file-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.45rem 0.7rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.25);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+        
+        .dash-file-btn i {
+            font-size: 0.75rem;
+        }
+        
+        .dash-file-input-wrap:hover .dash-file-btn {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+        
+        .dash-file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.6rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            max-width: 120px;
+            overflow: hidden;
+        }
+        
+        .dash-file-info i {
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            color: #06b6d4;
+        }
+        
+        .dash-file-info span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .dash-file-info.has-files {
+            color: #22d3ee;
+            border-color: rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.08);
+        }
+
+        /* Responsive for smaller screens */
+        @media (max-width: 900px) {
+            .dash-db-tools {
+                flex-wrap: wrap;
+            }
+            
+            .dash-db-dropdown-wrap {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            
+            .dash-db-separator {
+                display: none;
+            }
         }
 
         .saved-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.5rem;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
             background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border-color);
         }
 
         .saved-header h3 {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            white-space: nowrap;
         }
 
         .saved-header h3 i {
             color: var(--success);
+            font-size: 0.85rem;
+        }
+
+        .saved-header .search-box {
+            max-width: 200px;
+        }
+
+        .saved-header .search-box input {
+            padding: 0.35rem 0.75rem 0.35rem 2rem;
+            font-size: 0.75rem;
+        }
+
+        .saved-header .search-box i {
+            font-size: 0.7rem;
+            left: 0.65rem;
         }
 
         .search-box {
@@ -3238,40 +4334,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.75rem;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            padding-bottom: 0.4rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            /* Hide default browser scrollbar */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
         }
-
+        
+        /* Hide default scrollbar for saved-list (Chrome, Safari, Opera) */
         .saved-list::-webkit-scrollbar {
-            width: 6px;
+            display: none;
+            width: 0;
+            height: 0;
         }
 
-        .saved-list::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
+        .saved-list:empty::after {
+            content: 'No saved prompts yet';
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-style: italic;
+            white-space: nowrap;
         }
 
-        .saved-list::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 3px;
+        /* Custom Scrollbar Track - Full Width Bar */
+        .saved-scrollbar-track {
+            width: calc(100% - 1.5rem);
+            height: 14px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 7px;
+            margin: 0.25rem 0.75rem 0.5rem 0.75rem;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            box-sizing: border-box;
+        }
+
+        .saved-scrollbar-thumb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 80px;
+            min-width: 50px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 6px;
+            cursor: grab;
+            transition: background 0.2s, box-shadow 0.2s, left 0.1s ease-out;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .saved-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #818cf8, #a78bfa);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+            transform: scaleY(1.2);
+        }
+
+        .saved-scrollbar-thumb:active,
+        .saved-scrollbar-thumb.dragging {
+            cursor: grabbing;
+            background: linear-gradient(90deg, #a5b4fc, #c4b5fd);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+            transform: scaleY(1.3);
         }
 
         .saved-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1rem;
-            background: var(--bg-card);
+            gap: 0.4rem;
+            padding: 0.35rem 0.6rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
+            border-radius: 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .saved-item:hover {
             border-color: var(--accent-primary);
-            transform: translateX(5px);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.2);
         }
 
         .saved-icon {
@@ -3403,28 +4563,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
 
-        /* Updated Saved Item - Like Prompt Templates */
-        .saved-item {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-            gap: 0.5rem;
-        }
-
-        .saved-item:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.05);
-            transform: translateX(3px);
-        }
-
+        /* Updated Saved Item - Horizontal Pill Style */
         .saved-item.checked {
             border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
 
         .saved-item-checkbox {
@@ -3436,10 +4579,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-checkbox .checkbox-box {
-            width: 22px;
-            height: 22px;
+            width: 16px;
+            height: 16px;
             border: 2px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -3449,7 +4592,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-checkbox .checkbox-box i {
-            font-size: 0.7rem;
+            font-size: 0.5rem;
             color: white;
             opacity: 0;
             transform: scale(0);
@@ -3467,41 +4610,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-content {
-            flex: 1;
-            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
             cursor: pointer;
         }
 
         .saved-item-name {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-primary);
+            max-width: 120px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .saved-item-preview {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 2px;
+            display: none;
         }
 
         .saved-item-date {
-            font-size: 0.65rem;
-            color: var(--accent-secondary);
-            margin-top: 2px;
+            display: none;
         }
 
         .saved-item-actions {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
-            opacity: 0.5;
-            transition: opacity 0.2s;
+            opacity: 0;
+            transition: all 0.2s;
         }
 
         .saved-item:hover .saved-item-actions {
@@ -3509,17 +4647,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-action-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
             border: none;
-            background: var(--bg-tertiary);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            font-size: 0.55rem;
             font-size: 0.7rem;
         }
 
@@ -4434,6 +5573,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 width: 280px;
                 min-width: 280px;
             }
+            
+            .main-content {
+                max-width: calc(100vw - 280px);
+            }
         }
 
         @media (max-width: 768px) {
@@ -4451,6 +5594,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             .main-content {
                 padding: 1rem;
+                max-width: 100vw;
             }
 
             .editor-actions {
@@ -4494,6 +5638,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 1rem;
             backdrop-filter: blur(10px);
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .dictionary-header {
@@ -5583,9 +6730,327 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(239, 68, 68, 0.3);
             color: #fecaca;
         }
+
+        /* ========================================
+           DATABASE CONNECTION TOGGLE SWITCH
+           ======================================== */
+        .db-toggle-container {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 25px;
+            z-index: 99999;
+            opacity: 0.35;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle-container:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        
+        .toggle-label.local {
+            color: #22c55e;
+        }
+        
+        .toggle-label.remote {
+            color: #3b82f6;
+        }
+        
+        .db-toggle-container[data-active="local"] .toggle-label.local,
+        .db-toggle-container[data-active="remote"] .toggle-label.remote {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .db-toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        .db-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-radius: 22px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .db-toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        .db-toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .connection-status {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .fallback-badge {
+            background: var(--warning);
+            color: #000;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* ========================================
+           SPEED MONITOR BOX
+           ======================================== */
+        .speed-monitor {
+            position: fixed;
+            top: 12px;
+            right: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            z-index: 99999;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 200px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+        }
+        
+        .speed-monitor:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .speed-monitor-title {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .speed-row:last-child {
+            border-bottom: none;
+        }
+        
+        .speed-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-label .op-type {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+        
+        .speed-value {
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .speed-value.local {
+            color: var(--success);
+        }
+        
+        .speed-value.remote {
+            color: var(--accent-secondary);
+        }
+        
+        .speed-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 8px;
+            margin-top: 4px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .speed-comparison.faster {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .speed-comparison.slower {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .speed-comparison.equal {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .speed-diff {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .speed-winner {
+            font-size: 14px;
+        }
+        
+        .no-data {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 8px;
+            font-style: italic;
+        }
+        
+        @keyframes speed-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .speed-new {
+            animation: speed-pulse 0.5s ease;
+        }
+        
+        /* Toast for connection switch */
+        .db-switch-toast {
+            position: fixed;
+            top: 60px;
+            right: 12px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(50px); }
+        }
     </style>
 </head>
 <body>
+    <!-- Database Connection Toggle Switch -->
+    <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)" data-active="<?php echo $connectionType; ?>">
+        <span class="toggle-label local" id="labelLocal">🖥️</span>
+        <label class="db-toggle">
+            <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" <?php echo ($connectionType === 'remote') ? 'checked' : ''; ?>>
+            <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label remote" id="labelRemote">🌐</span>
+        <div class="connection-status" id="connectionStatus">
+            <?php echo ($connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+            <?php if ($connectionFallback): ?>
+                <span class="fallback-badge">⚡ Auto</span>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Speed Monitor Box -->
+    <div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+        <div class="speed-monitor-title">
+            <span>⚡</span> Speed Monitor
+        </div>
+        <div id="speedContent">
+            <div class="no-data">Perform an action to see speed...</div>
+        </div>
+    </div>
     <div class="bg-effects"></div>
     
     <div class="app-container">
@@ -5596,31 +7061,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="sidebar-content">
-                <!-- Database Selector -->
-                <div class="database-selector" id="databaseSelector">
-                    <div class="db-selector-header">
-                        <i class="fas fa-database"></i> Hostinger Database
-                    </div>
-                    <div class="db-selector-row" id="dbSelectorRow">
-                        <label class="db-checkbox-wrapper">
-                            <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials()">
-                            <div class="db-checkbox-box">
-                                <i class="fas fa-check"></i>
-                            </div>
-                        </label>
-                        <div class="db-dropdown-wrapper">
-                            <select class="db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
-                                <option value="">-- Select Database --</option>
-                            </select>
-                            <i class="fas fa-chevron-down db-dropdown-arrow"></i>
-                        </div>
-                    </div>
-                    <div class="db-no-connections" id="dbNoConnections" style="display: none;">
-                        No databases found.<br>
-                        <a href="PHP-Dashboard.php" target="_blank">Add in Dashboard →</a>
-                    </div>
-                </div>
-                
                 <!-- File Upload -->
                 <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
                 
@@ -5773,8 +7213,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="saved-list" id="savedList">
                     <!-- Saved prompts will be loaded here -->
                 </div>
-                <div class="saved-resize-handle" id="savedResizeHandle" title="Drag to resize">
-                    <i class="fas fa-grip-lines"></i>
+                <div class="saved-scrollbar-track" id="savedScrollbarTrack">
+                    <div class="saved-scrollbar-thumb" id="savedScrollbarThumb"></div>
+                </div>
+            </div>
+            
+            <!-- Development Dashboard -->
+            <div class="dev-dashboard-section">
+                <div class="dev-dashboard-header">
+                    <div class="dev-dashboard-left">
+                        <div class="dev-dashboard-title">
+                            <span class="dev-icon">⚡</span>
+                            <span class="dev-text">Development Dashboard</span>
+                        </div>
+                    </div>
+                    <div class="dev-dashboard-actions">
+                        <button type="button" class="dash-reset-btn" id="dashResetBtn" onclick="resetDashboard()" title="Reset Dashboard">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <div class="dev-dashboard-status">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Ready</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="dev-dashboard-content" id="devDashboardContent">
+                    <!-- Database Connection Widget -->
+                    <div class="dash-db-widget" id="databaseSelector">
+                        <div class="dash-db-tools">
+                            <div class="dash-backend-group dash-database-group">
+                                <span class="dash-backend-label dash-database-label">
+                                    <i class="fas fa-database"></i> Database
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt" onclick="appendDatabaseToPrompt()">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="dash-db-dropdown-wrap">
+                                        <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
+                                            <option value="">-- Select Connection --</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                                <div class="dash-db-cred-row">
+                                    <label class="dash-cred-btn remote" title="Append Remote Credentials">
+                                        <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
+                                        <span><i class="fas fa-globe"></i> Remote</span>
+                                    </label>
+                                    <label class="dash-cred-btn localhost" title="Append Localhost Credentials">
+                                        <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
+                                        <span><i class="fas fa-server"></i> Localhost</span>
+                                    </label>
+                                </div>
+                                <div class="dash-db-prompt-row">
+                                    <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Generate Smart Connection Prompt">
+                                        <i class="fas fa-code"></i> Prompt
+                                    </button>
+                                    <button type="button" class="dash-db-prompt-btn dash-db-prompt-full" onclick="generateFullDatabasePrompt()" title="Generate Full Prompt with Toggle & Speed Monitor">
+                                        <i class="fas fa-tachometer-alt"></i> Full
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dash-db-separator"></div>
+                            <div class="dash-backend-group">
+                                <span class="dash-backend-label">
+                                    <i class="fas fa-file-code"></i> Backend
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check" id="backendMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn backend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('backend')">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="dashFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="dashFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
+                                    <textarea class="dash-backend-prompt" id="backendPromptArea" placeholder="Prompt..."></textarea>
+                                </div>
+                            </div>
+                            <div class="dash-db-separator"></div>
+                            <div class="dash-backend-group dash-page-group">
+                                <span class="dash-backend-label dash-page-label">
+                                    <i class="fas fa-window-maximize"></i> Page
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check dash-page-check" id="pageMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn page-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('page')">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="pageFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn dash-page-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="pageFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
+                                    <textarea class="dash-backend-prompt dash-page-prompt" id="pagePromptArea" placeholder="Prompt..."></textarea>
+                                </div>
+                            </div>
+                            <div class="dash-db-separator"></div>
+                            <div class="dash-backend-group dash-frontend-group">
+                                <span class="dash-backend-label dash-frontend-label">
+                                    <i class="fas fa-palette"></i> Frontend
+                                </span>
+                                <div class="dash-backend-controls">
+                                    <input type="checkbox" class="dash-backend-check dash-frontend-check" id="frontendMainCheckbox">
+                                    <button type="button" class="dash-arrow-btn frontend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('frontend')">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <label class="dash-file-input-wrap" title="Choose Files">
+                                        <input type="file" id="frontendFilePicker" multiple accept="*/*">
+                                        <div class="dash-file-btn dash-frontend-btn">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Files</span>
+                                        </div>
+                                    </label>
+                                    <div class="dash-file-info" id="frontendFileInfo">
+                                        <i class="fas fa-paperclip"></i>
+                                        <span>None</span>
+                                    </div>
+                                    <textarea class="dash-backend-prompt dash-frontend-prompt" id="frontendPromptArea" placeholder="Prompt..."></textarea>
+                                </div>
+                            </div>
+                            <div class="dash-db-separator"></div>
+                            <button type="button" class="dash-arrow-btn generate-arrow" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate</span>
+                            </button>
+                        </div>
+                        <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
+                            <span>No databases found</span>
+                            <a href="javascript:void(0)" onclick="openDbManager()">+ Add</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -7575,7 +9168,8 @@ ${item.html_code || ''}
         async function loadHostingerDatabases() {
             const dropdown = document.getElementById('dbDropdown');
             const noConnections = document.getElementById('dbNoConnections');
-            const selectorRow = document.getElementById('dbSelectorRow');
+            const dbWidget = document.getElementById('databaseSelector');
+            const dbTools = dbWidget ? dbWidget.querySelector('.dash-db-tools') : null;
             
             // Show loading state
             dropdown.innerHTML = '<option value="">-- Loading... --</option>';
@@ -7586,17 +9180,18 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 // Clear existing options
-                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (data.success && data.connections && data.connections.length > 0) {
-                    selectorRow.style.display = 'flex';
-                    noConnections.style.display = 'none';
+                    // Show controls, hide empty message
+                    if (dbTools) dbTools.style.display = 'flex';
+                    if (noConnections) noConnections.style.display = 'none';
                     
                     // Add database options from hub
                     data.connections.forEach(conn => {
                         const option = document.createElement('option');
                         option.value = conn.id;
-                        option.textContent = `🌐 ${conn.name} (${conn.dbName})`;
+                        option.textContent = `🌐 ${conn.name}`;
                         option.dataset.host = conn.host;
                         option.dataset.dbname = conn.dbName;
                         option.dataset.username = conn.username;
@@ -7609,8 +9204,8 @@ ${item.html_code || ''}
                     console.log('✅ Loaded ' + data.connections.length + ' connections from Database Hub');
                 } else {
                     // No connections in hub
-                    selectorRow.style.display = 'none';
-                    noConnections.style.display = 'block';
+                    if (dbTools) dbTools.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
                 }
             } catch (error) {
                 console.error('❌ Failed to load from Database Hub:', error);
@@ -7619,22 +9214,22 @@ ${item.html_code || ''}
                 const saved = localStorage.getItem(HOSTINGER_CONNECTIONS_KEY);
                 const connections = saved ? JSON.parse(saved) : [];
                 
-                dropdown.innerHTML = '<option value="">-- Select Database --</option>';
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
                 
                 if (connections.length === 0) {
-                    selectorRow.style.display = 'none';
-                    noConnections.style.display = 'block';
+                    if (dbTools) dbTools.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
                     return;
                 }
                 
-                selectorRow.style.display = 'flex';
-                noConnections.style.display = 'none';
+                if (dbTools) dbTools.style.display = 'flex';
+                if (noConnections) noConnections.style.display = 'none';
                 
                 // Add database options from localStorage fallback
                 connections.forEach(conn => {
                     const option = document.createElement('option');
                     option.value = conn.id;
-                    option.textContent = `${conn.name} (${conn.dbName})`;
+                    option.textContent = `${conn.name}`;
                     option.dataset.host = conn.host;
                     option.dataset.dbname = conn.dbName;
                     option.dataset.username = conn.username;
@@ -7648,10 +9243,293 @@ ${item.html_code || ''}
             }
         }
 
+        // Manual refresh database list with visual feedback
+        async function refreshDatabaseList() {
+            const refreshBtn = document.getElementById('dbRefreshBtn');
+            const dropdown = document.getElementById('dbDropdown');
+            const dbWidget = document.getElementById('databaseSelector');
+            const dbTools = dbWidget ? dbWidget.querySelector('.dash-db-tools') : null;
+            const noConnections = document.getElementById('dbNoConnections');
+            
+            // Prevent double-clicking
+            if (refreshBtn.classList.contains('spinning')) return;
+            
+            // Add spinning animation
+            refreshBtn.classList.add('spinning');
+            
+            // Store current selection
+            const currentSelection = dropdown.value;
+            
+            try {
+                // Force fresh fetch (bypass any cache)
+                const response = await fetch(DATABASE_HUB_API + '&_t=' + Date.now());
+                const data = await response.json();
+                
+                // Clear existing options
+                dropdown.innerHTML = '<option value="">-- Select Connection --</option>';
+                
+                if (data.success && data.connections && data.connections.length > 0) {
+                    if (dbTools) dbTools.style.display = 'flex';
+                    if (noConnections) noConnections.style.display = 'none';
+                    
+                    // Add database options
+                    data.connections.forEach(conn => {
+                        const option = document.createElement('option');
+                        option.value = conn.id;
+                        option.textContent = `🌐 ${conn.name}`;
+                        option.dataset.host = conn.host;
+                        option.dataset.dbname = conn.dbName;
+                        option.dataset.username = conn.username;
+                        option.dataset.password = conn.password || '';
+                        option.dataset.port = conn.port || '3306';
+                        option.dataset.type = conn.type || 'shared';
+                        dropdown.appendChild(option);
+                    });
+                    
+                    // Restore previous selection if still exists
+                    if (currentSelection) {
+                        const stillExists = Array.from(dropdown.options).some(opt => opt.value === currentSelection);
+                        if (stillExists) {
+                            dropdown.value = currentSelection;
+                        }
+                    }
+                    
+                    showToast(`🔄 Refreshed! ${data.connections.length} database(s) loaded`, 'success');
+                } else {
+                    if (dbTools) dbTools.style.display = 'none';
+                    if (noConnections) noConnections.style.display = 'flex';
+                    showToast('📭 No databases found', 'info');
+                }
+                
+            } catch (error) {
+                console.error('Refresh error:', error);
+                showToast('❌ Failed to refresh databases', 'error');
+            } finally {
+                // Remove spinning animation after a minimum delay for visual feedback
+                setTimeout(() => {
+                    refreshBtn.classList.remove('spinning');
+                }, 500);
+            }
+        }
+
+        // Development Dashboard LocalStorage
+        const DASHBOARD_STORAGE_KEY = 'devDashboardSettings';
+        
+        // Save dashboard settings to localStorage
+        function saveDashboardSettings() {
+            const settings = {
+                // Checkboxes
+                dbMainCheckbox: document.getElementById('dbMainCheckbox')?.checked || false,
+                dbCredentialsCheckbox: document.getElementById('dbCredentialsCheckbox')?.checked || false,
+                dbLocalhostCheckbox: document.getElementById('dbLocalhostCheckbox')?.checked || false,
+                backendMainCheckbox: document.getElementById('backendMainCheckbox')?.checked || false,
+                pageMainCheckbox: document.getElementById('pageMainCheckbox')?.checked || false,
+                frontendMainCheckbox: document.getElementById('frontendMainCheckbox')?.checked || false,
+                
+                // Database dropdown
+                dbDropdown: document.getElementById('dbDropdown')?.value || '',
+                
+                // Textareas
+                backendPromptArea: document.getElementById('backendPromptArea')?.value || '',
+                pagePromptArea: document.getElementById('pagePromptArea')?.value || '',
+                frontendPromptArea: document.getElementById('frontendPromptArea')?.value || ''
+            };
+            
+            localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(settings));
+        }
+        
+        // Load dashboard settings from localStorage
+        function loadDashboardSettings() {
+            const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+            if (!saved) return;
+            
+            try {
+                const settings = JSON.parse(saved);
+                
+                // Restore checkboxes
+                const dbMainCheckbox = document.getElementById('dbMainCheckbox');
+                if (dbMainCheckbox) dbMainCheckbox.checked = settings.dbMainCheckbox || false;
+                
+                const dbCredentialsCheckbox = document.getElementById('dbCredentialsCheckbox');
+                if (dbCredentialsCheckbox) dbCredentialsCheckbox.checked = settings.dbCredentialsCheckbox || false;
+                
+                const dbLocalhostCheckbox = document.getElementById('dbLocalhostCheckbox');
+                if (dbLocalhostCheckbox) dbLocalhostCheckbox.checked = settings.dbLocalhostCheckbox || false;
+                
+                const backendMainCheckbox = document.getElementById('backendMainCheckbox');
+                if (backendMainCheckbox) backendMainCheckbox.checked = settings.backendMainCheckbox || false;
+                
+                const pageMainCheckbox = document.getElementById('pageMainCheckbox');
+                if (pageMainCheckbox) pageMainCheckbox.checked = settings.pageMainCheckbox || false;
+                
+                const frontendMainCheckbox = document.getElementById('frontendMainCheckbox');
+                if (frontendMainCheckbox) frontendMainCheckbox.checked = settings.frontendMainCheckbox || false;
+                
+                // Restore database dropdown (after options are loaded)
+                if (settings.dbDropdown) {
+                    setTimeout(() => {
+                        const dbDropdown = document.getElementById('dbDropdown');
+                        if (dbDropdown) {
+                            dbDropdown.value = settings.dbDropdown;
+                        }
+                    }, 1000);
+                }
+                
+                // Restore textareas
+                const backendPromptArea = document.getElementById('backendPromptArea');
+                if (backendPromptArea) backendPromptArea.value = settings.backendPromptArea || '';
+                
+                const pagePromptArea = document.getElementById('pagePromptArea');
+                if (pagePromptArea) pagePromptArea.value = settings.pagePromptArea || '';
+                
+                const frontendPromptArea = document.getElementById('frontendPromptArea');
+                if (frontendPromptArea) frontendPromptArea.value = settings.frontendPromptArea || '';
+                
+                console.log('✅ Dashboard settings loaded from localStorage');
+            } catch (error) {
+                console.error('Failed to load dashboard settings:', error);
+            }
+        }
+        
+        // Reset dashboard to default
+        function resetDashboard() {
+            if (!confirm('Reset all dashboard settings to default?')) return;
+            
+            // Clear localStorage
+            localStorage.removeItem(DASHBOARD_STORAGE_KEY);
+            
+            // Reset checkboxes
+            document.getElementById('dbMainCheckbox').checked = false;
+            document.getElementById('dbCredentialsCheckbox').checked = false;
+            document.getElementById('dbLocalhostCheckbox').checked = false;
+            document.getElementById('backendMainCheckbox').checked = false;
+            document.getElementById('pageMainCheckbox').checked = false;
+            document.getElementById('frontendMainCheckbox').checked = false;
+            
+            // Reset dropdown
+            document.getElementById('dbDropdown').value = '';
+            
+            // Reset textareas
+            document.getElementById('backendPromptArea').value = '';
+            document.getElementById('pagePromptArea').value = '';
+            document.getElementById('frontendPromptArea').value = '';
+            
+            // Reset file pickers display
+            document.getElementById('dashFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('dashFileInfo').classList.remove('has-files');
+            document.getElementById('pageFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('pageFileInfo').classList.remove('has-files');
+            document.getElementById('frontendFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+            document.getElementById('frontendFileInfo').classList.remove('has-files');
+            
+            // Reset file inputs
+            document.getElementById('dashFilePicker').value = '';
+            document.getElementById('pageFilePicker').value = '';
+            document.getElementById('frontendFilePicker').value = '';
+            
+            showToast('🔄 Dashboard reset to default', 'info');
+        }
+        
+        // Auto-save on changes
+        function initDashboardAutoSave() {
+            // Checkboxes
+            ['dbMainCheckbox', 'dbCredentialsCheckbox', 'dbLocalhostCheckbox', 
+             'backendMainCheckbox', 'pageMainCheckbox', 'frontendMainCheckbox'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', saveDashboardSettings);
+            });
+            
+            // Dropdown
+            const dbDropdown = document.getElementById('dbDropdown');
+            if (dbDropdown) dbDropdown.addEventListener('change', saveDashboardSettings);
+            
+            // Textareas (debounced)
+            ['backendPromptArea', 'pagePromptArea', 'frontendPromptArea'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    let timeout;
+                    el.addEventListener('input', () => {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(saveDashboardSettings, 500);
+                    });
+                }
+            });
+        }
+
+        // Handle file picker change
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved settings
+            loadDashboardSettings();
+            
+            // Initialize auto-save
+            initDashboardAutoSave();
+            
+            // Backend file picker
+            const filePicker = document.getElementById('dashFilePicker');
+            const fileInfo = document.getElementById('dashFileInfo');
+            
+            if (filePicker && fileInfo) {
+                filePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        fileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+                        fileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        fileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        fileInfo.classList.add('has-files');
+                    } else {
+                        fileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
+                        fileInfo.classList.add('has-files');
+                    }
+                });
+            }
+            
+            // Page file picker
+            const pageFilePicker = document.getElementById('pageFilePicker');
+            const pageFileInfo = document.getElementById('pageFileInfo');
+            
+            if (pageFilePicker && pageFileInfo) {
+                pageFilePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        pageFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+                        pageFileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        pageFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        pageFileInfo.classList.add('has-files');
+                    } else {
+                        pageFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
+                        pageFileInfo.classList.add('has-files');
+                    }
+                });
+            }
+            
+            // Frontend file picker
+            const frontendFilePicker = document.getElementById('frontendFilePicker');
+            const frontendFileInfo = document.getElementById('frontendFileInfo');
+            
+            if (frontendFilePicker && frontendFileInfo) {
+                frontendFilePicker.addEventListener('change', function() {
+                    const files = this.files;
+                    if (files.length === 0) {
+                        frontendFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
+                        frontendFileInfo.classList.remove('has-files');
+                    } else if (files.length === 1) {
+                        frontendFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
+                        frontendFileInfo.classList.add('has-files');
+                    } else {
+                        frontendFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
+                        frontendFileInfo.classList.add('has-files');
+                    }
+                });
+            }
+        });
+
         // Handle database selection change
         function onDatabaseSelect() {
             const dropdown = document.getElementById('dbDropdown');
-            const checkbox = document.getElementById('dbCredentialsCheckbox');
+            const remoteCheckbox = document.getElementById('dbCredentialsCheckbox');
+            const localhostCheckbox = document.getElementById('dbLocalhostCheckbox');
             const selectedOption = dropdown.options[dropdown.selectedIndex];
             
             if (dropdown.value && selectedOption.dataset) {
@@ -7666,21 +9544,1212 @@ ${item.html_code || ''}
                     type: selectedOption.dataset.type
                 };
                 
-                // If checkbox is checked and dropdown changed, append new credentials (don't replace)
-                if (checkbox.checked) {
-                    appendCredentialsToEditor();
+                // If remote checkbox is checked and dropdown changed, append new remote credentials
+                if (remoteCheckbox.checked) {
+                    appendCredentialsToEditor('remote');
+                }
+                // If localhost checkbox is checked and dropdown changed, append new localhost credentials
+                if (localhostCheckbox.checked) {
+                    appendCredentialsToEditor('localhost');
                 }
             } else {
                 selectedDatabaseConnection = null;
             }
         }
 
-        // Track the last added credentials ID for removal
-        let lastAddedCredentialsId = null;
+        // Track the last added credentials IDs for removal (separate for remote and localhost)
+        let lastAddedRemoteCredId = null;
+        let lastAddedLocalhostCredId = null;
+
+        // Append database selection to prompt editor (arrow button) - BOTH Remote & Localhost
+        function appendDatabaseToPrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
+            };
+            
+            // Create REMOTE credentials block
+            const remoteBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  🌐  DATABASE CREDENTIALS - REMOTE CONNECTION               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${conn.host.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`.trim();
+
+            // Create LOCALHOST credentials block
+            const localhostBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  🖥️  DATABASE CREDENTIALS - LOCALHOST (ON-SERVER)           ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${'localhost'.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`.trim();
+            
+            // Combine both blocks
+            const fullBlock = remoteBlock + '\n\n' + localhostBlock;
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast('📦 Database credentials (Remote + Localhost) appended', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Generate Smart Database Connection Prompt (with auto-switch toggle)
+        function generateDatabasePrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
+            };
+            
+            const smartPrompt = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  🔄  SMART DATABASE CONNECTION - AUTO-SWITCH IMPLEMENTATION                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Please implement a smart database connection system with the following requirements:
+
+────────────────────────────────────────────────────────────────────────────────
+📦 DATABASE CREDENTIALS
+────────────────────────────────────────────────────────────────────────────────
+
+🌐 REMOTE CONNECTION:
+   • Host:     ${conn.host}
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+🖥️ LOCALHOST CONNECTION (On-Server):
+   • Host:     localhost
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+────────────────────────────────────────────────────────────────────────────────
+⚙️ IMPLEMENTATION REQUIREMENTS
+────────────────────────────────────────────────────────────────────────────────
+
+1. **Connection Logic (PHP):**
+   - Create a database connection class/function that tries BOTH connections
+   - Use try-catch blocks to test each connection
+   - Default to LOCALHOST first (faster when running on server)
+   - If localhost fails, automatically switch to REMOTE
+   - Store the working connection type in a session/cookie
+
+2. **Toggle Switch (Frontend):**
+   - Add a small, elegant toggle switch in the TOP RIGHT corner of the page
+   - Make it subtle/minimal so regular users don't notice it (for admin use)
+   - Two positions: "Local" (left/default) and "Remote" (right)
+   - Use a smooth sliding animation
+
+3. **Toggle Behavior:**
+   - When user switches from Local to Remote:
+     • Try to connect using REMOTE credentials
+     • If successful: keep toggle on Remote
+     • If fails: automatically slide back to Local with a subtle notification
+   
+   - When user switches from Remote to Local:
+     • Try to connect using LOCALHOST credentials  
+     • If successful: keep toggle on Local
+     • If fails: automatically slide back to Remote with a subtle notification
+
+4. **Visual Design:**
+   - Toggle size: approximately 40px width, 20px height
+   - Position: fixed, top: 10px, right: 10px (or similar corner position)
+   - Colors: Green for Local (active), Blue for Remote (active)
+   - Include tiny labels "L" and "R" or icons on each side
+   - Add a subtle tooltip on hover explaining the toggle
+
+5. **Example PHP Code Structure:**
+   ~~~php
+   class DatabaseConnection {
+       private @@instance = null;
+       private @@connection = null;
+       private @@connectionType = 'localhost'; // default
+       
+       private @@credentials = [
+           'localhost' => [
+               'host' => 'localhost',
+               'dbname' => '` + conn.dbName + `',
+               'username' => '` + conn.username + `',
+               'password' => '` + conn.password + `',
+               'port' => '` + conn.port + `'
+           ],
+           'remote' => [
+               'host' => '` + conn.host + `',
+               'dbname' => '` + conn.dbName + `',
+               'username' => '` + conn.username + `',
+               'password' => '` + conn.password + `',
+               'port' => '` + conn.port + `'
+           ]
+       ];
+       
+       public function connect(@@preferredType = 'localhost') {
+           // Try preferred connection first
+           try {
+               @@cred = @@this->credentials[@@preferredType];
+               @@this->connection = new PDO(
+                   "mysql:host={@@cred['host']};dbname={@@cred['dbname']};port={@@cred['port']}",
+                   @@cred['username'],
+                   @@cred['password'],
+                   [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+               );
+               @@this->connectionType = @@preferredType;
+               return ['success' => true, 'type' => @@preferredType];
+           } catch (PDOException @@e) {
+               // Try fallback connection
+               @@fallbackType = (@@preferredType === 'localhost') ? 'remote' : 'localhost';
+               try {
+                   @@cred = @@this->credentials[@@fallbackType];
+                   @@this->connection = new PDO(
+                       "mysql:host={@@cred['host']};dbname={@@cred['dbname']};port={@@cred['port']}",
+                       @@cred['username'],
+                       @@cred['password'],
+                       [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+                   );
+                   @@this->connectionType = @@fallbackType;
+                   return ['success' => true, 'type' => @@fallbackType, 'fallback' => true];
+               } catch (PDOException @@e2) {
+                   return ['success' => false, 'error' => @@e2->getMessage()];
+               }
+           }
+       }
+       
+       public function getConnectionType() {
+           return @@this->connectionType;
+       }
+   }
+   ~~~
+   (Note: Replace @@ with $ in actual PHP code)
+
+6. **Example Toggle HTML/CSS:**
+   ~~~html
+   <div class="db-toggle-container" title="Database Connection: Local/Remote">
+       <span class="toggle-label local">L</span>
+       <label class="db-toggle">
+           <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)">
+           <span class="toggle-slider"></span>
+       </label>
+       <span class="toggle-label remote">R</span>
+   </div>
+   ~~~
+
+   ~~~css
+   .db-toggle-container {
+       position: fixed;
+       top: 10px;
+       right: 10px;
+       display: flex;
+       align-items: center;
+       gap: 4px;
+       padding: 4px 8px;
+       background: rgba(0,0,0,0.6);
+       border-radius: 20px;
+       z-index: 9999;
+       opacity: 0.4;
+       transition: opacity 0.3s;
+   }
+   .db-toggle-container:hover { opacity: 1; }
+   .toggle-label { font-size: 9px; color: #888; }
+   .toggle-label.local { color: #22c55e; }
+   .toggle-label.remote { color: #3b82f6; }
+   .db-toggle { position: relative; width: 36px; height: 18px; }
+   .db-toggle input { opacity: 0; width: 0; height: 0; }
+   .toggle-slider {
+       position: absolute; cursor: pointer;
+       top: 0; left: 0; right: 0; bottom: 0;
+       background: #22c55e; border-radius: 18px;
+       transition: 0.3s;
+   }
+   .toggle-slider:before {
+       position: absolute; content: "";
+       height: 14px; width: 14px;
+       left: 2px; bottom: 2px;
+       background: white; border-radius: 50%;
+       transition: 0.3s;
+   }
+   .db-toggle input:checked + .toggle-slider { background: #3b82f6; }
+   .db-toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+   ~~~
+
+────────────────────────────────────────────────────────────────────────────────
+📝 NOTES
+────────────────────────────────────────────────────────────────────────────────
+
+• The toggle should be BARELY visible by default (low opacity)
+• Only becomes fully visible on hover
+• The auto-switch mechanism ensures the app always works regardless of environment
+• Store user preference in localStorage to remember their choice
+• The connection type should be available to JavaScript via a global variable or data attribute
+
+`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + smartPrompt;
+            } else {
+                editor.value = smartPrompt;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast('🔄 Smart database connection prompt generated', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Generate FULL Database Prompt with Toggle AND Speed Monitor
+        function generateFullDatabasePrompt() {
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (!dropdown.value || !selectedOption.dataset) {
+                showToast('⚠️ Please select a database first', 'warning');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const conn = {
+                name: selectedOption.textContent.replace('🌐 ', ''),
+                host: selectedOption.dataset.host,
+                dbName: selectedOption.dataset.dbname,
+                username: selectedOption.dataset.username,
+                password: selectedOption.dataset.password || '',
+                port: selectedOption.dataset.port || '3306',
+                type: selectedOption.dataset.type || 'shared'
+            };
+            
+            const fullPrompt = `
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  🔄  FULL SMART DATABASE CONNECTION WITH TOGGLE & SPEED MONITOR              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Please implement a comprehensive database connection system with:
+1. Smart auto-switch between Localhost and Remote
+2. Toggle switch for manual control
+3. Speed monitor to track and compare operation performance
+
+════════════════════════════════════════════════════════════════════════════════
+📦 PART 1: DATABASE CREDENTIALS
+════════════════════════════════════════════════════════════════════════════════
+
+🌐 REMOTE CONNECTION (from anywhere):
+   • Host:     ${conn.host}
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+🖥️ LOCALHOST CONNECTION (on-server, faster):
+   • Host:     localhost
+   • Database: ${conn.dbName}
+   • Username: ${conn.username}
+   • Password: ${conn.password}
+   • Port:     ${conn.port}
+
+════════════════════════════════════════════════════════════════════════════════
+⚙️ PART 2: PHP SMART CONNECTION CLASS
+════════════════════════════════════════════════════════════════════════════════
+
+~~~php
+` + '<' + `?php
+// Database credentials configuration
+@@dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => '${conn.dbName}',
+        'username' => '${conn.username}',
+        'password' => '${conn.password}',
+        'port' => '${conn.port}'
+    ],
+    'remote' => [
+        'host' => '${conn.host}',
+        'dbname' => '${conn.dbName}',
+        'username' => '${conn.username}',
+        'password' => '${conn.password}',
+        'port' => '${conn.port}'
+    ]
+];
+
+// Connection state
+@@pdo = null;
+@@connectionType = 'localhost';
+@@connectionFallback = false;
+
+// Handle AJAX connection switch request
+if (isset(@@_GET['switch_db'])) {
+    header('Content-Type: application/json');
+    @@requestedType = @@_GET['switch_db'];
+    
+    if (!isset(@@dbCredentials[@@requestedType])) {
+        echo json_encode(['success' => false, 'error' => 'Invalid connection type']);
+        exit;
+    }
+    
+    @@cred = @@dbCredentials[@@requestedType];
+    try {
+        @@testPdo = new PDO(
+            "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+            @@cred['username'],
+            @@cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        setcookie('db_connection_type', @@requestedType, time() + (86400 * 30), '/');
+        echo json_encode(['success' => true, 'type' => @@requestedType]);
+    } catch (PDOException @@e) {
+        echo json_encode(['success' => false, 'error' => @@e->getMessage()]);
+    }
+    exit;
+}
+
+// Get preferred connection from cookie
+@@preferredType = isset(@@_COOKIE['db_connection_type']) ? @@_COOKIE['db_connection_type'] : 'localhost';
+
+// Smart connection function with try-catch fallback
+function connectToDatabase(@@credentials, @@preferredType) {
+    global @@connectionType, @@connectionFallback;
+    
+    // Try preferred connection first
+    @@cred = @@credentials[@@preferredType];
+    try {
+        @@pdo = new PDO(
+            "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+            @@cred['username'],
+            @@cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 5]
+        );
+        @@connectionType = @@preferredType;
+        @@connectionFallback = false;
+        return @@pdo;
+    } catch (PDOException @@e) {
+        // Try fallback
+        @@fallbackType = (@@preferredType === 'localhost') ? 'remote' : 'localhost';
+        @@cred = @@credentials[@@fallbackType];
+        try {
+            @@pdo = new PDO(
+                "mysql:host={@@cred['host']};port={@@cred['port']};dbname={@@cred['dbname']};charset=utf8mb4",
+                @@cred['username'],
+                @@cred['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 5]
+            );
+            @@connectionType = @@fallbackType;
+            @@connectionFallback = true;
+            return @@pdo;
+        } catch (PDOException @@e2) {
+            return null;
+        }
+    }
+}
+
+// Establish connection
+@@pdo = connectToDatabase(@@dbCredentials, @@preferredType);
+if (@@pdo) {
+    setcookie('db_connection_type', @@connectionType, time() + (86400 * 30), '/');
+}
+
+// For API operations - add timing measurement:
+// @@startTime = microtime(true);
+// ... your database operation ...
+// @@operationTime = round((microtime(true) - @@startTime) * 1000, 2);
+// Return in JSON: 'operationTime' => @@operationTime, 'connectionType' => @@connectionType
+~~~
+(Note: Replace @@ with $ in actual PHP code)
+
+════════════════════════════════════════════════════════════════════════════════
+🎨 PART 3: TOGGLE SWITCH (HTML + CSS)
+════════════════════════════════════════════════════════════════════════════════
+
+Add this HTML right after <body>:
+
+~~~html
+<!-- Database Connection Toggle Switch -->
+<div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local/Remote" data-active="` + '<' + `?php echo @@connectionType; ?>">
+    <span class="toggle-label local">🖥️</span>
+    <label class="db-toggle">
+        <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" ` + '<' + `?php echo (@@connectionType === 'remote') ? 'checked' : ''; ?>>
+        <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label remote">🌐</span>
+    <div class="connection-status" id="connectionStatus">
+        ` + '<' + `?php echo (@@connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+        ` + '<' + `?php if (@@connectionFallback): ?><span class="fallback-badge">⚡ Auto</span>` + '<' + `?php endif; ?>
+    </div>
+</div>
+
+<!-- Speed Monitor Box -->
+<div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+    <div class="speed-monitor-title"><span>⚡</span> Speed Monitor</div>
+    <div id="speedContent"><div class="no-data">Perform an action to see speed...</div></div>
+</div>
+~~~
+
+CSS for both:
+
+~~~css
+/* Toggle Container */
+.db-toggle-container {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 25px;
+    z-index: 99999;
+    opacity: 0.35;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+.db-toggle-container:hover { opacity: 1; }
+
+.toggle-label { font-size: 14px; opacity: 0.5; transition: all 0.3s; }
+.toggle-label.local { color: #22c55e; }
+.toggle-label.remote { color: #3b82f6; }
+.db-toggle-container[data-active="local"] .toggle-label.local,
+.db-toggle-container[data-active="remote"] .toggle-label.remote { opacity: 1; transform: scale(1.1); }
+
+.db-toggle { position: relative; width: 42px; height: 22px; cursor: pointer; }
+.db-toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border-radius: 22px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.toggle-slider:before {
+    position: absolute; content: "";
+    height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.db-toggle input:checked + .toggle-slider { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+.db-toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+.connection-status { font-size: 10px; color: rgba(255,255,255,0.6); padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.1); }
+.fallback-badge { background: #f59e0b; color: #000; padding: 1px 5px; border-radius: 8px; font-size: 8px; font-weight: 600; }
+
+/* Speed Monitor */
+.speed-monitor {
+    position: fixed;
+    top: 12px;
+    right: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 12px;
+    z-index: 99999;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 200px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.speed-monitor:hover { opacity: 1; }
+.speed-monitor-title { font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+.speed-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.speed-label { font-size: 10px; color: rgba(255,255,255,0.6); }
+.op-type { font-size: 8px; padding: 1px 4px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+.speed-value { font-size: 12px; font-weight: 600; }
+.speed-value.local { color: #22c55e; }
+.speed-value.remote { color: #8b5cf6; }
+.speed-comparison { display: flex; justify-content: center; gap: 6px; padding: 6px 8px; margin-top: 4px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+.speed-comparison.faster { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.speed-comparison.slower { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.no-data { font-size: 10px; color: rgba(255,255,255,0.4); text-align: center; padding: 8px; font-style: italic; }
+~~~
+
+════════════════════════════════════════════════════════════════════════════════
+📜 PART 4: JAVASCRIPT FUNCTIONALITY
+════════════════════════════════════════════════════════════════════════════════
+
+~~~javascript
+// Connection state
+let currentConnectionType = '` + '<' + `?php echo @@connectionType; ?>';
+let connectionFallback = ` + '<' + `?php echo @@connectionFallback ? 'true' : 'false'; ?>;
+const SPEED_HISTORY_KEY = 'db_speed_history';
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initSpeedMonitor();
+    if (connectionFallback) {
+        showToast('⚡ Auto-switched to ' + (currentConnectionType === 'localhost' ? '🖥️ Local' : '🌐 Remote'), 'warning');
+    }
+});
+
+// Switch connection
+async function switchDbConnection(isRemote) {
+    const targetType = isRemote ? 'remote' : 'localhost';
+    const toggle = document.getElementById('dbConnectionToggle');
+    const container = document.getElementById('dbToggleContainer');
+    const statusEl = document.getElementById('connectionStatus');
+    
+    toggle.disabled = true;
+    showToast('Switching to ' + (isRemote ? '🌐 Remote' : '🖥️ Localhost') + '...', 'info');
+    
+    try {
+        const response = await fetch('?switch_db=' + targetType);
+        const result = await response.json();
+        
+        if (result.success) {
+            currentConnectionType = result.type;
+            container.setAttribute('data-active', result.type);
+            statusEl.innerHTML = result.type === 'remote' ? '🌐 Remote' : '🖥️ Local';
+            showToast('✅ Connected to ' + (result.type === 'remote' ? '🌐 Remote' : '🖥️ Localhost'), 'success');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            toggle.checked = (currentConnectionType === 'remote');
+            showToast('❌ Connection failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        toggle.checked = (currentConnectionType === 'remote');
+        showToast('❌ Network error', 'error');
+    }
+    toggle.disabled = false;
+}
+
+// Speed Monitor Functions
+function initSpeedMonitor() {
+    if (window.latestOperation) addSpeedEntry(window.latestOperation);
+    updateSpeedMonitor();
+}
+
+function getSpeedHistory() {
+    try { return JSON.parse(localStorage.getItem(SPEED_HISTORY_KEY)) || []; }
+    catch (e) { return []; }
+}
+
+function saveSpeedHistory(history) {
+    if (history.length > 10) history = history.slice(-10);
+    localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+}
+
+function addSpeedEntry(op) {
+    const history = getSpeedHistory();
+    if (!history.some(h => h.timestamp === op.timestamp && h.type === op.type)) {
+        history.push({ time: op.time, type: op.type, connection: op.connection, timestamp: op.timestamp });
+        saveSpeedHistory(history);
+    }
+}
+
+function updateSpeedMonitor() {
+    const content = document.getElementById('speedContent');
+    if (!content) return;
+    
+    const history = getSpeedHistory();
+    if (history.length === 0) {
+        content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+        return;
+    }
+    
+    const lastTwo = history.slice(-2);
+    let html = '';
+    
+    lastTwo.forEach((entry, idx) => {
+        const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+        const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+        html += '<div class="speed-row"><span class="speed-label">' + connIcon + ' <span class="op-type">' + entry.type + '</span></span><span class="speed-value ' + connClass + '">' + entry.time + 'ms</span></div>';
+    });
+    
+    if (lastTwo.length === 2) {
+        const [first, second] = lastTwo;
+        const diff = Math.abs(first.time - second.time).toFixed(2);
+        const pct = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+        let cls = second.time < first.time ? 'faster' : (second.time > first.time ? 'slower' : 'equal');
+        let winner = second.time < first.time ? (second.connection === 'localhost' ? '🖥️' : '🌐') : (first.connection === 'localhost' ? '🖥️' : '🌐');
+        html += '<div class="speed-comparison ' + cls + '"><span>' + winner + '</span><span>Δ ' + diff + 'ms</span><span>' + pct + '% faster</span></div>';
+    }
+    
+    html += '<div style="text-align:center;margin-top:6px"><button onclick="clearSpeedHistory()" style="background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.5);font-size:8px;padding:2px 8px;border-radius:4px;cursor:pointer">Clear</button></div>';
+    content.innerHTML = html;
+}
+
+function clearSpeedHistory() {
+    localStorage.removeItem(SPEED_HISTORY_KEY);
+    updateSpeedMonitor();
+}
+
+// Record operation speed (call after API responses)
+function recordSpeed(type, time, connection) {
+    addSpeedEntry({ time: parseFloat(time), type: type, connection: connection || currentConnectionType, timestamp: Date.now() });
+    updateSpeedMonitor();
+}
+~~~
+(Note: Replace @@ with $ in PHP parts)
+
+════════════════════════════════════════════════════════════════════════════════
+📝 IMPLEMENTATION NOTES
+════════════════════════════════════════════════════════════════════════════════
+
+1. **Default Behavior:** Always tries LOCALHOST first (faster on-server), falls back to REMOTE
+2. **Toggle:** Users can manually switch; if connection fails, auto-reverts to working one
+3. **Speed Monitor:** Shows last 2 operations with timing comparison
+4. **Auto Badge:** Shows "⚡ Auto" when connection was automatically switched
+5. **Timing:** PHP measures with microtime(), returns in JSON, JS displays in monitor
+6. **Persistence:** Connection preference saved in cookie (30 days), speed history in localStorage
+
+`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullPrompt;
+            } else {
+                editor.value = fullPrompt;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast('🚀 Full prompt with Toggle & Speed Monitor generated', 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Append section (Backend/Page/Frontend) to prompt editor
+        function appendSectionToPrompt(section) {
+            const editor = document.getElementById('promptEditor');
+            
+            // Get file picker and prompt textarea based on section
+            let filePicker, promptArea, sectionName, sectionIcon;
+            
+            switch(section) {
+                case 'backend':
+                    filePicker = document.getElementById('dashFilePicker');
+                    promptArea = document.getElementById('backendPromptArea');
+                    sectionName = 'BACKEND';
+                    sectionIcon = '📄';
+                    break;
+                case 'page':
+                    filePicker = document.getElementById('pageFilePicker');
+                    promptArea = document.getElementById('pagePromptArea');
+                    sectionName = 'PAGE';
+                    sectionIcon = '🪟';
+                    break;
+                case 'frontend':
+                    filePicker = document.getElementById('frontendFilePicker');
+                    promptArea = document.getElementById('frontendPromptArea');
+                    sectionName = 'FRONTEND';
+                    sectionIcon = '🎨';
+                    break;
+                default:
+                    return;
+            }
+            
+            // Get selected files
+            const files = filePicker ? filePicker.files : [];
+            const fileNames = Array.from(files).map(f => f.name);
+            
+            // Get prompt text
+            const promptText = promptArea ? promptArea.value.trim() : '';
+            
+            // Check if there's anything to send
+            if (fileNames.length === 0 && !promptText) {
+                showToast(`⚠️ No files or prompt for ${sectionName}`, 'warning');
+                return;
+            }
+            
+            // Build the block
+            let blockContent = '';
+            
+            // Add files section if any
+            if (fileNames.length > 0) {
+                blockContent += `📁 Files (${fileNames.length}):\n`;
+                fileNames.forEach((name, idx) => {
+                    blockContent += `   ${idx + 1}. ${name}\n`;
+                });
+            }
+            
+            // Add prompt section if any
+            if (promptText) {
+                if (blockContent) blockContent += '\n';
+                blockContent += `📝 Prompt:\n${promptText}`;
+            }
+            
+            // Create full block
+            const fullBlock = `
+╔══════════════════════════════════════════════════════════════╗
+║  ${sectionIcon}  ${sectionName} SECTION                                          ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`.trim();
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            const itemCount = fileNames.length + (promptText ? 1 : 0);
+            showToast(`${sectionIcon} ${sectionName} appended (${itemCount} item${itemCount > 1 ? 's' : ''})`, 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Append ALL sections to prompt editor (Generate arrow button)
+        function appendAllSectionsToPrompt() {
+            const editor = document.getElementById('promptEditor');
+            let sectionsAdded = 0;
+            let allBlocks = [];
+            
+            // 1. DATABASE SECTION
+            const dropdown = document.getElementById('dbDropdown');
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            
+            if (dropdown.value && selectedOption.dataset) {
+                const conn = {
+                    name: selectedOption.textContent.replace('🌐 ', ''),
+                    host: selectedOption.dataset.host,
+                    dbName: selectedOption.dataset.dbname,
+                    username: selectedOption.dataset.username,
+                    password: selectedOption.dataset.password || '',
+                    port: selectedOption.dataset.port || '3306',
+                    type: selectedOption.dataset.type || 'shared'
+                };
+                
+                // Remote block
+                const remoteBlock = `╔══════════════════════════════════════════════════════════════╗
+║  🌐  DATABASE CREDENTIALS - REMOTE CONNECTION               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${conn.host.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`;
+
+                // Localhost block
+                const localhostBlock = `╔══════════════════════════════════════════════════════════════╗
+║  🖥️  DATABASE CREDENTIALS - LOCALHOST (ON-SERVER)           ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     ${conn.name.padEnd(48)}║
+║  Host:     ${'localhost'.padEnd(48)}║
+║  Database: ${conn.dbName.padEnd(48)}║
+║  Username: ${conn.username.padEnd(48)}║
+║  Password: ${conn.password.padEnd(48)}║
+║  Port:     ${conn.port.padEnd(48)}║
+║  Type:     ${(conn.type === 'vps' ? 'VPS' : 'Shared Hosting').padEnd(48)}║
+╚══════════════════════════════════════════════════════════════╝`;
+                
+                allBlocks.push(remoteBlock);
+                allBlocks.push(localhostBlock);
+                sectionsAdded++;
+            }
+            
+            // 2. BACKEND SECTION
+            const backendFiles = document.getElementById('dashFilePicker')?.files || [];
+            const backendPrompt = document.getElementById('backendPromptArea')?.value.trim() || '';
+            
+            if (backendFiles.length > 0 || backendPrompt) {
+                let blockContent = '';
+                if (backendFiles.length > 0) {
+                    blockContent += `📁 Files (${backendFiles.length}):\n`;
+                    Array.from(backendFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (backendPrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${backendPrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  📄  BACKEND SECTION                                          ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // 3. PAGE SECTION
+            const pageFiles = document.getElementById('pageFilePicker')?.files || [];
+            const pagePrompt = document.getElementById('pagePromptArea')?.value.trim() || '';
+            
+            if (pageFiles.length > 0 || pagePrompt) {
+                let blockContent = '';
+                if (pageFiles.length > 0) {
+                    blockContent += `📁 Files (${pageFiles.length}):\n`;
+                    Array.from(pageFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (pagePrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${pagePrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  🪟  PAGE SECTION                                             ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // 4. FRONTEND SECTION
+            const frontendFiles = document.getElementById('frontendFilePicker')?.files || [];
+            const frontendPrompt = document.getElementById('frontendPromptArea')?.value.trim() || '';
+            
+            if (frontendFiles.length > 0 || frontendPrompt) {
+                let blockContent = '';
+                if (frontendFiles.length > 0) {
+                    blockContent += `📁 Files (${frontendFiles.length}):\n`;
+                    Array.from(frontendFiles).forEach((f, idx) => {
+                        blockContent += `   ${idx + 1}. ${f.name}\n`;
+                    });
+                }
+                if (frontendPrompt) {
+                    if (blockContent) blockContent += '\n';
+                    blockContent += `📝 Prompt:\n${frontendPrompt}`;
+                }
+                
+                allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
+║  🎨  FRONTEND SECTION                                         ║
+╠══════════════════════════════════════════════════════════════╣
+${blockContent}
+╚══════════════════════════════════════════════════════════════╝`);
+                sectionsAdded++;
+            }
+            
+            // Check if anything to add
+            if (allBlocks.length === 0) {
+                showToast('⚠️ No data in any section to append', 'warning');
+                return;
+            }
+            
+            // Combine all blocks
+            const fullBlock = allBlocks.join('\n\n');
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullBlock;
+            } else {
+                editor.value = fullBlock;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Show success toast
+            showToast(`✨ All sections appended (${sectionsAdded} section${sectionsAdded > 1 ? 's' : ''})`, 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
+
+        // Generate Comprehensive AI Prompt (Generate Button)
+        function generateComprehensivePrompt() {
+            const editor = document.getElementById('promptEditor');
+            
+            // Check which checkboxes are checked
+            const dbChecked = document.getElementById('dbMainCheckbox')?.checked;
+            const backendChecked = document.getElementById('backendMainCheckbox')?.checked;
+            const pageChecked = document.getElementById('pageMainCheckbox')?.checked;
+            const frontendChecked = document.getElementById('frontendMainCheckbox')?.checked;
+            
+            // Check if at least one checkbox is checked
+            if (!dbChecked && !backendChecked && !pageChecked && !frontendChecked) {
+                showToast('⚠️ Please check at least one section checkbox', 'warning');
+                return;
+            }
+            
+            let promptSections = [];
+            let hasContent = false;
+            
+            // Header
+            promptSections.push(`
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    🚀 AI DEVELOPMENT INSTRUCTIONS                            ║
+║                    Generated by Prompt Manager                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Please follow the instructions below carefully. Each section contains specific 
+details about the application components you need to work with.
+`);
+
+            // 1. DATABASE SECTION (if checked)
+            if (dbChecked) {
+                const dropdown = document.getElementById('dbDropdown');
+                const selectedOption = dropdown.options[dropdown.selectedIndex];
+                
+                if (dropdown.value && selectedOption.dataset) {
+                    hasContent = true;
+                    const conn = {
+                        name: selectedOption.textContent.replace('🌐 ', ''),
+                        host: selectedOption.dataset.host,
+                        dbName: selectedOption.dataset.dbname,
+                        username: selectedOption.dataset.username,
+                        password: selectedOption.dataset.password || '',
+                        port: selectedOption.dataset.port || '3306',
+                        type: selectedOption.dataset.type || 'shared'
+                    };
+                    
+                    promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+📦 DATABASE CONNECTION
+════════════════════════════════════════════════════════════════════════════════
+
+Below are the database credentials for this application. Use the REMOTE connection 
+when connecting from external servers or development machines. Use the LOCALHOST 
+connection when the code is running directly on the Hostinger server for faster 
+database operations.
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🌐 REMOTE CONNECTION (External Access)                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Connection Name: ${conn.name}
+│  Host:           ${conn.host}
+│  Database:       ${conn.dbName}
+│  Username:       ${conn.username}
+│  Password:       ${conn.password}
+│  Port:           ${conn.port}
+│  Type:           ${conn.type === 'vps' ? 'VPS' : 'Shared Hosting'}
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🖥️ LOCALHOST CONNECTION (On-Server Access)                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Connection Name: ${conn.name}
+│  Host:           localhost
+│  Database:       ${conn.dbName}
+│  Username:       ${conn.username}
+│  Password:       ${conn.password}
+│  Port:           ${conn.port}
+│  Type:           ${conn.type === 'vps' ? 'VPS' : 'Shared Hosting'}
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚠️ IMPORTANT: Use the appropriate connection based on where your code is running.
+`);
+                }
+            }
+
+            // 2. BACKEND SECTION (if checked)
+            if (backendChecked) {
+                const backendFiles = document.getElementById('dashFilePicker')?.files || [];
+                const backendPrompt = document.getElementById('backendPromptArea')?.value.trim() || '';
+                
+                if (backendFiles.length > 0 || backendPrompt) {
+                    hasContent = true;
+                    let filesList = '';
+                    if (backendFiles.length > 0) {
+                        filesList = Array.from(backendFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
+                    }
+                    
+                    promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+📄 BACKEND SECTION
+════════════════════════════════════════════════════════════════════════════════
+
+This section contains backend files and instructions. The backend handles server-side 
+logic, API endpoints, and database operations.
+${backendFiles.length > 0 ? `
+📁 BACKEND FILES (${backendFiles.length}):
+${filesList}
+` : ''}${backendPrompt ? `
+📝 BACKEND INSTRUCTIONS:
+${backendPrompt}
+` : ''}
+💡 NOTE: If database operations are required, refer to the DATABASE CONNECTION 
+section above for credentials. Ensure proper error handling and security measures 
+are implemented.
+`);
+                }
+            }
+
+            // 3. PAGE SECTION (if checked)
+            if (pageChecked) {
+                const pageFiles = document.getElementById('pageFilePicker')?.files || [];
+                const pagePrompt = document.getElementById('pagePromptArea')?.value.trim() || '';
+                
+                if (pageFiles.length > 0 || pagePrompt) {
+                    hasContent = true;
+                    let filesList = '';
+                    if (pageFiles.length > 0) {
+                        filesList = Array.from(pageFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
+                    }
+                    
+                    promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+🪟 PAGE SECTION
+════════════════════════════════════════════════════════════════════════════════
+
+This section contains page files and instructions. These are the main application 
+pages that may include both frontend display and backend logic.
+${pageFiles.length > 0 ? `
+📁 PAGE FILES (${pageFiles.length}):
+${filesList}
+` : ''}${pagePrompt ? `
+📝 PAGE INSTRUCTIONS:
+${pagePrompt}
+` : ''}
+💡 NOTE: If this page requires database access, refer to the DATABASE CONNECTION 
+section. If it interacts with backend APIs, refer to the BACKEND SECTION. If it 
+includes frontend components, refer to the FRONTEND SECTION.
+`);
+                }
+            }
+
+            // 4. FRONTEND SECTION (if checked)
+            if (frontendChecked) {
+                const frontendFiles = document.getElementById('frontendFilePicker')?.files || [];
+                const frontendPrompt = document.getElementById('frontendPromptArea')?.value.trim() || '';
+                
+                if (frontendFiles.length > 0 || frontendPrompt) {
+                    hasContent = true;
+                    let filesList = '';
+                    if (frontendFiles.length > 0) {
+                        filesList = Array.from(frontendFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
+                    }
+                    
+                    promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+🎨 FRONTEND SECTION
+════════════════════════════════════════════════════════════════════════════════
+
+This section contains frontend files and instructions. The frontend handles 
+user interface, styling, and client-side interactions.
+${frontendFiles.length > 0 ? `
+📁 FRONTEND FILES (${frontendFiles.length}):
+${filesList}
+` : ''}${frontendPrompt ? `
+📝 FRONTEND INSTRUCTIONS:
+${frontendPrompt}
+` : ''}
+💡 NOTE: If this frontend connects to backend APIs, refer to the BACKEND SECTION.
+If it displays data from the database, ensure the backend properly fetches and 
+serves the data. Maintain consistent styling and responsive design.
+`);
+                }
+            }
+
+            // Check if we have any actual content
+            if (!hasContent) {
+                showToast('⚠️ Selected sections have no data (files or prompts)', 'warning');
+                return;
+            }
+
+            // Footer
+            promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+📋 SUMMARY
+════════════════════════════════════════════════════════════════════════════════
+
+Sections included in this prompt:
+${dbChecked ? '  ✅ Database Connection (Remote + Localhost)' : '  ⬜ Database Connection'}
+${backendChecked ? '  ✅ Backend Section' : '  ⬜ Backend Section'}
+${pageChecked ? '  ✅ Page Section' : '  ⬜ Page Section'}
+${frontendChecked ? '  ✅ Frontend Section' : '  ⬜ Frontend Section'}
+
+Please ensure all components work together seamlessly. Follow the instructions 
+in each section carefully and maintain proper connections between components.
+
+════════════════════════════════════════════════════════════════════════════════
+`);
+
+            // Combine all sections
+            const fullPrompt = promptSections.join('');
+            
+            // Append to editor
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + fullPrompt;
+            } else {
+                editor.value = fullPrompt;
+            }
+            
+            // Update counts and history
+            updateCounts();
+            recordHistoryState(true);
+            
+            // Count checked sections
+            const checkedCount = [dbChecked, backendChecked, pageChecked, frontendChecked].filter(Boolean).length;
+            
+            // Show success toast
+            showToast(`✨ AI prompt generated with ${checkedCount} section${checkedCount > 1 ? 's' : ''}`, 'success');
+            
+            // Save dashboard settings
+            saveDashboardSettings();
+        }
 
         // Toggle database credentials in editor
-        function toggleDatabaseCredentials() {
-            const checkbox = document.getElementById('dbCredentialsCheckbox');
+        function toggleDatabaseCredentials(mode = 'remote') {
+            const checkbox = mode === 'localhost' 
+                ? document.getElementById('dbLocalhostCheckbox')
+                : document.getElementById('dbCredentialsCheckbox');
             const dropdown = document.getElementById('dbDropdown');
             
             if (checkbox.checked) {
@@ -7689,35 +10758,49 @@ ${item.html_code || ''}
                     checkbox.checked = false;
                     return;
                 }
-                appendCredentialsToEditor();
+                appendCredentialsToEditor(mode);
             } else {
-                // Remove only the last added credentials when unchecking
-                if (lastAddedCredentialsId) {
-                    removeCredentialsByIdFromEditor(lastAddedCredentialsId);
-                    lastAddedCredentialsId = null;
+                // Remove only the last added credentials for this mode when unchecking
+                if (mode === 'localhost' && lastAddedLocalhostCredId) {
+                    removeCredentialsByIdFromEditor(lastAddedLocalhostCredId);
+                    lastAddedLocalhostCredId = null;
+                } else if (mode === 'remote' && lastAddedRemoteCredId) {
+                    removeCredentialsByIdFromEditor(lastAddedRemoteCredId);
+                    lastAddedRemoteCredId = null;
                 }
             }
         }
 
         // Append credentials to the END of prompt editor (always append, never replace)
-        function appendCredentialsToEditor() {
+        function appendCredentialsToEditor(mode = 'remote') {
             if (!selectedDatabaseConnection) return;
             
             const editor = document.getElementById('promptEditor');
             const conn = selectedDatabaseConnection;
             
+            // Determine host based on mode
+            const host = mode === 'localhost' ? 'localhost' : conn.host;
+            const modeLabel = mode === 'localhost' ? 'LOCALHOST (ON-SERVER)' : 'REMOTE CONNECTION';
+            const modeIcon = mode === 'localhost' ? '🖥️' : '🌐';
+            
             // Create unique ID for this credentials block
-            const credId = `DB_${conn.id}_${Date.now()}`;
-            lastAddedCredentialsId = credId;
+            const credId = `DB_${mode}_${conn.id}_${Date.now()}`;
+            
+            // Track the credential ID based on mode
+            if (mode === 'localhost') {
+                lastAddedLocalhostCredId = credId;
+            } else {
+                lastAddedRemoteCredId = credId;
+            }
             
             // Create credentials block with ID marker
             const credentialsBlock = `
 <!-- CRED:${credId} -->
 ╔══════════════════════════════════════════════════════════════╗
-║  🗄️  DATABASE CREDENTIALS                                    ║
+║  ${modeIcon}  DATABASE CREDENTIALS - ${modeLabel.padEnd(30)}║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Name:     ${conn.name.padEnd(48)}║
-║  Host:     ${conn.host.padEnd(48)}║
+║  Host:     ${host.padEnd(48)}║
 ║  Database: ${conn.dbName.padEnd(48)}║
 ║  Username: ${conn.username.padEnd(48)}║
 ║  Password: ${conn.password.padEnd(48)}║
@@ -7735,7 +10818,11 @@ ${item.html_code || ''}
             
             updateCounts();
             recordHistoryState(true);
-            showToast(`🗄️ ${conn.name} credentials appended`, 'success');
+            
+            const toastMsg = mode === 'localhost' 
+                ? `🖥️ Localhost credentials appended` 
+                : `🌐 Remote credentials appended`;
+            showToast(toastMsg, 'success');
         }
 
         // Remove specific credentials block by ID
@@ -8161,7 +11248,17 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || (id ? 'UPDATE_TEMPLATE' : 'ADD_TEMPLATE'),
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     closeTemplateModal();
                     await loadPromptTemplates();
                 } else {
@@ -8208,13 +11305,24 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || 'DELETE_TEMPLATE',
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    
                     // Remove from active prompts if selected
                     if (activePrompts.has(id)) {
                         activePrompts.delete(id);
                         rebuildEditor();
                     }
                     
-                    showToast(data.message, 'success');
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     await loadPromptTemplates();
                 } else {
                     showToast(data.message, 'error');
@@ -10835,7 +13943,17 @@ ${item.html_code || ''}
                 const data = await response.json();
                 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    // Record operation speed
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || (editId ? 'UPDATE' : 'ADD'),
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     closeModal('saveModal');
                     loadSavedPrompts();
                 } else {
@@ -10886,6 +14004,7 @@ ${item.html_code || ''}
                         </div>
                     `;
                     updateSavedCounter();
+                    setTimeout(updateSavedScrollbar, 100);
                 }
             } catch (err) {
                 console.error('Error loading prompts:', err);
@@ -10953,6 +14072,9 @@ ${item.html_code || ''}
             }).join('');
             
             updateSavedCounter();
+            
+            // Update scrollbar after content change
+            setTimeout(updateSavedScrollbar, 100);
         }
         
         // Escape HTML for display (without breaking newlines)
@@ -11003,6 +14125,158 @@ ${item.html_code || ''}
             updateSelectAllSavedCheckbox();
             recordHistoryState(true); // Record saved prompt toggle in history
         }
+        
+        // Custom Scrollbar for Saved Prompts
+        let savedScrollbar = {
+            list: null,
+            track: null,
+            thumb: null,
+            isDragging: false,
+            startX: 0,
+            startScrollLeft: 0
+        };
+        
+        function updateSavedScrollbar() {
+            const list = savedScrollbar.list || document.getElementById('savedList');
+            const track = savedScrollbar.track || document.getElementById('savedScrollbarTrack');
+            const thumb = savedScrollbar.thumb || document.getElementById('savedScrollbarThumb');
+            
+            if (!list || !track || !thumb) return;
+            
+            // Store references
+            savedScrollbar.list = list;
+            savedScrollbar.track = track;
+            savedScrollbar.thumb = thumb;
+            
+            // Wait a frame for proper dimensions
+            requestAnimationFrame(() => {
+                const listWidth = list.scrollWidth;
+                const viewWidth = list.clientWidth;
+                const trackWidth = track.clientWidth;
+                
+                console.log('Scrollbar update:', { listWidth, viewWidth, trackWidth });
+                
+                // Check if scrolling is needed
+                if (listWidth <= viewWidth || listWidth === 0 || trackWidth === 0) {
+                    track.style.opacity = '0.3';
+                    thumb.style.width = '100%';
+                    thumb.style.left = '0px';
+                    return;
+                }
+                
+                track.style.opacity = '1';
+                
+                // Calculate thumb width (proportional to visible area)
+                const ratio = viewWidth / listWidth;
+                const thumbWidth = Math.max(60, Math.min(trackWidth - 20, ratio * trackWidth));
+                thumb.style.width = thumbWidth + 'px';
+                
+                // Calculate thumb position
+                const maxScroll = listWidth - viewWidth;
+                const scrollRatio = maxScroll > 0 ? (list.scrollLeft / maxScroll) : 0;
+                const maxThumbLeft = trackWidth - thumbWidth;
+                const thumbLeft = Math.max(0, Math.min(maxThumbLeft, scrollRatio * maxThumbLeft));
+                thumb.style.left = thumbLeft + 'px';
+            });
+        }
+        
+        (function initSavedScrollbar() {
+            document.addEventListener('DOMContentLoaded', () => {
+                const list = document.getElementById('savedList');
+                const track = document.getElementById('savedScrollbarTrack');
+                const thumb = document.getElementById('savedScrollbarThumb');
+                
+                if (!list || !track || !thumb) return;
+                
+                savedScrollbar.list = list;
+                savedScrollbar.track = track;
+                savedScrollbar.thumb = thumb;
+                
+                // Sync list scroll when dragging thumb
+                function onThumbMouseDown(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    savedScrollbar.isDragging = true;
+                    savedScrollbar.startX = e.clientX;
+                    savedScrollbar.startScrollLeft = list.scrollLeft;
+                    thumb.classList.add('dragging');
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'grabbing';
+                }
+                
+                function onMouseMove(e) {
+                    if (!savedScrollbar.isDragging) return;
+                    
+                    const deltaX = e.clientX - savedScrollbar.startX;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const maxThumbLeft = trackWidth - thumbWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxThumbLeft > 0) {
+                        const scrollDelta = (deltaX / maxThumbLeft) * maxScroll;
+                        list.scrollLeft = savedScrollbar.startScrollLeft + scrollDelta;
+                    }
+                }
+                
+                function onMouseUp() {
+                    if (savedScrollbar.isDragging) {
+                        savedScrollbar.isDragging = false;
+                        thumb.classList.remove('dragging');
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                    }
+                }
+                
+                // Click on track to jump
+                function onTrackClick(e) {
+                    if (e.target === thumb) return;
+                    
+                    const trackRect = track.getBoundingClientRect();
+                    const clickX = e.clientX - trackRect.left;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxScroll <= 0) return;
+                    
+                    const targetRatio = Math.max(0, Math.min(1, (clickX - thumbWidth / 2) / (trackWidth - thumbWidth)));
+                    const targetScroll = targetRatio * maxScroll;
+                    
+                    list.scrollTo({
+                        left: targetScroll,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                // Event listeners
+                thumb.addEventListener('mousedown', onThumbMouseDown);
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                track.addEventListener('click', onTrackClick);
+                
+                // Update on list scroll
+                list.addEventListener('scroll', updateSavedScrollbar);
+                
+                // Update on window resize
+                window.addEventListener('resize', updateSavedScrollbar);
+                
+                // Initial update with delays
+                setTimeout(updateSavedScrollbar, 200);
+                setTimeout(updateSavedScrollbar, 500);
+                setTimeout(updateSavedScrollbar, 1000);
+                
+                // MutationObserver for content changes
+                const observer = new MutationObserver(() => {
+                    setTimeout(updateSavedScrollbar, 50);
+                });
+                observer.observe(list, { childList: true, subtree: true });
+            });
+        })();
         
         // Rebuild editor from active saved prompts
         function rebuildEditorFromSaved() {
@@ -11374,13 +14648,24 @@ ${item.html_code || ''}
                         const data = await response.json();
                         
                         if (data.success) {
+                            // Record operation speed
+                            if (data.operationTime) {
+                                addSpeedEntry({
+                                    time: data.operationTime,
+                                    type: data.operationType || 'DELETE',
+                                    connection: data.connectionType || currentConnectionType,
+                                    timestamp: Date.now()
+                                });
+                                updateSpeedMonitor();
+                            }
+                            
                             // Remove from active if selected
                             if (activeSavedPrompts.has(id)) {
                                 activeSavedPrompts.delete(id);
                                 rebuildEditorFromSaved();
                             }
                             
-                            showToast('Prompt deleted successfully!', 'success');
+                            showToast(`Prompt deleted! ⏱️ ${data.operationTime}ms`, 'success');
                             loadSavedPrompts();
                         } else {
                             showToast('Failed to delete prompt', 'error');
@@ -12097,6 +15382,251 @@ ${item.html_code || ''}
             window.open('https://frouty.com/pages/quiz.php', '_blank');
         }
 
+        // ============================================
+        // DATABASE CONNECTION TOGGLE & SPEED MONITOR
+        // ============================================
+        const DB_CONNECTION_KEY = 'pm_db_connection_type';
+        const SPEED_HISTORY_KEY = 'pm_db_speed_history';
+        
+        // Current connection type from PHP
+        let currentConnectionType = '<?php echo $connectionType; ?>';
+        let connectionFallback = <?php echo $connectionFallback ? 'true' : 'false'; ?>;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize speed monitor
+            initSpeedMonitor();
+            
+            // Show fallback notification if auto-switched
+            if (connectionFallback) {
+                showDbSwitchToast(`⚡ Auto-switched to ${currentConnectionType === 'localhost' ? '🖥️ Local' : '🌐 Remote'} (preferred unavailable)`, 'warning', 5000);
+            }
+        });
+        
+        // Switch database connection
+        async function switchDbConnection(isRemote) {
+            const targetType = isRemote ? 'remote' : 'localhost';
+            const toggle = document.getElementById('dbConnectionToggle');
+            const container = document.getElementById('dbToggleContainer');
+            const statusEl = document.getElementById('connectionStatus');
+            
+            // Disable toggle during switch
+            toggle.disabled = true;
+            
+            showDbSwitchToast(`Switching to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}...`, 'info', 0);
+            
+            try {
+                // Test the connection via PHP
+                const response = await fetch(`?switch_db=${targetType}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Connection successful
+                    currentConnectionType = result.type;
+                    container.setAttribute('data-active', result.type);
+                    statusEl.innerHTML = result.type === 'remote' ? '🌐 Remote' : '🖥️ Local';
+                    
+                    // Save to localStorage as backup
+                    localStorage.setItem(DB_CONNECTION_KEY, result.type);
+                    
+                    showDbSwitchToast(`✅ Connected to ${result.type === 'remote' ? '🌐 Remote' : '🖥️ Localhost'}`, 'success');
+                    
+                    // Reload page to use new connection
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Connection failed - revert toggle
+                    toggle.checked = (currentConnectionType === 'remote');
+                    container.setAttribute('data-active', currentConnectionType);
+                    
+                    showDbSwitchToast(
+                        `❌ Failed to connect to ${isRemote ? 'Remote' : 'Localhost'}. Error: ${result.error}`,
+                        'error',
+                        5000
+                    );
+                }
+            } catch (error) {
+                // Network error - revert toggle
+                toggle.checked = (currentConnectionType === 'remote');
+                container.setAttribute('data-active', currentConnectionType);
+                
+                showDbSwitchToast(`❌ Connection error: ${error.message}`, 'error', 5000);
+            }
+            
+            // Re-enable toggle
+            toggle.disabled = false;
+        }
+        
+        // Show toast notification for db switch
+        function showDbSwitchToast(message, type = 'info', duration = 3000) {
+            const existingToast = document.getElementById('dbSwitchToast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.id = 'dbSwitchToast';
+            toast.className = `db-switch-toast ${type}`;
+            
+            const icons = { 'success': '✅', 'error': '❌', 'info': '🔄', 'warning': '⚠️' };
+            toast.innerHTML = `<span>${icons[type] || '📢'}</span><span>${message}</span>`;
+            
+            document.body.appendChild(toast);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        
+        // ========================================
+        // SPEED MONITOR FUNCTIONALITY
+        // ========================================
+        
+        function initSpeedMonitor() {
+            if (window.latestOperation) {
+                addSpeedEntry(window.latestOperation);
+            }
+            updateSpeedMonitor();
+        }
+        
+        function getSpeedHistory() {
+            try {
+                const data = localStorage.getItem(SPEED_HISTORY_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        
+        function saveSpeedHistory(history) {
+            try {
+                if (history.length > 10) history = history.slice(-10);
+                localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) {
+                console.error('Failed to save speed history:', e);
+            }
+        }
+        
+        function addSpeedEntry(operation) {
+            const history = getSpeedHistory();
+            const isDuplicate = history.some(h => 
+                h.timestamp === operation.timestamp && 
+                h.type === operation.type && 
+                h.time === operation.time
+            );
+            
+            if (!isDuplicate) {
+                history.push({
+                    time: operation.time,
+                    type: operation.type,
+                    connection: operation.connection,
+                    timestamp: operation.timestamp
+                });
+                saveSpeedHistory(history);
+            }
+        }
+        
+        function updateSpeedMonitor() {
+            const content = document.getElementById('speedContent');
+            if (!content) return;
+            
+            const history = getSpeedHistory();
+            
+            if (history.length === 0) {
+                content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+                return;
+            }
+            
+            const lastTwo = history.slice(-2);
+            let html = '';
+            
+            lastTwo.forEach((entry, idx) => {
+                const isLatest = idx === lastTwo.length - 1;
+                const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+                const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+                
+                html += `
+                    <div class="speed-row ${isLatest ? 'speed-new' : ''}">
+                        <span class="speed-label">${connIcon} <span class="op-type">${entry.type}</span></span>
+                        <span class="speed-value ${connClass}">${entry.time}ms</span>
+                    </div>
+                `;
+            });
+            
+            if (lastTwo.length === 2) {
+                const [first, second] = lastTwo;
+                const diff = Math.abs(first.time - second.time).toFixed(2);
+                const percentage = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+                
+                let comparisonClass, comparisonText, winner;
+                
+                if (second.time < first.time) {
+                    comparisonClass = 'faster';
+                    winner = second.connection === 'localhost' ? '🖥️' : '🌐';
+                    comparisonText = `${winner} ${percentage}% faster`;
+                } else if (second.time > first.time) {
+                    comparisonClass = 'slower';
+                    winner = first.connection === 'localhost' ? '🖥️' : '🌐';
+                    comparisonText = `${winner} ${percentage}% faster`;
+                } else {
+                    comparisonClass = 'equal';
+                    comparisonText = '⚖️ Equal speed';
+                }
+                
+                html += `
+                    <div class="speed-comparison ${comparisonClass}">
+                        <span class="speed-winner">${comparisonClass !== 'equal' ? winner : '⚖️'}</span>
+                        <span class="speed-diff">Δ ${diff}ms</span>
+                        <span>${comparisonText}</span>
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div style="text-align: center; margin-top: 6px;">
+                    <button onclick="clearSpeedHistory()" style="
+                        background: rgba(255,255,255,0.1);
+                        border: none;
+                        color: var(--text-secondary);
+                        font-size: 8px;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='rgba(255,255,255,0.2)'" 
+                       onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        Clear History
+                    </button>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+        }
+        
+        function clearSpeedHistory() {
+            localStorage.removeItem(SPEED_HISTORY_KEY);
+            updateSpeedMonitor();
+        }
+        
+        function recordOperationSpeed(type, startTime, connection) {
+            const endTime = performance.now();
+            const operationTime = (endTime - startTime).toFixed(2);
+            
+            const operation = {
+                time: parseFloat(operationTime),
+                type: type,
+                connection: connection || (document.getElementById('dbConnectionToggle')?.checked ? 'remote' : 'localhost'),
+                timestamp: Date.now()
+            };
+            
+            addSpeedEntry(operation);
+            updateSpeedMonitor();
+            
+            return operationTime;
+        }
+
     </script>
     
 <!-- Back to Catalog Button -->
@@ -12140,6 +15670,243 @@ ${item.html_code || ''}
 }
 </style>
 <!-- End Back to Catalog Button -->
+
+<!-- Database Manager Modal -->
+<div id="dbManagerModal" class="db-manager-modal" onclick="if(event.target === this) closeDbManager()">
+    <div class="db-manager-container">
+        <div class="db-manager-header">
+            <div class="db-manager-title">
+                <i class="fas fa-database"></i>
+                <span>Database Manager</span>
+            </div>
+            <div class="db-manager-actions">
+                <button type="button" class="db-manager-refresh" onclick="refreshDbManagerFrame()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button type="button" class="db-manager-close" onclick="closeDbManager()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="db-manager-body">
+            <iframe id="dbManagerFrame" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Database Manager Modal */
+.db-manager-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100000;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    animation: dbModalFadeIn 0.3s ease;
+}
+
+@keyframes dbModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.db-manager-modal.active {
+    display: flex;
+}
+
+.db-manager-container {
+    width: 100%;
+    max-width: 1400px;
+    height: 90vh;
+    background: linear-gradient(135deg, #0a0e17 0%, #111827 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(0, 212, 170, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dbModalSlideIn 0.4s ease;
+}
+
+@keyframes dbModalSlideIn {
+    from { 
+        opacity: 0; 
+        transform: scale(0.9) translateY(30px);
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0);
+    }
+}
+
+.db-manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+    border-bottom: 1px solid rgba(0, 212, 170, 0.2);
+}
+
+.db-manager-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #00d4aa;
+}
+
+.db-manager-title i {
+    font-size: 1.4rem;
+}
+
+.db-manager-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.db-manager-refresh,
+.db-manager-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+}
+
+.db-manager-refresh {
+    background: rgba(0, 212, 170, 0.15);
+    color: #00d4aa;
+}
+
+.db-manager-refresh:hover {
+    background: rgba(0, 212, 170, 0.3);
+    transform: rotate(180deg);
+}
+
+.db-manager-close {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.db-manager-close:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: scale(1.1);
+}
+
+.db-manager-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.db-manager-body iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #0a0e17;
+}
+
+/* Loading state */
+.db-manager-body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+    border: 4px solid rgba(0, 212, 170, 0.2);
+    border-top-color: #00d4aa;
+    border-radius: 50%;
+    animation: dbSpinner 0.8s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.db-manager-body.loaded::before {
+    display: none;
+}
+
+@keyframes dbSpinner {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+<script>
+// Database Manager Modal Functions
+function openDbManager() {
+    const modal = document.getElementById('dbManagerModal');
+    const iframe = document.getElementById('dbManagerFrame');
+    const body = document.querySelector('.db-manager-body');
+    
+    // Remove loaded class to show spinner
+    body.classList.remove('loaded');
+    
+    // Load the iframe
+    iframe.src = 'report-prompt-databases.php';
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Mark as loaded when iframe loads
+    iframe.onload = function() {
+        body.classList.add('loaded');
+    };
+}
+
+function closeDbManager() {
+    const modal = document.getElementById('dbManagerModal');
+    const iframe = document.getElementById('dbManagerFrame');
+    
+    // Hide modal
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Clear iframe to stop any processes
+    iframe.src = '';
+    
+    // Refresh the database dropdown after closing (in case user added/modified databases)
+    loadHostingerDatabases();
+}
+
+function refreshDbManagerFrame() {
+    const iframe = document.getElementById('dbManagerFrame');
+    const body = document.querySelector('.db-manager-body');
+    
+    // Show spinner
+    body.classList.remove('loaded');
+    
+    // Reload iframe
+    iframe.src = iframe.src;
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('dbManagerModal');
+        if (modal.classList.contains('active')) {
+            closeDbManager();
+        }
+    }
+});
+</script>
+<!-- End Database Manager Modal -->
+
 </body>
 </html>
 

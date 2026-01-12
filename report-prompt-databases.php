@@ -2,32 +2,125 @@
 /**
  * Report Prompt Databases - CRUD Management
  * Table: report_prompt_databases
+ * 
+ * Smart Auto-Switch Database Connection:
+ * - Tries LOCALHOST first (faster when on Hostinger server)
+ * - Falls back to REMOTE if localhost fails
+ * - Toggle switch allows manual override
  */
 
-// Database Configuration
-$dbHost = 'srv1788.hstgr.io';
-$dbName = 'u419999707_Mohamed';
-$dbUser = 'u419999707_Abuammar';
-$dbPass = 'P@master5007';
-$dbPort = 3306;
+// ========================================
+// SMART DATABASE CONNECTION SYSTEM
+// ========================================
 
-// Table name with prefix
+// Database Credentials - Both connections
+$dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ],
+    'remote' => [
+        'host' => 'srv1788.hstgr.io',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ]
+];
+
+// Table name
 $tableName = 'report_prompt_databases';
 
-// PDO Connection
-try {
-    $pdo = new PDO(
-        "mysql:host=$dbHost;port=$dbPort;dbname=$dbName;charset=utf8mb4",
-        $dbUser,
-        $dbPass,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]
-    );
-} catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+// Connection state variables
+$pdo = null;
+$connectionType = 'localhost'; // Will be updated after connection
+$connectionFallback = false;
+$connectionError = null;
+
+// Check if user manually selected a connection type via AJAX
+if (isset($_GET['switch_db']) && in_array($_GET['switch_db'], ['localhost', 'remote'])) {
+    header('Content-Type: application/json');
+    $requestedType = $_GET['switch_db'];
+    $cred = $dbCredentials[$requestedType];
+    
+    try {
+        $testPdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+        echo json_encode(['success' => true, 'type' => $requestedType, 'message' => "Connected to $requestedType"]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'type' => $requestedType, 'error' => $e->getMessage()]);
+    }
+    exit;
 }
+
+// Get preferred connection type from cookie (if set)
+$preferredType = isset($_COOKIE['db_connection_type']) ? $_COOKIE['db_connection_type'] : 'localhost';
+if (!in_array($preferredType, ['localhost', 'remote'])) {
+    $preferredType = 'localhost';
+}
+
+// Smart Connection Function
+function connectToDatabase($credentials, $preferredType) {
+    global $connectionType, $connectionFallback, $connectionError;
+    
+    // Try preferred connection first
+    $cred = $credentials[$preferredType];
+    try {
+        $pdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        $connectionType = $preferredType;
+        $connectionFallback = false;
+        return $pdo;
+    } catch (PDOException $e) {
+        // Try fallback connection
+        $fallbackType = ($preferredType === 'localhost') ? 'remote' : 'localhost';
+        $cred = $credentials[$fallbackType];
+        
+        try {
+            $pdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            $connectionType = $fallbackType;
+            $connectionFallback = true;
+            return $pdo;
+        } catch (PDOException $e2) {
+            $connectionError = $e2->getMessage();
+            return null;
+        }
+    }
+}
+
+// Establish connection
+$pdo = connectToDatabase($dbCredentials, $preferredType);
+
+if (!$pdo) {
+    die("Connection failed: " . $connectionError);
+}
+
+// Set cookie to remember working connection type
+setcookie('db_connection_type', $connectionType, time() + (86400 * 30), '/'); // 30 days
 
 // Create table if not exists
 $createTableSQL = "CREATE TABLE IF NOT EXISTS `$tableName` (
@@ -66,26 +159,34 @@ if (isset($_GET['api']) && $_GET['api'] === 'list') {
 // Handle Actions
 $message = '';
 $messageType = '';
+$operationTime = 0; // Track operation time in milliseconds
+$operationType = ''; // Type of operation performed
 
 // DELETE SINGLE
 if (isset($_GET['delete'])) {
+    $startTime = microtime(true);
     $id = $_GET['delete'];
     $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
     $stmt->execute([$id]);
-    $message = 'Record deleted successfully!';
+    $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+    $operationType = 'DELETE';
+    $message = "Record deleted successfully! ⏱️ {$operationTime}ms";
     $messageType = 'success';
 }
 
 // DELETE MULTIPLE (Mass Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'mass_delete') {
     if (isset($_POST['selected_ids']) && is_array($_POST['selected_ids']) && count($_POST['selected_ids']) > 0) {
+        $startTime = microtime(true);
         $count = 0;
         foreach ($_POST['selected_ids'] as $id) {
             $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
             $stmt->execute([$id]);
             $count++;
         }
-        $message = "$count record(s) deleted successfully!";
+        $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+        $operationType = 'MASS_DELETE';
+        $message = "$count record(s) deleted successfully! ⏱️ {$operationTime}ms";
         $messageType = 'success';
     } else {
         $message = 'No records selected for deletion!';
@@ -99,6 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // ADD
         if ($_POST['action'] === 'add') {
+            $startTime = microtime(true);
             $id = time() . rand(100, 999);
             $stmt = $pdo->prepare("INSERT INTO `$tableName` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
             $stmt->execute([
@@ -111,12 +213,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['password'],
                 $_POST['port']
             ]);
-            $message = 'Record added successfully!';
+            $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+            $operationType = 'ADD';
+            $message = "Record added successfully! ⏱️ {$operationTime}ms";
             $messageType = 'success';
         }
         
         // UPDATE
         if ($_POST['action'] === 'update') {
+            $startTime = microtime(true);
             $stmt = $pdo->prepare("UPDATE `$tableName` SET name=?, type=?, host=?, dbName=?, username=?, password=?, port=? WHERE id=?");
             $stmt->execute([
                 $_POST['name'],
@@ -128,12 +233,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['port'],
                 $_POST['id']
             ]);
-            $message = 'Record updated successfully!';
+            $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+            $operationType = 'UPDATE';
+            $message = "Record updated successfully! ⏱️ {$operationTime}ms";
             $messageType = 'success';
         }
         
         // IMPORT
         if ($_POST['action'] === 'import' && isset($_FILES['jsonFile'])) {
+            $startTime = microtime(true);
             $jsonContent = file_get_contents($_FILES['jsonFile']['tmp_name']);
             
             // Remove the markdown comments if present
@@ -167,7 +275,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $imported++;
                     }
                 }
-                $message = "$imported records imported successfully!";
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                $operationType = 'IMPORT';
+                $message = "$imported records imported successfully! ⏱️ {$operationTime}ms";
                 $messageType = 'success';
             } else {
                 $message = 'Invalid JSON format!';
@@ -258,6 +368,339 @@ if (isset($_GET['edit'])) {
             --glow-secondary: rgba(124, 58, 237, 0.3);
         }
         
+        /* ========================================
+           DATABASE CONNECTION TOGGLE SWITCH
+           ======================================== */
+        .db-toggle-container {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 25px;
+            z-index: 99999;
+            opacity: 0.35;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle-container:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+        }
+        
+        .toggle-label.local {
+            color: #22c55e;
+        }
+        
+        .toggle-label.remote {
+            color: #3b82f6;
+        }
+        
+        /* Active state for labels */
+        .db-toggle-container[data-active="local"] .toggle-label.local,
+        .db-toggle-container[data-active="remote"] .toggle-label.remote {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .db-toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        .db-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            border-radius: 22px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .db-toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        
+        .db-toggle input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        .db-toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .connection-status {
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .fallback-badge {
+            background: var(--accent-warning);
+            color: #000;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* ========================================
+           SPEED MONITOR BOX
+           ======================================== */
+        .speed-monitor {
+            position: fixed;
+            top: 12px;
+            right: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            z-index: 99999;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 180px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+        }
+        
+        .speed-monitor:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .speed-monitor-title {
+            font-size: 9px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .speed-row:last-child {
+            border-bottom: none;
+        }
+        
+        .speed-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .speed-label .op-type {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+        
+        .speed-value {
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .speed-value.local {
+            color: var(--accent-success);
+        }
+        
+        .speed-value.remote {
+            color: var(--accent-secondary);
+        }
+        
+        .speed-comparison {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 8px;
+            margin-top: 4px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .speed-comparison.faster {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .speed-comparison.slower {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .speed-comparison.equal {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .speed-diff {
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .speed-winner {
+            font-size: 14px;
+        }
+        
+        .no-data {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 8px;
+            font-style: italic;
+        }
+        
+        @keyframes speed-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .speed-new {
+            animation: speed-pulse 0.5s ease;
+        }
+        
+        /* Connection info in header */
+        .connection-info {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .connection-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .connection-badge.localhost {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(21, 128, 61, 0.2) 100%);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .connection-badge.remote {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(29, 78, 216, 0.2) 100%);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .fallback-notice {
+            font-size: 0.75rem;
+            color: var(--accent-warning);
+            margin-left: 8px;
+        }
+        
+        /* Toast for connection switch */
+        .db-switch-toast {
+            position: fixed;
+            top: 60px;
+            right: 12px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            z-index: 99998;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .db-switch-toast.success {
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        
+        .db-switch-toast.error {
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        
+        .db-switch-toast .toast-icon {
+            font-size: 20px;
+        }
+        
+        .db-switch-toast .toast-message {
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -276,9 +719,9 @@ if (isset($_GET['edit'])) {
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1650px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 30px 25px;
         }
         
         /* Header */
@@ -436,8 +879,9 @@ if (isset($_GET['edit'])) {
         }
         
         .btn-sm {
-            padding: 8px 16px;
-            font-size: 0.85rem;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            white-space: nowrap;
         }
         
         /* Form Card */
@@ -537,12 +981,13 @@ if (isset($_GET['edit'])) {
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: auto;
         }
         
         th, td {
-            padding: 16px 18px;
+            padding: 12px 14px;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         th {
@@ -596,7 +1041,8 @@ if (isset($_GET['edit'])) {
         
         .td-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: nowrap;
         }
         
         /* Import Modal */
@@ -771,11 +1217,56 @@ if (isset($_GET['edit'])) {
     </style>
 </head>
 <body>
+    <!-- Database Connection Toggle Switch -->
+    <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)">
+        <span class="toggle-label local" id="labelLocal">🖥️</span>
+        <label class="db-toggle">
+            <input type="checkbox" id="dbConnectionToggle" onchange="switchDbConnection(this.checked)" <?php echo ($connectionType === 'remote') ? 'checked' : ''; ?>>
+            <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label remote" id="labelRemote">🌐</span>
+        <div class="connection-status" id="connectionStatus">
+            <?php echo ($connectionType === 'localhost') ? '🖥️ Local' : '🌐 Remote'; ?>
+            <?php if ($connectionFallback): ?>
+                <span class="fallback-badge">⚡ Auto</span>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Speed Monitor Box -->
+    <div class="speed-monitor" id="speedMonitor" title="Database Operation Speed Comparison">
+        <div class="speed-monitor-title">
+            <span>⚡</span> Speed Monitor
+        </div>
+        <div id="speedContent">
+            <div class="no-data">Perform an action to see speed...</div>
+        </div>
+    </div>
+    
+    <!-- Pass operation data to JavaScript -->
+    <?php if ($operationTime > 0): ?>
+    <script>
+        // Store latest operation data
+        window.latestOperation = {
+            time: <?php echo $operationTime; ?>,
+            type: '<?php echo $operationType; ?>',
+            connection: '<?php echo $connectionType; ?>',
+            timestamp: Date.now()
+        };
+    </script>
+    <?php endif; ?>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
             <h1>🗄️ Report Prompt Databases</h1>
             <p>Database Connection Manager - Full CRUD Operations</p>
+            <div class="connection-info">
+                Connected via: <span class="connection-badge <?php echo $connectionType; ?>"><?php echo ($connectionType === 'localhost') ? '🖥️ Localhost' : '🌐 Remote'; ?></span>
+                <?php if ($connectionFallback): ?>
+                    <span class="fallback-notice">(auto-switched)</span>
+                <?php endif; ?>
+            </div>
         </div>
         
         <!-- Alert Message -->
@@ -965,6 +1456,139 @@ if (isset($_GET['edit'])) {
 </div>
 
 <script>
+// ========================================
+// DATABASE CONNECTION TOGGLE SYSTEM
+// ========================================
+
+// Current connection type from PHP
+const CURRENT_CONNECTION_TYPE = '<?php echo $connectionType; ?>';
+const CONNECTION_WAS_FALLBACK = <?php echo $connectionFallback ? 'true' : 'false'; ?>;
+
+// LocalStorage key for connection preference
+const DB_CONNECTION_KEY = 'db_connection_type';
+
+// Initialize toggle on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('dbToggleContainer');
+    const toggle = document.getElementById('dbConnectionToggle');
+    
+    if (container && toggle) {
+        // Set data attribute for styling
+        container.setAttribute('data-active', CURRENT_CONNECTION_TYPE);
+        
+        // Update toggle state
+        toggle.checked = (CURRENT_CONNECTION_TYPE === 'remote');
+        
+        // Show fallback notification if auto-switched
+        if (CONNECTION_WAS_FALLBACK) {
+            showDbSwitchToast(
+                `Auto-switched to ${CURRENT_CONNECTION_TYPE === 'localhost' ? '🖥️ Localhost' : '🌐 Remote'}`,
+                'warning'
+            );
+        }
+    }
+});
+
+// Switch database connection
+async function switchDbConnection(isRemote) {
+    const targetType = isRemote ? 'remote' : 'localhost';
+    const toggle = document.getElementById('dbConnectionToggle');
+    const container = document.getElementById('dbToggleContainer');
+    const statusEl = document.getElementById('connectionStatus');
+    
+    // Disable toggle during switch
+    toggle.disabled = true;
+    
+    // Show switching message
+    showDbSwitchToast(`Switching to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}...`, 'info', 0);
+    
+    try {
+        const response = await fetch(`?switch_db=${targetType}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Connection successful
+            container.setAttribute('data-active', targetType);
+            statusEl.innerHTML = `${isRemote ? '🌐 Remote' : '🖥️ Local'}`;
+            
+            // Save preference to cookie via reload
+            document.cookie = `db_connection_type=${targetType};path=/;max-age=${86400 * 30}`;
+            
+            // Save to localStorage as well
+            localStorage.setItem(DB_CONNECTION_KEY, targetType);
+            
+            showDbSwitchToast(`✅ Connected to ${isRemote ? '🌐 Remote' : '🖥️ Localhost'}`, 'success');
+            
+            // Reload page to use new connection
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+            
+        } else {
+            // Connection failed - revert toggle
+            toggle.checked = !isRemote;
+            container.setAttribute('data-active', isRemote ? 'localhost' : 'remote');
+            
+            showDbSwitchToast(
+                `❌ Failed to connect to ${isRemote ? 'Remote' : 'Localhost'}. Staying on ${!isRemote ? '🌐 Remote' : '🖥️ Localhost'}`,
+                'error'
+            );
+        }
+    } catch (error) {
+        // Network error - revert toggle
+        toggle.checked = !isRemote;
+        container.setAttribute('data-active', isRemote ? 'localhost' : 'remote');
+        
+        showDbSwitchToast(`❌ Connection error: ${error.message}`, 'error');
+    }
+    
+    // Re-enable toggle
+    toggle.disabled = false;
+}
+
+// Show toast notification for db switch
+function showDbSwitchToast(message, type = 'info', duration = 3000) {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('dbSwitchToast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.id = 'dbSwitchToast';
+    toast.className = `db-switch-toast ${type}`;
+    toast.style.display = 'flex';
+    
+    const icons = {
+        'success': '✅',
+        'error': '❌',
+        'info': '🔄',
+        'warning': '⚠️'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || '📢'}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-hide after duration (if not 0)
+    if (duration > 0) {
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, duration);
+    }
+}
+
+// ========================================
+// EXPORT FUNCTIONALITY
+// ========================================
+
 // LocalStorage key for remembering last export path
 const EXPORT_PATH_KEY = 'report_prompt_db_export_path';
 
@@ -1318,7 +1942,184 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update initial state
     updateSelection();
+    
+    // Initialize speed monitor
+    initSpeedMonitor();
 });
+
+// ========================================
+// SPEED MONITOR FUNCTIONALITY
+// ========================================
+const SPEED_HISTORY_KEY = 'db_speed_history';
+
+// Initialize speed monitor
+function initSpeedMonitor() {
+    // Load saved history
+    const history = getSpeedHistory();
+    
+    // Check if there's a new operation from PHP
+    if (window.latestOperation) {
+        addSpeedEntry(window.latestOperation);
+    }
+    
+    // Update the display
+    updateSpeedMonitor();
+}
+
+// Get speed history from localStorage
+function getSpeedHistory() {
+    try {
+        const data = localStorage.getItem(SPEED_HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// Save speed history to localStorage
+function saveSpeedHistory(history) {
+    try {
+        // Keep only the last 10 entries
+        if (history.length > 10) {
+            history = history.slice(-10);
+        }
+        localStorage.setItem(SPEED_HISTORY_KEY, JSON.stringify(history));
+    } catch (e) {
+        console.error('Failed to save speed history:', e);
+    }
+}
+
+// Add a new speed entry
+function addSpeedEntry(operation) {
+    const history = getSpeedHistory();
+    
+    // Avoid duplicate entries (same timestamp)
+    const isDuplicate = history.some(h => 
+        h.timestamp === operation.timestamp && 
+        h.type === operation.type && 
+        h.time === operation.time
+    );
+    
+    if (!isDuplicate) {
+        history.push({
+            time: operation.time,
+            type: operation.type,
+            connection: operation.connection,
+            timestamp: operation.timestamp
+        });
+        saveSpeedHistory(history);
+    }
+}
+
+// Update speed monitor display
+function updateSpeedMonitor() {
+    const content = document.getElementById('speedContent');
+    if (!content) return;
+    
+    const history = getSpeedHistory();
+    
+    if (history.length === 0) {
+        content.innerHTML = '<div class="no-data">Perform an action to see speed...</div>';
+        return;
+    }
+    
+    // Get last two entries
+    const lastTwo = history.slice(-2);
+    
+    let html = '';
+    
+    // Show the last two operations
+    lastTwo.forEach((entry, idx) => {
+        const isLatest = idx === lastTwo.length - 1;
+        const connClass = entry.connection === 'localhost' ? 'local' : 'remote';
+        const connIcon = entry.connection === 'localhost' ? '🖥️' : '🌐';
+        
+        html += `
+            <div class="speed-row ${isLatest ? 'speed-new' : ''}">
+                <span class="speed-label">
+                    ${connIcon}
+                    <span class="op-type">${entry.type}</span>
+                </span>
+                <span class="speed-value ${connClass}">${entry.time}ms</span>
+            </div>
+        `;
+    });
+    
+    // Add comparison if we have two entries
+    if (lastTwo.length === 2) {
+        const [first, second] = lastTwo;
+        const diff = Math.abs(first.time - second.time).toFixed(2);
+        const percentage = first.time > 0 ? Math.round((diff / first.time) * 100) : 0;
+        
+        let comparisonClass, comparisonText, winner;
+        
+        if (second.time < first.time) {
+            comparisonClass = 'faster';
+            winner = second.connection === 'localhost' ? '🖥️' : '🌐';
+            comparisonText = `${winner} ${percentage}% faster`;
+        } else if (second.time > first.time) {
+            comparisonClass = 'slower';
+            winner = first.connection === 'localhost' ? '🖥️' : '🌐';
+            comparisonText = `${winner} ${percentage}% faster`;
+        } else {
+            comparisonClass = 'equal';
+            comparisonText = '⚖️ Equal speed';
+        }
+        
+        html += `
+            <div class="speed-comparison ${comparisonClass}">
+                <span class="speed-winner">${comparisonClass !== 'equal' ? winner : '⚖️'}</span>
+                <span class="speed-diff">Δ ${diff}ms</span>
+                <span>${comparisonText}</span>
+            </div>
+        `;
+    }
+    
+    // Add clear button
+    html += `
+        <div style="text-align: center; margin-top: 6px;">
+            <button onclick="clearSpeedHistory()" style="
+                background: rgba(255,255,255,0.1);
+                border: none;
+                color: var(--text-secondary);
+                font-size: 8px;
+                padding: 2px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                Clear History
+            </button>
+        </div>
+    `;
+    
+    content.innerHTML = html;
+}
+
+// Clear speed history
+function clearSpeedHistory() {
+    localStorage.removeItem(SPEED_HISTORY_KEY);
+    updateSpeedMonitor();
+    showToast('Speed history cleared', 'success', 1500);
+}
+
+// Record speed from JavaScript operations (for AJAX calls)
+function recordOperationSpeed(type, startTime, connection) {
+    const endTime = performance.now();
+    const operationTime = (endTime - startTime).toFixed(2);
+    
+    const operation = {
+        time: parseFloat(operationTime),
+        type: type,
+        connection: connection || (document.getElementById('dbConnectionToggle')?.checked ? 'remote' : 'localhost'),
+        timestamp: Date.now()
+    };
+    
+    addSpeedEntry(operation);
+    updateSpeedMonitor();
+    
+    return operationTime;
+}
 </script>
 
 <style>

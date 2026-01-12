@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 <!-- FILE:Prompt-Manager.php -->
 [📎 Prompt-Manager.php | Folder: root]
 <!-- /END  FILE:Prompt-Manager.php -->
 
 Please take the time to carefully and thoroughly review this particular application in order to gain a comprehensive understanding of its main objectives, core functionality, key features, and the intended goals it aims to achieve. Additionally, make sure to read through all of the related files that are associated with this application, which include JavaScript files, PHP files, CSS files, and HTML files. Once you have completed your thorough and comprehensive review of the application and all of its associated files, please return to provide your findings and insights.
+=======
+>>>>>>> 205f80862e2e1a259fa008f5f4f7bc1a14afc06d
