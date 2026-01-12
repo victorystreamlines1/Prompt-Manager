@@ -4177,6 +4177,316 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.9rem;
         }
         
+        /* ═══════════════════════════════════════════════════════════════
+           DYNAMIC SECTIONS GRID SYSTEM
+           ═══════════════════════════════════════════════════════════════ */
+        
+        .dynamic-sections-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        
+        .dynamic-section {
+            background: rgba(30, 30, 50, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+        
+        .dynamic-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dynamic-section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .dynamic-section-title i {
+            font-size: 0.9rem;
+        }
+        
+        .dynamic-section-title.backend-title {
+            color: #06b6d4;
+        }
+        
+        .dynamic-section-title.page-title {
+            color: #a78bfa;
+        }
+        
+        .dynamic-section-title.frontend-title {
+            color: #fb923c;
+        }
+        
+        .dynamic-section-count {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
+            color: #818cf8;
+        }
+        
+        .dynamic-section-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.7rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: #10b981;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dynamic-section-add-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+        }
+        
+        .dynamic-section-add-btn i {
+            font-size: 0.65rem;
+        }
+        
+        /* Items Grid */
+        .dynamic-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .dynamic-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            padding: 0.6rem;
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .dynamic-item:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(30, 30, 60, 0.6);
+        }
+        
+        .dynamic-item.backend-item {
+            border-left: 3px solid #06b6d4;
+        }
+        
+        .dynamic-item.backend-item:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            border-left-color: #06b6d4;
+        }
+        
+        .dynamic-item.page-item {
+            border-left: 3px solid #a78bfa;
+        }
+        
+        .dynamic-item.page-item:hover {
+            border-color: rgba(167, 139, 250, 0.4);
+            border-left-color: #a78bfa;
+        }
+        
+        .dynamic-item.frontend-item {
+            border-left: 3px solid #fb923c;
+        }
+        
+        .dynamic-item.frontend-item:hover {
+            border-color: rgba(251, 146, 60, 0.4);
+            border-left-color: #fb923c;
+        }
+        
+        .dynamic-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        
+        .dynamic-item-number {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .backend-item .dynamic-item-number {
+            background: rgba(6, 182, 212, 0.2);
+            color: #22d3ee;
+        }
+        
+        .page-item .dynamic-item-number {
+            background: rgba(167, 139, 250, 0.2);
+            color: #c4b5fd;
+        }
+        
+        .frontend-item .dynamic-item-number {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fdba74;
+        }
+        
+        .dynamic-item-name {
+            flex: 1;
+            padding: 0.35rem 0.5rem;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .dynamic-item-name:focus {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+        
+        .dynamic-item-name::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .dynamic-item-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .dynamic-item-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+        }
+        
+        .dynamic-item-btn.file-btn {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+        
+        .dynamic-item-btn.file-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+        }
+        
+        .dynamic-item-btn.file-btn.has-files {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+        
+        .dynamic-item-btn.delete-btn {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+        
+        .dynamic-item-btn.delete-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+        }
+        
+        .dynamic-item-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        
+        .dynamic-item-prompt {
+            width: 100%;
+            min-height: 50px;
+            max-height: 120px;
+            padding: 0.4rem 0.5rem;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-size: 0.72rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .dynamic-item-prompt:focus {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+        
+        .dynamic-item-prompt::placeholder {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+        
+        .dynamic-item-files {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+        
+        .dynamic-item-files i {
+            font-size: 0.6rem;
+        }
+        
+        .dynamic-item-files.has-files {
+            color: #34d399;
+        }
+        
+        .dynamic-item-file-input {
+            display: none;
+        }
+        
+        /* Empty state for dynamic sections */
+        .dynamic-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        .dynamic-empty-state i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+        
+        .dynamic-empty-state p {
+            font-size: 0.75rem;
+            margin: 0;
+        }
+        
+        .dynamic-empty-state small {
+            font-size: 0.65rem;
+            opacity: 0.7;
+        }
+        
         /* File Picker - Inline Style */
         .dash-file-input-wrap {
             position: relative;
@@ -7283,78 +7593,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="dash-db-separator"></div>
-                            <div class="dash-backend-group">
-                                <span class="dash-backend-label">
-                                    <i class="fas fa-file-code"></i> Backend
-                                </span>
-                                <div class="dash-backend-controls">
-                                    <input type="checkbox" class="dash-backend-check" id="backendMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn backend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('backend')">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
-                                    <label class="dash-file-input-wrap" title="Choose Files">
-                                        <input type="file" id="dashFilePicker" multiple accept="*/*">
-                                        <div class="dash-file-btn">
-                                            <i class="fas fa-folder-open"></i>
-                                            <span>Files</span>
-                                        </div>
-                                    </label>
-                                    <div class="dash-file-info" id="dashFileInfo">
-                                        <i class="fas fa-paperclip"></i>
-                                        <span>None</span>
-                                    </div>
-                                    <textarea class="dash-backend-prompt" id="backendPromptArea" placeholder="Prompt..."></textarea>
-                                </div>
-                            </div>
-                            <div class="dash-db-separator"></div>
-                            <div class="dash-backend-group dash-page-group">
-                                <span class="dash-backend-label dash-page-label">
-                                    <i class="fas fa-window-maximize"></i> Page
-                                </span>
-                                <div class="dash-backend-controls">
-                                    <input type="checkbox" class="dash-backend-check dash-page-check" id="pageMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn page-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('page')">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
-                                    <label class="dash-file-input-wrap" title="Choose Files">
-                                        <input type="file" id="pageFilePicker" multiple accept="*/*">
-                                        <div class="dash-file-btn dash-page-btn">
-                                            <i class="fas fa-folder-open"></i>
-                                            <span>Files</span>
-                                        </div>
-                                    </label>
-                                    <div class="dash-file-info" id="pageFileInfo">
-                                        <i class="fas fa-paperclip"></i>
-                                        <span>None</span>
-                                    </div>
-                                    <textarea class="dash-backend-prompt dash-page-prompt" id="pagePromptArea" placeholder="Prompt..."></textarea>
-                                </div>
-                            </div>
-                            <div class="dash-db-separator"></div>
-                            <div class="dash-backend-group dash-frontend-group">
-                                <span class="dash-backend-label dash-frontend-label">
-                                    <i class="fas fa-palette"></i> Frontend
-                                </span>
-                                <div class="dash-backend-controls">
-                                    <input type="checkbox" class="dash-backend-check dash-frontend-check" id="frontendMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn frontend-arrow" title="Insert to prompt" onclick="appendSectionToPrompt('frontend')">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
-                                    <label class="dash-file-input-wrap" title="Choose Files">
-                                        <input type="file" id="frontendFilePicker" multiple accept="*/*">
-                                        <div class="dash-file-btn dash-frontend-btn">
-                                            <i class="fas fa-folder-open"></i>
-                                            <span>Files</span>
-                                        </div>
-                                    </label>
-                                    <div class="dash-file-info" id="frontendFileInfo">
-                                        <i class="fas fa-paperclip"></i>
-                                        <span>None</span>
-                                    </div>
-                                    <textarea class="dash-backend-prompt dash-frontend-prompt" id="frontendPromptArea" placeholder="Prompt..."></textarea>
-                                </div>
-                            </div>
-                            <div class="dash-db-separator"></div>
                             <button type="button" class="dash-arrow-btn generate-arrow" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
                                 <i class="fas fa-chevron-down"></i>
                             </button>
@@ -7362,6 +7600,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-magic"></i>
                                 <span>Generate</span>
                             </button>
+                        </div>
+                        
+                        <!-- Dynamic Sections Container -->
+                        <div class="dynamic-sections-container" id="dynamicSectionsContainer">
+                            <!-- Backend Section -->
+                            <div class="dynamic-section" id="backendSection">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title backend-title">
+                                        <i class="fas fa-file-code"></i>
+                                        <span>Backend</span>
+                                        <span class="dynamic-section-count" id="backendCount">0</span>
+                                    </div>
+                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('backend')">
+                                        <i class="fas fa-plus"></i> Add Backend
+                                    </button>
+                                </div>
+                                <div class="dynamic-items-grid" id="backendItemsGrid">
+                                    <div class="dynamic-empty-state" id="backendEmptyState">
+                                        <i class="fas fa-file-code"></i>
+                                        <p>No backend items</p>
+                                        <small>Click "Add Backend" to create one</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Pages Section -->
+                            <div class="dynamic-section" id="pageSection">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title page-title">
+                                        <i class="fas fa-window-maximize"></i>
+                                        <span>Pages</span>
+                                        <span class="dynamic-section-count" id="pageCount">0</span>
+                                    </div>
+                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('page')">
+                                        <i class="fas fa-plus"></i> Add Page
+                                    </button>
+                                </div>
+                                <div class="dynamic-items-grid" id="pageItemsGrid">
+                                    <div class="dynamic-empty-state" id="pageEmptyState">
+                                        <i class="fas fa-window-maximize"></i>
+                                        <p>No page items</p>
+                                        <small>Click "Add Page" to create one</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Frontend Section -->
+                            <div class="dynamic-section" id="frontendSection">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title frontend-title">
+                                        <i class="fas fa-palette"></i>
+                                        <span>Frontend</span>
+                                        <span class="dynamic-section-count" id="frontendCount">0</span>
+                                    </div>
+                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('frontend')">
+                                        <i class="fas fa-plus"></i> Add Frontend
+                                    </button>
+                                </div>
+                                <div class="dynamic-items-grid" id="frontendItemsGrid">
+                                    <div class="dynamic-empty-state" id="frontendEmptyState">
+                                        <i class="fas fa-palette"></i>
+                                        <p>No frontend items</p>
+                                        <small>Click "Add Frontend" to create one</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         </div>
                         <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
                             <span>No databases found</span>
@@ -9322,17 +9627,9 @@ ${item.html_code || ''}
                 dbMainCheckbox: document.getElementById('dbMainCheckbox')?.checked || false,
                 dbCredentialsCheckbox: document.getElementById('dbCredentialsCheckbox')?.checked || false,
                 dbLocalhostCheckbox: document.getElementById('dbLocalhostCheckbox')?.checked || false,
-                backendMainCheckbox: document.getElementById('backendMainCheckbox')?.checked || false,
-                pageMainCheckbox: document.getElementById('pageMainCheckbox')?.checked || false,
-                frontendMainCheckbox: document.getElementById('frontendMainCheckbox')?.checked || false,
                 
                 // Database dropdown
-                dbDropdown: document.getElementById('dbDropdown')?.value || '',
-                
-                // Textareas
-                backendPromptArea: document.getElementById('backendPromptArea')?.value || '',
-                pagePromptArea: document.getElementById('pagePromptArea')?.value || '',
-                frontendPromptArea: document.getElementById('frontendPromptArea')?.value || ''
+                dbDropdown: document.getElementById('dbDropdown')?.value || ''
             };
             
             localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(settings));
@@ -9356,15 +9653,6 @@ ${item.html_code || ''}
                 const dbLocalhostCheckbox = document.getElementById('dbLocalhostCheckbox');
                 if (dbLocalhostCheckbox) dbLocalhostCheckbox.checked = settings.dbLocalhostCheckbox || false;
                 
-                const backendMainCheckbox = document.getElementById('backendMainCheckbox');
-                if (backendMainCheckbox) backendMainCheckbox.checked = settings.backendMainCheckbox || false;
-                
-                const pageMainCheckbox = document.getElementById('pageMainCheckbox');
-                if (pageMainCheckbox) pageMainCheckbox.checked = settings.pageMainCheckbox || false;
-                
-                const frontendMainCheckbox = document.getElementById('frontendMainCheckbox');
-                if (frontendMainCheckbox) frontendMainCheckbox.checked = settings.frontendMainCheckbox || false;
-                
                 // Restore database dropdown (after options are loaded)
                 if (settings.dbDropdown) {
                     setTimeout(() => {
@@ -9374,16 +9662,6 @@ ${item.html_code || ''}
                         }
                     }, 1000);
                 }
-                
-                // Restore textareas
-                const backendPromptArea = document.getElementById('backendPromptArea');
-                if (backendPromptArea) backendPromptArea.value = settings.backendPromptArea || '';
-                
-                const pagePromptArea = document.getElementById('pagePromptArea');
-                if (pagePromptArea) pagePromptArea.value = settings.pagePromptArea || '';
-                
-                const frontendPromptArea = document.getElementById('frontendPromptArea');
-                if (frontendPromptArea) frontendPromptArea.value = settings.frontendPromptArea || '';
                 
                 console.log('✅ Dashboard settings loaded from localStorage');
             } catch (error) {
@@ -9399,42 +9677,241 @@ ${item.html_code || ''}
             localStorage.removeItem(DASHBOARD_STORAGE_KEY);
             
             // Reset checkboxes
-            document.getElementById('dbMainCheckbox').checked = false;
-            document.getElementById('dbCredentialsCheckbox').checked = false;
-            document.getElementById('dbLocalhostCheckbox').checked = false;
-            document.getElementById('backendMainCheckbox').checked = false;
-            document.getElementById('pageMainCheckbox').checked = false;
-            document.getElementById('frontendMainCheckbox').checked = false;
+            const dbMainCheckbox = document.getElementById('dbMainCheckbox');
+            if (dbMainCheckbox) dbMainCheckbox.checked = false;
+            
+            const dbCredentialsCheckbox = document.getElementById('dbCredentialsCheckbox');
+            if (dbCredentialsCheckbox) dbCredentialsCheckbox.checked = false;
+            
+            const dbLocalhostCheckbox = document.getElementById('dbLocalhostCheckbox');
+            if (dbLocalhostCheckbox) dbLocalhostCheckbox.checked = false;
             
             // Reset dropdown
-            document.getElementById('dbDropdown').value = '';
+            const dbDropdown = document.getElementById('dbDropdown');
+            if (dbDropdown) dbDropdown.value = '';
             
-            // Reset textareas
-            document.getElementById('backendPromptArea').value = '';
-            document.getElementById('pagePromptArea').value = '';
-            document.getElementById('frontendPromptArea').value = '';
-            
-            // Reset file pickers display
-            document.getElementById('dashFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-            document.getElementById('dashFileInfo').classList.remove('has-files');
-            document.getElementById('pageFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-            document.getElementById('pageFileInfo').classList.remove('has-files');
-            document.getElementById('frontendFileInfo').innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-            document.getElementById('frontendFileInfo').classList.remove('has-files');
-            
-            // Reset file inputs
-            document.getElementById('dashFilePicker').value = '';
-            document.getElementById('pageFilePicker').value = '';
-            document.getElementById('frontendFilePicker').value = '';
+            // Reset dynamic items
+            resetDynamicItems();
             
             showToast('🔄 Dashboard reset to default', 'info');
+        }
+        
+        // ════════════════════════════════════════════════════════════════
+        // DYNAMIC SECTIONS SYSTEM - Backend, Pages, Frontend
+        // ════════════════════════════════════════════════════════════════
+        
+        // Store for dynamic items
+        const dynamicItems = {
+            backend: [],
+            page: [],
+            frontend: []
+        };
+        
+        // Storage key for dynamic items
+        const DYNAMIC_ITEMS_KEY = 'devDashboardDynamicItems';
+        
+        // Generate unique ID
+        function generateItemId() {
+            return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Add new dynamic item
+        function addDynamicItem(type) {
+            const id = generateItemId();
+            const item = {
+                id: id,
+                name: '',
+                prompt: '',
+                files: []
+            };
+            
+            dynamicItems[type].push(item);
+            renderDynamicItems(type);
+            updateDynamicCount(type);
+            saveDynamicItems();
+            
+            // Focus on the new item's name input
+            setTimeout(() => {
+                const nameInput = document.querySelector(`#${type}ItemsGrid .dynamic-item[data-id="${id}"] .dynamic-item-name`);
+                if (nameInput) nameInput.focus();
+            }, 50);
+            
+            showToast(`✅ New ${type} item added`, 'success');
+        }
+        
+        // Delete dynamic item
+        function deleteDynamicItem(type, id) {
+            const index = dynamicItems[type].findIndex(item => item.id === id);
+            if (index !== -1) {
+                dynamicItems[type].splice(index, 1);
+                renderDynamicItems(type);
+                updateDynamicCount(type);
+                saveDynamicItems();
+                showToast(`🗑️ ${type.charAt(0).toUpperCase() + type.slice(1)} item deleted`, 'info');
+            }
+        }
+        
+        // Update dynamic item
+        function updateDynamicItem(type, id, field, value) {
+            const item = dynamicItems[type].find(item => item.id === id);
+            if (item) {
+                item[field] = value;
+                saveDynamicItems();
+            }
+        }
+        
+        // Handle file selection for dynamic item
+        function handleDynamicItemFiles(type, id, input) {
+            const item = dynamicItems[type].find(item => item.id === id);
+            if (item && input.files.length > 0) {
+                item.files = Array.from(input.files);
+                renderDynamicItems(type);
+                saveDynamicItems();
+            }
+        }
+        
+        // Render dynamic items for a section
+        function renderDynamicItems(type) {
+            const grid = document.getElementById(`${type}ItemsGrid`);
+            const emptyState = document.getElementById(`${type}EmptyState`);
+            
+            if (!grid) return;
+            
+            // Clear existing items (except empty state)
+            const existingItems = grid.querySelectorAll('.dynamic-item');
+            existingItems.forEach(item => item.remove());
+            
+            if (dynamicItems[type].length === 0) {
+                if (emptyState) emptyState.style.display = 'flex';
+                return;
+            }
+            
+            if (emptyState) emptyState.style.display = 'none';
+            
+            // Render items
+            dynamicItems[type].forEach((item, index) => {
+                const itemEl = createDynamicItemElement(type, item, index + 1);
+                grid.appendChild(itemEl);
+            });
+        }
+        
+        // Create dynamic item element
+        function createDynamicItemElement(type, item, number) {
+            const div = document.createElement('div');
+            div.className = `dynamic-item ${type}-item`;
+            div.dataset.id = item.id;
+            
+            const fileCount = item.files ? item.files.length : 0;
+            const hasFiles = fileCount > 0;
+            
+            div.innerHTML = `
+                <div class="dynamic-item-header">
+                    <span class="dynamic-item-number">#${number}</span>
+                    <input type="text" 
+                           class="dynamic-item-name" 
+                           placeholder="${type.charAt(0).toUpperCase() + type.slice(1)} name..." 
+                           value="${escapeHtml(item.name || '')}"
+                           onchange="updateDynamicItem('${type}', '${item.id}', 'name', this.value)"
+                           oninput="updateDynamicItem('${type}', '${item.id}', 'name', this.value)">
+                    <div class="dynamic-item-actions">
+                        <input type="file" 
+                               class="dynamic-item-file-input" 
+                               id="file_${item.id}" 
+                               multiple 
+                               accept="*/*"
+                               onchange="handleDynamicItemFiles('${type}', '${item.id}', this)">
+                        <button type="button" 
+                                class="dynamic-item-btn file-btn ${hasFiles ? 'has-files' : ''}" 
+                                onclick="document.getElementById('file_${item.id}').click()"
+                                title="${hasFiles ? fileCount + ' file(s) selected' : 'Attach files'}">
+                            <i class="fas fa-${hasFiles ? 'check-circle' : 'paperclip'}"></i>
+                        </button>
+                        <button type="button" 
+                                class="dynamic-item-btn delete-btn" 
+                                onclick="deleteDynamicItem('${type}', '${item.id}')"
+                                title="Delete this item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="dynamic-item-body">
+                    <textarea class="dynamic-item-prompt" 
+                              placeholder="Enter ${type} instructions or description..."
+                              onchange="updateDynamicItem('${type}', '${item.id}', 'prompt', this.value)"
+                              oninput="updateDynamicItem('${type}', '${item.id}', 'prompt', this.value)">${escapeHtml(item.prompt || '')}</textarea>
+                    ${hasFiles ? `<div class="dynamic-item-files has-files"><i class="fas fa-paperclip"></i> ${fileCount} file${fileCount > 1 ? 's' : ''} attached</div>` : ''}
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        // Update dynamic count badge
+        function updateDynamicCount(type) {
+            const countEl = document.getElementById(`${type}Count`);
+            if (countEl) {
+                countEl.textContent = dynamicItems[type].length;
+            }
+        }
+        
+        // Save dynamic items to localStorage
+        function saveDynamicItems() {
+            // Convert files to file info (can't store actual File objects)
+            const toSave = {
+                backend: dynamicItems.backend.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                })),
+                page: dynamicItems.page.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                })),
+                frontend: dynamicItems.frontend.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                }))
+            };
+            localStorage.setItem(DYNAMIC_ITEMS_KEY, JSON.stringify(toSave));
+        }
+        
+        // Load dynamic items from localStorage
+        function loadDynamicItems() {
+            const saved = localStorage.getItem(DYNAMIC_ITEMS_KEY);
+            if (!saved) return;
+            
+            try {
+                const data = JSON.parse(saved);
+                // Note: File objects can't be restored from localStorage, so files will be empty
+                ['backend', 'page', 'frontend'].forEach(type => {
+                    if (data[type]) {
+                        dynamicItems[type] = data[type].map(item => ({
+                            ...item,
+                            files: [] // Files can't be restored
+                        }));
+                        renderDynamicItems(type);
+                        updateDynamicCount(type);
+                    }
+                });
+                console.log('✅ Dynamic items loaded from localStorage');
+            } catch (error) {
+                console.error('Failed to load dynamic items:', error);
+            }
+        }
+        
+        // Reset all dynamic items
+        function resetDynamicItems() {
+            ['backend', 'page', 'frontend'].forEach(type => {
+                dynamicItems[type] = [];
+                renderDynamicItems(type);
+                updateDynamicCount(type);
+            });
+            localStorage.removeItem(DYNAMIC_ITEMS_KEY);
         }
         
         // Auto-save on changes
         function initDashboardAutoSave() {
             // Checkboxes
-            ['dbMainCheckbox', 'dbCredentialsCheckbox', 'dbLocalhostCheckbox', 
-             'backendMainCheckbox', 'pageMainCheckbox', 'frontendMainCheckbox'].forEach(id => {
+            ['dbMainCheckbox', 'dbCredentialsCheckbox', 'dbLocalhostCheckbox'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('change', saveDashboardSettings);
             });
@@ -9442,18 +9919,6 @@ ${item.html_code || ''}
             // Dropdown
             const dbDropdown = document.getElementById('dbDropdown');
             if (dbDropdown) dbDropdown.addEventListener('change', saveDashboardSettings);
-            
-            // Textareas (debounced)
-            ['backendPromptArea', 'pagePromptArea', 'frontendPromptArea'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    let timeout;
-                    el.addEventListener('input', () => {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(saveDashboardSettings, 500);
-                    });
-                }
-            });
         }
 
         // Handle file picker change
@@ -9461,68 +9926,11 @@ ${item.html_code || ''}
             // Load saved settings
             loadDashboardSettings();
             
+            // Load dynamic items
+            loadDynamicItems();
+            
             // Initialize auto-save
             initDashboardAutoSave();
-            
-            // Backend file picker
-            const filePicker = document.getElementById('dashFilePicker');
-            const fileInfo = document.getElementById('dashFileInfo');
-            
-            if (filePicker && fileInfo) {
-                filePicker.addEventListener('change', function() {
-                    const files = this.files;
-                    if (files.length === 0) {
-                        fileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-                        fileInfo.classList.remove('has-files');
-                    } else if (files.length === 1) {
-                        fileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
-                        fileInfo.classList.add('has-files');
-                    } else {
-                        fileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
-                        fileInfo.classList.add('has-files');
-                    }
-                });
-            }
-            
-            // Page file picker
-            const pageFilePicker = document.getElementById('pageFilePicker');
-            const pageFileInfo = document.getElementById('pageFileInfo');
-            
-            if (pageFilePicker && pageFileInfo) {
-                pageFilePicker.addEventListener('change', function() {
-                    const files = this.files;
-                    if (files.length === 0) {
-                        pageFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-                        pageFileInfo.classList.remove('has-files');
-                    } else if (files.length === 1) {
-                        pageFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
-                        pageFileInfo.classList.add('has-files');
-                    } else {
-                        pageFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
-                        pageFileInfo.classList.add('has-files');
-                    }
-                });
-            }
-            
-            // Frontend file picker
-            const frontendFilePicker = document.getElementById('frontendFilePicker');
-            const frontendFileInfo = document.getElementById('frontendFileInfo');
-            
-            if (frontendFilePicker && frontendFileInfo) {
-                frontendFilePicker.addEventListener('change', function() {
-                    const files = this.files;
-                    if (files.length === 0) {
-                        frontendFileInfo.innerHTML = '<i class="fas fa-paperclip"></i><span>None</span>';
-                        frontendFileInfo.classList.remove('has-files');
-                    } else if (files.length === 1) {
-                        frontendFileInfo.innerHTML = `<i class="fas fa-file"></i><span>${files[0].name}</span>`;
-                        frontendFileInfo.classList.add('has-files');
-                    } else {
-                        frontendFileInfo.innerHTML = `<i class="fas fa-copy"></i><span>${files.length} files</span>`;
-                        frontendFileInfo.classList.add('has-files');
-                    }
-                });
-            }
         });
 
         // Handle database selection change
@@ -10271,29 +10679,23 @@ function recordSpeed(type, time, connection) {
             saveDashboardSettings();
         }
 
-        // Append section (Backend/Page/Frontend) to prompt editor
+        // Append section (Backend/Page/Frontend) to prompt editor - Dynamic version
         function appendSectionToPrompt(section) {
             const editor = document.getElementById('promptEditor');
             
-            // Get file picker and prompt textarea based on section
-            let filePicker, promptArea, sectionName, sectionIcon;
+            // Get section info
+            let sectionName, sectionIcon;
             
             switch(section) {
                 case 'backend':
-                    filePicker = document.getElementById('dashFilePicker');
-                    promptArea = document.getElementById('backendPromptArea');
                     sectionName = 'BACKEND';
                     sectionIcon = '📄';
                     break;
                 case 'page':
-                    filePicker = document.getElementById('pageFilePicker');
-                    promptArea = document.getElementById('pagePromptArea');
                     sectionName = 'PAGE';
                     sectionIcon = '🪟';
                     break;
                 case 'frontend':
-                    filePicker = document.getElementById('frontendFilePicker');
-                    promptArea = document.getElementById('frontendPromptArea');
                     sectionName = 'FRONTEND';
                     sectionIcon = '🎨';
                     break;
@@ -10301,41 +10703,33 @@ function recordSpeed(type, time, connection) {
                     return;
             }
             
-            // Get selected files
-            const files = filePicker ? filePicker.files : [];
-            const fileNames = Array.from(files).map(f => f.name);
-            
-            // Get prompt text
-            const promptText = promptArea ? promptArea.value.trim() : '';
+            // Get dynamic items for this section
+            const items = dynamicItems[section] || [];
             
             // Check if there's anything to send
-            if (fileNames.length === 0 && !promptText) {
-                showToast(`⚠️ No files or prompt for ${sectionName}`, 'warning');
+            if (items.length === 0) {
+                showToast(`⚠️ No ${sectionName.toLowerCase()} items added`, 'warning');
                 return;
             }
             
             // Build the block
-            let blockContent = '';
+            let blockContent = `${sectionIcon} ${sectionName} COMPONENTS (${items.length})\n`;
+            blockContent += '─'.repeat(50) + '\n';
             
-            // Add files section if any
-            if (fileNames.length > 0) {
-                blockContent += `📁 Files (${fileNames.length}):\n`;
-                fileNames.forEach((name, idx) => {
-                    blockContent += `   ${idx + 1}. ${name}\n`;
-                });
-            }
-            
-            // Add prompt section if any
-            if (promptText) {
-                if (blockContent) blockContent += '\n';
-                blockContent += `📝 Prompt:\n${promptText}`;
-            }
+            items.forEach((item, idx) => {
+                const itemName = item.name || `${sectionName} ${idx + 1}`;
+                blockContent += `\n#${idx + 1} ${itemName}\n`;
+                
+                if (item.files && item.files.length > 0) {
+                    blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
+                }
+                if (item.prompt && item.prompt.trim()) {
+                    blockContent += `   📝 ${item.prompt}\n`;
+                }
+            });
             
             // Create full block
-            const fullBlock = `
-╔══════════════════════════════════════════════════════════════╗
-║  ${sectionIcon}  ${sectionName} SECTION                                          ║
-╠══════════════════════════════════════════════════════════════╣
+            const fullBlock = `╔══════════════════════════════════════════════════════════════╗
 ${blockContent}
 ╚══════════════════════════════════════════════════════════════╝`.trim();
             
@@ -10351,11 +10745,11 @@ ${blockContent}
             recordHistoryState(true);
             
             // Show success toast
-            const itemCount = fileNames.length + (promptText ? 1 : 0);
-            showToast(`${sectionIcon} ${sectionName} appended (${itemCount} item${itemCount > 1 ? 's' : ''})`, 'success');
+            showToast(`${sectionIcon} ${sectionName} appended (${items.length} item${items.length > 1 ? 's' : ''})`, 'success');
             
-            // Save dashboard settings
+            // Save
             saveDashboardSettings();
+            saveDynamicItems();
         }
 
         // Append ALL sections to prompt editor (Generate arrow button)
@@ -10410,76 +10804,70 @@ ${blockContent}
                 sectionsAdded++;
             }
             
-            // 2. BACKEND SECTION
-            const backendFiles = document.getElementById('dashFilePicker')?.files || [];
-            const backendPrompt = document.getElementById('backendPromptArea')?.value.trim() || '';
-            
-            if (backendFiles.length > 0 || backendPrompt) {
-                let blockContent = '';
-                if (backendFiles.length > 0) {
-                    blockContent += `📁 Files (${backendFiles.length}):\n`;
-                    Array.from(backendFiles).forEach((f, idx) => {
-                        blockContent += `   ${idx + 1}. ${f.name}\n`;
-                    });
-                }
-                if (backendPrompt) {
-                    if (blockContent) blockContent += '\n';
-                    blockContent += `📝 Prompt:\n${backendPrompt}`;
-                }
+            // 2. BACKEND SECTION (Dynamic Items)
+            if (dynamicItems.backend.length > 0) {
+                let blockContent = `📄 BACKEND COMPONENTS (${dynamicItems.backend.length})\n`;
+                blockContent += '─'.repeat(50) + '\n';
+                
+                dynamicItems.backend.forEach((item, idx) => {
+                    const itemName = item.name || `Backend ${idx + 1}`;
+                    blockContent += `\n#${idx + 1} ${itemName}\n`;
+                    
+                    if (item.files && item.files.length > 0) {
+                        blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
+                    }
+                    if (item.prompt && item.prompt.trim()) {
+                        blockContent += `   📝 ${item.prompt}\n`;
+                    }
+                });
                 
                 allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
-║  📄  BACKEND SECTION                                          ║
-╠══════════════════════════════════════════════════════════════╣
 ${blockContent}
 ╚══════════════════════════════════════════════════════════════╝`);
                 sectionsAdded++;
             }
             
-            // 3. PAGE SECTION
-            const pageFiles = document.getElementById('pageFilePicker')?.files || [];
-            const pagePrompt = document.getElementById('pagePromptArea')?.value.trim() || '';
-            
-            if (pageFiles.length > 0 || pagePrompt) {
-                let blockContent = '';
-                if (pageFiles.length > 0) {
-                    blockContent += `📁 Files (${pageFiles.length}):\n`;
-                    Array.from(pageFiles).forEach((f, idx) => {
-                        blockContent += `   ${idx + 1}. ${f.name}\n`;
-                    });
-                }
-                if (pagePrompt) {
-                    if (blockContent) blockContent += '\n';
-                    blockContent += `📝 Prompt:\n${pagePrompt}`;
-                }
+            // 3. PAGE SECTION (Dynamic Items)
+            if (dynamicItems.page.length > 0) {
+                let blockContent = `🪟 PAGE COMPONENTS (${dynamicItems.page.length})\n`;
+                blockContent += '─'.repeat(50) + '\n';
+                
+                dynamicItems.page.forEach((item, idx) => {
+                    const itemName = item.name || `Page ${idx + 1}`;
+                    blockContent += `\n#${idx + 1} ${itemName}\n`;
+                    
+                    if (item.files && item.files.length > 0) {
+                        blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
+                    }
+                    if (item.prompt && item.prompt.trim()) {
+                        blockContent += `   📝 ${item.prompt}\n`;
+                    }
+                });
                 
                 allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
-║  🪟  PAGE SECTION                                             ║
-╠══════════════════════════════════════════════════════════════╣
 ${blockContent}
 ╚══════════════════════════════════════════════════════════════╝`);
                 sectionsAdded++;
             }
             
-            // 4. FRONTEND SECTION
-            const frontendFiles = document.getElementById('frontendFilePicker')?.files || [];
-            const frontendPrompt = document.getElementById('frontendPromptArea')?.value.trim() || '';
-            
-            if (frontendFiles.length > 0 || frontendPrompt) {
-                let blockContent = '';
-                if (frontendFiles.length > 0) {
-                    blockContent += `📁 Files (${frontendFiles.length}):\n`;
-                    Array.from(frontendFiles).forEach((f, idx) => {
-                        blockContent += `   ${idx + 1}. ${f.name}\n`;
-                    });
-                }
-                if (frontendPrompt) {
-                    if (blockContent) blockContent += '\n';
-                    blockContent += `📝 Prompt:\n${frontendPrompt}`;
-                }
+            // 4. FRONTEND SECTION (Dynamic Items)
+            if (dynamicItems.frontend.length > 0) {
+                let blockContent = `🎨 FRONTEND COMPONENTS (${dynamicItems.frontend.length})\n`;
+                blockContent += '─'.repeat(50) + '\n';
+                
+                dynamicItems.frontend.forEach((item, idx) => {
+                    const itemName = item.name || `Frontend ${idx + 1}`;
+                    blockContent += `\n#${idx + 1} ${itemName}\n`;
+                    
+                    if (item.files && item.files.length > 0) {
+                        blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
+                    }
+                    if (item.prompt && item.prompt.trim()) {
+                        blockContent += `   📝 ${item.prompt}\n`;
+                    }
+                });
                 
                 allBlocks.push(`╔══════════════════════════════════════════════════════════════╗
-║  🎨  FRONTEND SECTION                                         ║
-╠══════════════════════════════════════════════════════════════╣
 ${blockContent}
 ╚══════════════════════════════════════════════════════════════╝`);
                 sectionsAdded++;
@@ -10510,26 +10898,33 @@ ${blockContent}
             
             // Save dashboard settings
             saveDashboardSettings();
+            saveDynamicItems();
         }
 
         // Generate Comprehensive AI Prompt (Generate Button)
         function generateComprehensivePrompt() {
             const editor = document.getElementById('promptEditor');
             
-            // Check which checkboxes are checked
+            // Check database checkbox
             const dbChecked = document.getElementById('dbMainCheckbox')?.checked;
-            const backendChecked = document.getElementById('backendMainCheckbox')?.checked;
-            const pageChecked = document.getElementById('pageMainCheckbox')?.checked;
-            const frontendChecked = document.getElementById('frontendMainCheckbox')?.checked;
             
-            // Check if at least one checkbox is checked
-            if (!dbChecked && !backendChecked && !pageChecked && !frontendChecked) {
-                showToast('⚠️ Please check at least one section checkbox', 'warning');
+            // Check if we have any dynamic items or database selected
+            const hasBackendItems = dynamicItems.backend.length > 0;
+            const hasPageItems = dynamicItems.page.length > 0;
+            const hasFrontendItems = dynamicItems.frontend.length > 0;
+            
+            if (!dbChecked && !hasBackendItems && !hasPageItems && !hasFrontendItems) {
+                showToast('⚠️ Please add at least one item or select database', 'warning');
                 return;
             }
             
             let promptSections = [];
             let hasContent = false;
+            
+            // Count items for summary
+            const backendCount = dynamicItems.backend.length;
+            const pageCount = dynamicItems.page.length;
+            const frontendCount = dynamicItems.frontend.length;
             
             // Header
             promptSections.push(`
@@ -10540,6 +10935,11 @@ ${blockContent}
 
 Please follow the instructions below carefully. Each section contains specific 
 details about the application components you need to work with.
+
+📊 PROJECT OVERVIEW:
+   • Backend Components: ${backendCount}
+   • Page Components: ${pageCount}
+   • Frontend Components: ${frontendCount}
 `);
 
             // 1. DATABASE SECTION (if checked)
@@ -10598,122 +10998,180 @@ database operations.
                 }
             }
 
-            // 2. BACKEND SECTION (if checked)
-            if (backendChecked) {
-                const backendFiles = document.getElementById('dashFilePicker')?.files || [];
-                const backendPrompt = document.getElementById('backendPromptArea')?.value.trim() || '';
-                
-                if (backendFiles.length > 0 || backendPrompt) {
-                    hasContent = true;
-                    let filesList = '';
-                    if (backendFiles.length > 0) {
-                        filesList = Array.from(backendFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
-                    }
-                    
-                    promptSections.push(`
+            // 2. BACKEND SECTIONS (Dynamic)
+            if (hasBackendItems) {
+                hasContent = true;
+                promptSections.push(`
 ════════════════════════════════════════════════════════════════════════════════
-📄 BACKEND SECTION
+📄 BACKEND SECTION (${backendCount} Component${backendCount > 1 ? 's' : ''})
 ════════════════════════════════════════════════════════════════════════════════
 
-This section contains backend files and instructions. The backend handles server-side 
-logic, API endpoints, and database operations.
-${backendFiles.length > 0 ? `
-📁 BACKEND FILES (${backendFiles.length}):
-${filesList}
-` : ''}${backendPrompt ? `
-📝 BACKEND INSTRUCTIONS:
-${backendPrompt}
-` : ''}
+This section contains backend components and instructions. The backend handles 
+server-side logic, API endpoints, and database operations.
+`);
+                
+                dynamicItems.backend.forEach((item, index) => {
+                    const itemName = item.name || `Backend ${index + 1}`;
+                    const fileCount = item.files ? item.files.length : 0;
+                    
+                    promptSections.push(`
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  📄 BACKEND #${index + 1}: ${itemName.padEnd(55)}│
+├─────────────────────────────────────────────────────────────────────────────┤`);
+                    
+                    if (fileCount > 0) {
+                        const filesList = item.files.map(f => f.name).join(', ');
+                        promptSections.push(`
+│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                    }
+                    
+                    if (item.prompt && item.prompt.trim()) {
+                        promptSections.push(`
+│  📝 Instructions:                                                            │
+│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
+                        
+                        // If prompt is longer, add continuation
+                        if (item.prompt.length > 70) {
+                            const remaining = item.prompt.substring(70);
+                            const lines = remaining.match(/.{1,73}/g) || [];
+                            lines.forEach(line => {
+                                promptSections.push(`│  ${line.padEnd(73)}│`);
+                            });
+                        }
+                    }
+                    
+                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                });
+                
+                promptSections.push(`
 💡 NOTE: If database operations are required, refer to the DATABASE CONNECTION 
 section above for credentials. Ensure proper error handling and security measures 
-are implemented.
+are implemented for each backend component.
 `);
-                }
             }
 
-            // 3. PAGE SECTION (if checked)
-            if (pageChecked) {
-                const pageFiles = document.getElementById('pageFilePicker')?.files || [];
-                const pagePrompt = document.getElementById('pagePromptArea')?.value.trim() || '';
-                
-                if (pageFiles.length > 0 || pagePrompt) {
-                    hasContent = true;
-                    let filesList = '';
-                    if (pageFiles.length > 0) {
-                        filesList = Array.from(pageFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
-                    }
-                    
-                    promptSections.push(`
+            // 3. PAGE SECTIONS (Dynamic)
+            if (hasPageItems) {
+                hasContent = true;
+                promptSections.push(`
 ════════════════════════════════════════════════════════════════════════════════
-🪟 PAGE SECTION
+🪟 PAGE SECTION (${pageCount} Page${pageCount > 1 ? 's' : ''})
 ════════════════════════════════════════════════════════════════════════════════
 
-This section contains page files and instructions. These are the main application 
-pages that may include both frontend display and backend logic.
-${pageFiles.length > 0 ? `
-📁 PAGE FILES (${pageFiles.length}):
-${filesList}
-` : ''}${pagePrompt ? `
-📝 PAGE INSTRUCTIONS:
-${pagePrompt}
-` : ''}
-💡 NOTE: If this page requires database access, refer to the DATABASE CONNECTION 
-section. If it interacts with backend APIs, refer to the BACKEND SECTION. If it 
-includes frontend components, refer to the FRONTEND SECTION.
+This section contains page components and instructions. These are the main 
+application pages that may include both frontend display and backend logic.
 `);
-                }
+                
+                dynamicItems.page.forEach((item, index) => {
+                    const itemName = item.name || `Page ${index + 1}`;
+                    const fileCount = item.files ? item.files.length : 0;
+                    
+                    promptSections.push(`
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🪟 PAGE #${index + 1}: ${itemName.padEnd(58)}│
+├─────────────────────────────────────────────────────────────────────────────┤`);
+                    
+                    if (fileCount > 0) {
+                        const filesList = item.files.map(f => f.name).join(', ');
+                        promptSections.push(`
+│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                    }
+                    
+                    if (item.prompt && item.prompt.trim()) {
+                        promptSections.push(`
+│  📝 Instructions:                                                            │
+│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
+                        
+                        if (item.prompt.length > 70) {
+                            const remaining = item.prompt.substring(70);
+                            const lines = remaining.match(/.{1,73}/g) || [];
+                            lines.forEach(line => {
+                                promptSections.push(`│  ${line.padEnd(73)}│`);
+                            });
+                        }
+                    }
+                    
+                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                });
+                
+                promptSections.push(`
+💡 NOTE: If these pages require database access, refer to the DATABASE CONNECTION 
+section. If they interact with backend APIs, refer to the BACKEND SECTION. If they 
+include frontend components, refer to the FRONTEND SECTION.
+`);
             }
 
-            // 4. FRONTEND SECTION (if checked)
-            if (frontendChecked) {
-                const frontendFiles = document.getElementById('frontendFilePicker')?.files || [];
-                const frontendPrompt = document.getElementById('frontendPromptArea')?.value.trim() || '';
-                
-                if (frontendFiles.length > 0 || frontendPrompt) {
-                    hasContent = true;
-                    let filesList = '';
-                    if (frontendFiles.length > 0) {
-                        filesList = Array.from(frontendFiles).map((f, i) => `   ${i + 1}. ${f.name}`).join('\n');
-                    }
-                    
-                    promptSections.push(`
+            // 4. FRONTEND SECTIONS (Dynamic)
+            if (hasFrontendItems) {
+                hasContent = true;
+                promptSections.push(`
 ════════════════════════════════════════════════════════════════════════════════
-🎨 FRONTEND SECTION
+🎨 FRONTEND SECTION (${frontendCount} Component${frontendCount > 1 ? 's' : ''})
 ════════════════════════════════════════════════════════════════════════════════
 
-This section contains frontend files and instructions. The frontend handles 
+This section contains frontend components and instructions. The frontend handles 
 user interface, styling, and client-side interactions.
-${frontendFiles.length > 0 ? `
-📁 FRONTEND FILES (${frontendFiles.length}):
-${filesList}
-` : ''}${frontendPrompt ? `
-📝 FRONTEND INSTRUCTIONS:
-${frontendPrompt}
-` : ''}
-💡 NOTE: If this frontend connects to backend APIs, refer to the BACKEND SECTION.
-If it displays data from the database, ensure the backend properly fetches and 
-serves the data. Maintain consistent styling and responsive design.
 `);
-                }
+                
+                dynamicItems.frontend.forEach((item, index) => {
+                    const itemName = item.name || `Frontend ${index + 1}`;
+                    const fileCount = item.files ? item.files.length : 0;
+                    
+                    promptSections.push(`
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🎨 FRONTEND #${index + 1}: ${itemName.padEnd(55)}│
+├─────────────────────────────────────────────────────────────────────────────┤`);
+                    
+                    if (fileCount > 0) {
+                        const filesList = item.files.map(f => f.name).join(', ');
+                        promptSections.push(`
+│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                    }
+                    
+                    if (item.prompt && item.prompt.trim()) {
+                        promptSections.push(`
+│  📝 Instructions:                                                            │
+│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
+                        
+                        if (item.prompt.length > 70) {
+                            const remaining = item.prompt.substring(70);
+                            const lines = remaining.match(/.{1,73}/g) || [];
+                            lines.forEach(line => {
+                                promptSections.push(`│  ${line.padEnd(73)}│`);
+                            });
+                        }
+                    }
+                    
+                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                });
+                
+                promptSections.push(`
+💡 NOTE: If these frontend components connect to backend APIs, refer to the 
+BACKEND SECTION. If they display data from the database, ensure the backend 
+properly fetches and serves the data. Maintain consistent styling and responsive 
+design across all components.
+`);
             }
 
             // Check if we have any actual content
             if (!hasContent) {
-                showToast('⚠️ Selected sections have no data (files or prompts)', 'warning');
+                showToast('⚠️ No items have data (names or prompts)', 'warning');
                 return;
             }
 
-            // Footer
+            // Footer / Summary
             promptSections.push(`
 ════════════════════════════════════════════════════════════════════════════════
 📋 SUMMARY
 ════════════════════════════════════════════════════════════════════════════════
 
-Sections included in this prompt:
+Components included in this prompt:
 ${dbChecked ? '  ✅ Database Connection (Remote + Localhost)' : '  ⬜ Database Connection'}
-${backendChecked ? '  ✅ Backend Section' : '  ⬜ Backend Section'}
-${pageChecked ? '  ✅ Page Section' : '  ⬜ Page Section'}
-${frontendChecked ? '  ✅ Frontend Section' : '  ⬜ Frontend Section'}
+${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
+${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
+${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
+
+Total Components: ${backendCount + pageCount + frontendCount}
 
 Please ensure all components work together seamlessly. Follow the instructions 
 in each section carefully and maintain proper connections between components.
@@ -10735,14 +11193,15 @@ in each section carefully and maintain proper connections between components.
             updateCounts();
             recordHistoryState(true);
             
-            // Count checked sections
-            const checkedCount = [dbChecked, backendChecked, pageChecked, frontendChecked].filter(Boolean).length;
+            // Count total items
+            const totalItems = (dbChecked ? 1 : 0) + backendCount + pageCount + frontendCount;
             
             // Show success toast
-            showToast(`✨ AI prompt generated with ${checkedCount} section${checkedCount > 1 ? 's' : ''}`, 'success');
+            showToast(`✨ AI prompt generated with ${totalItems} component${totalItems > 1 ? 's' : ''}`, 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
+            saveDynamicItems();
         }
 
         // Toggle database credentials in editor
@@ -15909,5 +16368,7 @@ document.addEventListener('keydown', function(e) {
 
 </body>
 </html>
+
+
 
 
