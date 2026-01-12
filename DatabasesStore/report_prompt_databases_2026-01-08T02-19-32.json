@@ -1,0 +1,28 @@
+{
+  "exported_at": "1/8/2026, 2:19:34 AM",
+  "total_connections": 2,
+  "connections": [
+    {
+      "id": "1761689118869",
+      "name": "u419999707_glbuilder 1 MB",
+      "type": "shared",
+      "host": "srv1788.hstgr.io",
+      "dbName": "u419999707_glbuilder",
+      "username": "u419999707_gl",
+      "password": "P@master5007",
+      "port": "3306",
+      "createdAt": "2025-10-28T22:05:18+00:00"
+    },
+    {
+      "id": "1760268950894",
+      "name": "u419999707_Mohamed",
+      "type": "shared",
+      "host": "srv1788.hstgr.io",
+      "dbName": "u419999707_Mohamed",
+      "username": "u419999707_Abuammar",
+      "password": "P@master5007",
+      "port": "3306",
+      "createdAt": "2025-10-12T11:35:50+00:00"
+    }
+  ]
+}

@@ -2,8 +2,4 @@
 [📎 Prompt-Manager.php | Folder: root]
 <!-- /END  FILE:Prompt-Manager.php -->
 
-<!-- FILE:admin.php -->
-[📎 admin.php | Folder: root]
-<!-- /END  FILE:admin.php -->
-
-Yes, it's working—look at the display. Now I want to add one more line that shows the complete path from the child folder through each parent to the root folder, with a notation indicating when the root is reached. Essentially, I need the full file path displayed all the way to the final destination folder.
+Please take the time to carefully and thoroughly review this particular application in order to gain a comprehensive understanding of its main objectives, core functionality, key features, and the intended goals it aims to achieve. Additionally, make sure to read through all of the related files that are associated with this application, which include JavaScript files, PHP files, CSS files, and HTML files. Once you have completed your thorough and comprehensive review of the application and all of its associated files, please return to provide your findings and insights.
