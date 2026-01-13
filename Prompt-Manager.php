@@ -3646,33 +3646,224 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(180deg, rgba(99, 102, 241, 0.015) 0%, transparent 100%);
         }
 
-        /* Dashboard Database Widget - PRO */
+        /* Dashboard Database Widget - PRO (Now a section card) */
         .dash-db-widget {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.04) 0%, rgba(245, 158, 11, 0.02) 50%, transparent 100%);
-            border: 1px solid rgba(251, 191, 36, 0.12);
-            border-radius: 14px;
-            position: relative;
-        }
-        
-        .dash-db-widget::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 20px;
-            right: 20px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3), transparent);
+            gap: 0;
         }
         
         .dash-db-tools {
+            display: none;
+        }
+        
+        /* Dashboard Sections Row - All 4 in one row */
+        .dashboard-sections-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        /* Dashboard Footer with Generate Button */
+        .dashboard-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.03) 50%, transparent 100%);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 14px;
+            margin-top: 0.5rem;
+        }
+        
+        .dashboard-footer::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
+            border-radius: 2px;
+        }
+        
+        .footer-arrow-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            color: #10b981;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .footer-arrow-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #34d399;
+            transform: translateY(2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Database as a Section Card */
+        .database-section {
+            background: linear-gradient(180deg, rgba(20, 20, 35, 0.8) 0%, rgba(15, 15, 30, 0.9) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.12);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .database-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+            opacity: 0.6;
+        }
+        
+        .database-section:hover {
+            border-color: rgba(251, 191, 36, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .database-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+        }
+        
+        .database-section-title {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            flex-wrap: wrap;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fcd34d;
+            letter-spacing: 0.3px;
+        }
+        
+        .database-section-title i {
+            font-size: 1rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+        
+        .database-section-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .database-section-arrow {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fcd34d;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .database-section-arrow:hover {
+            background: rgba(251, 191, 36, 0.2);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            transform: translateY(2px);
+        }
+        
+        .database-section-content {
+            padding: 0.75rem;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .database-section-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .database-section-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .database-section-content::-webkit-scrollbar-thumb {
+            background: rgba(251, 191, 36, 0.4);
+            border-radius: 3px;
+        }
+        
+        .db-controls-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .db-dropdown-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .db-dropdown-row .dash-db-dropdown-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .db-dropdown-row .dash-db-dropdown {
+            font-size: 0.72rem;
+            padding: 0.4rem 1.8rem 0.4rem 0.6rem;
+        }
+        
+        .db-dropdown-row .dash-db-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 0.7rem;
+        }
+        
+        .db-cred-row-compact {
+            display: flex;
+            gap: 0.35rem;
+        }
+        
+        .db-cred-row-compact .dash-cred-btn span {
+            font-size: 0.65rem;
+            padding: 0.3rem 0.5rem;
+        }
+        
+        .db-prompt-row-compact {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .db-prompt-row-compact .dash-db-prompt-btn {
+            font-size: 0.6rem;
+            padding: 0.35rem 0.4rem;
         }
         
         .dash-db-check {
@@ -4221,14 +4412,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .dynamic-sections-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(99, 102, 241, 0.15);
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-top: 0;
+            padding-top: 0;
         }
         
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
+            .dynamic-sections-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
             .dynamic-sections-container {
                 grid-template-columns: 1fr;
             }
@@ -7781,62 +7977,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="dev-dashboard-content" id="devDashboardContent">
-                    <!-- Database Connection Widget -->
-                    <div class="dash-db-widget" id="databaseSelector">
-                        <div class="dash-db-tools">
-                            <div class="dash-backend-group dash-database-group">
-                                <span class="dash-backend-label dash-database-label">
-                                    <i class="fas fa-database"></i> Database
-                                </span>
-                                <div class="dash-backend-controls">
-                                    <input type="checkbox" class="dash-db-check" id="dbMainCheckbox">
-                                    <button type="button" class="dash-arrow-btn db-arrow" title="Insert to prompt" onclick="appendDatabaseToPrompt()">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </button>
-                                    <div class="dash-db-dropdown-wrap">
-                                        <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
-                                            <option value="">-- Select Connection --</option>
-                                        </select>
-                                        <i class="fas fa-chevron-down"></i>
+                    <div class="dashboard-sections-row">
+                        <!-- All 4 Sections in One Row -->
+                        <div class="dynamic-sections-container" id="dynamicSectionsContainer">
+                            <!-- Database Section -->
+                            <div class="database-section" id="databaseSection">
+                                <div class="database-section-header">
+                                    <div class="database-section-title">
+                                        <i class="fas fa-database"></i>
+                                        <span>Database</span>
                                     </div>
-                                    <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                    <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage Databases">
-                                        <i class="fas fa-cog"></i>
-                                    </button>
+                                    <div class="database-section-actions">
+                                        <button type="button" class="database-section-arrow" onclick="appendDatabaseToPrompt()" title="Insert Database to Prompt">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="dash-db-cred-row">
-                                    <label class="dash-cred-btn remote" title="Append Remote Credentials">
-                                        <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
-                                        <span><i class="fas fa-globe"></i> Remote</span>
-                                    </label>
-                                    <label class="dash-cred-btn localhost" title="Append Localhost Credentials">
-                                        <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
-                                        <span><i class="fas fa-server"></i> Localhost</span>
-                                    </label>
-                                </div>
-                                <div class="dash-db-prompt-row">
-                                    <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Generate Smart Connection Prompt">
-                                        <i class="fas fa-code"></i> Prompt
-                                    </button>
-                                    <button type="button" class="dash-db-prompt-btn dash-db-prompt-full" onclick="generateFullDatabasePrompt()" title="Generate Full Prompt with Toggle & Speed Monitor">
-                                        <i class="fas fa-tachometer-alt"></i> Full
-                                    </button>
+                                <div class="database-section-content">
+                                    <div class="db-controls-compact">
+                                        <div class="db-dropdown-row">
+                                            <div class="dash-db-dropdown-wrap">
+                                                <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
+                                                    <option value="">-- Select --</option>
+                                                </select>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                            <button type="button" class="dash-db-btn manage" onclick="openDbManager()" title="Manage">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                        <div class="db-cred-row-compact">
+                                            <label class="dash-cred-btn remote" title="Remote">
+                                                <input type="checkbox" id="dbCredentialsCheckbox" onchange="toggleDatabaseCredentials('remote')">
+                                                <span><i class="fas fa-globe"></i> Remote</span>
+                                            </label>
+                                            <label class="dash-cred-btn localhost" title="Localhost">
+                                                <input type="checkbox" id="dbLocalhostCheckbox" onchange="toggleDatabaseCredentials('localhost')">
+                                                <span><i class="fas fa-server"></i> Local</span>
+                                            </label>
+                                        </div>
+                                        <div class="db-prompt-row-compact">
+                                            <button type="button" class="dash-db-prompt-btn" onclick="generateDatabasePrompt()" title="Smart Connection Prompt">
+                                                <i class="fas fa-code"></i> Prompt
+                                            </button>
+                                            <button type="button" class="dash-db-prompt-btn dash-db-prompt-full" onclick="generateFullDatabasePrompt()" title="Full Prompt">
+                                                <i class="fas fa-tachometer-alt"></i> Full
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="dash-db-separator"></div>
-                            <button type="button" class="dash-arrow-btn generate-arrow" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
-                                <i class="fas fa-magic"></i>
-                                <span>Generate</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Dynamic Sections Container - Three Column Grid -->
-                        <div class="dynamic-sections-container" id="dynamicSectionsContainer">
                             <!-- Backend Section -->
                             <div class="dynamic-section" id="backendSection">
                                 <div class="dynamic-section-header">
@@ -7915,11 +8108,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Dashboard Footer with Generate Button -->
+                        <div class="dashboard-footer">
+                            <button type="button" class="footer-arrow-btn" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate</span>
+                            </button>
                         </div>
-                        <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
-                            <span>No databases found</span>
-                            <a href="javascript:void(0)" onclick="openDbManager()">+ Add</a>
-                        </div>
+                    </div>
+                    
+                    <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
+                        <span>No databases found</span>
+                        <a href="javascript:void(0)" onclick="openDbManager()">+ Add</a>
                     </div>
                 </div>
             </div>
