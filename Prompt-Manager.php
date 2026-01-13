@@ -464,7 +464,7 @@ if ($pdo) {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         
-        // Create projects table for Development Dashboard
+        // Create projects table for Development Dashboard (using TEXT for compatibility)
         $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_projects (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -477,9 +477,9 @@ if ($pdo) {
             database_port VARCHAR(10) DEFAULT '3306',
             include_remote TINYINT(1) DEFAULT 0,
             include_localhost TINYINT(1) DEFAULT 0,
-            backends JSON,
-            pages JSON,
-            frontends JSON,
+            backends TEXT,
+            pages TEXT,
+            frontends TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
@@ -772,9 +772,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Get single project with all data
     if ($action === 'get_project') {
+        // Check database connection first
+        if (!$pdo) {
+            echo json_encode(['success' => false, 'message' => 'Database not connected. Please check your connection.']);
+            exit;
+        }
+        
         $id = $_POST['id'] ?? '';
         
-        if ($pdo && $id) {
+        if ($id) {
             try {
                 $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_projects WHERE id = ?");
                 $stmt->execute([$id]);
@@ -800,6 +806,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Save project (create or update)
     if ($action === 'save_project') {
+        // Check database connection first
+        if (!$pdo) {
+            echo json_encode(['success' => false, 'message' => 'Database not connected. Please check your connection.']);
+            exit;
+        }
+        
         $id = $_POST['id'] ?? '';
         $name = $_POST['name'] ?? '';
         $description = $_POST['description'] ?? '';
@@ -815,7 +827,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pages = $_POST['pages'] ?? '[]';
         $frontends = $_POST['frontends'] ?? '[]';
         
-        if ($pdo && $name) {
+        if ($name) {
             try {
                 $startTime = microtime(true);
                 
@@ -870,9 +882,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Delete project
     if ($action === 'delete_project') {
+        // Check database connection first
+        if (!$pdo) {
+            echo json_encode(['success' => false, 'message' => 'Database not connected. Please check your connection.']);
+            exit;
+        }
+        
         $id = $_POST['id'] ?? '';
         
-        if ($pdo && $id) {
+        if ($id) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->prepare("DELETE FROM reporter_prompt_projects WHERE id = ?");
@@ -17640,11 +17658,23 @@ function updateProjectSelector(projects) {
 
 // Open new project popup
 function openNewProjectPopup() {
+    // Reset current project ID
+    currentProjectId = null;
+    
+    // Reset the project selector dropdown
+    const selector = document.getElementById('projectSelector');
+    if (selector) selector.value = '';
+    
+    // Reset the dashboard to empty state
+    resetDashboardItems();
+    
+    // Clear popup fields
     document.getElementById('projectEditId').value = '';
     document.getElementById('projectNameInput').value = '';
     document.getElementById('projectDescInput').value = '';
     document.getElementById('projectPopupTitle').textContent = 'New Project';
     
+    // Show popup
     const popup = document.getElementById('newProjectPopup');
     popup.classList.add('active');
     document.getElementById('projectNameInput').focus();
@@ -17663,7 +17693,7 @@ function saveProjectFromPopup() {
     const description = document.getElementById('projectDescInput').value.trim();
     
     if (!name) {
-        showNotification('Please enter a project name', 'error');
+        showToast('Please enter a project name', 'error');
         document.getElementById('projectNameInput').focus();
         return;
     }
@@ -17724,7 +17754,7 @@ function collectDashboardData() {
     });
     
     // Collect page items
-    const pageItems = document.querySelectorAll('#pagesItemsGrid .dynamic-item');
+    const pageItems = document.querySelectorAll('#pageItemsGrid .dynamic-item');
     pageItems.forEach(item => {
         data.pages.push({
             name: item.querySelector('.dynamic-item-name')?.value || '',
@@ -17771,21 +17801,27 @@ function saveProject(projectData) {
     .then(data => {
         if (data.success) {
             currentProjectId = data.id;
-            showNotification(data.message, 'success');
+            showToast(data.message, 'success');
             closeProjectPopup('newProjectPopup');
             loadProjectsList();
             
-            // Log operation time
+            // Log operation time to speed monitor
             if (data.operationTime) {
-                logSpeedMonitor(data.operationType, data.operationTime, data.connectionType);
+                addSpeedEntry({ 
+                    time: parseFloat(data.operationTime), 
+                    type: data.operationType, 
+                    connection: data.connectionType, 
+                    timestamp: Date.now() 
+                });
+                updateSpeedMonitor();
             }
         } else {
-            showNotification(data.message || 'Error saving project', 'error');
+            showToast(data.message || 'Error saving project', 'error');
         }
     })
     .catch(err => {
         console.error('Error saving project:', err);
-        showNotification('Error saving project', 'error');
+        showToast('Error saving project', 'error');
     });
 }
 
@@ -17838,7 +17874,7 @@ function openLoadProjectPopup() {
     })
     .catch(err => {
         console.error('Error loading projects:', err);
-        showNotification('Error loading projects', 'error');
+        showToast('Error loading projects', 'error');
     });
 }
 
@@ -17867,33 +17903,39 @@ function loadSelectedProject() {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.project) {
-            applyProjectToashboard(data.project);
+            applyProjectToDashboard(data.project);
             currentProjectId = data.project.id;
             closeProjectPopup('loadProjectPopup');
-            showNotification('Project loaded successfully!', 'success');
+            showToast('Project loaded successfully!', 'success');
             
             // Update selector
             loadProjectsList();
         } else {
-            showNotification(data.message || 'Error loading project', 'error');
+            showToast(data.message || 'Error loading project', 'error');
         }
     })
     .catch(err => {
         console.error('Error loading project:', err);
-        showNotification('Error loading project', 'error');
+        showToast('Error loading project', 'error');
     });
 }
 
 // Apply project data to dashboard
-function applyProjectToashboard(project) {
-    // Reset first
+function applyProjectToDashboard(project) {
+    // Reset first - clears dynamicItems and HTML
     resetDashboardItems();
     
     // Set database
     if (project.database_name) {
         const dbDropdown = document.getElementById('dbDropdown');
         if (dbDropdown) {
-            dbDropdown.value = project.database_name;
+            // Try to find and select the matching option
+            for (let i = 0; i < dbDropdown.options.length; i++) {
+                if (dbDropdown.options[i].value === project.database_name) {
+                    dbDropdown.selectedIndex = i;
+                    break;
+                }
+            }
         }
     }
     
@@ -17903,26 +17945,28 @@ function applyProjectToashboard(project) {
     if (remoteChk) remoteChk.checked = project.include_remote == 1;
     if (localChk) localChk.checked = project.include_localhost == 1;
     
-    // Add backend items
+    // Add backend items (use 'backend' key)
     if (project.backends && project.backends.length > 0) {
         project.backends.forEach(item => {
             addDynamicItem('backend', item.name, item.desc);
         });
     }
     
-    // Add page items
+    // Add page items (use 'page' key - NOT 'pages')
     if (project.pages && project.pages.length > 0) {
         project.pages.forEach(item => {
-            addDynamicItem('pages', item.name, item.desc);
+            addDynamicItem('page', item.name, item.desc);
         });
     }
     
-    // Add frontend items
+    // Add frontend items (use 'frontend' key)
     if (project.frontends && project.frontends.length > 0) {
         project.frontends.forEach(item => {
             addDynamicItem('frontend', item.name, item.desc);
         });
     }
+    
+    showToast('Project data loaded to dashboard', 'success');
 }
 
 // On project select from dropdown
@@ -17946,9 +17990,9 @@ function onProjectSelect() {
     .then(res => res.json())
     .then(data => {
         if (data.success && data.project) {
-            applyProjectToashboard(data.project);
+            applyProjectToDashboard(data.project);
             currentProjectId = data.project.id;
-            showNotification('Project "' + data.project.name + '" loaded', 'info');
+            showToast('Project "' + data.project.name + '" loaded', 'info');
         }
     })
     .catch(err => console.error('Error:', err));
@@ -17960,7 +18004,7 @@ function deleteCurrentProject() {
     const selectedId = selector.value;
     
     if (!selectedId) {
-        showNotification('Please select a project to delete', 'warning');
+        showToast('Please select a project to delete', 'warning');
         return;
     }
     
@@ -17993,20 +18037,26 @@ function confirmDeleteProject() {
                 currentProjectId = null;
             }
             closeProjectPopup('deleteProjectPopup');
-            showNotification('Project deleted successfully!', 'success');
+            showToast('Project deleted successfully!', 'success');
             loadProjectsList();
             resetDashboardProject();
             
             if (data.operationTime) {
-                logSpeedMonitor(data.operationType, data.operationTime, data.connectionType);
+                addSpeedEntry({ 
+                    time: parseFloat(data.operationTime), 
+                    type: data.operationType, 
+                    connection: data.connectionType, 
+                    timestamp: Date.now() 
+                });
+                updateSpeedMonitor();
             }
         } else {
-            showNotification(data.message || 'Error deleting project', 'error');
+            showToast(data.message || 'Error deleting project', 'error');
         }
     })
     .catch(err => {
         console.error('Error:', err);
-        showNotification('Error deleting project', 'error');
+        showToast('Error deleting project', 'error');
     });
 }
 
@@ -18015,12 +18065,20 @@ function resetDashboardProject() {
     currentProjectId = null;
     document.getElementById('projectSelector').value = '';
     resetDashboardItems();
-    showNotification('Dashboard reset to empty state', 'info');
+    showToast('Dashboard reset to empty state', 'info');
 }
 
 // Reset only the items (not the project selection)
 function resetDashboardItems() {
-    // Clear backend items
+    // IMPORTANT: Clear the dynamicItems arrays first!
+    if (typeof dynamicItems !== 'undefined') {
+        dynamicItems.backend = [];
+        dynamicItems.page = [];
+        dynamicItems.frontend = [];
+        saveDynamicItems(); // Save cleared state
+    }
+    
+    // Clear backend items HTML
     const backendGrid = document.getElementById('backendItemsGrid');
     if (backendGrid) {
         backendGrid.innerHTML = `
@@ -18031,22 +18089,22 @@ function resetDashboardItems() {
             </div>
         `;
     }
-    updateSectionCount('backend');
+    updateDynamicCount('backend');
     
-    // Clear pages items
-    const pagesGrid = document.getElementById('pagesItemsGrid');
-    if (pagesGrid) {
-        pagesGrid.innerHTML = `
-            <div class="dynamic-empty-state" id="pagesEmptyState">
+    // Clear page items HTML
+    const pageGrid = document.getElementById('pageItemsGrid');
+    if (pageGrid) {
+        pageGrid.innerHTML = `
+            <div class="dynamic-empty-state" id="pageEmptyState">
                 <i class="fas fa-file-alt"></i>
                 <p>No page items</p>
                 <small>Click "Add" to create one</small>
             </div>
         `;
     }
-    updateSectionCount('pages');
+    updateDynamicCount('page');
     
-    // Clear frontend items
+    // Clear frontend items HTML
     const frontendGrid = document.getElementById('frontendItemsGrid');
     if (frontendGrid) {
         frontendGrid.innerHTML = `
@@ -18057,13 +18115,17 @@ function resetDashboardItems() {
             </div>
         `;
     }
-    updateSectionCount('frontend');
+    updateDynamicCount('frontend');
     
     // Reset checkboxes
     const remoteChk = document.getElementById('remoteCheckbox');
     const localChk = document.getElementById('localhostCheckbox');
     if (remoteChk) remoteChk.checked = false;
     if (localChk) localChk.checked = false;
+    
+    // Reset database dropdown
+    const dbDropdown = document.getElementById('dbDropdown');
+    if (dbDropdown) dbDropdown.selectedIndex = 0;
 }
 
 // Helper: Escape HTML

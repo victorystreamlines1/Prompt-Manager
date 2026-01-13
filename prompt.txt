@@ -1,1 +1,9 @@
-Okay, but I tried to create a new project. It did not tick. It did not save it. Also, it's not showing in the drop down. The screen's freeze. Make sure you're compatible with the system of our database connection. The database connection system is a toggle. It toggles between remote, and you'll find it on the upper right, area of the page a remote that toggles from remote to local it does not go to local if it's in the localhost because this local is meant to be hosting as local so it should be on the remote therefore make sure that it follows the connection in the upper right which is on the remote now I'm from the server I'll try it from the other screen as local. Let me see. Maybe it should be anyway. It should work from remote in all cases. 
+<!-- FILE:Prompt-Manager.php -->
+[📎 Prompt-Manager.php | Folder: root]
+<!-- /END  FILE:Prompt-Manager.php -->
+
+In PromptManager.php, add in the development dashboard on the top right, next to the refresh button, on the left side of the refresh button, a nice button style for a pop-up frame that will open. A dragable and resizable Pop-up i-frame Make sure it stays On until I close it It doesn't go if I Click outside The i-frame Until I click To shut off the i-frame Of this Website--->
+
+<!-- FILE:index1.php -->
+[📎 index1.php | Folder: root]
+<!-- /END  FILE:index1.php -->
