@@ -8856,9 +8856,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
-                        <a href="index1.php" target="_blank" class="dash-newtab-btn" title="Open Design Enhancer in New Tab">
+                        <button type="button" class="dash-newtab-btn" id="dashNewTabBtn" onclick="openOrSwitchToDesignEnhancer()" title="Open/Switch to Design Enhancer Tab">
                             <i class="fas fa-external-link-alt"></i>
-                        </a>
+                        </button>
                         <button type="button" class="dash-iframe-btn" id="dashIframeBtn" onclick="toggleIframePopup()" title="Open Design Enhancer Popup">
                             <i class="fas fa-window-restore"></i>
                         </button>
@@ -18440,6 +18440,36 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
     
     const defaultWidth = 900;
     const defaultHeight = 600;
+    
+    // ══════════════════════════════════════════════════════════════════
+    // NEW TAB - Open or Switch to Design Enhancer
+    // ══════════════════════════════════════════════════════════════════
+    
+    let designEnhancerTab = null;
+    const DESIGN_ENHANCER_URL = 'index1.php';
+    const DESIGN_ENHANCER_TITLE = 'Design Enhancer';
+    
+    window.openOrSwitchToDesignEnhancer = function() {
+        // Check if we have a reference and if the tab is still open
+        if (designEnhancerTab && !designEnhancerTab.closed) {
+            // Tab is open - switch to it
+            designEnhancerTab.focus();
+            showNotification('✅ Switched to Design Enhancer tab', 'success');
+        } else {
+            // Tab is not open or was closed - open a new one
+            designEnhancerTab = window.open(DESIGN_ENHANCER_URL, '_blank');
+            
+            if (designEnhancerTab) {
+                showNotification('🚀 Opening Design Enhancer in new tab...', 'info');
+                
+                // Focus the new tab
+                designEnhancerTab.focus();
+            } else {
+                // Popup blocker might have prevented opening
+                showNotification('⚠️ Please allow popups to open Design Enhancer', 'warning');
+            }
+        }
+    };
     
     // Toggle popup
     window.toggleIframePopup = function() {
