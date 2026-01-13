@@ -10464,6 +10464,43 @@
         border-color: rgba(59, 130, 246, 0.4);
     }
 
+    /* Send Button - matches Prompt-Manager.php style */
+    .editor-btn-de.send {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%);
+        border-color: rgba(6, 182, 212, 0.3);
+        color: #22d3ee;
+    }
+    
+    .editor-btn-de.send:hover {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.2) 100%);
+        border-color: rgba(6, 182, 212, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
+    
+    .editor-btn-de.send:disabled {
+        background: rgba(50, 50, 70, 0.3);
+        border-color: rgba(100, 100, 120, 0.2);
+        color: #6b7280;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .editor-btn-de.send .send-status {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin-left: 0.3rem;
+        background: #6b7280;
+    }
+    
+    .editor-btn-de.send.connected .send-status {
+        background: #22c55e;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+    }
+
     .editor-body-de {
         position: relative;
         padding: 1rem;
@@ -11982,6 +12019,10 @@
                     </button>
                     <button class="editor-btn-de copy" onclick="copyPromptDE()">
                         <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button class="editor-btn-de send" id="btnSendDE" onclick="sendToPromptFileDE()" disabled title="Send to prompt.txt (configure folder in Prompt Manager)">
+                        <i class="fas fa-paper-plane"></i> Send
+                        <span class="send-status"></span>
                     </button>
                 </div>
             </div>
@@ -33012,13 +33053,197 @@ ${state.feedFromDocumentation ?
     };
     
     // ══════════════════════════════════════════════════════════════════
+    // SEND TO PROMPT.TXT FUNCTIONALITY (uses Prompt-Manager.php config)
+    // ══════════════════════════════════════════════════════════════════
+    
+    // IndexedDB configuration (same as Prompt-Manager.php)
+    const DB_NAME_DE = 'PromptManagerDB';
+    const DB_VERSION_DE = 1;
+    const STORE_NAME_DE = 'fileHandles';
+    
+    let promptFolderHandleDE = null;
+    let promptFileHandleDE = null;
+    
+    function openDBDE() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME_DE, DB_VERSION_DE);
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME_DE)) {
+                    db.createObjectStore(STORE_NAME_DE, { keyPath: 'id' });
+                }
+            };
+        });
+    }
+    
+    async function getHandleFromDBDE(id) {
+        try {
+            const db = await openDBDE();
+            const tx = db.transaction(STORE_NAME_DE, 'readonly');
+            const request = tx.objectStore(STORE_NAME_DE).get(id);
+            return new Promise((resolve) => {
+                request.onsuccess = () => { db.close(); resolve(request.result?.handle || null); };
+                request.onerror = () => { db.close(); resolve(null); };
+            });
+        } catch (err) {
+            return null;
+        }
+    }
+    
+    // Initialize Send connection on page load
+    async function initSendConnectionDE() {
+        const savedFolderName = localStorage.getItem('promptFolderName');
+        const btnSend = document.getElementById('btnSendDE');
+        
+        if (!savedFolderName) {
+            if (btnSend) {
+                btnSend.disabled = true;
+                btnSend.classList.remove('connected');
+                btnSend.title = 'No folder configured. Configure in Prompt Manager first.';
+            }
+            return;
+        }
+        
+        // Try to get the folder handle from IndexedDB
+        try {
+            const savedHandle = await getHandleFromDBDE('promptFolder');
+            if (savedHandle) {
+                // Request permission
+                const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
+                if (perm === 'granted') {
+                    promptFolderHandleDE = savedHandle;
+                    try {
+                        promptFileHandleDE = await promptFolderHandleDE.getFileHandle('prompt.txt', { create: false });
+                    } catch (e) {
+                        promptFileHandleDE = await promptFolderHandleDE.getFileHandle('prompt.txt', { create: true });
+                    }
+                    
+                    // Enable send button
+                    if (btnSend) {
+                        btnSend.disabled = false;
+                        btnSend.classList.add('connected');
+                        btnSend.title = `Send to ${savedFolderName}/prompt.txt`;
+                    }
+                    
+                    showNotificationDE(`✅ Connected to ${savedFolderName}/prompt.txt`, 'success');
+                    console.log('📁 Send connected to:', savedFolderName);
+                } else {
+                    // Permission denied - show reconnect option
+                    if (btnSend) {
+                        btnSend.disabled = false;
+                        btnSend.classList.remove('connected');
+                        btnSend.title = `Click to reconnect to ${savedFolderName}/prompt.txt`;
+                    }
+                }
+            }
+        } catch (err) {
+            console.log('Send auto-connect failed:', err.message);
+            if (btnSend) {
+                btnSend.disabled = false;
+                btnSend.classList.remove('connected');
+                btnSend.title = 'Click to try reconnecting to prompt.txt';
+            }
+        }
+    }
+    
+    // Send editor content to prompt.txt
+    window.sendToPromptFileDE = async function() {
+        const btnSend = document.getElementById('btnSendDE');
+        const savedFolderName = localStorage.getItem('promptFolderName');
+        
+        // If not connected, try to connect first
+        if (!promptFileHandleDE) {
+            if (!savedFolderName) {
+                showNotificationDE('❌ No folder configured. Please configure in Prompt Manager first.', 'error');
+                return;
+            }
+            
+            // Try to reconnect
+            try {
+                const savedHandle = await getHandleFromDBDE('promptFolder');
+                if (savedHandle) {
+                    const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
+                    if (perm === 'granted') {
+                        promptFolderHandleDE = savedHandle;
+                        try {
+                            promptFileHandleDE = await promptFolderHandleDE.getFileHandle('prompt.txt', { create: false });
+                        } catch (e) {
+                            promptFileHandleDE = await promptFolderHandleDE.getFileHandle('prompt.txt', { create: true });
+                        }
+                        
+                        if (btnSend) {
+                            btnSend.classList.add('connected');
+                            btnSend.title = `Send to ${savedFolderName}/prompt.txt`;
+                        }
+                        
+                        showNotificationDE(`✅ Reconnected to ${savedFolderName}/prompt.txt`, 'success');
+                    } else {
+                        showNotificationDE('❌ Permission denied. Please allow folder access.', 'error');
+                        return;
+                    }
+                } else {
+                    showNotificationDE('❌ No folder handle found. Configure folder in Prompt Manager first.', 'error');
+                    return;
+                }
+            } catch (err) {
+                showNotificationDE('❌ Failed to connect: ' + err.message, 'error');
+                return;
+            }
+        }
+        
+        // Get editor content
+        const editor = document.getElementById('promptEditorDE');
+        const content = editor ? editor.value : '';
+        
+        try {
+            // Create a writable stream
+            const writable = await promptFileHandleDE.createWritable();
+            
+            // Write the content
+            await writable.write(content);
+            
+            // Close the stream
+            await writable.close();
+            
+            const folderName = localStorage.getItem('promptFolderName') || 'folder';
+            if (content.trim()) {
+                showNotificationDE(`✅ Sent to ${folderName}/prompt.txt`, 'success');
+            } else {
+                showNotificationDE(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
+            }
+            console.log('📤 Content sent to prompt.txt, length:', content.length);
+            
+        } catch (err) {
+            console.error('Error writing to prompt.txt:', err);
+            
+            if (err.name === 'NotAllowedError') {
+                showNotificationDE('❌ Permission denied. Please click Send again to reconnect.', 'error');
+                // Reset connection
+                promptFolderHandleDE = null;
+                promptFileHandleDE = null;
+                if (btnSend) {
+                    btnSend.classList.remove('connected');
+                }
+            } else {
+                showNotificationDE('❌ Error writing: ' + err.message, 'error');
+            }
+        }
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
     // INITIALIZE ON DOM READY
     // ══════════════════════════════════════════════════════════════════
     
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initDashboardDE);
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboardDE();
+            initSendConnectionDE();
+        });
     } else {
         initDashboardDE();
+        initSendConnectionDE();
     }
     
     console.log('✅ Development Dashboard & Prompt Editor DE - Loaded');
