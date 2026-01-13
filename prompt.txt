@@ -1,5 +1,25 @@
-Please take the time to carefully and thoroughly review this particular application in order to gain a comprehensive understanding of its main objectives, core functionality, key features, and the intended goals it aims to achieve. Additionally, make sure to read through all of the related files that are associated with this application, which include JavaScript files, PHP files, CSS files, and HTML files. Once you have completed your thorough and comprehensive review of the application and all of its associated files, please return to provide your findings and insights.
+╔══════════════════════════════════════════════════════════════╗
+║  🌐  DATABASE CREDENTIALS - REMOTE CONNECTION               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     Prompt Manager                                  ║
+║  Host:     srv1788.hstgr.io                                ║
+║  Database: u419999707_prompt_manager                       ║
+║  Username: u419999707_prompt_manager                       ║
+║  Password: P@master5007                                    ║
+║  Port:     3306                                            ║
+║  Type:     Shared Hosting                                  ║
+╚══════════════════════════════════════════════════════════════╝
 
-<!-- FILE:Prompt-Manager.php -->
-[📎 Prompt-Manager.php | Folder: root]
-<!-- /END  FILE:Prompt-Manager.php -->
+╔══════════════════════════════════════════════════════════════╗
+║  🖥️  DATABASE CREDENTIALS - LOCALHOST (ON-SERVER)           ║
+╠══════════════════════════════════════════════════════════════╣
+║  Name:     Prompt Manager                                  ║
+║  Host:     localhost                                       ║
+║  Database: u419999707_prompt_manager                       ║
+║  Username: u419999707_prompt_manager                       ║
+║  Password: P@master5007                                    ║
+║  Port:     3306                                            ║
+║  Type:     Shared Hosting                                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+In the prompt manager database, I want you to create a project that will contain the information in the development dashboard. So the database information, everything for each project will have its own database and own information. And add, added, delete, create will be popups and will be within... within the same footer where the generate button exists. So push the generate button to the right with the arrow and there put all the management for the table in the database I gave you its name. The database is connected and already in the website you'll see it. So go ahead, try to make it neat and nice and put all the CRUD information inside that footer in the same row of the green generate button. Make them nice, colorful and denotable telling each button and each tool what is what about and put all add add delete information in a pop that should pop up nicely and professionally in the screen to manage the information like selecting the project or whatever. Whenever I select a project I should be seeing all the selections for the back ends, pages and front ends no matter how much they are I should see them there. I don't know how many tables you will do I don't know how you will restructure it but do it the right way so it comes with the right results. Moreover make sure there is a reset button or the reset button itself when I click it it should reset everything and remove the project to non-project okay try to do it in a good clever way try to encompass and cover all reliable things that I forgot to say try to do it professionally and optimizing space and good-looking and nice and cool 

@@ -464,6 +464,26 @@ if ($pdo) {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         
+        // Create projects table for Development Dashboard
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_projects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            database_id INT,
+            database_name VARCHAR(255),
+            database_host VARCHAR(255),
+            database_user VARCHAR(255),
+            database_pass VARCHAR(255),
+            database_port VARCHAR(10) DEFAULT '3306',
+            include_remote TINYINT(1) DEFAULT 0,
+            include_localhost TINYINT(1) DEFAULT 0,
+            backends JSON,
+            pages JSON,
+            frontends JSON,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
         
@@ -728,6 +748,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'ID is required']);
+        }
+        exit;
+    }
+    
+    // ============ PROJECT MANAGEMENT CRUD ============
+    
+    // Get all projects
+    if ($action === 'get_projects') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT id, name, description, created_at, updated_at FROM reporter_prompt_projects ORDER BY updated_at DESC");
+                $projects = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'projects' => $projects]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected']);
+        }
+        exit;
+    }
+    
+    // Get single project with all data
+    if ($action === 'get_project') {
+        $id = $_POST['id'] ?? '';
+        
+        if ($pdo && $id) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_projects WHERE id = ?");
+                $stmt->execute([$id]);
+                $project = $stmt->fetch();
+                
+                if ($project) {
+                    // Decode JSON fields
+                    $project['backends'] = json_decode($project['backends'] ?? '[]', true) ?: [];
+                    $project['pages'] = json_decode($project['pages'] ?? '[]', true) ?: [];
+                    $project['frontends'] = json_decode($project['frontends'] ?? '[]', true) ?: [];
+                    echo json_encode(['success' => true, 'project' => $project]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Project not found']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Project ID is required']);
+        }
+        exit;
+    }
+    
+    // Save project (create or update)
+    if ($action === 'save_project') {
+        $id = $_POST['id'] ?? '';
+        $name = $_POST['name'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $databaseId = $_POST['database_id'] ?? '';
+        $databaseName = $_POST['database_name'] ?? '';
+        $databaseHost = $_POST['database_host'] ?? '';
+        $databaseUser = $_POST['database_user'] ?? '';
+        $databasePass = $_POST['database_pass'] ?? '';
+        $databasePort = $_POST['database_port'] ?? '3306';
+        $includeRemote = $_POST['include_remote'] ?? 0;
+        $includeLocalhost = $_POST['include_localhost'] ?? 0;
+        $backends = $_POST['backends'] ?? '[]';
+        $pages = $_POST['pages'] ?? '[]';
+        $frontends = $_POST['frontends'] ?? '[]';
+        
+        if ($pdo && $name) {
+            try {
+                $startTime = microtime(true);
+                
+                if ($id) {
+                    // Update existing project
+                    $stmt = $pdo->prepare("UPDATE reporter_prompt_projects SET 
+                        name = ?, description = ?, database_id = ?, database_name = ?, 
+                        database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
+                        include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?
+                        WHERE id = ?");
+                    $stmt->execute([
+                        $name, $description, $databaseId, $databaseName,
+                        $databaseHost, $databaseUser, $databasePass, $databasePort,
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $id
+                    ]);
+                    $projectId = $id;
+                    $message = 'Project updated successfully!';
+                    $opType = 'UPDATE_PROJECT';
+                } else {
+                    // Create new project
+                    $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
+                        (name, description, database_id, database_name, database_host, database_user, 
+                         database_pass, database_port, include_remote, include_localhost, backends, pages, frontends) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([
+                        $name, $description, $databaseId, $databaseName,
+                        $databaseHost, $databaseUser, $databasePass, $databasePort,
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends
+                    ]);
+                    $projectId = $pdo->lastInsertId();
+                    $message = 'Project created successfully!';
+                    $opType = 'CREATE_PROJECT';
+                }
+                
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true,
+                    'id' => $projectId,
+                    'message' => $message,
+                    'operationTime' => $operationTime,
+                    'operationType' => $opType,
+                    'connectionType' => $connectionType
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Project name is required']);
+        }
+        exit;
+    }
+    
+    // Delete project
+    if ($action === 'delete_project') {
+        $id = $_POST['id'] ?? '';
+        
+        if ($pdo && $id) {
+            try {
+                $startTime = microtime(true);
+                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_projects WHERE id = ?");
+                $stmt->execute([$id]);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Project deleted successfully!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_PROJECT',
+                    'connectionType' => $connectionType
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Project ID is required']);
         }
         exit;
     }
@@ -3664,28 +3826,206 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.75rem;
         }
         
-        /* Dashboard Footer with Generate Button */
+        /* Dashboard Footer with Project Management & Generate Button */
         .dashboard-footer {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 1rem;
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.03) 50%, transparent 100%);
-            border: 1px solid rgba(16, 185, 129, 0.15);
+            padding: 0.85rem 1.25rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
+            border: 1px solid rgba(99, 102, 241, 0.12);
             border-radius: 14px;
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
+            position: relative;
         }
         
         .dashboard-footer::before {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 20%;
-            right: 20%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.4), transparent);
-            border-radius: 2px;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+        }
+        
+        /* Project Management Group */
+        .project-management-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .project-selector-wrap {
+            position: relative;
+            min-width: 180px;
+        }
+        
+        .project-selector {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.78rem;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+        }
+        
+        .project-selector:hover {
+            border-color: rgba(139, 92, 246, 0.4);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.08) 100%);
+        }
+        
+        .project-selector:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+        
+        .project-selector option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.5rem;
+        }
+        
+        .project-selector-wrap i {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a78bfa;
+            font-size: 0.65rem;
+            pointer-events: none;
+        }
+        
+        /* Project Buttons */
+        .project-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .project-btn i {
+            font-size: 0.7rem;
+        }
+        
+        .project-btn span {
+            display: inline;
+        }
+        
+        @media (max-width: 1200px) {
+            .project-btn span {
+                display: none;
+            }
+            .project-selector-wrap {
+                min-width: 140px;
+            }
+        }
+        
+        /* New Project Button - Green */
+        .project-btn.new-btn {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+        
+        .project-btn.new-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #4ade80;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+        
+        /* Save Button - Blue */
+        .project-btn.save-btn {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+        
+        .project-btn.save-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #93c5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+        
+        /* Load Button - Purple */
+        .project-btn.load-btn {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+        
+        .project-btn.load-btn:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%);
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+        }
+        
+        /* Delete Button - Red (Icon only) */
+        .project-btn.delete-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.06) 100%);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            padding: 0.5rem;
+        }
+        
+        .project-btn.delete-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(220, 38, 38, 0.12) 100%);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+        
+        /* Reset Button - Orange (Icon only) */
+        .project-btn.reset-btn {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.06) 100%);
+            border-color: rgba(251, 146, 60, 0.25);
+            color: #fb923c;
+            padding: 0.5rem;
+        }
+        
+        .project-btn.reset-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
+            border-color: rgba(251, 146, 60, 0.4);
+            color: #fdba74;
+            transform: rotate(-180deg);
+            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+        }
+        
+        /* Footer Divider */
+        .footer-divider {
+            width: 1px;
+            height: 32px;
+            background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+            margin: 0 0.5rem;
+        }
+        
+        /* Generate Group */
+        .generate-group {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
         }
         
         .footer-arrow-btn {
@@ -3709,6 +4049,305 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #34d399;
             transform: translateY(2px);
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* ════════════════════════════════════════════════════════════════
+           PROJECT MANAGEMENT POPUPS
+           ════════════════════════════════════════════════════════════════ */
+        
+        .project-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .project-popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .project-popup {
+            background: linear-gradient(180deg, rgba(25, 25, 45, 0.98) 0%, rgba(18, 18, 35, 1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 20px;
+            padding: 0;
+            min-width: 420px;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5),
+                        0 0 60px rgba(139, 92, 246, 0.15);
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        
+        .project-popup-overlay.active .project-popup {
+            transform: scale(1) translateY(0);
+        }
+        
+        .project-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.06) 100%);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        
+        .project-popup-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #c4b5fd;
+        }
+        
+        .project-popup-title i {
+            font-size: 1.2rem;
+            color: #a78bfa;
+        }
+        
+        .project-popup-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .project-popup-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            transform: rotate(90deg);
+        }
+        
+        .project-popup-body {
+            padding: 1.5rem;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        
+        .project-popup-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .project-popup-body::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .project-popup-body::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 3px;
+        }
+        
+        .project-form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .project-form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .project-form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #a0a0b0;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .project-form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 15, 30, 0.8);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        
+        .project-form-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .project-form-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        textarea.project-form-input {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .project-popup-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .project-popup-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .project-popup-btn.cancel {
+            background: rgba(100, 100, 120, 0.2);
+            color: #9ca3af;
+        }
+        
+        .project-popup-btn.cancel:hover {
+            background: rgba(100, 100, 120, 0.3);
+            color: #d1d5db;
+        }
+        
+        .project-popup-btn.primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        
+        .project-popup-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+        }
+        
+        .project-popup-btn.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .project-popup-btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Project List in Load Popup */
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .project-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .project-list-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .project-list-item.selected {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+        }
+        
+        .project-list-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .project-list-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .project-list-date {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        
+        .project-list-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .project-list-badge span {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .badge-backend {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+        }
+        
+        .badge-page {
+            background: rgba(167, 139, 250, 0.15);
+            color: #c4b5fd;
+        }
+        
+        .badge-frontend {
+            background: rgba(251, 146, 60, 0.15);
+            color: #fdba74;
+        }
+        
+        .project-list-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+        
+        .project-list-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+        
+        .project-list-empty p {
+            font-size: 0.9rem;
         }
         
         /* Database as a Section Card */
@@ -8109,15 +8748,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Dashboard Footer with Generate Button -->
+                        <!-- Dashboard Footer with Project Management & Generate Button -->
                         <div class="dashboard-footer">
-                            <button type="button" class="footer-arrow-btn" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                            <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
-                                <i class="fas fa-magic"></i>
-                                <span>Generate</span>
-                            </button>
+                            <!-- Project Management Section (Left) -->
+                            <div class="project-management-group">
+                                <div class="project-selector-wrap">
+                                    <select class="project-selector" id="projectSelector" onchange="onProjectSelect()">
+                                        <option value="">-- No Project --</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <button type="button" class="project-btn new-btn" onclick="openNewProjectPopup()" title="New Project">
+                                    <i class="fas fa-plus"></i>
+                                    <span>New</span>
+                                </button>
+                                <button type="button" class="project-btn save-btn" onclick="saveCurrentProject()" title="Save Project">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save</span>
+                                </button>
+                                <button type="button" class="project-btn load-btn" onclick="openLoadProjectPopup()" title="Load Project">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Load</span>
+                                </button>
+                                <button type="button" class="project-btn delete-btn" onclick="deleteCurrentProject()" title="Delete Project">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button type="button" class="project-btn reset-btn" onclick="resetDashboardProject()" title="Reset Dashboard">
+                                    <i class="fas fa-undo-alt"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Divider -->
+                            <div class="footer-divider"></div>
+                            
+                            <!-- Generate Section (Right) -->
+                            <div class="generate-group">
+                                <button type="button" class="footer-arrow-btn" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
+                                    <i class="fas fa-arrow-down"></i>
+                                </button>
+                                <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
+                                    <i class="fas fa-magic"></i>
+                                    <span>Generate</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -10168,12 +10841,12 @@ ${item.html_code || ''}
         }
         
         // Add new dynamic item
-        function addDynamicItem(type) {
+        function addDynamicItem(type, prefillName = '', prefillDesc = '') {
             const id = generateItemId();
             const item = {
                 id: id,
-                name: '',
-                prompt: '',
+                name: prefillName || '',
+                prompt: prefillDesc || '',
                 files: []
             };
             
@@ -10182,13 +10855,15 @@ ${item.html_code || ''}
             updateDynamicCount(type);
             saveDynamicItems();
             
-            // Focus on the new item's name input
-            setTimeout(() => {
-                const nameInput = document.querySelector(`#${type}ItemsGrid .dynamic-item[data-id="${id}"] .dynamic-item-name`);
-                if (nameInput) nameInput.focus();
-            }, 50);
-            
-            showToast(`✅ New ${type} item added`, 'success');
+            // Focus on the new item's name input only if not prefilled
+            if (!prefillName) {
+                setTimeout(() => {
+                    const nameInput = document.querySelector(`#${type}ItemsGrid .dynamic-item[data-id="${id}"] .dynamic-item-name`);
+                    if (nameInput) nameInput.focus();
+                }, 50);
+                
+                showToast(`✅ New ${type} item added`, 'success');
+            }
         }
         
         // Delete dynamic item
@@ -16817,6 +17492,606 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 <!-- End Database Manager Modal -->
+
+<!-- ════════════════════════════════════════════════════════════════
+     PROJECT MANAGEMENT POPUPS
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- New/Edit Project Popup -->
+<div class="project-popup-overlay" id="newProjectPopup">
+    <div class="project-popup">
+        <div class="project-popup-header">
+            <div class="project-popup-title">
+                <i class="fas fa-folder-plus"></i>
+                <span id="projectPopupTitle">New Project</span>
+            </div>
+            <button class="project-popup-close" onclick="closeProjectPopup('newProjectPopup')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="project-popup-body">
+            <input type="hidden" id="projectEditId" value="">
+            <div class="project-form-group">
+                <label class="project-form-label">Project Name *</label>
+                <input type="text" class="project-form-input" id="projectNameInput" placeholder="Enter project name...">
+            </div>
+            <div class="project-form-group">
+                <label class="project-form-label">Description</label>
+                <textarea class="project-form-input" id="projectDescInput" placeholder="Brief description (optional)..."></textarea>
+            </div>
+        </div>
+        <div class="project-popup-footer">
+            <button class="project-popup-btn cancel" onclick="closeProjectPopup('newProjectPopup')">Cancel</button>
+            <button class="project-popup-btn primary" onclick="saveProjectFromPopup()">
+                <i class="fas fa-save"></i>
+                <span>Save Project</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Load Project Popup -->
+<div class="project-popup-overlay" id="loadProjectPopup">
+    <div class="project-popup">
+        <div class="project-popup-header">
+            <div class="project-popup-title">
+                <i class="fas fa-folder-open"></i>
+                <span>Load Project</span>
+            </div>
+            <button class="project-popup-close" onclick="closeProjectPopup('loadProjectPopup')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="project-popup-body">
+            <div class="project-list" id="projectListContainer">
+                <!-- Projects will be loaded here -->
+            </div>
+        </div>
+        <div class="project-popup-footer">
+            <button class="project-popup-btn cancel" onclick="closeProjectPopup('loadProjectPopup')">Cancel</button>
+            <button class="project-popup-btn primary" onclick="loadSelectedProject()" id="loadProjectBtn" disabled>
+                <i class="fas fa-folder-open"></i>
+                <span>Load</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Popup -->
+<div class="project-popup-overlay" id="deleteProjectPopup">
+    <div class="project-popup" style="min-width: 360px;">
+        <div class="project-popup-header" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%); border-bottom-color: rgba(239, 68, 68, 0.15);">
+            <div class="project-popup-title" style="color: #fca5a5;">
+                <i class="fas fa-exclamation-triangle" style="color: #f87171;"></i>
+                <span>Delete Project</span>
+            </div>
+            <button class="project-popup-close" onclick="closeProjectPopup('deleteProjectPopup')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="project-popup-body" style="text-align: center;">
+            <p style="color: var(--text-primary); font-size: 1rem; margin-bottom: 0.5rem;">
+                Are you sure you want to delete this project?
+            </p>
+            <p style="color: #f87171; font-size: 0.9rem; font-weight: 600;" id="deleteProjectName"></p>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="project-popup-footer" style="justify-content: center;">
+            <button class="project-popup-btn cancel" onclick="closeProjectPopup('deleteProjectPopup')">Cancel</button>
+            <button class="project-popup-btn danger" onclick="confirmDeleteProject()">
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// PROJECT MANAGEMENT FUNCTIONS
+// ════════════════════════════════════════════════════════════════
+
+let currentProjectId = null;
+let selectedProjectToLoad = null;
+let projectToDelete = null;
+
+// Initialize projects on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjectsList();
+});
+
+// Load all projects into selector
+function loadProjectsList() {
+    const formData = new FormData();
+    formData.append('action', 'get_projects');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.projects) {
+            updateProjectSelector(data.projects);
+        }
+    })
+    .catch(err => console.error('Error loading projects:', err));
+}
+
+// Update project selector dropdown
+function updateProjectSelector(projects) {
+    const selector = document.getElementById('projectSelector');
+    if (!selector) return;
+    
+    selector.innerHTML = '<option value="">-- No Project --</option>';
+    
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        if (project.id == currentProjectId) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    });
+}
+
+// Open new project popup
+function openNewProjectPopup() {
+    document.getElementById('projectEditId').value = '';
+    document.getElementById('projectNameInput').value = '';
+    document.getElementById('projectDescInput').value = '';
+    document.getElementById('projectPopupTitle').textContent = 'New Project';
+    
+    const popup = document.getElementById('newProjectPopup');
+    popup.classList.add('active');
+    document.getElementById('projectNameInput').focus();
+}
+
+// Close popup
+function closeProjectPopup(popupId) {
+    const popup = document.getElementById(popupId);
+    popup.classList.remove('active');
+}
+
+// Save project from popup
+function saveProjectFromPopup() {
+    const id = document.getElementById('projectEditId').value;
+    const name = document.getElementById('projectNameInput').value.trim();
+    const description = document.getElementById('projectDescInput').value.trim();
+    
+    if (!name) {
+        showNotification('Please enter a project name', 'error');
+        document.getElementById('projectNameInput').focus();
+        return;
+    }
+    
+    // Collect current dashboard data
+    const projectData = collectDashboardData();
+    projectData.id = id;
+    projectData.name = name;
+    projectData.description = description;
+    
+    saveProject(projectData);
+}
+
+// Save current project (quick save)
+function saveCurrentProject() {
+    if (!currentProjectId) {
+        openNewProjectPopup();
+        return;
+    }
+    
+    const projectData = collectDashboardData();
+    projectData.id = currentProjectId;
+    
+    // Get current project name
+    const selector = document.getElementById('projectSelector');
+    const selectedOption = selector.options[selector.selectedIndex];
+    projectData.name = selectedOption ? selectedOption.textContent : 'Untitled Project';
+    
+    saveProject(projectData);
+}
+
+// Collect all data from dashboard
+function collectDashboardData() {
+    const data = {
+        // Database info
+        database_id: '',
+        database_name: document.getElementById('dbDropdown')?.value || '',
+        database_host: '',
+        database_user: '',
+        database_pass: '',
+        database_port: '3306',
+        include_remote: document.getElementById('remoteCheckbox')?.checked ? 1 : 0,
+        include_localhost: document.getElementById('localhostCheckbox')?.checked ? 1 : 0,
+        
+        // Items
+        backends: [],
+        pages: [],
+        frontends: []
+    };
+    
+    // Collect backend items
+    const backendItems = document.querySelectorAll('#backendItemsGrid .dynamic-item');
+    backendItems.forEach(item => {
+        data.backends.push({
+            name: item.querySelector('.dynamic-item-name')?.value || '',
+            desc: item.querySelector('.dynamic-item-desc')?.value || ''
+        });
+    });
+    
+    // Collect page items
+    const pageItems = document.querySelectorAll('#pagesItemsGrid .dynamic-item');
+    pageItems.forEach(item => {
+        data.pages.push({
+            name: item.querySelector('.dynamic-item-name')?.value || '',
+            desc: item.querySelector('.dynamic-item-desc')?.value || ''
+        });
+    });
+    
+    // Collect frontend items
+    const frontendItems = document.querySelectorAll('#frontendItemsGrid .dynamic-item');
+    frontendItems.forEach(item => {
+        data.frontends.push({
+            name: item.querySelector('.dynamic-item-name')?.value || '',
+            desc: item.querySelector('.dynamic-item-desc')?.value || ''
+        });
+    });
+    
+    return data;
+}
+
+// Save project to database
+function saveProject(projectData) {
+    const formData = new FormData();
+    formData.append('action', 'save_project');
+    formData.append('id', projectData.id || '');
+    formData.append('name', projectData.name);
+    formData.append('description', projectData.description || '');
+    formData.append('database_id', projectData.database_id || '');
+    formData.append('database_name', projectData.database_name || '');
+    formData.append('database_host', projectData.database_host || '');
+    formData.append('database_user', projectData.database_user || '');
+    formData.append('database_pass', projectData.database_pass || '');
+    formData.append('database_port', projectData.database_port || '3306');
+    formData.append('include_remote', projectData.include_remote || 0);
+    formData.append('include_localhost', projectData.include_localhost || 0);
+    formData.append('backends', JSON.stringify(projectData.backends || []));
+    formData.append('pages', JSON.stringify(projectData.pages || []));
+    formData.append('frontends', JSON.stringify(projectData.frontends || []));
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            currentProjectId = data.id;
+            showNotification(data.message, 'success');
+            closeProjectPopup('newProjectPopup');
+            loadProjectsList();
+            
+            // Log operation time
+            if (data.operationTime) {
+                logSpeedMonitor(data.operationType, data.operationTime, data.connectionType);
+            }
+        } else {
+            showNotification(data.message || 'Error saving project', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error saving project:', err);
+        showNotification('Error saving project', 'error');
+    });
+}
+
+// Open load project popup
+function openLoadProjectPopup() {
+    const formData = new FormData();
+    formData.append('action', 'get_projects');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById('projectListContainer');
+        container.innerHTML = '';
+        selectedProjectToLoad = null;
+        document.getElementById('loadProjectBtn').disabled = true;
+        
+        if (data.success && data.projects && data.projects.length > 0) {
+            data.projects.forEach(project => {
+                const item = document.createElement('div');
+                item.className = 'project-list-item';
+                item.dataset.id = project.id;
+                item.onclick = () => selectProjectToLoad(project.id, item);
+                
+                const date = new Date(project.updated_at);
+                const dateStr = date.toLocaleDateString('en-US', { 
+                    month: 'short', day: 'numeric', year: 'numeric' 
+                });
+                
+                item.innerHTML = `
+                    <div class="project-list-info">
+                        <div class="project-list-name">${escapeHtml(project.name)}</div>
+                        <div class="project-list-date">Updated: ${dateStr}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        } else {
+            container.innerHTML = `
+                <div class="project-list-empty">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No projects saved yet</p>
+                </div>
+            `;
+        }
+        
+        document.getElementById('loadProjectPopup').classList.add('active');
+    })
+    .catch(err => {
+        console.error('Error loading projects:', err);
+        showNotification('Error loading projects', 'error');
+    });
+}
+
+// Select project to load
+function selectProjectToLoad(id, element) {
+    document.querySelectorAll('.project-list-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    selectedProjectToLoad = id;
+    document.getElementById('loadProjectBtn').disabled = false;
+}
+
+// Load selected project
+function loadSelectedProject() {
+    if (!selectedProjectToLoad) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'get_project');
+    formData.append('id', selectedProjectToLoad);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.project) {
+            applyProjectToashboard(data.project);
+            currentProjectId = data.project.id;
+            closeProjectPopup('loadProjectPopup');
+            showNotification('Project loaded successfully!', 'success');
+            
+            // Update selector
+            loadProjectsList();
+        } else {
+            showNotification(data.message || 'Error loading project', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error loading project:', err);
+        showNotification('Error loading project', 'error');
+    });
+}
+
+// Apply project data to dashboard
+function applyProjectToashboard(project) {
+    // Reset first
+    resetDashboardItems();
+    
+    // Set database
+    if (project.database_name) {
+        const dbDropdown = document.getElementById('dbDropdown');
+        if (dbDropdown) {
+            dbDropdown.value = project.database_name;
+        }
+    }
+    
+    // Set checkboxes
+    const remoteChk = document.getElementById('remoteCheckbox');
+    const localChk = document.getElementById('localhostCheckbox');
+    if (remoteChk) remoteChk.checked = project.include_remote == 1;
+    if (localChk) localChk.checked = project.include_localhost == 1;
+    
+    // Add backend items
+    if (project.backends && project.backends.length > 0) {
+        project.backends.forEach(item => {
+            addDynamicItem('backend', item.name, item.desc);
+        });
+    }
+    
+    // Add page items
+    if (project.pages && project.pages.length > 0) {
+        project.pages.forEach(item => {
+            addDynamicItem('pages', item.name, item.desc);
+        });
+    }
+    
+    // Add frontend items
+    if (project.frontends && project.frontends.length > 0) {
+        project.frontends.forEach(item => {
+            addDynamicItem('frontend', item.name, item.desc);
+        });
+    }
+}
+
+// On project select from dropdown
+function onProjectSelect() {
+    const selector = document.getElementById('projectSelector');
+    const selectedId = selector.value;
+    
+    if (!selectedId) {
+        currentProjectId = null;
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'get_project');
+    formData.append('id', selectedId);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.project) {
+            applyProjectToashboard(data.project);
+            currentProjectId = data.project.id;
+            showNotification('Project "' + data.project.name + '" loaded', 'info');
+        }
+    })
+    .catch(err => console.error('Error:', err));
+}
+
+// Delete current project
+function deleteCurrentProject() {
+    const selector = document.getElementById('projectSelector');
+    const selectedId = selector.value;
+    
+    if (!selectedId) {
+        showNotification('Please select a project to delete', 'warning');
+        return;
+    }
+    
+    const selectedOption = selector.options[selector.selectedIndex];
+    projectToDelete = {
+        id: selectedId,
+        name: selectedOption.textContent
+    };
+    
+    document.getElementById('deleteProjectName').textContent = '"' + projectToDelete.name + '"';
+    document.getElementById('deleteProjectPopup').classList.add('active');
+}
+
+// Confirm delete project
+function confirmDeleteProject() {
+    if (!projectToDelete) return;
+    
+    const formData = new FormData();
+    formData.append('action', 'delete_project');
+    formData.append('id', projectToDelete.id);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (currentProjectId == projectToDelete.id) {
+                currentProjectId = null;
+            }
+            closeProjectPopup('deleteProjectPopup');
+            showNotification('Project deleted successfully!', 'success');
+            loadProjectsList();
+            resetDashboardProject();
+            
+            if (data.operationTime) {
+                logSpeedMonitor(data.operationType, data.operationTime, data.connectionType);
+            }
+        } else {
+            showNotification(data.message || 'Error deleting project', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        showNotification('Error deleting project', 'error');
+    });
+}
+
+// Reset dashboard project
+function resetDashboardProject() {
+    currentProjectId = null;
+    document.getElementById('projectSelector').value = '';
+    resetDashboardItems();
+    showNotification('Dashboard reset to empty state', 'info');
+}
+
+// Reset only the items (not the project selection)
+function resetDashboardItems() {
+    // Clear backend items
+    const backendGrid = document.getElementById('backendItemsGrid');
+    if (backendGrid) {
+        backendGrid.innerHTML = `
+            <div class="dynamic-empty-state" id="backendEmptyState">
+                <i class="fas fa-file-code"></i>
+                <p>No backend items</p>
+                <small>Click "Add" to create one</small>
+            </div>
+        `;
+    }
+    updateSectionCount('backend');
+    
+    // Clear pages items
+    const pagesGrid = document.getElementById('pagesItemsGrid');
+    if (pagesGrid) {
+        pagesGrid.innerHTML = `
+            <div class="dynamic-empty-state" id="pagesEmptyState">
+                <i class="fas fa-file-alt"></i>
+                <p>No page items</p>
+                <small>Click "Add" to create one</small>
+            </div>
+        `;
+    }
+    updateSectionCount('pages');
+    
+    // Clear frontend items
+    const frontendGrid = document.getElementById('frontendItemsGrid');
+    if (frontendGrid) {
+        frontendGrid.innerHTML = `
+            <div class="dynamic-empty-state" id="frontendEmptyState">
+                <i class="fas fa-paint-brush"></i>
+                <p>No frontend items</p>
+                <small>Click "Add" to create one</small>
+            </div>
+        `;
+    }
+    updateSectionCount('frontend');
+    
+    // Reset checkboxes
+    const remoteChk = document.getElementById('remoteCheckbox');
+    const localChk = document.getElementById('localhostCheckbox');
+    if (remoteChk) remoteChk.checked = false;
+    if (localChk) localChk.checked = false;
+}
+
+// Helper: Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Close popups on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.project-popup-overlay.active').forEach(popup => {
+            popup.classList.remove('active');
+        });
+    }
+});
+
+// Close popup when clicking outside
+document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+        }
+    });
+});
+</script>
+<!-- End Project Management Popups -->
 
 </body>
 </html>
