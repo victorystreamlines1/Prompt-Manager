@@ -480,9 +480,17 @@ if ($pdo) {
             backends TEXT,
             pages TEXT,
             frontends TEXT,
+            prompt_content TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
+        
+        // Add prompt_content column if it doesn't exist (for existing tables)
+        try {
+            $pdo->exec("ALTER TABLE reporter_prompt_projects ADD COLUMN prompt_content TEXT AFTER frontends");
+        } catch (PDOException $e) {
+            // Column might already exist
+        }
         
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
@@ -826,6 +834,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $backends = $_POST['backends'] ?? '[]';
         $pages = $_POST['pages'] ?? '[]';
         $frontends = $_POST['frontends'] ?? '[]';
+        $promptContent = $_POST['prompt_content'] ?? '';
         
         if ($name) {
             try {
@@ -836,12 +845,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("UPDATE reporter_prompt_projects SET 
                         name = ?, description = ?, database_id = ?, database_name = ?, 
                         database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
-                        include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?
+                        include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, prompt_content = ?
                         WHERE id = ?");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
-                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $id
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent, $id
                     ]);
                     $projectId = $id;
                     $message = 'Project updated successfully!';
@@ -850,12 +859,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Create new project
                     $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
                         (name, description, database_id, database_name, database_host, database_user, 
-                         database_pass, database_port, include_remote, include_localhost, backends, pages, frontends) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, prompt_content) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
-                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent
                     ]);
                     $projectId = $pdo->lastInsertId();
                     $message = 'Project created successfully!';
@@ -17853,9 +17862,104 @@ let currentProjectId = null;
 let selectedProjectToLoad = null;
 let projectToDelete = null;
 
+// ════════════════════════════════════════════════════════════════
+// REAL-TIME SYNC WITH INDEX1.PHP (BroadcastChannel + Polling)
+// ════════════════════════════════════════════════════════════════
+
+let syncChannelPM = null;
+let projectsCachePM = [];
+let lastProjectsHashPM = '';
+
+try {
+    syncChannelPM = new BroadcastChannel('prompt_manager_sync');
+    syncChannelPM.onmessage = async function(event) {
+        const data = event.data;
+        console.log('📡 Sync message received:', data.type);
+        
+        if (data.type === 'project_saved' || data.type === 'project_deleted' || data.type === 'project_updated') {
+            // Reload projects list
+            loadProjectsList();
+            
+            // If current project was updated/deleted, handle it
+            if (data.id && currentProjectId == data.id) {
+                if (data.type === 'project_deleted') {
+                    currentProjectId = null;
+                    resetDashboardItems();
+                    showToast('🔄 Current project was deleted in another tab', 'warning');
+                } else {
+                    loadProject(data.id);
+                    showToast('🔄 Project synced from other tab!', 'info');
+                }
+            }
+        }
+    };
+    console.log('📡 BroadcastChannel connected for real-time sync');
+} catch (e) {
+    console.log('BroadcastChannel not supported');
+}
+
+// Broadcast sync event to other tabs
+function broadcastSyncPM(type, data = {}) {
+    if (syncChannelPM) {
+        syncChannelPM.postMessage({ type: type, ...data, timestamp: Date.now() });
+    }
+}
+
+// Polling for cross-device sync
+let syncIntervalPM = null;
+
+function startSyncPollingPM() {
+    if (syncIntervalPM) return;
+    
+    syncIntervalPM = setInterval(async () => {
+        if (document.hidden) return;
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'get_projects');
+            
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                const newHash = JSON.stringify(result.projects.map(p => p.id + '_' + p.updated_at));
+                
+                if (lastProjectsHashPM && newHash !== lastProjectsHashPM) {
+                    console.log('🔄 Projects changed on server, reloading...');
+                    updateProjectSelector(result.projects);
+                    showToast('🔄 Projects list updated!', 'info');
+                }
+                
+                lastProjectsHashPM = newHash;
+            }
+        } catch (e) {
+            console.log('Sync check failed:', e);
+        }
+    }, 5000);
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (syncIntervalPM) {
+            clearInterval(syncIntervalPM);
+            syncIntervalPM = null;
+        }
+    } else {
+        startSyncPollingPM();
+        loadProjectsList();
+    }
+});
+
+// ════════════════════════════════════════════════════════════════
+
 // Initialize projects on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadProjectsList();
+    startSyncPollingPM();
 });
 
 // Load all projects into selector
@@ -18030,6 +18134,9 @@ function saveProject(projectData) {
     formData.append('backends', JSON.stringify(projectData.backends || []));
     formData.append('pages', JSON.stringify(projectData.pages || []));
     formData.append('frontends', JSON.stringify(projectData.frontends || []));
+    // Include prompt editor content
+    const promptEditor = document.getElementById('promptEditor');
+    formData.append('prompt_content', promptEditor ? promptEditor.value : '');
     
     fetch(window.location.href, {
         method: 'POST',
@@ -18042,6 +18149,9 @@ function saveProject(projectData) {
             showToast(data.message, 'success');
             closeProjectPopup('newProjectPopup');
             loadProjectsList();
+            
+            // Broadcast sync to other tabs (index1.php)
+            broadcastSyncPM('project_saved', { id: data.id });
             
             // Log operation time to speed monitor
             if (data.operationTime) {
@@ -18204,6 +18314,12 @@ function applyProjectToDashboard(project) {
         });
     }
     
+    // Load prompt content into editor
+    const promptEditor = document.getElementById('promptEditor');
+    if (promptEditor && project.prompt_content) {
+        promptEditor.value = project.prompt_content;
+    }
+    
     showToast('Project data loaded to dashboard', 'success');
 }
 
@@ -18260,9 +18376,11 @@ function deleteCurrentProject() {
 function confirmDeleteProject() {
     if (!projectToDelete) return;
     
+    const deletedId = projectToDelete.id;
+    
     const formData = new FormData();
     formData.append('action', 'delete_project');
-    formData.append('id', projectToDelete.id);
+    formData.append('id', deletedId);
     
     fetch(window.location.href, {
         method: 'POST',
@@ -18271,13 +18389,16 @@ function confirmDeleteProject() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            if (currentProjectId == projectToDelete.id) {
+            if (currentProjectId == deletedId) {
                 currentProjectId = null;
             }
             closeProjectPopup('deleteProjectPopup');
             showToast('Project deleted successfully!', 'success');
             loadProjectsList();
             resetDashboardProject();
+            
+            // Broadcast sync to other tabs (index1.php)
+            broadcastSyncPM('project_deleted', { id: deletedId });
             
             if (data.operationTime) {
                 addSpeedEntry({ 

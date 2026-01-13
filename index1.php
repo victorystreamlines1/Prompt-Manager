@@ -1,3 +1,263 @@
+<?php
+// ============================================================================
+// DATABASE CONNECTION FOR DESIGN ENHANCER
+// Uses the same database as Prompt-Manager.php for project synchronization
+// ============================================================================
+
+$dbCredentials = [
+    'localhost' => [
+        'host' => 'localhost',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ],
+    'remote' => [
+        'host' => 'srv1788.hstgr.io',
+        'dbname' => 'u419999707_prompt_manager',
+        'username' => 'u419999707_prompt_manager',
+        'password' => 'P@master5007',
+        'port' => '3306'
+    ]
+];
+
+$pdo = null;
+$dbError = null;
+$connectionType = 'localhost';
+
+// Smart Connection Function
+function connectToDatabaseDE($credentials, $preferredType) {
+    global $connectionType, $dbError;
+    
+    $cred = $credentials[$preferredType];
+    try {
+        $pdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        $connectionType = $preferredType;
+        return $pdo;
+    } catch (PDOException $e) {
+        // Try fallback
+        $fallbackType = ($preferredType === 'localhost') ? 'remote' : 'localhost';
+        $cred = $credentials[$fallbackType];
+        
+        try {
+            $pdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_TIMEOUT => 5
+                ]
+            );
+            $connectionType = $fallbackType;
+            return $pdo;
+        } catch (PDOException $e2) {
+            $dbError = $e2->getMessage();
+            return null;
+        }
+    }
+}
+
+// Get preferred connection type
+$preferredType = isset($_COOKIE['pm_db_connection_type']) ? $_COOKIE['pm_db_connection_type'] : 'localhost';
+if (!in_array($preferredType, ['localhost', 'remote'])) {
+    $preferredType = 'localhost';
+}
+
+// Connect to database
+$pdo = connectToDatabaseDE($dbCredentials, $preferredType);
+
+// Create projects table if not exists (same as Prompt-Manager.php)
+if ($pdo) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_projects (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            description TEXT,
+            database_id INT,
+            database_name VARCHAR(255),
+            database_host VARCHAR(255),
+            database_user VARCHAR(255),
+            database_pass VARCHAR(255),
+            database_port VARCHAR(10) DEFAULT '3306',
+            include_remote TINYINT(1) DEFAULT 0,
+            include_localhost TINYINT(1) DEFAULT 0,
+            backends TEXT,
+            pages TEXT,
+            frontends TEXT,
+            prompt_content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        // Add prompt_content column if it doesn't exist
+        try {
+            $pdo->exec("ALTER TABLE reporter_prompt_projects ADD COLUMN prompt_content TEXT AFTER frontends");
+        } catch (PDOException $e) {
+            // Column might already exist
+        }
+    } catch (PDOException $e) {
+        $dbError = $e->getMessage();
+    }
+}
+
+// ============================================================================
+// AJAX HANDLERS FOR PROJECT OPERATIONS
+// ============================================================================
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+    
+    $action = $_POST['action'] ?? '';
+    
+    // Get all projects
+    if ($action === 'get_projects_de') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT id, name, description, created_at, updated_at FROM reporter_prompt_projects ORDER BY updated_at DESC");
+                $projects = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'projects' => $projects, 'source' => 'database']);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected: ' . $dbError]);
+        }
+        exit;
+    }
+    
+    // Get single project
+    if ($action === 'get_project_de') {
+        $id = $_POST['id'] ?? '';
+        
+        if ($pdo && $id) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_projects WHERE id = ?");
+                $stmt->execute([$id]);
+                $project = $stmt->fetch();
+                
+                if ($project) {
+                    $project['backends'] = json_decode($project['backends'] ?? '[]', true) ?: [];
+                    $project['pages'] = json_decode($project['pages'] ?? '[]', true) ?: [];
+                    $project['frontends'] = json_decode($project['frontends'] ?? '[]', true) ?: [];
+                    echo json_encode(['success' => true, 'project' => $project]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Project not found']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected or ID missing']);
+        }
+        exit;
+    }
+    
+    // Save/Update project
+    if ($action === 'save_project_de') {
+        if (!$pdo) {
+            echo json_encode(['success' => false, 'message' => 'Database not connected']);
+            exit;
+        }
+        
+        $id = $_POST['id'] ?? '';
+        $name = $_POST['name'] ?? 'Untitled Project';
+        $description = $_POST['description'] ?? '';
+        $backends = $_POST['backends'] ?? '[]';
+        $pages = $_POST['pages'] ?? '[]';
+        $frontends = $_POST['frontends'] ?? '[]';
+        $promptContent = $_POST['prompt_content'] ?? '';
+        $databaseId = $_POST['database_id'] ?? null;
+        $databaseName = $_POST['database_name'] ?? '';
+        $databaseHost = $_POST['database_host'] ?? '';
+        $databaseUser = $_POST['database_user'] ?? '';
+        $databasePass = $_POST['database_pass'] ?? '';
+        $databasePort = $_POST['database_port'] ?? '3306';
+        $includeRemote = $_POST['include_remote'] ?? 0;
+        $includeLocalhost = $_POST['include_localhost'] ?? 0;
+        
+        try {
+            if ($id) {
+                // Update existing
+                $stmt = $pdo->prepare("UPDATE reporter_prompt_projects SET 
+                    name = ?, description = ?, database_id = ?, database_name = ?, 
+                    database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
+                    include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, prompt_content = ?
+                    WHERE id = ?");
+                $stmt->execute([
+                    $name, $description, $databaseId, $databaseName,
+                    $databaseHost, $databaseUser, $databasePass, $databasePort,
+                    $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent, $id
+                ]);
+                $projectId = $id;
+                $message = 'Project updated!';
+            } else {
+                // Create new
+                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
+                    (name, description, database_id, database_name, database_host, database_user, 
+                     database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, prompt_content) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $name, $description, $databaseId, $databaseName,
+                    $databaseHost, $databaseUser, $databasePass, $databasePort,
+                    $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent
+                ]);
+                $projectId = $pdo->lastInsertId();
+                $message = 'Project created!';
+            }
+            
+            echo json_encode(['success' => true, 'id' => $projectId, 'message' => $message]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+    
+    // Delete project
+    if ($action === 'delete_project_de') {
+        $id = $_POST['id'] ?? '';
+        
+        if ($pdo && $id) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_projects WHERE id = ?");
+                $stmt->execute([$id]);
+                echo json_encode(['success' => true, 'message' => 'Project deleted!']);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected or ID missing']);
+        }
+        exit;
+    }
+    
+    // Sync check - returns latest projects data for cross-page sync
+    if ($action === 'sync_check_de') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT id, name, updated_at FROM reporter_prompt_projects ORDER BY updated_at DESC");
+                $projects = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'projects' => $projects, 'timestamp' => time()]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected']);
+        }
+        exit;
+    }
+}
+?>
 <!DOCTYPE html>
 <!--
     ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -32411,7 +32671,6 @@ ${state.feedFromDocumentation ?
     // ══════════════════════════════════════════════════════════════════
     
     const DASHBOARD_STORAGE_KEY_DE = 'devDashboardSettingsDE';
-    const PROJECTS_STORAGE_KEY_DE = 'devDashboardProjectsDE';
     
     // Dashboard state
     let dashboardStateDE = {
@@ -32425,6 +32684,10 @@ ${state.feedFromDocumentation ?
         frontend: [],
         currentProject: null
     };
+    
+    // Projects cache (loaded from database)
+    let projectsCacheDE = [];
+    let lastSyncTimestampDE = 0;
     
     // Item counters
     let itemCountersDE = {
@@ -32468,41 +32731,127 @@ ${state.feedFromDocumentation ?
         }
     }
     
-    function loadProjectsListDE() {
+    // Load projects list from database (async)
+    async function loadProjectsListDE() {
         try {
-            const projects = getProjectsDE();
-            const selector = document.getElementById('projectSelectorDE');
-            if (selector) {
-                selector.innerHTML = '<option value="">-- No Project --</option>';
-                projects.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = p.name;
-                    if (dashboardStateDE.currentProject === p.id) {
-                        opt.selected = true;
-                    }
-                    selector.appendChild(opt);
-                });
+            const formData = new FormData();
+            formData.append('action', 'get_projects_de');
+            
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                projectsCacheDE = result.projects || [];
+                updateProjectSelectorDE();
+                console.log('📦 Projects loaded from database:', projectsCacheDE.length);
+            } else {
+                console.error('Error loading projects:', result.message);
             }
         } catch (e) {
             console.error('Error loading projects:', e);
         }
     }
     
-    function getProjectsDE() {
-        try {
-            const saved = localStorage.getItem(PROJECTS_STORAGE_KEY_DE);
-            return saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            return [];
+    // Update project selector dropdown
+    function updateProjectSelectorDE() {
+        const selector = document.getElementById('projectSelectorDE');
+        if (selector) {
+            selector.innerHTML = '<option value="">-- No Project --</option>';
+            projectsCacheDE.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                if (dashboardStateDE.currentProject == p.id) {
+                    opt.selected = true;
+                }
+                selector.appendChild(opt);
+            });
         }
     }
     
-    function saveProjectsDE(projects) {
+    // Get single project from database
+    async function getProjectFromDB(id) {
         try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY_DE, JSON.stringify(projects));
+            const formData = new FormData();
+            formData.append('action', 'get_project_de');
+            formData.append('id', id);
+            
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            return result.success ? result.project : null;
         } catch (e) {
-            console.error('Error saving projects:', e);
+            console.error('Error getting project:', e);
+            return null;
+        }
+    }
+    
+    // Save project to database
+    async function saveProjectToDB(projectData) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'save_project_de');
+            
+            if (projectData.id) formData.append('id', projectData.id);
+            formData.append('name', projectData.name || 'Untitled Project');
+            formData.append('description', projectData.description || '');
+            formData.append('backends', JSON.stringify(dashboardStateDE.backend || []));
+            formData.append('pages', JSON.stringify(dashboardStateDE.page || []));
+            formData.append('frontends', JSON.stringify(dashboardStateDE.frontend || []));
+            formData.append('prompt_content', document.getElementById('promptEditorDE')?.value || '');
+            formData.append('database_name', dashboardStateDE.database?.selected || '');
+            formData.append('include_remote', dashboardStateDE.database?.remoteCredentials ? 1 : 0);
+            formData.append('include_localhost', dashboardStateDE.database?.localhostCredentials ? 1 : 0);
+            
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Broadcast change to other tabs
+                broadcastSyncDE('project_saved', { id: result.id });
+            }
+            
+            return result;
+        } catch (e) {
+            console.error('Error saving project:', e);
+            return { success: false, message: e.message };
+        }
+    }
+    
+    // Delete project from database
+    async function deleteProjectFromDB(id) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'delete_project_de');
+            formData.append('id', id);
+            
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // Broadcast change to other tabs
+                broadcastSyncDE('project_deleted', { id: id });
+            }
+            
+            return result;
+        } catch (e) {
+            console.error('Error deleting project:', e);
+            return { success: false, message: e.message };
         }
     }
     
@@ -32780,7 +33129,7 @@ ${state.feedFromDocumentation ?
         }
     };
     
-    window.createProjectDE = function() {
+    window.createProjectDE = async function() {
         const input = document.getElementById('newProjectNameDE');
         const name = input ? input.value.trim() : '';
         
@@ -32789,44 +33138,52 @@ ${state.feedFromDocumentation ?
             return;
         }
         
-        const projects = getProjectsDE();
-        const newProject = {
-            id: Date.now().toString(),
-            name: name,
-            created: new Date().toISOString(),
-            data: JSON.parse(JSON.stringify(dashboardStateDE))
-        };
-        projects.push(newProject);
-        saveProjectsDE(projects);
-        dashboardStateDE.currentProject = newProject.id;
-        saveDashboardStateDE();
-        loadProjectsListDE();
+        showNotificationDE('Creating project...', 'info');
         
-        document.getElementById('newProjectPopupDE').classList.remove('active');
-        showNotificationDE(`Project "${name}" created!`, 'success');
+        const result = await saveProjectToDB({ name: name });
+        
+        if (result.success) {
+            dashboardStateDE.currentProject = result.id;
+            saveDashboardStateDE();
+            await loadProjectsListDE();
+            
+            document.getElementById('newProjectPopupDE').classList.remove('active');
+            input.value = '';
+            showNotificationDE(`Project "${name}" created!`, 'success');
+        } else {
+            showNotificationDE('Error creating project: ' + result.message, 'error');
+        }
     };
     
-    window.saveCurrentProjectDE = function() {
+    window.saveCurrentProjectDE = async function() {
         if (!dashboardStateDE.currentProject) {
             showNotificationDE('No project selected! Create a new project first.', 'warning');
             return;
         }
         
-        const projects = getProjectsDE();
-        const project = projects.find(p => p.id === dashboardStateDE.currentProject);
-        if (project) {
-            project.data = JSON.parse(JSON.stringify(dashboardStateDE));
-            project.updated = new Date().toISOString();
-            saveProjectsDE(projects);
-            showNotificationDE(`Project "${project.name}" saved!`, 'success');
+        showNotificationDE('Saving project...', 'info');
+        
+        const currentProject = projectsCacheDE.find(p => p.id == dashboardStateDE.currentProject);
+        
+        const result = await saveProjectToDB({
+            id: dashboardStateDE.currentProject,
+            name: currentProject?.name || 'Project'
+        });
+        
+        if (result.success) {
+            showNotificationDE('Project saved!', 'success');
+            await loadProjectsListDE();
+        } else {
+            showNotificationDE('Error saving: ' + result.message, 'error');
         }
     };
     
-    window.openLoadProjectPopupDE = function() {
-        const projects = getProjectsDE();
+    window.openLoadProjectPopupDE = async function() {
+        await loadProjectsListDE();
+        
         const listContainer = document.getElementById('projectListDE');
         
-        if (projects.length === 0) {
+        if (projectsCacheDE.length === 0) {
             listContainer.innerHTML = `
                 <div class="project-list-empty-de">
                     <i class="fas fa-folder-open"></i>
@@ -32834,11 +33191,11 @@ ${state.feedFromDocumentation ?
                 </div>
             `;
         } else {
-            listContainer.innerHTML = projects.map(p => `
+            listContainer.innerHTML = projectsCacheDE.map(p => `
                 <div class="project-list-item-de" data-id="${p.id}" onclick="selectProjectItemDE(this, '${p.id}')">
                     <div class="project-list-info-de">
                         <div class="project-list-name-de">${p.name}</div>
-                        <div class="project-list-date-de">${new Date(p.created).toLocaleDateString()}</div>
+                        <div class="project-list-date-de">${new Date(p.created_at || p.updated_at).toLocaleDateString()}</div>
                     </div>
                     <i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 0.7rem;"></i>
                 </div>
@@ -32851,39 +33208,56 @@ ${state.feedFromDocumentation ?
     window.selectedProjectIdDE = null;
     
     window.selectProjectItemDE = function(element, id) {
-        // Remove selection from all items
         document.querySelectorAll('.project-list-item-de').forEach(item => {
             item.classList.remove('selected');
         });
-        // Add selection to clicked item
         element.classList.add('selected');
         window.selectedProjectIdDE = id;
     };
     
-    window.loadSelectedProjectDE = function() {
+    window.loadSelectedProjectDE = async function() {
         if (!window.selectedProjectIdDE) {
             showNotificationDE('Please select a project first!', 'warning');
             return;
         }
         
-        const projects = getProjectsDE();
-        const project = projects.find(p => p.id === window.selectedProjectIdDE);
+        showNotificationDE('Loading project...', 'info');
         
-        if (project && project.data) {
-            dashboardStateDE = { ...project.data, currentProject: project.id };
+        const project = await getProjectFromDB(window.selectedProjectIdDE);
+        
+        if (project) {
+            dashboardStateDE = {
+                database: {
+                    selected: project.database_name || '',
+                    remoteCredentials: project.include_remote == 1,
+                    localhostCredentials: project.include_localhost == 1
+                },
+                backend: project.backends || [],
+                page: project.pages || [],
+                frontend: project.frontends || [],
+                currentProject: project.id
+            };
+            
+            const editor = document.getElementById('promptEditorDE');
+            if (editor && project.prompt_content) {
+                editor.value = project.prompt_content;
+            }
+            
             saveDashboardStateDE();
             renderAllItemsDE();
-            loadProjectsListDE();
+            await loadProjectsListDE();
             
             document.getElementById('loadProjectPopupDE').classList.remove('active');
             window.selectedProjectIdDE = null;
             showNotificationDE(`Project "${project.name}" loaded!`, 'success');
+        } else {
+            showNotificationDE('Error loading project', 'error');
         }
     };
-    
-    window.onProjectSelectDE = function() {
+
+    window.onProjectSelectDE = async function() {
         const selector = document.getElementById('projectSelectorDE');
-        const projectId = selector.value;
+        const projectId = selector?.value;
         
         if (!projectId) {
             dashboardStateDE.currentProject = null;
@@ -32891,31 +33265,55 @@ ${state.feedFromDocumentation ?
             return;
         }
         
-        const projects = getProjectsDE();
-        const project = projects.find(p => p.id === projectId);
-        if (project && project.data) {
-            dashboardStateDE = { ...project.data, currentProject: project.id };
+        showNotificationDE('Loading...', 'info');
+        
+        const project = await getProjectFromDB(projectId);
+        
+        if (project) {
+            dashboardStateDE = {
+                database: {
+                    selected: project.database_name || '',
+                    remoteCredentials: project.include_remote == 1,
+                    localhostCredentials: project.include_localhost == 1
+                },
+                backend: project.backends || [],
+                page: project.pages || [],
+                frontend: project.frontends || [],
+                currentProject: project.id
+            };
+            
+            const editor = document.getElementById('promptEditorDE');
+            if (editor && project.prompt_content) {
+                editor.value = project.prompt_content;
+            }
+            
             saveDashboardStateDE();
             renderAllItemsDE();
             showNotificationDE(`Project "${project.name}" loaded!`, 'success');
         }
     };
     
-    window.deleteCurrentProjectDE = function() {
+    window.deleteCurrentProjectDE = async function() {
         if (!dashboardStateDE.currentProject) {
             showNotificationDE('No project selected!', 'warning');
             return;
         }
         
-        if (confirm('Are you sure you want to delete this project?')) {
-            let projects = getProjectsDE();
-            const project = projects.find(p => p.id === dashboardStateDE.currentProject);
-            projects = projects.filter(p => p.id !== dashboardStateDE.currentProject);
-            saveProjectsDE(projects);
-            dashboardStateDE.currentProject = null;
-            saveDashboardStateDE();
-            loadProjectsListDE();
-            showNotificationDE(`Project "${project?.name}" deleted!`, 'success');
+        const currentProject = projectsCacheDE.find(p => p.id == dashboardStateDE.currentProject);
+        
+        if (confirm(`Delete "${currentProject?.name}"?`)) {
+            showNotificationDE('Deleting...', 'info');
+            
+            const result = await deleteProjectFromDB(dashboardStateDE.currentProject);
+            
+            if (result.success) {
+                dashboardStateDE.currentProject = null;
+                saveDashboardStateDE();
+                await loadProjectsListDE();
+                showNotificationDE('Project deleted!', 'success');
+            } else {
+                showNotificationDE('Error: ' + result.message, 'error');
+            }
         }
     };
     
@@ -33051,6 +33449,117 @@ ${state.feedFromDocumentation ?
             showNotificationDE('⚠️ Please allow popups to open Prompt Manager', 'warning');
         }
     };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // REAL-TIME SYNC BETWEEN PAGES (BroadcastChannel + Polling)
+    // ══════════════════════════════════════════════════════════════════
+    
+    // BroadcastChannel for same-browser sync
+    let syncChannelDE = null;
+    try {
+        syncChannelDE = new BroadcastChannel('prompt_manager_sync');
+        syncChannelDE.onmessage = async function(event) {
+            const data = event.data;
+            console.log('📡 Sync message received:', data.type);
+            
+            if (data.type === 'project_saved' || data.type === 'project_deleted' || data.type === 'project_updated') {
+                // Reload projects list
+                await loadProjectsListDE();
+                
+                // If current project was updated, reload it
+                if (data.id && dashboardStateDE.currentProject == data.id) {
+                    const project = await getProjectFromDB(data.id);
+                    if (project) {
+                        dashboardStateDE = {
+                            database: {
+                                selected: project.database_name || '',
+                                remoteCredentials: project.include_remote == 1,
+                                localhostCredentials: project.include_localhost == 1
+                            },
+                            backend: project.backends || [],
+                            page: project.pages || [],
+                            frontend: project.frontends || [],
+                            currentProject: project.id
+                        };
+                        
+                        const editor = document.getElementById('promptEditorDE');
+                        if (editor && project.prompt_content) {
+                            editor.value = project.prompt_content;
+                        }
+                        
+                        renderAllItemsDE();
+                        showNotificationDE('🔄 Project synced from other tab!', 'info');
+                    }
+                }
+            }
+        };
+        console.log('📡 BroadcastChannel connected for real-time sync');
+    } catch (e) {
+        console.log('BroadcastChannel not supported, using polling only');
+    }
+    
+    // Broadcast sync event to other tabs
+    function broadcastSyncDE(type, data) {
+        if (syncChannelDE) {
+            syncChannelDE.postMessage({ type: type, ...data, timestamp: Date.now() });
+        }
+    }
+    
+    // Polling for cross-device sync (every 5 seconds when visible)
+    let syncIntervalDE = null;
+    let lastProjectsHashDE = '';
+    
+    function startSyncPollingDE() {
+        if (syncIntervalDE) return;
+        
+        syncIntervalDE = setInterval(async () => {
+            if (document.hidden) return; // Don't sync when page is hidden
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'sync_check_de');
+                
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Create hash of project IDs and update times
+                    const newHash = JSON.stringify(result.projects.map(p => p.id + '_' + p.updated_at));
+                    
+                    if (lastProjectsHashDE && newHash !== lastProjectsHashDE) {
+                        console.log('🔄 Projects changed on server, reloading...');
+                        await loadProjectsListDE();
+                        showNotificationDE('🔄 Projects list updated!', 'info');
+                    }
+                    
+                    lastProjectsHashDE = newHash;
+                }
+            } catch (e) {
+                console.log('Sync check failed:', e);
+            }
+        }, 5000);
+    }
+    
+    function stopSyncPollingDE() {
+        if (syncIntervalDE) {
+            clearInterval(syncIntervalDE);
+            syncIntervalDE = null;
+        }
+    }
+    
+    // Start/stop sync based on visibility
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopSyncPollingDE();
+        } else {
+            startSyncPollingDE();
+            loadProjectsListDE(); // Refresh when page becomes visible
+        }
+    });
     
     // ══════════════════════════════════════════════════════════════════
     // SEND TO PROMPT.TXT FUNCTIONALITY (uses Prompt-Manager.php config)
@@ -33236,14 +33745,19 @@ ${state.feedFromDocumentation ?
     // INITIALIZE ON DOM READY
     // ══════════════════════════════════════════════════════════════════
     
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            initDashboardDE();
-            initSendConnectionDE();
-        });
-    } else {
-        initDashboardDE();
+    async function initAllDE() {
+        loadDashboardStateDE(); // Load local state first
+        await loadProjectsListDE(); // Then load projects from database
+        updateAllCountsDE();
         initSendConnectionDE();
+        startSyncPollingDE(); // Start real-time sync
+        console.log('✅ Development Dashboard DE initialized with database sync');
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAllDE);
+    } else {
+        initAllDE();
     }
     
     console.log('✅ Development Dashboard & Prompt Editor DE - Loaded');
