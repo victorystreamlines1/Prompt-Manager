@@ -3467,26 +3467,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-shrink: 0;
         }
 
-        /* Development Dashboard Section */
+        /* Development Dashboard Section - PRO REDESIGN */
         .dev-dashboard-section {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(18, 18, 28, 0.95) 0%, rgba(15, 15, 25, 1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 20px;
             overflow: hidden;
             margin-bottom: 1.5rem;
             position: relative;
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        
+        .dev-dashboard-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                #06b6d4 0%, 
+                #a78bfa 33%, 
+                #fb923c 66%, 
+                #10b981 100%);
+            opacity: 0.8;
         }
 
         .dev-dashboard-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1.25rem;
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
-            border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(139, 92, 246, 0.02) 50%, transparent 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
         }
 
         .dev-dashboard-left {
@@ -3498,7 +3515,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dev-dashboard-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.65rem;
         }
         
         .dev-dashboard-tabs {
@@ -3515,7 +3532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-muted);
-            background: rgba(251, 191, 36, 0.08);
+            background: rgba(99, 102, 241, 0.06);
             border: 1px solid transparent;
             border-radius: 6px;
             cursor: pointer;
@@ -3523,14 +3540,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .dev-tab:hover {
-            color: #fbbf24;
-            background: rgba(251, 191, 36, 0.12);
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
         }
         
         .dev-tab.active {
-            color: #fbbf24;
-            background: rgba(251, 191, 36, 0.15);
-            border-color: rgba(251, 191, 36, 0.3);
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.25);
         }
         
         .dev-tab i {
@@ -3538,20 +3555,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dev-dashboard-title .dev-icon {
-            font-size: 1.1rem;
-            animation: devIconPulse 2s ease-in-out infinite;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: devIconPulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
         }
 
         @keyframes devIconPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
+            50% { opacity: 0.85; transform: scale(1.1); }
         }
 
         .dev-dashboard-title .dev-text {
-            font-family: 'Caveat', 'Segoe Script', 'Bradley Hand', cursive;
-            font-size: 1.3rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -3561,79 +3583,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dev-dashboard-actions {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem;
         }
         
         .dash-reset-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 10px;
             color: #f87171;
             font-size: 0.75rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
         
         .dash-reset-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
             color: #fca5a5;
             transform: rotate(-180deg);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
         }
         
         .dev-dashboard-status {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.35rem 0.75rem;
-            background: rgba(34, 197, 94, 0.1);
+            padding: 0.4rem 0.85rem;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
             border: 1px solid rgba(34, 197, 94, 0.2);
-            border-radius: 20px;
+            border-radius: 25px;
         }
 
         .dev-dashboard-status .status-dot {
             width: 8px;
             height: 8px;
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #10b981);
             border-radius: 50%;
-            animation: statusBlink 2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+            animation: statusPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
         }
 
-        @keyframes statusBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+            50% { opacity: 0.7; box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
         }
 
         .dev-dashboard-status .status-text {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            color: #22c55e;
+            color: #4ade80;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
 
         .dev-dashboard-content {
-            padding: 0.65rem 1rem;
-            background: linear-gradient(180deg, rgba(251, 191, 36, 0.02) 0%, transparent 100%);
+            padding: 1rem 1.25rem;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.015) 0%, transparent 100%);
         }
 
-        /* Dashboard Database Widget */
+        /* Dashboard Database Widget - PRO */
         .dash-db-widget {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.04) 0%, rgba(245, 158, 11, 0.02) 50%, transparent 100%);
+            border: 1px solid rgba(251, 191, 36, 0.12);
+            border-radius: 14px;
+            position: relative;
+        }
+        
+        .dash-db-widget::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3), transparent);
         }
         
         .dash-db-tools {
             display: flex;
-            align-items: stretch;
-            gap: 0.5rem;
+            align-items: center;
+            gap: 0.6rem;
             flex-wrap: wrap;
         }
         
@@ -4178,274 +4216,432 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════
-           DYNAMIC SECTIONS GRID SYSTEM
+           DYNAMIC SECTIONS GRID SYSTEM - REDESIGNED PRO VERSION
            ═══════════════════════════════════════════════════════════════ */
         
         .dynamic-sections-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid rgba(99, 102, 241, 0.1);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        
+        @media (max-width: 1200px) {
+            .dynamic-sections-container {
+                grid-template-columns: 1fr;
+            }
         }
         
         .dynamic-section {
-            background: rgba(30, 30, 50, 0.4);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 12px;
-            padding: 0.75rem;
+            background: linear-gradient(180deg, rgba(20, 20, 35, 0.8) 0%, rgba(15, 15, 30, 0.9) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
         }
+        
+        .dynamic-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--section-color, #6366f1), transparent);
+            opacity: 0.6;
+        }
+        
+        .dynamic-section:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        #backendSection { --section-color: #06b6d4; }
+        #pageSection { --section-color: #a78bfa; }
+        #frontendSection { --section-color: #fb923c; }
+        
+        #backendSection::before { background: linear-gradient(90deg, transparent, #06b6d4, transparent); }
+        #pageSection::before { background: linear-gradient(90deg, transparent, #a78bfa, transparent); }
+        #frontendSection::before { background: linear-gradient(90deg, transparent, #fb923c, transparent); }
         
         .dynamic-section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            padding: 0.85rem 1rem;
+            background: linear-gradient(135deg, rgba(var(--section-rgb, 99, 102, 241), 0.08) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        
+        #backendSection .dynamic-section-header { 
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.02) 100%); 
+        }
+        #pageSection .dynamic-section-header { 
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(167, 139, 250, 0.02) 100%); 
+        }
+        #frontendSection .dynamic-section-header { 
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(251, 146, 60, 0.02) 100%); 
         }
         
         .dynamic-section-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 600;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
         }
         
         .dynamic-section-title i {
-            font-size: 0.9rem;
+            font-size: 1rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
         }
         
-        .dynamic-section-title.backend-title {
-            color: #06b6d4;
-        }
+        .dynamic-section-title.backend-title { color: #22d3ee; }
+        .dynamic-section-title.backend-title i { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
         
-        .dynamic-section-title.page-title {
-            color: #a78bfa;
-        }
+        .dynamic-section-title.page-title { color: #c4b5fd; }
+        .dynamic-section-title.page-title i { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
         
-        .dynamic-section-title.frontend-title {
-            color: #fb923c;
-        }
+        .dynamic-section-title.frontend-title { color: #fdba74; }
+        .dynamic-section-title.frontend-title i { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
         
         .dynamic-section-count {
             font-size: 0.65rem;
-            padding: 0.15rem 0.5rem;
-            background: rgba(99, 102, 241, 0.15);
-            border-radius: 10px;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        #backendSection .dynamic-section-count { 
+            background: rgba(6, 182, 212, 0.2); 
+            color: #22d3ee;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+        #pageSection .dynamic-section-count { 
+            background: rgba(167, 139, 250, 0.2); 
+            color: #c4b5fd;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.2);
+        }
+        #frontendSection .dynamic-section-count { 
+            background: rgba(251, 146, 60, 0.2); 
+            color: #fdba74;
+            box-shadow: 0 0 10px rgba(251, 146, 60, 0.2);
+        }
+        
+        .dynamic-section-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .dynamic-section-arrow {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.08);
             color: #818cf8;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dynamic-section-arrow:hover {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        
+        #backendSection .dynamic-section-arrow {
+            border-color: rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.1);
+            color: #22d3ee;
+        }
+        #backendSection .dynamic-section-arrow:hover {
+            background: rgba(6, 182, 212, 0.2);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+        
+        #pageSection .dynamic-section-arrow {
+            border-color: rgba(167, 139, 250, 0.3);
+            background: rgba(167, 139, 250, 0.1);
+            color: #c4b5fd;
+        }
+        #pageSection .dynamic-section-arrow:hover {
+            background: rgba(167, 139, 250, 0.2);
+            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+        }
+        
+        #frontendSection .dynamic-section-arrow {
+            border-color: rgba(251, 146, 60, 0.3);
+            background: rgba(251, 146, 60, 0.1);
+            color: #fdba74;
+        }
+        #frontendSection .dynamic-section-arrow:hover {
+            background: rgba(251, 146, 60, 0.2);
+            box-shadow: 0 4px 12px rgba(251, 146, 60, 0.3);
         }
         
         .dynamic-section-add-btn {
             display: flex;
             align-items: center;
-            gap: 0.35rem;
-            padding: 0.35rem 0.7rem;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 6px;
-            color: #10b981;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 8px;
+            color: #34d399;
             font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
         }
         
         .dynamic-section-add-btn:hover {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
-            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+            border-color: rgba(16, 185, 129, 0.4);
             transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+            color: #4ade80;
         }
         
         .dynamic-section-add-btn i {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
         }
         
-        /* Items Grid */
+        /* Items Grid - Inside each section */
         .dynamic-items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            padding: 0.75rem;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             gap: 0.5rem;
+        }
+        
+        .dynamic-items-grid::-webkit-scrollbar {
+            width: 5px;
+        }
+        .dynamic-items-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .dynamic-items-grid::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 3px;
+        }
+        .dynamic-items-grid::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
         }
         
         .dynamic-item {
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
-            padding: 0.6rem;
-            background: rgba(20, 20, 40, 0.6);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, rgba(25, 25, 45, 0.9) 0%, rgba(20, 20, 40, 0.95) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 10px;
+            transition: all 0.25s ease;
             position: relative;
         }
         
         .dynamic-item:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(30, 30, 60, 0.6);
+            border-color: rgba(99, 102, 241, 0.25);
+            background: linear-gradient(135deg, rgba(30, 30, 55, 0.95) 0%, rgba(25, 25, 50, 1) 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
         
         .dynamic-item.backend-item {
             border-left: 3px solid #06b6d4;
         }
-        
         .dynamic-item.backend-item:hover {
-            border-color: rgba(6, 182, 212, 0.4);
-            border-left-color: #06b6d4;
+            border-left-color: #22d3ee;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
         }
         
         .dynamic-item.page-item {
             border-left: 3px solid #a78bfa;
         }
-        
         .dynamic-item.page-item:hover {
-            border-color: rgba(167, 139, 250, 0.4);
-            border-left-color: #a78bfa;
+            border-left-color: #c4b5fd;
+            box-shadow: 0 4px 20px rgba(167, 139, 250, 0.15);
         }
         
         .dynamic-item.frontend-item {
             border-left: 3px solid #fb923c;
         }
-        
         .dynamic-item.frontend-item:hover {
-            border-color: rgba(251, 146, 60, 0.4);
-            border-left-color: #fb923c;
+            border-left-color: #fdba74;
+            box-shadow: 0 4px 20px rgba(251, 146, 60, 0.15);
         }
         
         .dynamic-item-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             gap: 0.5rem;
         }
         
         .dynamic-item-number {
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            min-width: 20px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            min-width: 22px;
             text-align: center;
+            flex-shrink: 0;
         }
         
         .backend-item .dynamic-item-number {
-            background: rgba(6, 182, 212, 0.2);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(6, 182, 212, 0.15) 100%);
             color: #22d3ee;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .page-item .dynamic-item-number {
-            background: rgba(167, 139, 250, 0.2);
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.25) 0%, rgba(167, 139, 250, 0.15) 100%);
             color: #c4b5fd;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .frontend-item .dynamic-item-number {
-            background: rgba(251, 146, 60, 0.2);
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(251, 146, 60, 0.15) 100%);
             color: #fdba74;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         
         .dynamic-item-name {
             flex: 1;
-            padding: 0.35rem 0.5rem;
-            background: rgba(15, 15, 35, 0.6);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 5px;
+            padding: 0.4rem 0.6rem;
+            background: rgba(10, 10, 25, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 6px;
             color: var(--text-primary);
             font-size: 0.75rem;
+            font-weight: 500;
             outline: none;
             transition: all 0.2s;
         }
         
         .dynamic-item-name:focus {
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+            background: rgba(15, 15, 30, 0.8);
         }
         
         .dynamic-item-name::placeholder {
             color: var(--text-muted);
+            font-weight: 400;
         }
         
         .dynamic-item-actions {
             display: flex;
-            gap: 0.25rem;
+            gap: 0.3rem;
+            margin-left: auto;
         }
         
         .dynamic-item-btn {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: none;
-            border-radius: 5px;
+            border: 1px solid transparent;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-size: 0.65rem;
         }
         
         .dynamic-item-btn.file-btn {
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.2);
             color: #818cf8;
         }
         
         .dynamic-item-btn.file-btn:hover {
-            background: rgba(99, 102, 241, 0.25);
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.35);
             color: #a5b4fc;
+            transform: scale(1.05);
         }
         
         .dynamic-item-btn.file-btn.has-files {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
             color: #34d399;
         }
         
         .dynamic-item-btn.delete-btn {
-            background: rgba(239, 68, 68, 0.15);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.15);
             color: #f87171;
         }
         
         .dynamic-item-btn.delete-btn:hover {
-            background: rgba(239, 68, 68, 0.25);
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
             color: #fca5a5;
+            transform: scale(1.05);
         }
         
         .dynamic-item-body {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.4rem;
         }
         
         .dynamic-item-prompt {
             width: 100%;
-            min-height: 50px;
-            max-height: 120px;
-            padding: 0.4rem 0.5rem;
-            background: rgba(15, 15, 35, 0.6);
-            border: 1px solid rgba(99, 102, 241, 0.15);
-            border-radius: 5px;
+            min-height: 45px;
+            max-height: 100px;
+            padding: 0.5rem 0.6rem;
+            background: rgba(10, 10, 25, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 6px;
             color: var(--text-primary);
             font-size: 0.72rem;
             font-family: inherit;
+            line-height: 1.4;
             resize: vertical;
             outline: none;
             transition: all 0.2s;
         }
         
         .dynamic-item-prompt:focus {
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+            background: rgba(15, 15, 30, 0.8);
         }
         
         .dynamic-item-prompt::placeholder {
             color: var(--text-muted);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
         }
         
         .dynamic-item-files {
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.4rem;
             font-size: 0.65rem;
             color: var(--text-muted);
+            padding: 0.25rem 0;
         }
         
         .dynamic-item-files i {
@@ -4460,31 +4656,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: none;
         }
         
-        /* Empty state for dynamic sections */
+        /* Empty state for dynamic sections - Pro styling */
         .dynamic-empty-state {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
+            padding: 2rem 1rem;
             color: var(--text-muted);
             text-align: center;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.02) 0%, transparent 100%);
+            border-radius: 8px;
+            border: 1px dashed rgba(99, 102, 241, 0.15);
+            transition: all 0.25s ease;
         }
         
+        .dynamic-empty-state:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.04) 0%, transparent 100%);
+        }
+        
+        #backendSection .dynamic-empty-state {
+            border-color: rgba(6, 182, 212, 0.15);
+        }
+        #backendSection .dynamic-empty-state:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.04) 0%, transparent 100%);
+        }
+        #backendSection .dynamic-empty-state i { color: rgba(6, 182, 212, 0.5); }
+        
+        #pageSection .dynamic-empty-state {
+            border-color: rgba(167, 139, 250, 0.15);
+        }
+        #pageSection .dynamic-empty-state:hover {
+            border-color: rgba(167, 139, 250, 0.3);
+            background: linear-gradient(180deg, rgba(167, 139, 250, 0.04) 0%, transparent 100%);
+        }
+        #pageSection .dynamic-empty-state i { color: rgba(167, 139, 250, 0.5); }
+        
+        #frontendSection .dynamic-empty-state {
+            border-color: rgba(251, 146, 60, 0.15);
+        }
+        #frontendSection .dynamic-empty-state:hover {
+            border-color: rgba(251, 146, 60, 0.3);
+            background: linear-gradient(180deg, rgba(251, 146, 60, 0.04) 0%, transparent 100%);
+        }
+        #frontendSection .dynamic-empty-state i { color: rgba(251, 146, 60, 0.5); }
+        
         .dynamic-empty-state i {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            opacity: 0.5;
+            font-size: 1.8rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.6;
         }
         
         .dynamic-empty-state p {
-            font-size: 0.75rem;
-            margin: 0;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 0 0 0.25rem 0;
         }
         
         .dynamic-empty-state small {
-            font-size: 0.65rem;
-            opacity: 0.7;
+            font-size: 0.68rem;
+            opacity: 0.6;
         }
         
         /* File Picker - Inline Style */
@@ -7602,25 +7835,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </div>
                         
-                        <!-- Dynamic Sections Container -->
+                        <!-- Dynamic Sections Container - Three Column Grid -->
                         <div class="dynamic-sections-container" id="dynamicSectionsContainer">
                             <!-- Backend Section -->
                             <div class="dynamic-section" id="backendSection">
                                 <div class="dynamic-section-header">
                                     <div class="dynamic-section-title backend-title">
-                                        <i class="fas fa-file-code"></i>
+                                        <i class="fas fa-server"></i>
                                         <span>Backend</span>
                                         <span class="dynamic-section-count" id="backendCount">0</span>
                                     </div>
-                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('backend')">
-                                        <i class="fas fa-plus"></i> Add Backend
-                                    </button>
+                                    <div class="dynamic-section-actions">
+                                        <button type="button" class="dynamic-section-arrow" onclick="appendSectionToPrompt('backend')" title="Insert Backend to Prompt">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('backend')">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="dynamic-items-grid" id="backendItemsGrid">
                                     <div class="dynamic-empty-state" id="backendEmptyState">
-                                        <i class="fas fa-file-code"></i>
+                                        <i class="fas fa-server"></i>
                                         <p>No backend items</p>
-                                        <small>Click "Add Backend" to create one</small>
+                                        <small>Click "Add" to create one</small>
                                     </div>
                                 </div>
                             </div>
@@ -7629,19 +7867,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="dynamic-section" id="pageSection">
                                 <div class="dynamic-section-header">
                                     <div class="dynamic-section-title page-title">
-                                        <i class="fas fa-window-maximize"></i>
+                                        <i class="fas fa-layer-group"></i>
                                         <span>Pages</span>
                                         <span class="dynamic-section-count" id="pageCount">0</span>
                                     </div>
-                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('page')">
-                                        <i class="fas fa-plus"></i> Add Page
-                                    </button>
+                                    <div class="dynamic-section-actions">
+                                        <button type="button" class="dynamic-section-arrow" onclick="appendSectionToPrompt('page')" title="Insert Pages to Prompt">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('page')">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="dynamic-items-grid" id="pageItemsGrid">
                                     <div class="dynamic-empty-state" id="pageEmptyState">
-                                        <i class="fas fa-window-maximize"></i>
+                                        <i class="fas fa-layer-group"></i>
                                         <p>No page items</p>
-                                        <small>Click "Add Page" to create one</small>
+                                        <small>Click "Add" to create one</small>
                                     </div>
                                 </div>
                             </div>
@@ -7650,19 +7893,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="dynamic-section" id="frontendSection">
                                 <div class="dynamic-section-header">
                                     <div class="dynamic-section-title frontend-title">
-                                        <i class="fas fa-palette"></i>
+                                        <i class="fas fa-paint-brush"></i>
                                         <span>Frontend</span>
                                         <span class="dynamic-section-count" id="frontendCount">0</span>
                                     </div>
-                                    <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('frontend')">
-                                        <i class="fas fa-plus"></i> Add Frontend
-                                    </button>
+                                    <div class="dynamic-section-actions">
+                                        <button type="button" class="dynamic-section-arrow" onclick="appendSectionToPrompt('frontend')" title="Insert Frontend to Prompt">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button type="button" class="dynamic-section-add-btn" onclick="addDynamicItem('frontend')">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="dynamic-items-grid" id="frontendItemsGrid">
                                     <div class="dynamic-empty-state" id="frontendEmptyState">
-                                        <i class="fas fa-palette"></i>
+                                        <i class="fas fa-paint-brush"></i>
                                         <p>No frontend items</p>
-                                        <small>Click "Add Frontend" to create one</small>
+                                        <small>Click "Add" to create one</small>
                                     </div>
                                 </div>
                             </div>
