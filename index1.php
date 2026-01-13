@@ -9585,6 +9585,30 @@
         gap: 0.6rem;
     }
     
+    /* Arrow Button - Open/Switch to Prompt Manager */
+    .dash-arrow-back-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.08) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 10px;
+        color: #34d399;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .dash-arrow-back-btn-de:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #4ade80;
+        transform: translateX(-3px);
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+    
     /* Back to Prompt Manager Button */
     .dash-back-btn-de {
         display: flex;
@@ -11743,6 +11767,9 @@
                     </div>
                 </div>
                 <div class="dev-dashboard-actions-de">
+                    <button type="button" class="dash-arrow-back-btn-de" onclick="openOrSwitchToPromptManager()" title="Open/Switch to Prompt Manager Tab">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                     <a href="Prompt-Manager.php" class="dash-back-btn-de" title="Back to Prompt Manager">
                         <i class="fas fa-arrow-left"></i>
                         <span>Prompt Manager</span>
@@ -32960,6 +32987,29 @@ ${state.feedFromDocumentation ?
         
         console.log(`[${type.toUpperCase()}] ${message}`);
     }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // OPEN/SWITCH TO PROMPT MANAGER TAB
+    // ══════════════════════════════════════════════════════════════════
+    
+    // Using named window - browser remembers window by name
+    const PROMPT_MANAGER_WINDOW_NAME = 'PromptManagerWindow';
+    const PROMPT_MANAGER_URL = 'Prompt-Manager.php';
+    
+    window.openOrSwitchToPromptManager = function() {
+        // Try to open/switch to the named window
+        // If window with this name exists, it will focus on it
+        // If not, it will open a new window with this name
+        const win = window.open(PROMPT_MANAGER_URL, PROMPT_MANAGER_WINDOW_NAME);
+        
+        if (win) {
+            win.focus();
+            showNotificationDE('🔄 Prompt Manager tab opened/switched', 'success');
+        } else {
+            // Popup blocker might have prevented opening
+            showNotificationDE('⚠️ Please allow popups to open Prompt Manager', 'warning');
+        }
+    };
     
     // ══════════════════════════════════════════════════════════════════
     // INITIALIZE ON DOM READY

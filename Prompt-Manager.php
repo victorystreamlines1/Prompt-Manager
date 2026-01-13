@@ -18445,29 +18445,22 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
     // NEW TAB - Open or Switch to Design Enhancer
     // ══════════════════════════════════════════════════════════════════
     
-    let designEnhancerTab = null;
+    // Using named window - browser remembers window by name
+    const DESIGN_ENHANCER_WINDOW_NAME = 'DesignEnhancerWindow';
     const DESIGN_ENHANCER_URL = 'index1.php';
-    const DESIGN_ENHANCER_TITLE = 'Design Enhancer';
     
     window.openOrSwitchToDesignEnhancer = function() {
-        // Check if we have a reference and if the tab is still open
-        if (designEnhancerTab && !designEnhancerTab.closed) {
-            // Tab is open - switch to it
-            designEnhancerTab.focus();
-            showNotification('✅ Switched to Design Enhancer tab', 'success');
+        // Try to open/switch to the named window
+        // If window with this name exists, it will focus on it
+        // If not, it will open a new window with this name
+        const win = window.open(DESIGN_ENHANCER_URL, DESIGN_ENHANCER_WINDOW_NAME);
+        
+        if (win) {
+            win.focus();
+            showNotification('🔄 Design Enhancer tab opened/switched', 'success');
         } else {
-            // Tab is not open or was closed - open a new one
-            designEnhancerTab = window.open(DESIGN_ENHANCER_URL, '_blank');
-            
-            if (designEnhancerTab) {
-                showNotification('🚀 Opening Design Enhancer in new tab...', 'info');
-                
-                // Focus the new tab
-                designEnhancerTab.focus();
-            } else {
-                // Popup blocker might have prevented opening
-                showNotification('⚠️ Please allow popups to open Design Enhancer', 'warning');
-            }
+            // Popup blocker might have prevented opening
+            showNotification('⚠️ Please allow popups to open Design Enhancer', 'warning');
         }
     };
     
