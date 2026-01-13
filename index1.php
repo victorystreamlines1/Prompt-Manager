@@ -9503,6 +9503,1393 @@
         color: #feca57;
     }
 
+    /* ════════════════════════════════════════════════════════════════
+       DEVELOPMENT DASHBOARD & PROMPT EDITOR - Imported from Prompt-Manager.php
+       ════════════════════════════════════════════════════════════════ */
+    
+    /* Development Dashboard Section */
+    .dev-dashboard-section-de {
+        background: linear-gradient(180deg, rgba(18, 18, 28, 0.95) 0%, rgba(15, 15, 25, 1) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        position: relative;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    
+    .dev-dashboard-section-de::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #06b6d4 0%, #a78bfa 33%, #fb923c 66%, #10b981 100%);
+        opacity: 0.8;
+    }
+
+    .dev-dashboard-header-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(139, 92, 246, 0.02) 50%, transparent 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .dev-dashboard-left-de {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .dev-dashboard-title-de {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .dev-dashboard-title-de .dev-icon {
+        font-size: 1.25rem;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: devIconPulse 3s ease-in-out infinite;
+        filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+    }
+
+    @keyframes devIconPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.1); }
+    }
+
+    .dev-dashboard-title-de .dev-text {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
+    }
+
+    .dev-dashboard-actions-de {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    
+    /* Back to Prompt Manager Button */
+    .dash-back-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.75rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 10px;
+        color: #a5b4fc;
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .dash-back-btn-de:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+        border-color: rgba(99, 102, 241, 0.4);
+        color: #c7d2fe;
+        transform: translateX(-3px);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+    
+    .dash-back-btn-de i {
+        font-size: 0.7rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .dash-back-btn-de:hover i {
+        transform: translateX(-2px);
+    }
+    
+    /* Toast Notification Styles */
+    .toast-notification-de {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        padding: 14px 24px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        z-index: 100001;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        animation: toastSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        backdrop-filter: blur(10px);
+    }
+    
+    .toast-notification-de.success {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+        border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+    
+    .toast-notification-de.error {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+    
+    .toast-notification-de.warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    
+    .toast-notification-de.info {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.95) 100%);
+        border: 1px solid rgba(129, 140, 248, 0.3);
+    }
+    
+    .toast-notification-de i {
+        font-size: 1.1rem;
+    }
+    
+    .toast-notification-de .toast-close {
+        margin-left: 10px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .toast-notification-de .toast-close:hover {
+        opacity: 1;
+    }
+    
+    @keyframes toastSlideIn {
+        0% {
+            transform: translateX(100px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes toastSlideOut {
+        0% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(100px);
+            opacity: 0;
+        }
+    }
+    
+    .toast-notification-de.hiding {
+        animation: toastSlideOut 0.3s ease forwards;
+    }
+    
+    .dash-reset-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        border-radius: 10px;
+        color: #f87171;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .dash-reset-btn-de:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        transform: rotate(-180deg);
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    }
+    
+    .dev-dashboard-status-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.85rem;
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%);
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        border-radius: 25px;
+    }
+
+    .dev-dashboard-status-de .status-dot {
+        width: 8px;
+        height: 8px;
+        background: linear-gradient(135deg, #22c55e, #10b981);
+        border-radius: 50%;
+        animation: statusPulseDE 2s ease-in-out infinite;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+
+    @keyframes statusPulseDE {
+        0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        50% { opacity: 0.7; box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+    }
+
+    .dev-dashboard-status-de .status-text {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #4ade80;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .dev-dashboard-content-de {
+        padding: 1rem 1.25rem;
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.015) 0%, transparent 100%);
+    }
+    
+    /* Dashboard Sections Row */
+    .dashboard-sections-row-de {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    /* Dynamic Sections Container */
+    .dynamic-sections-container-de {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-top: 0;
+        padding-top: 0;
+    }
+    
+    @media (max-width: 1400px) {
+        .dynamic-sections-container-de {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 900px) {
+        .dynamic-sections-container-de {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Database Section */
+    .database-section-de {
+        background: linear-gradient(180deg, rgba(20, 20, 35, 0.8) 0%, rgba(15, 15, 30, 0.9) 100%);
+        border: 1px solid rgba(251, 191, 36, 0.12);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .database-section-de::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #fbbf24, transparent);
+        opacity: 0.6;
+    }
+    
+    .database-section-de:hover {
+        border-color: rgba(251, 191, 36, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .database-section-header-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1rem;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(251, 191, 36, 0.02) 100%);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.1);
+    }
+    
+    .database-section-title-de {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #fcd34d;
+        letter-spacing: 0.3px;
+    }
+    
+    .database-section-title-de i {
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbbf24;
+    }
+    
+    .database-section-content-de {
+        padding: 0.75rem;
+        min-height: 100px;
+        max-height: 300px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    /* Dynamic Section */
+    .dynamic-section-de {
+        background: linear-gradient(180deg, rgba(20, 20, 35, 0.8) 0%, rgba(15, 15, 30, 0.9) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .dynamic-section-de::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, var(--section-color-de, #6366f1), transparent);
+        opacity: 0.6;
+    }
+    
+    .dynamic-section-de:hover {
+        border-color: rgba(99, 102, 241, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    #backendSectionDE { --section-color-de: #06b6d4; }
+    #pageSectionDE { --section-color-de: #a78bfa; }
+    #frontendSectionDE { --section-color-de: #fb923c; }
+    
+    #backendSectionDE::before { background: linear-gradient(90deg, transparent, #06b6d4, transparent); }
+    #pageSectionDE::before { background: linear-gradient(90deg, transparent, #a78bfa, transparent); }
+    #frontendSectionDE::before { background: linear-gradient(90deg, transparent, #fb923c, transparent); }
+    
+    .dynamic-section-header-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1rem;
+        background: linear-gradient(135deg, rgba(var(--section-rgb-de, 99, 102, 241), 0.08) 0%, transparent 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    
+    #backendSectionDE .dynamic-section-header-de { 
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.02) 100%); 
+    }
+    #pageSectionDE .dynamic-section-header-de { 
+        background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(167, 139, 250, 0.02) 100%); 
+    }
+    #frontendSectionDE .dynamic-section-header-de { 
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(251, 146, 60, 0.02) 100%); 
+    }
+    
+    .dynamic-section-title-de {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    
+    .dynamic-section-title-de i {
+        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .dynamic-section-title-de.backend-title { color: #22d3ee; }
+    .dynamic-section-title-de.backend-title i { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    
+    .dynamic-section-title-de.page-title { color: #c4b5fd; }
+    .dynamic-section-title-de.page-title i { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+    
+    .dynamic-section-title-de.frontend-title { color: #fdba74; }
+    .dynamic-section-title-de.frontend-title i { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+    
+    .dynamic-section-count-de {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        min-width: 24px;
+        text-align: center;
+    }
+    
+    #backendSectionDE .dynamic-section-count-de { 
+        background: rgba(6, 182, 212, 0.2); 
+        color: #22d3ee;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+    #pageSectionDE .dynamic-section-count-de { 
+        background: rgba(167, 139, 250, 0.2); 
+        color: #c4b5fd;
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.2);
+    }
+    #frontendSectionDE .dynamic-section-count-de { 
+        background: rgba(251, 146, 60, 0.2); 
+        color: #fdba74;
+        box-shadow: 0 0 10px rgba(251, 146, 60, 0.2);
+    }
+    
+    .dynamic-section-actions-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .dynamic-section-arrow-de {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        background: rgba(99, 102, 241, 0.08);
+        color: #818cf8;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .dynamic-section-arrow-de:hover {
+        transform: translateY(2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    #backendSectionDE .dynamic-section-arrow-de {
+        border-color: rgba(6, 182, 212, 0.3);
+        background: rgba(6, 182, 212, 0.1);
+        color: #22d3ee;
+    }
+    #pageSectionDE .dynamic-section-arrow-de {
+        border-color: rgba(167, 139, 250, 0.3);
+        background: rgba(167, 139, 250, 0.1);
+        color: #c4b5fd;
+    }
+    #frontendSectionDE .dynamic-section-arrow-de {
+        border-color: rgba(251, 146, 60, 0.3);
+        background: rgba(251, 146, 60, 0.1);
+        color: #fdba74;
+    }
+    
+    .dynamic-section-add-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.85rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-radius: 8px;
+        color: #34d399;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .dynamic-section-add-btn-de:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+        border-color: rgba(16, 185, 129, 0.4);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+        color: #4ade80;
+    }
+    
+    /* Items Grid */
+    .dynamic-items-grid-de {
+        padding: 0.75rem;
+        min-height: 100px;
+        max-height: 300px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .dynamic-items-grid-de::-webkit-scrollbar {
+        width: 5px;
+    }
+    .dynamic-items-grid-de::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+    .dynamic-items-grid-de::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.4);
+        border-radius: 3px;
+    }
+    
+    .dynamic-empty-state-de {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        color: var(--text-muted);
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .dynamic-empty-state-de i {
+        font-size: 1.5rem;
+        opacity: 0.4;
+    }
+    
+    .dynamic-empty-state-de p {
+        font-size: 0.8rem;
+        margin: 0;
+    }
+    
+    .dynamic-empty-state-de small {
+        font-size: 0.7rem;
+        opacity: 0.6;
+    }
+    
+    /* Dynamic Item */
+    .dynamic-item-de {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, rgba(25, 25, 45, 0.9) 0%, rgba(20, 20, 40, 0.95) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 10px;
+        transition: all 0.25s ease;
+        position: relative;
+    }
+    
+    .dynamic-item-de:hover {
+        border-color: rgba(99, 102, 241, 0.25);
+        background: linear-gradient(135deg, rgba(30, 30, 55, 0.95) 0%, rgba(25, 25, 50, 1) 100%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    
+    .dynamic-item-de.backend-item { border-left: 3px solid #06b6d4; }
+    .dynamic-item-de.page-item { border-left: 3px solid #a78bfa; }
+    .dynamic-item-de.frontend-item { border-left: 3px solid #fb923c; }
+    
+    .dynamic-item-header-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .dynamic-item-name-de {
+        flex: 1;
+        padding: 0.4rem 0.6rem;
+        background: rgba(15, 15, 30, 0.6);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.75rem;
+        font-family: inherit;
+    }
+    
+    .dynamic-item-name-de:focus {
+        outline: none;
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+    
+    .dynamic-item-delete-de {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        font-size: 0.65rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .dynamic-item-delete-de:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+    }
+    
+    .dynamic-item-prompt-de {
+        width: 100%;
+        min-height: 50px;
+        padding: 0.5rem;
+        background: rgba(15, 15, 30, 0.6);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 0.72rem;
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .dynamic-item-prompt-de:focus {
+        outline: none;
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Dashboard Footer */
+    .dashboard-footer-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.85rem 1.25rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 14px;
+        margin-top: 0.75rem;
+    }
+    
+    /* Project Management Group */
+    .project-management-group-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .project-selector-wrap-de {
+        position: relative;
+        min-width: 180px;
+    }
+    
+    .project-selector-de {
+        width: 100%;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.25);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.78rem;
+        font-family: inherit;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        appearance: none;
+    }
+    
+    .project-selector-wrap-de i {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a78bfa;
+        font-size: 0.65rem;
+        pointer-events: none;
+    }
+    
+    /* Project Buttons */
+    .project-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .project-btn-de.new-btn {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+    
+    .project-btn-de.new-btn:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #4ade80;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    
+    .project-btn-de.save-btn {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #60a5fa;
+    }
+    
+    .project-btn-de.save-btn:hover {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+        border-color: rgba(59, 130, 246, 0.5);
+        color: #93c5fd;
+        transform: translateY(-1px);
+    }
+    
+    .project-btn-de.load-btn {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
+        border-color: rgba(139, 92, 246, 0.3);
+        color: #a78bfa;
+    }
+    
+    .project-btn-de.load-btn:hover {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%);
+        border-color: rgba(139, 92, 246, 0.5);
+        color: #c4b5fd;
+        transform: translateY(-1px);
+    }
+    
+    .project-btn-de.delete-btn {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.06) 100%);
+        border-color: rgba(239, 68, 68, 0.25);
+        color: #f87171;
+        padding: 0.5rem;
+    }
+    
+    .project-btn-de.delete-btn:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(220, 38, 38, 0.12) 100%);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+    }
+    
+    .project-btn-de.reset-btn {
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.06) 100%);
+        border-color: rgba(251, 146, 60, 0.25);
+        color: #fb923c;
+        padding: 0.5rem;
+    }
+    
+    .project-btn-de.reset-btn:hover {
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
+        border-color: rgba(251, 146, 60, 0.4);
+        color: #fdba74;
+        transform: rotate(-180deg);
+    }
+    
+    /* Footer Divider */
+    .footer-divider-de {
+        width: 1px;
+        height: 32px;
+        background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+        margin: 0 0.5rem;
+    }
+    
+    /* Generate Group */
+    .generate-group-de {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    
+    .footer-arrow-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        color: #10b981;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .footer-arrow-btn-de:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.2) 100%);
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #34d399;
+        transform: translateY(2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    
+    .dash-generate-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+    }
+    
+    .dash-generate-btn-de:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
+    }
+    
+    /* Prompt Editor */
+    .editor-container-de {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, rgba(18, 18, 28, 0.95) 0%, rgba(15, 15, 25, 1) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .editor-header-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(139, 92, 246, 0.02) 50%, transparent 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .editor-title-de {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #c7d2fe;
+    }
+    
+    .editor-title-de i {
+        color: #818cf8;
+    }
+
+    .editor-actions-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .editor-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.5rem 0.85rem;
+        border: 1px solid;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .editor-btn-de.clear {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+    }
+    
+    .editor-btn-de.clear:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+    
+    .editor-btn-de.paste {
+        background: rgba(251, 146, 60, 0.08);
+        border-color: rgba(251, 146, 60, 0.2);
+        color: #fb923c;
+    }
+    
+    .editor-btn-de.paste:hover {
+        background: rgba(251, 146, 60, 0.15);
+        border-color: rgba(251, 146, 60, 0.4);
+    }
+    
+    .editor-btn-de.copy {
+        background: rgba(59, 130, 246, 0.08);
+        border-color: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+    }
+    
+    .editor-btn-de.copy:hover {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .editor-body-de {
+        position: relative;
+        padding: 1rem;
+    }
+
+    .prompt-editor-de {
+        width: 100%;
+        min-height: 200px;
+        max-height: 400px;
+        padding: 1rem;
+        background: rgba(10, 10, 18, 0.8);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 12px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-family: 'JetBrains Mono', monospace;
+        resize: vertical;
+        line-height: 1.6;
+    }
+    
+    .prompt-editor-de:focus {
+        outline: none;
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .prompt-editor-de::placeholder {
+        color: var(--text-muted);
+    }
+    
+    /* Project Popup Styles */
+    .project-popup-overlay-de {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .project-popup-overlay-de.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .project-popup-de {
+        background: linear-gradient(180deg, rgba(25, 25, 45, 0.98) 0%, rgba(18, 18, 35, 1) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 20px;
+        padding: 0;
+        min-width: 420px;
+        max-width: 550px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.15);
+        transform: scale(0.9) translateY(-20px);
+        transition: all 0.3s ease;
+    }
+    
+    .project-popup-overlay-de.active .project-popup-de {
+        transform: scale(1) translateY(0);
+    }
+    
+    .project-popup-header-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.06) 100%);
+        border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+    }
+    
+    .project-popup-title-de {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #c4b5fd;
+    }
+    
+    .project-popup-close-de {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        color: #f87171;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .project-popup-close-de:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: rotate(90deg);
+    }
+    
+    .project-popup-body-de {
+        padding: 1.5rem;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    .project-form-group-de {
+        margin-bottom: 1.25rem;
+    }
+    
+    .project-form-label-de {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #a0a0b0;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .project-form-input-de {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: rgba(15, 15, 30, 0.8);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+    }
+    
+    .project-form-input-de:focus {
+        outline: none;
+        border-color: rgba(139, 92, 246, 0.5);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    .project-popup-footer-de {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-top: 1px solid rgba(139, 92, 246, 0.1);
+    }
+    
+    .project-popup-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .project-popup-btn-de.cancel {
+        background: rgba(100, 100, 120, 0.2);
+        color: #9ca3af;
+    }
+    
+    .project-popup-btn-de.cancel:hover {
+        background: rgba(100, 100, 120, 0.3);
+        color: #d1d5db;
+    }
+    
+    .project-popup-btn-de.primary {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    }
+    
+    .project-popup-btn-de.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+    }
+    
+    /* Project List */
+    .project-list-de {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .project-list-item-de {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1rem;
+        background: rgba(20, 20, 40, 0.6);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .project-list-item-de:hover {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.3);
+        transform: translateX(4px);
+    }
+    
+    .project-list-item-de.selected {
+        background: rgba(139, 92, 246, 0.15);
+        border-color: rgba(139, 92, 246, 0.4);
+    }
+    
+    .project-list-info-de {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .project-list-name-de {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .project-list-date-de {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+    }
+    
+    .project-list-empty-de {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+    
+    .project-list-empty-de i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+    
+    /* Database Controls */
+    .db-controls-compact-de {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .db-dropdown-row-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .dash-db-dropdown-wrap-de {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .dash-db-dropdown-de {
+        width: 100%;
+        padding: 0.4rem 1.8rem 0.4rem 0.6rem;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.72rem;
+        font-family: 'JetBrains Mono', monospace;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        appearance: none;
+    }
+    
+    .dash-db-dropdown-wrap-de i {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #fbbf24;
+        font-size: 0.6rem;
+        pointer-events: none;
+    }
+    
+    .dash-db-btn-de {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+        font-size: 0.7rem;
+    }
+    
+    .dash-db-btn-de.refresh {
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 184, 148, 0.1) 100%);
+        color: #00d4aa;
+    }
+    
+    .dash-db-btn-de.refresh:hover {
+        background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 184, 148, 0.2) 100%);
+        transform: rotate(180deg);
+    }
+    
+    .dash-db-btn-de.manage {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+        color: #a78bfa;
+    }
+    
+    .dash-db-btn-de.manage:hover {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
+        transform: rotate(90deg);
+    }
+    
+    .db-cred-row-compact-de {
+        display: flex;
+        gap: 0.35rem;
+    }
+    
+    .dash-cred-btn-de {
+        cursor: pointer;
+        user-select: none;
+        flex: 1;
+    }
+    
+    .dash-cred-btn-de input {
+        display: none;
+    }
+    
+    .dash-cred-btn-de span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.3rem 0.5rem;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        transition: all 0.25s ease;
+        white-space: nowrap;
+    }
+    
+    .dash-cred-btn-de.remote input:checked + span {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        border-color: #3b82f6;
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+    
+    .dash-cred-btn-de.localhost input:checked + span {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        border-color: #22c55e;
+        color: white;
+        box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    }
+    
+    .db-prompt-row-compact-de {
+        display: flex;
+        gap: 0.3rem;
+    }
+    
+    .dash-db-prompt-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        flex: 1;
+        padding: 0.35rem 0.4rem;
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border: 2px solid rgba(168, 85, 247, 0.3);
+        border-radius: 8px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        color: #a855f7;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    
+    .dash-db-prompt-btn-de:hover {
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+        border-color: rgba(168, 85, 247, 0.5);
+        color: #c084fc;
+        transform: translateY(-1px);
+    }
+    
+    .dash-db-prompt-full-de {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+        border-color: rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+    
+    .dash-db-prompt-full-de:hover {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.2) 100%);
+        border-color: rgba(34, 197, 94, 0.5);
+        color: #4ade80;
+    }
+    
+    .database-section-arrow-de {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        background: rgba(251, 191, 36, 0.1);
+        color: #fcd34d;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .database-section-arrow-de:hover {
+        background: rgba(251, 191, 36, 0.2);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        transform: translateY(2px);
+    }
+    
+    .database-section-actions-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    @media (max-width: 1200px) {
+        .project-btn-de span {
+            display: none;
+        }
+        .project-selector-wrap-de {
+            min-width: 140px;
+        }
+    }
+
     </style>
 
     <script>
@@ -10343,6 +11730,238 @@
 
     <!-- Main Container -->
     <div class="container" style="padding-top: 70px;">
+
+        <!-- ════════════════════════════════════════════════════════════════
+             DEVELOPMENT DASHBOARD - Imported from Prompt-Manager.php
+             ════════════════════════════════════════════════════════════════ -->
+        <div class="dev-dashboard-section-de fade-in">
+            <div class="dev-dashboard-header-de">
+                <div class="dev-dashboard-left-de">
+                    <div class="dev-dashboard-title-de">
+                        <span class="dev-icon">⚡</span>
+                        <span class="dev-text">Development Dashboard</span>
+                    </div>
+                </div>
+                <div class="dev-dashboard-actions-de">
+                    <a href="Prompt-Manager.php" class="dash-back-btn-de" title="Back to Prompt Manager">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Prompt Manager</span>
+                    </a>
+                    <button type="button" class="dash-reset-btn-de" id="dashResetBtnDE" onclick="resetDashboardDE()" title="Reset Dashboard">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <div class="dev-dashboard-status-de">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Ready</span>
+                    </div>
+                </div>
+            </div>
+            <div class="dev-dashboard-content-de" id="devDashboardContentDE">
+                <div class="dashboard-sections-row-de">
+                    <!-- All 4 Sections in One Row -->
+                    <div class="dynamic-sections-container-de" id="dynamicSectionsContainerDE">
+                        <!-- Database Section -->
+                        <div class="database-section-de" id="databaseSectionDE">
+                            <div class="database-section-header-de">
+                                <div class="database-section-title-de">
+                                    <i class="fas fa-database"></i>
+                                    <span>Database</span>
+                                </div>
+                                <div class="database-section-actions-de">
+                                    <button type="button" class="database-section-arrow-de" onclick="appendDatabaseToPromptDE()" title="Insert Database to Prompt">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="database-section-content-de">
+                                <div class="db-controls-compact-de">
+                                    <div class="db-dropdown-row-de">
+                                        <div class="dash-db-dropdown-wrap-de">
+                                            <select class="dash-db-dropdown-de" id="dbDropdownDE" onchange="onDatabaseSelectDE()">
+                                                <option value="">-- Select Database --</option>
+                                            </select>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                        <button type="button" class="dash-db-btn-de refresh" id="dbRefreshBtnDE" onclick="refreshDatabaseListDE()" title="Refresh">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button type="button" class="dash-db-btn-de manage" onclick="openDbManagerDE()" title="Manage">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                    </div>
+                                    <div class="db-cred-row-compact-de">
+                                        <label class="dash-cred-btn-de remote" title="Remote">
+                                            <input type="checkbox" id="dbCredentialsCheckboxDE" onchange="toggleDatabaseCredentialsDE('remote')">
+                                            <span><i class="fas fa-globe"></i> Remote</span>
+                                        </label>
+                                        <label class="dash-cred-btn-de localhost" title="Localhost">
+                                            <input type="checkbox" id="dbLocalhostCheckboxDE" onchange="toggleDatabaseCredentialsDE('localhost')">
+                                            <span><i class="fas fa-server"></i> Local</span>
+                                        </label>
+                                    </div>
+                                    <div class="db-prompt-row-compact-de">
+                                        <button type="button" class="dash-db-prompt-btn-de" onclick="generateDatabasePromptDE()" title="Smart Connection Prompt">
+                                            <i class="fas fa-code"></i> Prompt
+                                        </button>
+                                        <button type="button" class="dash-db-prompt-btn-de dash-db-prompt-full-de" onclick="generateFullDatabasePromptDE()" title="Full Prompt">
+                                            <i class="fas fa-tachometer-alt"></i> Full
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Backend Section -->
+                        <div class="dynamic-section-de" id="backendSectionDE">
+                            <div class="dynamic-section-header-de">
+                                <div class="dynamic-section-title-de backend-title">
+                                    <i class="fas fa-server"></i>
+                                    <span>Backend</span>
+                                    <span class="dynamic-section-count-de" id="backendCountDE">0</span>
+                                </div>
+                                <div class="dynamic-section-actions-de">
+                                    <button type="button" class="dynamic-section-arrow-de" onclick="appendSectionToPromptDE('backend')" title="Insert Backend to Prompt">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                    <button type="button" class="dynamic-section-add-btn-de" onclick="addDynamicItemDE('backend')">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dynamic-items-grid-de" id="backendItemsGridDE">
+                                <div class="dynamic-empty-state-de" id="backendEmptyStateDE">
+                                    <i class="fas fa-server"></i>
+                                    <p>No backend items</p>
+                                    <small>Click "Add" to create one</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pages Section -->
+                        <div class="dynamic-section-de" id="pageSectionDE">
+                            <div class="dynamic-section-header-de">
+                                <div class="dynamic-section-title-de page-title">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>Pages</span>
+                                    <span class="dynamic-section-count-de" id="pageCountDE">0</span>
+                                </div>
+                                <div class="dynamic-section-actions-de">
+                                    <button type="button" class="dynamic-section-arrow-de" onclick="appendSectionToPromptDE('page')" title="Insert Pages to Prompt">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                    <button type="button" class="dynamic-section-add-btn-de" onclick="addDynamicItemDE('page')">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dynamic-items-grid-de" id="pageItemsGridDE">
+                                <div class="dynamic-empty-state-de" id="pageEmptyStateDE">
+                                    <i class="fas fa-layer-group"></i>
+                                    <p>No page items</p>
+                                    <small>Click "Add" to create one</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Frontend Section -->
+                        <div class="dynamic-section-de" id="frontendSectionDE">
+                            <div class="dynamic-section-header-de">
+                                <div class="dynamic-section-title-de frontend-title">
+                                    <i class="fas fa-paint-brush"></i>
+                                    <span>Frontend</span>
+                                    <span class="dynamic-section-count-de" id="frontendCountDE">0</span>
+                                </div>
+                                <div class="dynamic-section-actions-de">
+                                    <button type="button" class="dynamic-section-arrow-de" onclick="appendSectionToPromptDE('frontend')" title="Insert Frontend to Prompt">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                    <button type="button" class="dynamic-section-add-btn-de" onclick="addDynamicItemDE('frontend')">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="dynamic-items-grid-de" id="frontendItemsGridDE">
+                                <div class="dynamic-empty-state-de" id="frontendEmptyStateDE">
+                                    <i class="fas fa-paint-brush"></i>
+                                    <p>No frontend items</p>
+                                    <small>Click "Add" to create one</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dashboard Footer with Project Management & Generate Button -->
+                    <div class="dashboard-footer-de">
+                        <!-- Project Management Section (Left) -->
+                        <div class="project-management-group-de">
+                            <div class="project-selector-wrap-de">
+                                <select class="project-selector-de" id="projectSelectorDE" onchange="onProjectSelectDE()">
+                                    <option value="">-- No Project --</option>
+                                </select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <button type="button" class="project-btn-de new-btn" onclick="openNewProjectPopupDE()" title="New Project">
+                                <i class="fas fa-plus"></i>
+                                <span>New</span>
+                            </button>
+                            <button type="button" class="project-btn-de save-btn" onclick="saveCurrentProjectDE()" title="Save Project">
+                                <i class="fas fa-save"></i>
+                                <span>Save</span>
+                            </button>
+                            <button type="button" class="project-btn-de load-btn" onclick="openLoadProjectPopupDE()" title="Load Project">
+                                <i class="fas fa-folder-open"></i>
+                                <span>Load</span>
+                            </button>
+                            <button type="button" class="project-btn-de delete-btn" onclick="deleteCurrentProjectDE()" title="Delete Project">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button type="button" class="project-btn-de reset-btn" onclick="resetDashboardProjectDE()" title="Reset Dashboard">
+                                <i class="fas fa-undo-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div class="footer-divider-de"></div>
+                        
+                        <!-- Generate Section (Right) -->
+                        <div class="generate-group-de">
+                            <button type="button" class="footer-arrow-btn-de" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPromptDE()">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" class="dash-generate-btn-de" id="dashGenerateBtnDE" onclick="generateComprehensivePromptDE()">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ════════════════════════════════════════════════════════════════
+             PROMPT EDITOR - Imported from Prompt-Manager.php
+             ════════════════════════════════════════════════════════════════ -->
+        <div class="editor-container-de fade-in">
+            <div class="editor-header-de">
+                <div class="editor-title-de">
+                    <i class="fas fa-terminal"></i>
+                    <span>Prompt Editor</span>
+                </div>
+                <div class="editor-actions-de">
+                    <button class="editor-btn-de clear" onclick="clearEditorDE()">
+                        <i class="fas fa-eraser"></i> Clear
+                    </button>
+                    <button class="editor-btn-de paste" onclick="pasteToEditorDE()">
+                        <i class="fas fa-paste"></i> Paste
+                    </button>
+                    <button class="editor-btn-de copy" onclick="copyPromptDE()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+            <div class="editor-body-de">
+                <textarea id="promptEditorDE" class="prompt-editor-de" placeholder="Your generated prompt will appear here...&#10;&#10;Use the Development Dashboard above to build your prompt, or type directly."></textarea>
+            </div>
+        </div>
 
         <!-- Header Section -->
         <header class="header fade-in">
@@ -30710,6 +32329,704 @@ ${state.feedFromDocumentation ?
         }
     });
     </script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     DEVELOPMENT DASHBOARD & PROMPT EDITOR JAVASCRIPT
+     Imported from Prompt-Manager.php
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+    
+    // ══════════════════════════════════════════════════════════════════
+    // STATE MANAGEMENT
+    // ══════════════════════════════════════════════════════════════════
+    
+    const DASHBOARD_STORAGE_KEY_DE = 'devDashboardSettingsDE';
+    const PROJECTS_STORAGE_KEY_DE = 'devDashboardProjectsDE';
+    
+    // Dashboard state
+    let dashboardStateDE = {
+        database: {
+            selected: '',
+            remoteCredentials: false,
+            localhostCredentials: false
+        },
+        backend: [],
+        page: [],
+        frontend: [],
+        currentProject: null
+    };
+    
+    // Item counters
+    let itemCountersDE = {
+        backend: 0,
+        page: 0,
+        frontend: 0
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ══════════════════════════════════════════════════════════════════
+    
+    function initDashboardDE() {
+        loadDashboardStateDE();
+        loadProjectsListDE();
+        updateAllCountsDE();
+        console.log('✅ Development Dashboard DE initialized');
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // LOCAL STORAGE FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════
+    
+    function saveDashboardStateDE() {
+        try {
+            localStorage.setItem(DASHBOARD_STORAGE_KEY_DE, JSON.stringify(dashboardStateDE));
+        } catch (e) {
+            console.error('Error saving dashboard state:', e);
+        }
+    }
+    
+    function loadDashboardStateDE() {
+        try {
+            const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY_DE);
+            if (saved) {
+                dashboardStateDE = JSON.parse(saved);
+                renderAllItemsDE();
+            }
+        } catch (e) {
+            console.error('Error loading dashboard state:', e);
+        }
+    }
+    
+    function loadProjectsListDE() {
+        try {
+            const projects = getProjectsDE();
+            const selector = document.getElementById('projectSelectorDE');
+            if (selector) {
+                selector.innerHTML = '<option value="">-- No Project --</option>';
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    if (dashboardStateDE.currentProject === p.id) {
+                        opt.selected = true;
+                    }
+                    selector.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading projects:', e);
+        }
+    }
+    
+    function getProjectsDE() {
+        try {
+            const saved = localStorage.getItem(PROJECTS_STORAGE_KEY_DE);
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    
+    function saveProjectsDE(projects) {
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY_DE, JSON.stringify(projects));
+        } catch (e) {
+            console.error('Error saving projects:', e);
+        }
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // DYNAMIC ITEMS (Backend, Pages, Frontend)
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.addDynamicItemDE = function(type) {
+        itemCountersDE[type]++;
+        const item = {
+            id: Date.now() + '_' + itemCountersDE[type],
+            name: '',
+            prompt: ''
+        };
+        dashboardStateDE[type].push(item);
+        renderItemDE(type, item);
+        updateCountDE(type);
+        saveDashboardStateDE();
+    };
+    
+    function renderItemDE(type, item) {
+        const grid = document.getElementById(`${type}ItemsGridDE`);
+        const emptyState = document.getElementById(`${type}EmptyStateDE`);
+        
+        if (emptyState) emptyState.style.display = 'none';
+        
+        const itemEl = document.createElement('div');
+        itemEl.className = `dynamic-item-de ${type}-item`;
+        itemEl.dataset.id = item.id;
+        
+        itemEl.innerHTML = `
+            <div class="dynamic-item-header-de">
+                <input type="text" class="dynamic-item-name-de" placeholder="${type.charAt(0).toUpperCase() + type.slice(1)} name..." 
+                       value="${item.name || ''}" onchange="updateItemNameDE('${type}', '${item.id}', this.value)">
+                <button type="button" class="dynamic-item-delete-de" onclick="deleteItemDE('${type}', '${item.id}')" title="Delete">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <textarea class="dynamic-item-prompt-de" placeholder="Description or prompt..." 
+                      onchange="updateItemPromptDE('${type}', '${item.id}', this.value)">${item.prompt || ''}</textarea>
+        `;
+        
+        grid.appendChild(itemEl);
+    }
+    
+    function renderAllItemsDE() {
+        ['backend', 'page', 'frontend'].forEach(type => {
+            const grid = document.getElementById(`${type}ItemsGridDE`);
+            const emptyState = document.getElementById(`${type}EmptyStateDE`);
+            
+            // Clear existing items (but keep empty state)
+            const items = grid.querySelectorAll('.dynamic-item-de');
+            items.forEach(i => i.remove());
+            
+            if (dashboardStateDE[type].length > 0) {
+                if (emptyState) emptyState.style.display = 'none';
+                dashboardStateDE[type].forEach(item => renderItemDE(type, item));
+            } else {
+                if (emptyState) emptyState.style.display = 'flex';
+            }
+        });
+        updateAllCountsDE();
+    }
+    
+    window.updateItemNameDE = function(type, id, value) {
+        const item = dashboardStateDE[type].find(i => i.id === id);
+        if (item) {
+            item.name = value;
+            saveDashboardStateDE();
+        }
+    };
+    
+    window.updateItemPromptDE = function(type, id, value) {
+        const item = dashboardStateDE[type].find(i => i.id === id);
+        if (item) {
+            item.prompt = value;
+            saveDashboardStateDE();
+        }
+    };
+    
+    window.deleteItemDE = function(type, id) {
+        dashboardStateDE[type] = dashboardStateDE[type].filter(i => i.id !== id);
+        
+        const grid = document.getElementById(`${type}ItemsGridDE`);
+        const itemEl = grid.querySelector(`[data-id="${id}"]`);
+        if (itemEl) itemEl.remove();
+        
+        const emptyState = document.getElementById(`${type}EmptyStateDE`);
+        if (dashboardStateDE[type].length === 0 && emptyState) {
+            emptyState.style.display = 'flex';
+        }
+        
+        updateCountDE(type);
+        saveDashboardStateDE();
+    };
+    
+    function updateCountDE(type) {
+        const countEl = document.getElementById(`${type}CountDE`);
+        if (countEl) {
+            countEl.textContent = dashboardStateDE[type].length;
+        }
+    }
+    
+    function updateAllCountsDE() {
+        ['backend', 'page', 'frontend'].forEach(updateCountDE);
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // DATABASE FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.onDatabaseSelectDE = function() {
+        const select = document.getElementById('dbDropdownDE');
+        if (select) {
+            dashboardStateDE.database.selected = select.value;
+            saveDashboardStateDE();
+        }
+    };
+    
+    window.refreshDatabaseListDE = function() {
+        const btn = document.getElementById('dbRefreshBtnDE');
+        if (btn) {
+            btn.querySelector('i').classList.add('fa-spin');
+            setTimeout(() => {
+                btn.querySelector('i').classList.remove('fa-spin');
+                showNotificationDE('Database list refreshed!', 'success');
+            }, 500);
+        }
+    };
+    
+    window.openDbManagerDE = function() {
+        showNotificationDE('Database Manager - Coming Soon!', 'info');
+    };
+    
+    window.toggleDatabaseCredentialsDE = function(type) {
+        if (type === 'remote') {
+            dashboardStateDE.database.remoteCredentials = document.getElementById('dbCredentialsCheckboxDE').checked;
+            if (dashboardStateDE.database.remoteCredentials) {
+                document.getElementById('dbLocalhostCheckboxDE').checked = false;
+                dashboardStateDE.database.localhostCredentials = false;
+            }
+        } else if (type === 'localhost') {
+            dashboardStateDE.database.localhostCredentials = document.getElementById('dbLocalhostCheckboxDE').checked;
+            if (dashboardStateDE.database.localhostCredentials) {
+                document.getElementById('dbCredentialsCheckboxDE').checked = false;
+                dashboardStateDE.database.remoteCredentials = false;
+            }
+        }
+        saveDashboardStateDE();
+    };
+    
+    window.generateDatabasePromptDE = function() {
+        let prompt = '📦 **DATABASE CONNECTION**\n\n';
+        prompt += 'Database: ' + (dashboardStateDE.database.selected || 'Not selected') + '\n';
+        prompt += 'Connection Type: ' + (dashboardStateDE.database.remoteCredentials ? 'Remote' : dashboardStateDE.database.localhostCredentials ? 'Localhost' : 'Not specified') + '\n';
+        
+        appendToEditorDE(prompt);
+        showNotificationDE('Database prompt added!', 'success');
+    };
+    
+    window.generateFullDatabasePromptDE = function() {
+        let prompt = '📦 **FULL DATABASE PROMPT**\n\n';
+        prompt += 'Database: ' + (dashboardStateDE.database.selected || 'Not selected') + '\n';
+        prompt += 'Please connect to the database and perform the necessary operations.\n';
+        
+        appendToEditorDE(prompt);
+        showNotificationDE('Full database prompt added!', 'success');
+    };
+    
+    window.appendDatabaseToPromptDE = function() {
+        generateDatabasePromptDE();
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // SECTION TO PROMPT FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.appendSectionToPromptDE = function(type) {
+        const items = dashboardStateDE[type];
+        if (items.length === 0) {
+            showNotificationDE(`No ${type} items to add!`, 'warning');
+            return;
+        }
+        
+        const icons = { backend: '🖥️', page: '📄', frontend: '🎨' };
+        let prompt = `${icons[type]} **${type.toUpperCase()} SECTION**\n\n`;
+        
+        items.forEach((item, index) => {
+            prompt += `${index + 1}. **${item.name || 'Unnamed'}**\n`;
+            if (item.prompt) prompt += `   ${item.prompt}\n`;
+            prompt += '\n';
+        });
+        
+        appendToEditorDE(prompt);
+        showNotificationDE(`${type.charAt(0).toUpperCase() + type.slice(1)} section added!`, 'success');
+    };
+    
+    window.appendAllSectionsToPromptDE = function() {
+        appendDatabaseToPromptDE();
+        ['backend', 'page', 'frontend'].forEach(type => {
+            if (dashboardStateDE[type].length > 0) {
+                appendSectionToPromptDE(type);
+            }
+        });
+        showNotificationDE('All sections added to prompt!', 'success');
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // GENERATE COMPREHENSIVE PROMPT
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.generateComprehensivePromptDE = function() {
+        let prompt = '═══════════════════════════════════════════════════════════════\n';
+        prompt += '  🚀 COMPREHENSIVE PROJECT PROMPT\n';
+        prompt += '═══════════════════════════════════════════════════════════════\n\n';
+        
+        // Database
+        if (dashboardStateDE.database.selected) {
+            prompt += '📦 **DATABASE**\n';
+            prompt += `Database: ${dashboardStateDE.database.selected}\n`;
+            prompt += `Type: ${dashboardStateDE.database.remoteCredentials ? 'Remote' : 'Localhost'}\n\n`;
+        }
+        
+        // Backend
+        if (dashboardStateDE.backend.length > 0) {
+            prompt += '🖥️ **BACKEND**\n';
+            dashboardStateDE.backend.forEach((item, i) => {
+                prompt += `${i + 1}. ${item.name || 'Unnamed'}\n`;
+                if (item.prompt) prompt += `   ${item.prompt}\n`;
+            });
+            prompt += '\n';
+        }
+        
+        // Pages
+        if (dashboardStateDE.page.length > 0) {
+            prompt += '📄 **PAGES**\n';
+            dashboardStateDE.page.forEach((item, i) => {
+                prompt += `${i + 1}. ${item.name || 'Unnamed'}\n`;
+                if (item.prompt) prompt += `   ${item.prompt}\n`;
+            });
+            prompt += '\n';
+        }
+        
+        // Frontend
+        if (dashboardStateDE.frontend.length > 0) {
+            prompt += '🎨 **FRONTEND**\n';
+            dashboardStateDE.frontend.forEach((item, i) => {
+                prompt += `${i + 1}. ${item.name || 'Unnamed'}\n`;
+                if (item.prompt) prompt += `   ${item.prompt}\n`;
+            });
+            prompt += '\n';
+        }
+        
+        prompt += '═══════════════════════════════════════════════════════════════\n';
+        prompt += `Generated: ${new Date().toLocaleString()}\n`;
+        prompt += '═══════════════════════════════════════════════════════════════\n';
+        
+        const editor = document.getElementById('promptEditorDE');
+        if (editor) {
+            editor.value = prompt;
+            showNotificationDE('Comprehensive prompt generated!', 'success');
+        }
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // PROJECT MANAGEMENT
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.openNewProjectPopupDE = function() {
+        document.getElementById('newProjectPopupDE').classList.add('active');
+        const input = document.getElementById('newProjectNameDE');
+        if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 100);
+        }
+    };
+    
+    window.createProjectDE = function() {
+        const input = document.getElementById('newProjectNameDE');
+        const name = input ? input.value.trim() : '';
+        
+        if (!name) {
+            showNotificationDE('Please enter a project name!', 'warning');
+            return;
+        }
+        
+        const projects = getProjectsDE();
+        const newProject = {
+            id: Date.now().toString(),
+            name: name,
+            created: new Date().toISOString(),
+            data: JSON.parse(JSON.stringify(dashboardStateDE))
+        };
+        projects.push(newProject);
+        saveProjectsDE(projects);
+        dashboardStateDE.currentProject = newProject.id;
+        saveDashboardStateDE();
+        loadProjectsListDE();
+        
+        document.getElementById('newProjectPopupDE').classList.remove('active');
+        showNotificationDE(`Project "${name}" created!`, 'success');
+    };
+    
+    window.saveCurrentProjectDE = function() {
+        if (!dashboardStateDE.currentProject) {
+            showNotificationDE('No project selected! Create a new project first.', 'warning');
+            return;
+        }
+        
+        const projects = getProjectsDE();
+        const project = projects.find(p => p.id === dashboardStateDE.currentProject);
+        if (project) {
+            project.data = JSON.parse(JSON.stringify(dashboardStateDE));
+            project.updated = new Date().toISOString();
+            saveProjectsDE(projects);
+            showNotificationDE(`Project "${project.name}" saved!`, 'success');
+        }
+    };
+    
+    window.openLoadProjectPopupDE = function() {
+        const projects = getProjectsDE();
+        const listContainer = document.getElementById('projectListDE');
+        
+        if (projects.length === 0) {
+            listContainer.innerHTML = `
+                <div class="project-list-empty-de">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No projects saved yet</p>
+                </div>
+            `;
+        } else {
+            listContainer.innerHTML = projects.map(p => `
+                <div class="project-list-item-de" data-id="${p.id}" onclick="selectProjectItemDE(this, '${p.id}')">
+                    <div class="project-list-info-de">
+                        <div class="project-list-name-de">${p.name}</div>
+                        <div class="project-list-date-de">${new Date(p.created).toLocaleDateString()}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 0.7rem;"></i>
+                </div>
+            `).join('');
+        }
+        
+        document.getElementById('loadProjectPopupDE').classList.add('active');
+    };
+    
+    window.selectedProjectIdDE = null;
+    
+    window.selectProjectItemDE = function(element, id) {
+        // Remove selection from all items
+        document.querySelectorAll('.project-list-item-de').forEach(item => {
+            item.classList.remove('selected');
+        });
+        // Add selection to clicked item
+        element.classList.add('selected');
+        window.selectedProjectIdDE = id;
+    };
+    
+    window.loadSelectedProjectDE = function() {
+        if (!window.selectedProjectIdDE) {
+            showNotificationDE('Please select a project first!', 'warning');
+            return;
+        }
+        
+        const projects = getProjectsDE();
+        const project = projects.find(p => p.id === window.selectedProjectIdDE);
+        
+        if (project && project.data) {
+            dashboardStateDE = { ...project.data, currentProject: project.id };
+            saveDashboardStateDE();
+            renderAllItemsDE();
+            loadProjectsListDE();
+            
+            document.getElementById('loadProjectPopupDE').classList.remove('active');
+            window.selectedProjectIdDE = null;
+            showNotificationDE(`Project "${project.name}" loaded!`, 'success');
+        }
+    };
+    
+    window.onProjectSelectDE = function() {
+        const selector = document.getElementById('projectSelectorDE');
+        const projectId = selector.value;
+        
+        if (!projectId) {
+            dashboardStateDE.currentProject = null;
+            saveDashboardStateDE();
+            return;
+        }
+        
+        const projects = getProjectsDE();
+        const project = projects.find(p => p.id === projectId);
+        if (project && project.data) {
+            dashboardStateDE = { ...project.data, currentProject: project.id };
+            saveDashboardStateDE();
+            renderAllItemsDE();
+            showNotificationDE(`Project "${project.name}" loaded!`, 'success');
+        }
+    };
+    
+    window.deleteCurrentProjectDE = function() {
+        if (!dashboardStateDE.currentProject) {
+            showNotificationDE('No project selected!', 'warning');
+            return;
+        }
+        
+        if (confirm('Are you sure you want to delete this project?')) {
+            let projects = getProjectsDE();
+            const project = projects.find(p => p.id === dashboardStateDE.currentProject);
+            projects = projects.filter(p => p.id !== dashboardStateDE.currentProject);
+            saveProjectsDE(projects);
+            dashboardStateDE.currentProject = null;
+            saveDashboardStateDE();
+            loadProjectsListDE();
+            showNotificationDE(`Project "${project?.name}" deleted!`, 'success');
+        }
+    };
+    
+    window.resetDashboardProjectDE = function() {
+        if (confirm('Reset dashboard? This will clear all items.')) {
+            dashboardStateDE = {
+                database: { selected: '', remoteCredentials: false, localhostCredentials: false },
+                backend: [],
+                page: [],
+                frontend: [],
+                currentProject: null
+            };
+            saveDashboardStateDE();
+            renderAllItemsDE();
+            loadProjectsListDE();
+            showNotificationDE('Dashboard reset!', 'success');
+        }
+    };
+    
+    window.resetDashboardDE = function() {
+        resetDashboardProjectDE();
+    };
+    
+    // ══════════════════════════════════════════════════════════════════
+    // EDITOR FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════
+    
+    window.clearEditorDE = function() {
+        const editor = document.getElementById('promptEditorDE');
+        if (editor) {
+            editor.value = '';
+            showNotificationDE('Editor cleared!', 'success');
+        }
+    };
+    
+    window.pasteToEditorDE = async function() {
+        try {
+            const text = await navigator.clipboard.readText();
+            const editor = document.getElementById('promptEditorDE');
+            if (editor) {
+                editor.value += text;
+                showNotificationDE('Content pasted!', 'success');
+            }
+        } catch (err) {
+            showNotificationDE('Failed to paste. Check clipboard permissions.', 'error');
+        }
+    };
+    
+    window.copyPromptDE = async function() {
+        const editor = document.getElementById('promptEditorDE');
+        if (editor && editor.value) {
+            try {
+                await navigator.clipboard.writeText(editor.value);
+                showNotificationDE('Copied to clipboard!', 'success');
+            } catch (err) {
+                // Fallback
+                editor.select();
+                document.execCommand('copy');
+                showNotificationDE('Copied to clipboard!', 'success');
+            }
+        } else {
+            showNotificationDE('Nothing to copy!', 'warning');
+        }
+    };
+    
+    function appendToEditorDE(text) {
+        const editor = document.getElementById('promptEditorDE');
+        if (editor) {
+            if (editor.value) editor.value += '\n\n';
+            editor.value += text;
+            editor.scrollTop = editor.scrollHeight;
+        }
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // NOTIFICATION HELPER
+    // ══════════════════════════════════════════════════════════════════
+    
+    function showNotificationDE(message, type = 'info') {
+        // Remove any existing notifications
+        const existingToasts = document.querySelectorAll('.toast-notification-de');
+        existingToasts.forEach(t => t.remove());
+        
+        // Icon mapping
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification-de ${type}`;
+        toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+            <i class="fas fa-times toast-close" onclick="this.parentElement.remove()"></i>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 4000);
+        
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // INITIALIZE ON DOM READY
+    // ══════════════════════════════════════════════════════════════════
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDashboardDE);
+    } else {
+        initDashboardDE();
+    }
+    
+    console.log('✅ Development Dashboard & Prompt Editor DE - Loaded');
+})();
+</script>
+
+<!-- New Project Popup -->
+<div class="project-popup-overlay-de" id="newProjectPopupDE">
+    <div class="project-popup-de">
+        <div class="project-popup-header-de">
+            <div class="project-popup-title-de">
+                <i class="fas fa-plus-circle"></i>
+                New Project
+            </div>
+            <button class="project-popup-close-de" onclick="document.getElementById('newProjectPopupDE').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="project-popup-body-de">
+            <div class="project-form-group-de">
+                <label class="project-form-label-de">Project Name</label>
+                <input type="text" class="project-form-input-de" id="newProjectNameDE" placeholder="Enter project name...">
+            </div>
+        </div>
+        <div class="project-popup-footer-de">
+            <button class="project-popup-btn-de cancel" onclick="document.getElementById('newProjectPopupDE').classList.remove('active')">Cancel</button>
+            <button class="project-popup-btn-de primary" onclick="createProjectDE()">Create Project</button>
+        </div>
+    </div>
+</div>
+
+<!-- Load Project Popup -->
+<div class="project-popup-overlay-de" id="loadProjectPopupDE">
+    <div class="project-popup-de">
+        <div class="project-popup-header-de">
+            <div class="project-popup-title-de">
+                <i class="fas fa-folder-open"></i>
+                Load Project
+            </div>
+            <button class="project-popup-close-de" onclick="document.getElementById('loadProjectPopupDE').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="project-popup-body-de">
+            <div class="project-list-de" id="projectListDE">
+                <div class="project-list-empty-de">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No projects saved yet</p>
+                </div>
+            </div>
+        </div>
+        <div class="project-popup-footer-de">
+            <button class="project-popup-btn-de cancel" onclick="document.getElementById('loadProjectPopupDE').classList.remove('active')">Cancel</button>
+            <button class="project-popup-btn-de primary" onclick="loadSelectedProjectDE()">Load Project</button>
+        </div>
+    </div>
+</div>
+
 </body>
 
 </html>
