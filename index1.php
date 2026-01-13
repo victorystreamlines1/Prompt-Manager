@@ -9845,6 +9845,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         gap: 0.6rem;
     }
     
+    /* Propagate Button */
+    .dash-propagate-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.9rem;
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+        border: 1px solid rgba(251, 146, 60, 0.35);
+        border-radius: 10px;
+        color: #fb923c;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .dash-propagate-btn-de:hover {
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+        border-color: rgba(251, 146, 60, 0.5);
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
+    }
+    
+    .dash-propagate-btn-de:active {
+        transform: scale(0.98);
+    }
+    
+    .dash-propagate-btn-de i {
+        font-size: 0.8rem;
+    }
+    
     /* Arrow Button - Open/Switch to Prompt Manager */
     .dash-arrow-back-btn-de {
         display: flex;
@@ -12064,6 +12096,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="dev-dashboard-actions-de">
+                    <button type="button" class="dash-propagate-btn-de" onclick="propagateToOtherPageDE()" title="Send all data to Prompt Manager page">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>Propagate</span>
+                    </button>
                     <button type="button" class="dash-arrow-back-btn-de" onclick="openOrSwitchToPromptManager()" title="Open/Switch to Prompt Manager Tab">
                         <i class="fas fa-arrow-left"></i>
                     </button>
@@ -32817,11 +32853,6 @@ ${state.feedFromDocumentation ?
             
             const result = await response.json();
             
-            if (result.success) {
-                // Broadcast change to other tabs
-                broadcastSyncDE('project_saved', { id: result.id });
-            }
-            
             return result;
         } catch (e) {
             console.error('Error saving project:', e);
@@ -32842,11 +32873,6 @@ ${state.feedFromDocumentation ?
             });
             
             const result = await response.json();
-            
-            if (result.success) {
-                // Broadcast change to other tabs
-                broadcastSyncDE('project_deleted', { id: id });
-            }
             
             return result;
         } catch (e) {
@@ -33451,194 +33477,100 @@ ${state.feedFromDocumentation ?
     };
     
     // ══════════════════════════════════════════════════════════════════
-    // REAL-TIME SYNC BETWEEN PAGES (BroadcastChannel + Polling)
+    // PROPAGATE FUNCTIONALITY (Manual sync between pages)
     // ══════════════════════════════════════════════════════════════════
     
-    // BroadcastChannel for same-browser sync
-    let syncChannelDE = null;
-    let isSyncingDE = false; // Prevent sync loops
+    let propagateChannelDE = null;
     
     try {
-        syncChannelDE = new BroadcastChannel('prompt_manager_sync');
-        syncChannelDE.onmessage = async function(event) {
-            if (isSyncingDE) return;
-            isSyncingDE = true;
-            
+        propagateChannelDE = new BroadcastChannel('prompt_manager_propagate');
+        
+        // Listen for propagate messages from other page
+        propagateChannelDE.onmessage = function(event) {
             const data = event.data;
-            console.log('📡 Sync received:', data.type, data);
             
-            try {
-                // Project list changes
-                if (data.type === 'project_saved' || data.type === 'project_deleted') {
-                    await loadProjectsListDE();
-                    
-                    if (data.type === 'project_deleted' && dashboardStateDE.currentProject == data.id) {
-                        dashboardStateDE.currentProject = null;
-                        showNotificationDE('🔄 Current project was deleted', 'warning');
-                    }
-                }
+            if (data.type === 'propagate' && data.source !== 'index1') {
+                console.log('📡 Received propagate from Prompt Manager:', data);
                 
-                // Project selection changed
-                if (data.type === 'project_selected') {
-                    const selector = document.getElementById('projectSelectorDE');
-                    if (selector && selector.value != data.projectId) {
-                        selector.value = data.projectId || '';
-                        dashboardStateDE.currentProject = data.projectId || null;
-                        
-                        if (data.projectId) {
-                            const project = await getProjectFromDB(data.projectId);
-                            if (project) {
-                                dashboardStateDE = {
-                                    database: {
-                                        selected: project.database_name || '',
-                                        remoteCredentials: project.include_remote == 1,
-                                        localhostCredentials: project.include_localhost == 1
-                                    },
-                                    backend: project.backends || [],
-                                    page: project.pages || [],
-                                    frontend: project.frontends || [],
-                                    currentProject: project.id
-                                };
-                                
-                                const editor = document.getElementById('promptEditorDE');
-                                if (editor && project.prompt_content) {
-                                    editor.value = project.prompt_content;
-                                }
-                                
-                                renderAllItemsDE();
-                            }
-                        }
-                        showNotificationDE('🔄 Project synced!', 'info');
-                    }
-                }
+                // Apply the received state
+                applyPropagatedDataDE(data);
                 
-                // Prompt editor content changed
-                if (data.type === 'prompt_content_changed') {
-                    const editor = document.getElementById('promptEditorDE');
-                    if (editor && editor.value !== data.content) {
-                        editor.value = data.content;
-                        console.log('📝 Prompt editor synced');
-                    }
-                }
-                
-                // Dashboard state changed (items added/removed)
-                if (data.type === 'dashboard_state_changed') {
-                    if (data.state) {
-                        dashboardStateDE = { ...data.state };
-                        renderAllItemsDE();
-                        saveDashboardStateDE();
-                        showNotificationDE('🔄 Dashboard synced!', 'info');
-                    }
-                }
-                
-            } finally {
-                setTimeout(() => { isSyncingDE = false; }, 100);
+                showNotificationDE('✅ Data received from Prompt Manager!', 'success');
             }
         };
-        console.log('📡 BroadcastChannel connected for real-time sync');
+        
+        console.log('📡 Propagate channel connected');
     } catch (e) {
         console.log('BroadcastChannel not supported');
     }
     
-    // Broadcast sync event to other tabs
-    function broadcastSyncDE(type, data) {
-        if (syncChannelDE && !isSyncingDE) {
-            syncChannelDE.postMessage({ type: type, ...data, timestamp: Date.now(), source: 'index1' });
+    // Propagate all data to the other page
+    window.propagateToOtherPageDE = function() {
+        if (!propagateChannelDE) {
+            showNotificationDE('❌ Sync not available. Make sure Prompt Manager is open.', 'error');
+            return;
         }
-    }
-    
-    // ══════════════════════════════════════════════════════════════════
-    // REAL-TIME SYNC EVENT LISTENERS
-    // ══════════════════════════════════════════════════════════════════
-    
-    // Sync prompt editor content in real-time (debounced)
-    let promptSyncTimeoutDE = null;
-    function setupPromptEditorSyncDE() {
-        const editor = document.getElementById('promptEditorDE');
-        if (editor) {
-            editor.addEventListener('input', function() {
-                clearTimeout(promptSyncTimeoutDE);
-                promptSyncTimeoutDE = setTimeout(() => {
-                    broadcastSyncDE('prompt_content_changed', { content: editor.value });
-                }, 300); // Debounce 300ms
-            });
-        }
-    }
-    
-    // Sync project selector changes
-    function setupProjectSelectorSyncDE() {
-        const selector = document.getElementById('projectSelectorDE');
-        if (selector) {
-            const originalOnChange = selector.onchange;
-            selector.onchange = async function(e) {
-                if (originalOnChange) originalOnChange.call(this, e);
-                broadcastSyncDE('project_selected', { projectId: this.value });
-            };
-        }
-    }
-    
-    // Setup sync listeners after DOM ready
-    function initSyncListenersDE() {
-        setupPromptEditorSyncDE();
-        setupProjectSelectorSyncDE();
-        console.log('✅ Real-time sync listeners initialized');
-    }
-    
-    // Polling for cross-device sync (every 5 seconds when visible)
-    let syncIntervalDE = null;
-    let lastProjectsHashDE = '';
-    
-    function startSyncPollingDE() {
-        if (syncIntervalDE) return;
         
-        syncIntervalDE = setInterval(async () => {
-            if (document.hidden) return; // Don't sync when page is hidden
+        // Collect all current data
+        const propagateData = {
+            type: 'propagate',
+            source: 'index1',
+            timestamp: Date.now(),
             
-            try {
-                const formData = new FormData();
-                formData.append('action', 'sync_check_de');
-                
-                const response = await fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Create hash of project IDs and update times
-                    const newHash = JSON.stringify(result.projects.map(p => p.id + '_' + p.updated_at));
-                    
-                    if (lastProjectsHashDE && newHash !== lastProjectsHashDE) {
-                        console.log('🔄 Projects changed on server, reloading...');
-                        await loadProjectsListDE();
-                        showNotificationDE('🔄 Projects list updated!', 'info');
-                    }
-                    
-                    lastProjectsHashDE = newHash;
-                }
-            } catch (e) {
-                console.log('Sync check failed:', e);
+            // Project selection
+            currentProject: dashboardStateDE.currentProject,
+            
+            // Dashboard items
+            backend: dashboardStateDE.backend || [],
+            page: dashboardStateDE.page || [],
+            frontend: dashboardStateDE.frontend || [],
+            
+            // Database selection
+            database: dashboardStateDE.database || {},
+            
+            // Prompt editor content
+            promptContent: document.getElementById('promptEditorDE')?.value || ''
+        };
+        
+        // Send to other page
+        propagateChannelDE.postMessage(propagateData);
+        
+        showNotificationDE('📤 Data sent to Prompt Manager!', 'success');
+        console.log('📤 Propagated data:', propagateData);
+    };
+    
+    // Apply received propagate data
+    function applyPropagatedDataDE(data) {
+        // Apply project selection
+        if (data.currentProject) {
+            const selector = document.getElementById('projectSelectorDE');
+            if (selector) {
+                selector.value = data.currentProject;
+                dashboardStateDE.currentProject = data.currentProject;
             }
-        }, 5000);
-    }
-    
-    function stopSyncPollingDE() {
-        if (syncIntervalDE) {
-            clearInterval(syncIntervalDE);
-            syncIntervalDE = null;
         }
-    }
-    
-    // Start/stop sync based on visibility
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            stopSyncPollingDE();
-        } else {
-            startSyncPollingDE();
-            loadProjectsListDE(); // Refresh when page becomes visible
+        
+        // Apply dashboard items
+        if (data.backend) dashboardStateDE.backend = data.backend;
+        if (data.page) dashboardStateDE.page = data.page;
+        if (data.frontend) dashboardStateDE.frontend = data.frontend;
+        if (data.database) dashboardStateDE.database = data.database;
+        
+        // Apply prompt editor content
+        if (data.promptContent !== undefined) {
+            const editor = document.getElementById('promptEditorDE');
+            if (editor) {
+                editor.value = data.promptContent;
+            }
         }
-    });
+        
+        // Render the items
+        renderAllItemsDE();
+        saveDashboardStateDE();
+        
+        // Reload projects list to ensure dropdown is up to date
+        loadProjectsListDE();
+    }
     
     // ══════════════════════════════════════════════════════════════════
     // SEND TO PROMPT.TXT FUNCTIONALITY (uses Prompt-Manager.php config)
@@ -33825,43 +33757,11 @@ ${state.feedFromDocumentation ?
     // ══════════════════════════════════════════════════════════════════
     
     async function initAllDE() {
-        loadDashboardStateDE(); // Load local state first
-        await loadProjectsListDE(); // Then load projects from database
+        loadDashboardStateDE();
+        await loadProjectsListDE();
         updateAllCountsDE();
         initSendConnectionDE();
-        initSyncListenersDE(); // Setup real-time sync listeners
-        startSyncPollingDE(); // Start polling sync
-        
-        // Refresh when tab becomes visible
-        document.addEventListener('visibilitychange', async () => {
-            if (!document.hidden && dashboardStateDE.currentProject) {
-                // Reload current project when tab becomes visible
-                const project = await getProjectFromDB(dashboardStateDE.currentProject);
-                if (project) {
-                    dashboardStateDE = {
-                        database: {
-                            selected: project.database_name || '',
-                            remoteCredentials: project.include_remote == 1,
-                            localhostCredentials: project.include_localhost == 1
-                        },
-                        backend: project.backends || [],
-                        page: project.pages || [],
-                        frontend: project.frontends || [],
-                        currentProject: project.id
-                    };
-                    
-                    const editor = document.getElementById('promptEditorDE');
-                    if (editor && project.prompt_content) {
-                        editor.value = project.prompt_content;
-                    }
-                    
-                    renderAllItemsDE();
-                    console.log('🔄 Refreshed on tab focus');
-                }
-            }
-        });
-        
-        console.log('✅ Development Dashboard DE initialized with database sync');
+        console.log('✅ Development Dashboard DE initialized');
     }
     
     if (document.readyState === 'loading') {

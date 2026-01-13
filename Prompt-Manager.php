@@ -3775,6 +3775,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.6rem;
         }
         
+        /* Propagate Button */
+        .dash-propagate-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.9rem;
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 1px solid rgba(251, 146, 60, 0.35);
+            border-radius: 10px;
+            color: #fb923c;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dash-propagate-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border-color: rgba(251, 146, 60, 0.5);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
+        }
+        
+        .dash-propagate-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .dash-propagate-btn i {
+            font-size: 0.8rem;
+        }
+        
         .dash-reset-btn {
             display: flex;
             align-items: center;
@@ -8865,6 +8897,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
+                        <button type="button" class="dash-propagate-btn" onclick="propagateToOtherPagePM()" title="Send all data to Design Enhancer page">
+                            <i class="fas fa-broadcast-tower"></i>
+                            <span>Propagate</span>
+                        </button>
                         <button type="button" class="dash-newtab-btn" id="dashNewTabBtn" onclick="openOrSwitchToDesignEnhancer()" title="Open/Switch to Design Enhancer Tab">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
@@ -17863,103 +17899,152 @@ let selectedProjectToLoad = null;
 let projectToDelete = null;
 
 // ════════════════════════════════════════════════════════════════
-// REAL-TIME SYNC WITH INDEX1.PHP (BroadcastChannel + Polling)
+// PROPAGATE FUNCTIONALITY (Manual sync between pages)
 // ════════════════════════════════════════════════════════════════
 
-let syncChannelPM = null;
-let projectsCachePM = [];
-let lastProjectsHashPM = '';
+let propagateChannelPM = null;
 
 try {
-    syncChannelPM = new BroadcastChannel('prompt_manager_sync');
-    syncChannelPM.onmessage = async function(event) {
+    propagateChannelPM = new BroadcastChannel('prompt_manager_propagate');
+    
+    // Listen for propagate messages from other page
+    propagateChannelPM.onmessage = function(event) {
         const data = event.data;
-        console.log('📡 Sync message received:', data.type);
         
-        if (data.type === 'project_saved' || data.type === 'project_deleted' || data.type === 'project_updated') {
-            // Reload projects list
-            loadProjectsList();
+        if (data.type === 'propagate' && data.source !== 'prompt_manager') {
+            console.log('📡 Received propagate from Design Enhancer:', data);
             
-            // If current project was updated/deleted, handle it
-            if (data.id && currentProjectId == data.id) {
-                if (data.type === 'project_deleted') {
-                    currentProjectId = null;
-                    resetDashboardItems();
-                    showToast('🔄 Current project was deleted in another tab', 'warning');
-                } else {
-                    loadProject(data.id);
-                    showToast('🔄 Project synced from other tab!', 'info');
-                }
-            }
+            // Apply the received state
+            applyPropagatedDataPM(data);
+            
+            showToast('✅ Data received from Design Enhancer!', 'success');
         }
     };
-    console.log('📡 BroadcastChannel connected for real-time sync');
+    
+    console.log('📡 Propagate channel connected');
 } catch (e) {
     console.log('BroadcastChannel not supported');
 }
 
-// Broadcast sync event to other tabs
-function broadcastSyncPM(type, data = {}) {
-    if (syncChannelPM) {
-        syncChannelPM.postMessage({ type: type, ...data, timestamp: Date.now() });
+// Propagate all data to the other page
+function propagateToOtherPagePM() {
+    if (!propagateChannelPM) {
+        showToast('❌ Sync not available. Make sure Design Enhancer is open.', 'error');
+        return;
     }
-}
-
-// Polling for cross-device sync
-let syncIntervalPM = null;
-
-function startSyncPollingPM() {
-    if (syncIntervalPM) return;
     
-    syncIntervalPM = setInterval(async () => {
-        if (document.hidden) return;
+    // Collect all current data from dashboard
+    const dashboardData = collectDashboardData();
+    
+    const propagateData = {
+        type: 'propagate',
+        source: 'prompt_manager',
+        timestamp: Date.now(),
         
-        try {
-            const formData = new FormData();
-            formData.append('action', 'get_projects');
-            
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                const newHash = JSON.stringify(result.projects.map(p => p.id + '_' + p.updated_at));
-                
-                if (lastProjectsHashPM && newHash !== lastProjectsHashPM) {
-                    console.log('🔄 Projects changed on server, reloading...');
-                    updateProjectSelector(result.projects);
-                    showToast('🔄 Projects list updated!', 'info');
-                }
-                
-                lastProjectsHashPM = newHash;
-            }
-        } catch (e) {
-            console.log('Sync check failed:', e);
-        }
-    }, 5000);
+        // Project selection
+        currentProject: currentProjectId,
+        
+        // Dashboard items
+        backend: dashboardData.backends || [],
+        page: dashboardData.pages || [],
+        frontend: dashboardData.frontends || [],
+        
+        // Database selection
+        database: {
+            selected: dashboardData.database_name || '',
+            remoteCredentials: dashboardData.include_remote == 1,
+            localhostCredentials: dashboardData.include_localhost == 1
+        },
+        
+        // Prompt editor content
+        promptContent: document.getElementById('promptEditor')?.value || ''
+    };
+    
+    // Send to other page
+    propagateChannelPM.postMessage(propagateData);
+    
+    showToast('📤 Data sent to Design Enhancer!', 'success');
+    console.log('📤 Propagated data:', propagateData);
 }
 
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        if (syncIntervalPM) {
-            clearInterval(syncIntervalPM);
-            syncIntervalPM = null;
-        }
-    } else {
-        startSyncPollingPM();
-        loadProjectsList();
+// Apply received propagate data
+function applyPropagatedDataPM(data) {
+    // DON'T reset dashboard - just apply the items
+    // This preserves the database dropdown
+    
+    // Clear only the dynamic items (not checkboxes/database)
+    if (typeof dynamicItems !== 'undefined') {
+        dynamicItems.backend = [];
+        dynamicItems.page = [];
+        dynamicItems.frontend = [];
     }
-});
+    
+    // Clear items HTML
+    ['backend', 'page', 'frontend'].forEach(type => {
+        const grid = document.getElementById(type + 'ItemsGrid');
+        if (grid) {
+            const emptyStates = {
+                'backend': '<div class="dynamic-empty-state" id="backendEmptyState"><i class="fas fa-file-code"></i><p>No backend items</p><small>Click "Add" to create one</small></div>',
+                'page': '<div class="dynamic-empty-state" id="pageEmptyState"><i class="fas fa-file-alt"></i><p>No page items</p><small>Click "Add" to create one</small></div>',
+                'frontend': '<div class="dynamic-empty-state" id="frontendEmptyState"><i class="fas fa-paint-brush"></i><p>No frontend items</p><small>Click "Add" to create one</small></div>'
+            };
+            grid.innerHTML = emptyStates[type];
+        }
+        updateDynamicCount(type);
+    });
+    
+    // Apply project selection
+    if (data.currentProject) {
+        const selector = document.getElementById('projectSelector');
+        if (selector) {
+            selector.value = data.currentProject;
+            currentProjectId = data.currentProject;
+        }
+    }
+    
+    // Apply dashboard items - Backend
+    if (data.backend && data.backend.length > 0) {
+        data.backend.forEach(item => {
+            addDynamicItem('backend', item.name || '', item.prompt || item.desc || '');
+        });
+    }
+    
+    // Apply dashboard items - Pages
+    if (data.page && data.page.length > 0) {
+        data.page.forEach(item => {
+            addDynamicItem('page', item.name || '', item.prompt || item.desc || '');
+        });
+    }
+    
+    // Apply dashboard items - Frontend
+    if (data.frontend && data.frontend.length > 0) {
+        data.frontend.forEach(item => {
+            addDynamicItem('frontend', item.name || '', item.prompt || item.desc || '');
+        });
+    }
+    
+    // Apply prompt editor content
+    if (data.promptContent !== undefined) {
+        const editor = document.getElementById('promptEditor');
+        if (editor) {
+            editor.value = data.promptContent;
+        }
+    }
+    
+    // Reload projects list
+    loadProjectsList();
+    
+    // Refresh database list to ensure it's visible
+    if (typeof loadHostingerDatabases === 'function') {
+        loadHostingerDatabases();
+    }
+}
 
 // ════════════════════════════════════════════════════════════════
 
 // Initialize projects on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadProjectsList();
-    startSyncPollingPM();
 });
 
 // Load all projects into selector
@@ -18149,9 +18234,6 @@ function saveProject(projectData) {
             showToast(data.message, 'success');
             closeProjectPopup('newProjectPopup');
             loadProjectsList();
-            
-            // Broadcast sync to other tabs (index1.php)
-            broadcastSyncPM('project_saved', { id: data.id });
             
             // Log operation time to speed monitor
             if (data.operationTime) {
@@ -18396,9 +18478,6 @@ function confirmDeleteProject() {
             showToast('Project deleted successfully!', 'success');
             loadProjectsList();
             resetDashboardProject();
-            
-            // Broadcast sync to other tabs (index1.php)
-            broadcastSyncPM('project_deleted', { id: deletedId });
             
             if (data.operationTime) {
                 addSpeedEntry({ 
