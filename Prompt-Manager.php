@@ -3789,6 +3789,213 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
         }
         
+        /* Iframe Popup Button */
+        .dash-iframe-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
+            color: #818cf8;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dash-iframe-btn:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .dash-iframe-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #c7d2fe;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        /* Draggable Resizable Iframe Popup */
+        .iframe-popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99998;
+            pointer-events: none;
+        }
+        
+        .iframe-popup-overlay.active {
+            display: block;
+        }
+        
+        .iframe-popup-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px;
+            height: 600px;
+            min-width: 400px;
+            min-height: 300px;
+            max-width: 95vw;
+            max-height: 90vh;
+            background: linear-gradient(145deg, rgba(20, 20, 35, 0.98) 0%, rgba(15, 15, 28, 0.99) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            z-index: 99999;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .iframe-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            cursor: move;
+            user-select: none;
+        }
+        
+        .iframe-popup-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #e0e7ff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .iframe-popup-title i {
+            color: #818cf8;
+            font-size: 1rem;
+        }
+        
+        .iframe-popup-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .iframe-popup-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #9ca3af;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .iframe-popup-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+        
+        .iframe-popup-btn.close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .iframe-popup-body {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .iframe-popup-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #0a0a12;
+        }
+        
+        .iframe-popup-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            color: #818cf8;
+        }
+        
+        .iframe-popup-loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        .iframe-popup-loading span {
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+        
+        /* Resize handles */
+        .iframe-resize-handle {
+            position: absolute;
+            background: transparent;
+        }
+        
+        .iframe-resize-handle.right {
+            right: 0;
+            top: 0;
+            width: 8px;
+            height: 100%;
+            cursor: ew-resize;
+        }
+        
+        .iframe-resize-handle.bottom {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            cursor: ns-resize;
+        }
+        
+        .iframe-resize-handle.corner {
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            cursor: nwse-resize;
+        }
+        
+        .iframe-resize-handle.corner::after {
+            content: '';
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid rgba(99, 102, 241, 0.4);
+            border-bottom: 2px solid rgba(99, 102, 241, 0.4);
+            border-radius: 0 0 3px 0;
+        }
+        
         .dev-dashboard-status {
             display: flex;
             align-items: center;
@@ -8624,6 +8831,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
+                        <button type="button" class="dash-iframe-btn" id="dashIframeBtn" onclick="toggleIframePopup()" title="Open Prompt Studio">
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
                         <button type="button" class="dash-reset-btn" id="dashResetBtn" onclick="resetDashboard()" title="Reset Dashboard">
                             <i class="fas fa-undo"></i>
                         </button>
@@ -18154,6 +18364,196 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
 });
 </script>
 <!-- End Project Management Popups -->
+
+<!-- Draggable Resizable Iframe Popup -->
+<div class="iframe-popup-overlay" id="iframePopupOverlay">
+    <div class="iframe-popup-container" id="iframePopupContainer">
+        <div class="iframe-popup-header" id="iframePopupHeader">
+            <div class="iframe-popup-title">
+                <i class="fas fa-rocket"></i>
+                <span>Prompt Studio</span>
+            </div>
+            <div class="iframe-popup-actions">
+                <button type="button" class="iframe-popup-btn" onclick="resetIframePopupSize()" title="Reset Size">
+                    <i class="fas fa-compress-arrows-alt"></i>
+                </button>
+                <button type="button" class="iframe-popup-btn close-btn" onclick="closeIframePopup()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="iframe-popup-body">
+            <div class="iframe-popup-loading" id="iframeLoading">
+                <i class="fas fa-spinner"></i>
+                <span>Loading Prompt Studio...</span>
+            </div>
+            <iframe id="iframePopupFrame" src="" style="display: none;"></iframe>
+        </div>
+        <div class="iframe-resize-handle right" data-resize="right"></div>
+        <div class="iframe-resize-handle bottom" data-resize="bottom"></div>
+        <div class="iframe-resize-handle corner" data-resize="corner"></div>
+    </div>
+</div>
+
+<script>
+// Iframe Popup Functionality
+(function() {
+    const overlay = document.getElementById('iframePopupOverlay');
+    const container = document.getElementById('iframePopupContainer');
+    const header = document.getElementById('iframePopupHeader');
+    const iframe = document.getElementById('iframePopupFrame');
+    const loading = document.getElementById('iframeLoading');
+    const btn = document.getElementById('dashIframeBtn');
+    
+    let isDragging = false;
+    let isResizing = false;
+    let resizeDirection = '';
+    let startX, startY, startWidth, startHeight, startLeft, startTop;
+    
+    const defaultWidth = 900;
+    const defaultHeight = 600;
+    
+    // Toggle popup
+    window.toggleIframePopup = function() {
+        if (overlay.classList.contains('active')) {
+            closeIframePopup();
+        } else {
+            openIframePopup();
+        }
+    };
+    
+    // Open popup
+    window.openIframePopup = function() {
+        overlay.classList.add('active');
+        btn.classList.add('active');
+        
+        // Center the popup
+        container.style.left = '50%';
+        container.style.top = '50%';
+        container.style.transform = 'translate(-50%, -50%)';
+        container.style.width = defaultWidth + 'px';
+        container.style.height = defaultHeight + 'px';
+        
+        // Load iframe
+        loading.style.display = 'flex';
+        iframe.style.display = 'none';
+        iframe.src = 'index1.php';
+        
+        iframe.onload = function() {
+            loading.style.display = 'none';
+            iframe.style.display = 'block';
+        };
+    };
+    
+    // Close popup
+    window.closeIframePopup = function() {
+        overlay.classList.remove('active');
+        btn.classList.remove('active');
+        iframe.src = '';
+    };
+    
+    // Reset size
+    window.resetIframePopupSize = function() {
+        container.style.width = defaultWidth + 'px';
+        container.style.height = defaultHeight + 'px';
+        container.style.left = '50%';
+        container.style.top = '50%';
+        container.style.transform = 'translate(-50%, -50%)';
+    };
+    
+    // Dragging functionality
+    header.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.iframe-popup-btn')) return;
+        
+        isDragging = true;
+        
+        // Remove transform and convert to absolute positioning
+        const rect = container.getBoundingClientRect();
+        container.style.transform = 'none';
+        container.style.left = rect.left + 'px';
+        container.style.top = rect.top + 'px';
+        
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        
+        document.body.style.cursor = 'move';
+        document.body.style.userSelect = 'none';
+    });
+    
+    // Resize functionality
+    document.querySelectorAll('.iframe-resize-handle').forEach(handle => {
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isResizing = true;
+            resizeDirection = this.dataset.resize;
+            
+            const rect = container.getBoundingClientRect();
+            container.style.transform = 'none';
+            container.style.left = rect.left + 'px';
+            container.style.top = rect.top + 'px';
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = rect.width;
+            startHeight = rect.height;
+            startLeft = rect.left;
+            startTop = rect.top;
+            
+            document.body.style.userSelect = 'none';
+            
+            // Disable pointer events on iframe during resize
+            iframe.style.pointerEvents = 'none';
+        });
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            const newX = e.clientX - startX;
+            const newY = e.clientY - startY;
+            
+            // Keep within viewport
+            const maxX = window.innerWidth - container.offsetWidth;
+            const maxY = window.innerHeight - container.offsetHeight;
+            
+            container.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
+            container.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
+        }
+        
+        if (isResizing) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            if (resizeDirection === 'right' || resizeDirection === 'corner') {
+                const newWidth = Math.max(400, startWidth + dx);
+                container.style.width = Math.min(newWidth, window.innerWidth - startLeft - 20) + 'px';
+            }
+            
+            if (resizeDirection === 'bottom' || resizeDirection === 'corner') {
+                const newHeight = Math.max(300, startHeight + dy);
+                container.style.height = Math.min(newHeight, window.innerHeight - startTop - 20) + 'px';
+            }
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        isResizing = false;
+        resizeDirection = '';
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        iframe.style.pointerEvents = '';
+    });
+    
+    // ESC key to close (optional shortcut)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closeIframePopup();
+        }
+    });
+})();
+</script>
 
 </body>
 </html>

@@ -1,9 +1,1 @@
-<!-- FILE:Prompt-Manager.php -->
-[📎 Prompt-Manager.php | Folder: root]
-<!-- /END  FILE:Prompt-Manager.php -->
-
-In PromptManager.php, add in the development dashboard on the top right, next to the refresh button, on the left side of the refresh button, a nice button style for a pop-up frame that will open. A dragable and resizable Pop-up i-frame Make sure it stays On until I close it It doesn't go if I Click outside The i-frame Until I click To shut off the i-frame Of this Website--->
-
-<!-- FILE:index1.php -->
-[📎 index1.php | Folder: root]
-<!-- /END  FILE:index1.php -->
+Now concentrate to what I'm going to tell you. See prompt manager.php. There is a development dashboard that has functionalities. you and under the development dashboard you will find prompt editor I want you to copy paste the dashboard functionalities and design and everything also the prompt editor with its functionality with everything and put it instead of the design enhancer first header panel instead of this panel remove this panel and put the two panels development dashboard prompt editor with all its functionalities with everything just copy paste the functionalities and put them there do not change any of the index one PHP functionalities just put this up with its functionalities alone creating a new website a new project and injecting into prompt editor the same way the same everything therefore take the code and put it there do not change anything in both pages prompt manager dot PHP or index one dot PHP only add this part and functionality instead of the container written on a design enhancer two containers instead of one container in index one dot PHP 
