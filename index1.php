@@ -33456,53 +33456,132 @@ ${state.feedFromDocumentation ?
     
     // BroadcastChannel for same-browser sync
     let syncChannelDE = null;
+    let isSyncingDE = false; // Prevent sync loops
+    
     try {
         syncChannelDE = new BroadcastChannel('prompt_manager_sync');
         syncChannelDE.onmessage = async function(event) {
-            const data = event.data;
-            console.log('📡 Sync message received:', data.type);
+            if (isSyncingDE) return;
+            isSyncingDE = true;
             
-            if (data.type === 'project_saved' || data.type === 'project_deleted' || data.type === 'project_updated') {
-                // Reload projects list
-                await loadProjectsListDE();
-                
-                // If current project was updated, reload it
-                if (data.id && dashboardStateDE.currentProject == data.id) {
-                    const project = await getProjectFromDB(data.id);
-                    if (project) {
-                        dashboardStateDE = {
-                            database: {
-                                selected: project.database_name || '',
-                                remoteCredentials: project.include_remote == 1,
-                                localhostCredentials: project.include_localhost == 1
-                            },
-                            backend: project.backends || [],
-                            page: project.pages || [],
-                            frontend: project.frontends || [],
-                            currentProject: project.id
-                        };
-                        
-                        const editor = document.getElementById('promptEditorDE');
-                        if (editor && project.prompt_content) {
-                            editor.value = project.prompt_content;
-                        }
-                        
-                        renderAllItemsDE();
-                        showNotificationDE('🔄 Project synced from other tab!', 'info');
+            const data = event.data;
+            console.log('📡 Sync received:', data.type, data);
+            
+            try {
+                // Project list changes
+                if (data.type === 'project_saved' || data.type === 'project_deleted') {
+                    await loadProjectsListDE();
+                    
+                    if (data.type === 'project_deleted' && dashboardStateDE.currentProject == data.id) {
+                        dashboardStateDE.currentProject = null;
+                        showNotificationDE('🔄 Current project was deleted', 'warning');
                     }
                 }
+                
+                // Project selection changed
+                if (data.type === 'project_selected') {
+                    const selector = document.getElementById('projectSelectorDE');
+                    if (selector && selector.value != data.projectId) {
+                        selector.value = data.projectId || '';
+                        dashboardStateDE.currentProject = data.projectId || null;
+                        
+                        if (data.projectId) {
+                            const project = await getProjectFromDB(data.projectId);
+                            if (project) {
+                                dashboardStateDE = {
+                                    database: {
+                                        selected: project.database_name || '',
+                                        remoteCredentials: project.include_remote == 1,
+                                        localhostCredentials: project.include_localhost == 1
+                                    },
+                                    backend: project.backends || [],
+                                    page: project.pages || [],
+                                    frontend: project.frontends || [],
+                                    currentProject: project.id
+                                };
+                                
+                                const editor = document.getElementById('promptEditorDE');
+                                if (editor && project.prompt_content) {
+                                    editor.value = project.prompt_content;
+                                }
+                                
+                                renderAllItemsDE();
+                            }
+                        }
+                        showNotificationDE('🔄 Project synced!', 'info');
+                    }
+                }
+                
+                // Prompt editor content changed
+                if (data.type === 'prompt_content_changed') {
+                    const editor = document.getElementById('promptEditorDE');
+                    if (editor && editor.value !== data.content) {
+                        editor.value = data.content;
+                        console.log('📝 Prompt editor synced');
+                    }
+                }
+                
+                // Dashboard state changed (items added/removed)
+                if (data.type === 'dashboard_state_changed') {
+                    if (data.state) {
+                        dashboardStateDE = { ...data.state };
+                        renderAllItemsDE();
+                        saveDashboardStateDE();
+                        showNotificationDE('🔄 Dashboard synced!', 'info');
+                    }
+                }
+                
+            } finally {
+                setTimeout(() => { isSyncingDE = false; }, 100);
             }
         };
         console.log('📡 BroadcastChannel connected for real-time sync');
     } catch (e) {
-        console.log('BroadcastChannel not supported, using polling only');
+        console.log('BroadcastChannel not supported');
     }
     
     // Broadcast sync event to other tabs
     function broadcastSyncDE(type, data) {
-        if (syncChannelDE) {
-            syncChannelDE.postMessage({ type: type, ...data, timestamp: Date.now() });
+        if (syncChannelDE && !isSyncingDE) {
+            syncChannelDE.postMessage({ type: type, ...data, timestamp: Date.now(), source: 'index1' });
         }
+    }
+    
+    // ══════════════════════════════════════════════════════════════════
+    // REAL-TIME SYNC EVENT LISTENERS
+    // ══════════════════════════════════════════════════════════════════
+    
+    // Sync prompt editor content in real-time (debounced)
+    let promptSyncTimeoutDE = null;
+    function setupPromptEditorSyncDE() {
+        const editor = document.getElementById('promptEditorDE');
+        if (editor) {
+            editor.addEventListener('input', function() {
+                clearTimeout(promptSyncTimeoutDE);
+                promptSyncTimeoutDE = setTimeout(() => {
+                    broadcastSyncDE('prompt_content_changed', { content: editor.value });
+                }, 300); // Debounce 300ms
+            });
+        }
+    }
+    
+    // Sync project selector changes
+    function setupProjectSelectorSyncDE() {
+        const selector = document.getElementById('projectSelectorDE');
+        if (selector) {
+            const originalOnChange = selector.onchange;
+            selector.onchange = async function(e) {
+                if (originalOnChange) originalOnChange.call(this, e);
+                broadcastSyncDE('project_selected', { projectId: this.value });
+            };
+        }
+    }
+    
+    // Setup sync listeners after DOM ready
+    function initSyncListenersDE() {
+        setupPromptEditorSyncDE();
+        setupProjectSelectorSyncDE();
+        console.log('✅ Real-time sync listeners initialized');
     }
     
     // Polling for cross-device sync (every 5 seconds when visible)
@@ -33750,7 +33829,38 @@ ${state.feedFromDocumentation ?
         await loadProjectsListDE(); // Then load projects from database
         updateAllCountsDE();
         initSendConnectionDE();
-        startSyncPollingDE(); // Start real-time sync
+        initSyncListenersDE(); // Setup real-time sync listeners
+        startSyncPollingDE(); // Start polling sync
+        
+        // Refresh when tab becomes visible
+        document.addEventListener('visibilitychange', async () => {
+            if (!document.hidden && dashboardStateDE.currentProject) {
+                // Reload current project when tab becomes visible
+                const project = await getProjectFromDB(dashboardStateDE.currentProject);
+                if (project) {
+                    dashboardStateDE = {
+                        database: {
+                            selected: project.database_name || '',
+                            remoteCredentials: project.include_remote == 1,
+                            localhostCredentials: project.include_localhost == 1
+                        },
+                        backend: project.backends || [],
+                        page: project.pages || [],
+                        frontend: project.frontends || [],
+                        currentProject: project.id
+                    };
+                    
+                    const editor = document.getElementById('promptEditorDE');
+                    if (editor && project.prompt_content) {
+                        editor.value = project.prompt_content;
+                    }
+                    
+                    renderAllItemsDE();
+                    console.log('🔄 Refreshed on tab focus');
+                }
+            }
+        });
+        
         console.log('✅ Development Dashboard DE initialized with database sync');
     }
     
