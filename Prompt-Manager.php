@@ -3789,35 +3789,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
         }
         
-        /* Iframe Popup Button */
+        /* New Tab Button - Opens in new browser tab */
+        .dash-newtab-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 10px;
+            color: #34d399;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .dash-newtab-btn:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #4ade80;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Iframe Popup Button - Opens popup overlay */
         .dash-iframe-btn {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 32px;
             height: 32px;
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.15);
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.15);
             border-radius: 10px;
-            color: #818cf8;
+            color: #a78bfa;
             font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         
         .dash-iframe-btn:hover {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.3);
-            color: #a5b4fc;
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
         }
         
         .dash-iframe-btn.active {
-            background: rgba(99, 102, 241, 0.2);
-            border-color: rgba(99, 102, 241, 0.4);
-            color: #c7d2fe;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+            color: #ddd6fe;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         }
         
         /* Draggable Resizable Iframe Popup */
@@ -8831,8 +8856,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
-                        <button type="button" class="dash-iframe-btn" id="dashIframeBtn" onclick="toggleIframePopup()" title="Open Prompt Studio">
+                        <a href="index1.php" target="_blank" class="dash-newtab-btn" title="Open Design Enhancer in New Tab">
                             <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <button type="button" class="dash-iframe-btn" id="dashIframeBtn" onclick="toggleIframePopup()" title="Open Design Enhancer Popup">
+                            <i class="fas fa-window-restore"></i>
                         </button>
                         <button type="button" class="dash-reset-btn" id="dashResetBtn" onclick="resetDashboard()" title="Reset Dashboard">
                             <i class="fas fa-undo"></i>
