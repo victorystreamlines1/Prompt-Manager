@@ -10308,37 +10308,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     /* Dynamic Sections Container */
     .dynamic-sections-container-de {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        display: flex;
+        flex-direction: column;
         gap: 0.75rem;
         margin-top: 0;
         padding-top: 0;
     }
     
-    /* Left Panel - Stack sections in 2x2 grid for compact view */
-    .left-panel .dynamic-sections-container-de {
-        grid-template-columns: repeat(2, 1fr);
+    /* Row 1: Database Only (Full Width) */
+    .database-row-de {
+        width: 100%;
+    }
+    
+    /* Row 2: Backend, Pages, Frontend (3 Columns) */
+    .sections-row-de {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.5rem;
+        width: 100%;
     }
     
-    .left-panel .database-section-de,
-    .left-panel .dynamic-section-de {
-        min-height: auto;
+    /* Make sections grow when items are added */
+    .dynamic-section-de {
+        display: flex;
+        flex-direction: column;
+        min-height: 120px;
+        transition: all 0.3s ease;
     }
     
-    .left-panel .dynamic-items-grid-de {
-        max-height: 150px;
+    .dynamic-items-grid-de {
+        flex: 1;
+        max-height: 250px;
         overflow-y: auto;
+        transition: max-height 0.3s ease;
+    }
+    
+    /* When items exist, allow more height */
+    .dynamic-items-grid-de.has-items {
+        max-height: 350px;
     }
     
     @media (max-width: 1400px) {
-        .dynamic-sections-container-de {
-            grid-template-columns: repeat(2, 1fr);
+        .sections-row-de {
+            grid-template-columns: repeat(3, 1fr);
         }
     }
     
     @media (max-width: 900px) {
-        .dynamic-sections-container-de {
+        .sections-row-de {
             grid-template-columns: 1fr;
         }
     }
@@ -12469,8 +12486,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="dashboard-sections-row-de">
                     <!-- All 4 Sections in One Row -->
                     <div class="dynamic-sections-container-de" id="dynamicSectionsContainerDE">
-                        <!-- Database Section -->
-                        <div class="database-section-de" id="databaseSectionDE">
+                        <!-- Row 1: Database Section (Full Width) -->
+                        <div class="database-row-de">
+                            <div class="database-section-de" id="databaseSectionDE">
                             <div class="database-section-header-de">
                                 <div class="database-section-title-de">
                                     <i class="fas fa-database"></i>
@@ -12519,6 +12537,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+                        </div><!-- END database-row-de -->
+                        
+                        <!-- Row 2: Backend, Pages, Frontend (3 Columns) -->
+                        <div class="sections-row-de">
                         <!-- Backend Section -->
                         <div class="dynamic-section-de" id="backendSectionDE">
                             <div class="dynamic-section-header-de">
@@ -12596,6 +12618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+                        </div><!-- END sections-row-de -->
                     </div>
                     
                     <!-- Dashboard Footer with Project Management & Generate Button -->
