@@ -10933,6 +10933,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
     }
     
+    /* Generate Prompt Button (Rocket) */
+    .dash-generate-prompt-btn-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+    }
+    
+    .dash-generate-prompt-btn-de:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
+    }
+    
+    /* Reset All Button */
+    .dash-reset-all-btn-de {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    
+    .dash-reset-all-btn-de:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    }
+    
     /* Prompt Editor */
     .editor-container-de {
         display: flex;
@@ -12595,6 +12639,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="button" class="dash-generate-btn-de" id="dashGenerateBtnDE" onclick="generateComprehensivePromptDE()">
                                 <i class="fas fa-magic"></i>
                                 <span>Generate</span>
+                            </button>
+                            <button type="button" class="dash-generate-prompt-btn-de" onclick="generatePrompt()" title="Generate Design Prompt">
+                                <i class="fas fa-rocket"></i>
+                                <span>Prompt</span>
+                            </button>
+                            <button type="button" class="dash-reset-all-btn-de" onclick="resetAll()" title="Reset All">
+                                <i class="fas fa-redo"></i>
                             </button>
                         </div>
                     </div>
@@ -18275,37 +18326,6 @@ Examples:
                 </div>
             </div>
 
-            <!-- Generate Prompt Section -->
-            <div class="card card-full fade-in"
-                style="animation-delay: 0.6s; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));">
-                <div class="card-body" style="text-align: center; padding: 3rem 2rem;">
-                    <div style="margin-bottom: 2rem;">
-                        <i class="fas fa-magic"
-                            style="font-size: 4rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
-                    </div>
-                    <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin-bottom: 1rem;">
-                        Ready to Generate Your Design Enhancement Prompt?
-                    </h2>
-                    <p
-                        style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                        AI will analyze your files and create a comprehensive prompt to improve your website's design &
-                        layout
-                    </p>
-
-                    <div class="btn-group" style="justify-content: center;">
-                        <button class="btn btn-primary" onclick="generatePrompt()" id="generateBtn"
-                            style="font-size: 1.1rem; padding: 1rem 2rem;">
-                            <i class="fas fa-rocket"></i>
-                            Generate Prompt
-                        </button>
-                        <button class="btn btn-outline" onclick="resetAll()"
-                            style="font-size: 1.1rem; padding: 1rem 2rem;">
-                            <i class="fas fa-redo"></i>
-                            Reset All
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <!-- Generated Prompt Output -->
             <div class="card card-full fade-in" id="promptOutputSection" style="display: none; animation-delay: 0.6s;">
