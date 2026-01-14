@@ -782,10 +782,214 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ══════════════════════════════════════════
            📦 MAIN CONTAINER
            ══════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════════════════════
+           🎯 SPLIT PANEL LAYOUT SYSTEM
+           ════════════════════════════════════════════════════════════════════════ */
+    
+    /* Full-width main wrapper - No gaps, edge to edge */
+    .main-app-wrapper {
+        display: flex;
+        width: 100vw;
+        min-height: 100vh;
+        padding-top: 56px;
+        background: var(--bg-dark);
+        margin: 0;
+        gap: 0;
+    }
+    
+    /* Left Panel - Dashboard & Editor (40%) */
+    .left-panel {
+        width: 40%;
+        min-width: 400px;
+        max-width: 550px;
+        height: calc(100vh - 56px);
+        position: sticky;
+        top: 56px;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, 
+            rgba(13, 27, 42, 0.98) 0%, 
+            rgba(10, 14, 23, 0.99) 100%);
+        border-right: 1px solid rgba(124, 77, 255, 0.15);
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        z-index: 100;
+        flex-shrink: 0;
+    }
+    
+    .left-panel-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: var(--space-md);
+        padding-right: var(--space-sm);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(124, 77, 255, 0.3) transparent;
+    }
+    
+    .left-panel-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .left-panel-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .left-panel-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(124, 77, 255, 0.4), rgba(0, 230, 118, 0.3));
+        border-radius: 3px;
+    }
+    
+    .left-panel-scroll::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, rgba(124, 77, 255, 0.6), rgba(0, 230, 118, 0.5));
+    }
+    
+    /* Right Panel - Design Enhancer Content (60%) */
+    .right-panel {
+        flex: 1;
+        min-height: calc(100vh - 56px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, 
+            var(--bg-dark) 0%, 
+            rgba(13, 27, 42, 0.95) 50%,
+            var(--bg-dark) 100%);
+    }
+    
+    .right-panel-content {
+        padding: var(--space-lg);
+        padding-right: var(--space-xl);
+        max-width: none;
+        width: 100%;
+        margin: 0;
+    }
+    
+    /* Panel Resize Handle (aesthetic glow line) */
+    .panel-divider {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, 
+            rgba(124, 77, 255, 0.4) 0%,
+            rgba(0, 230, 118, 0.3) 50%,
+            rgba(233, 30, 99, 0.3) 100%);
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+        animation: dividerPulse 4s ease-in-out infinite;
+    }
+    
+    .left-panel:hover .panel-divider {
+        opacity: 1;
+    }
+    
+    @keyframes dividerPulse {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.8; }
+    }
+    
+    /* Left Panel Header - Mini title for workspace context */
+    .left-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, 
+            rgba(124, 77, 255, 0.08) 0%, 
+            rgba(0, 230, 118, 0.04) 100%);
+        border-bottom: 1px solid rgba(124, 77, 255, 0.12);
+        flex-shrink: 0;
+    }
+    
+    .left-panel-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .left-panel-title i {
+        color: var(--aurora-violet);
+        font-size: 0.9rem;
+    }
+    
+    .left-panel-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--aurora-green);
+    }
+    
+    .left-panel-indicator::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: var(--aurora-green);
+        border-radius: 50%;
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+        50% { box-shadow: 0 0 0 4px rgba(0, 230, 118, 0); }
+    }
+    
+    /* Right Panel Enhancements */
+    .right-panel::before {
+        content: '';
+        position: fixed;
+        top: 56px;
+        right: 0;
+        width: 60%;
+        height: 100%;
+        background: radial-gradient(ellipse at 70% 20%, rgba(124, 77, 255, 0.05) 0%, transparent 50%),
+                    radial-gradient(ellipse at 30% 80%, rgba(0, 230, 118, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+    }
+    
+    .right-panel-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Sync Status Indicator for Left Panel */
+    .sync-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        background: rgba(0, 230, 118, 0.1);
+        border: 1px solid rgba(0, 230, 118, 0.2);
+        border-radius: 12px;
+        color: var(--aurora-green);
+        transition: all 0.3s ease;
+    }
+    
+    .sync-status-badge.syncing {
+        background: rgba(255, 214, 0, 0.1);
+        border-color: rgba(255, 214, 0, 0.2);
+        color: var(--aurora-gold);
+    }
+    
+    .sync-status-badge i {
+        font-size: 0.65rem;
+    }
+
     .container {
-        max-width: 1440px;
-        margin: 0 auto;
-        padding: var(--space-xl);
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
         position: relative;
         z-index: var(--z-base);
     }
@@ -801,20 +1005,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            ══════════════════════════════════════════ */
     .header {
         text-align: center;
-        padding: var(--space-3xl) var(--space-xl);
-        margin-bottom: var(--space-2xl);
+        padding: var(--space-2xl) var(--space-xl);
+        margin-bottom: var(--space-xl);
         background: linear-gradient(135deg,
                 rgba(13, 27, 42, 0.95) 0%,
                 rgba(26, 35, 126, 0.3) 50%,
                 rgba(13, 27, 42, 0.95) 100%);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-radius: var(--radius-2xl);
+        border-radius: var(--radius-xl);
         border: 1px solid var(--glass-border);
         box-shadow: var(--shadow-aurora);
         position: relative;
         overflow: hidden;
         animation: borderGlow 8s ease-in-out infinite;
+    }
+    
+    /* Compact header for split panel layout */
+    .right-panel .header {
+        padding: var(--space-xl) var(--space-lg);
+        margin-bottom: var(--space-lg);
+        border-radius: var(--radius-lg);
+    }
+    
+    .right-panel .header h1 {
+        font-size: 2rem;
     }
 
     /* Aurora shimmer effect on header - MORE VISIBLE */
@@ -9771,14 +9986,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .dev-dashboard-section-de {
         background: linear-gradient(180deg, rgba(18, 18, 28, 0.95) 0%, rgba(15, 15, 25, 1) 100%);
         border: 1px solid rgba(99, 102, 241, 0.12);
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         position: relative;
         max-width: 100%;
         width: 100%;
         box-sizing: border-box;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    
+    /* Left Panel Optimizations */
+    .left-panel .dev-dashboard-section-de {
+        margin-bottom: 0.75rem;
+        border-radius: 12px;
     }
     
     .dev-dashboard-section-de::before {
@@ -10090,6 +10311,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         gap: 0.75rem;
         margin-top: 0;
         padding-top: 0;
+    }
+    
+    /* Left Panel - Stack sections in 2x2 grid for compact view */
+    .left-panel .dynamic-sections-container-de {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .left-panel .database-section-de,
+    .left-panel .dynamic-section-de {
+        min-height: auto;
+    }
+    
+    .left-panel .dynamic-items-grid-de {
+        max-height: 150px;
+        overflow-y: auto;
     }
     
     @media (max-width: 1400px) {
@@ -10490,6 +10727,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         margin-top: 0.75rem;
     }
     
+    /* Left Panel - Compact footer layout */
+    .left-panel .dashboard-footer-de {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.65rem 0.85rem;
+    }
+    
+    .left-panel .project-management-group-de {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+    
+    .left-panel .project-selector-wrap-de {
+        min-width: 120px;
+        flex: 1;
+    }
+    
+    .left-panel .project-btn-de span {
+        display: none;
+    }
+    
+    .left-panel .footer-divider-de {
+        display: none;
+    }
+    
     /* Project Management Group */
     .project-management-group-de {
         display: flex;
@@ -10675,9 +10937,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flex-direction: column;
         background: linear-gradient(180deg, rgba(18, 18, 28, 0.95) 0%, rgba(15, 15, 25, 1) 100%);
         border: 1px solid rgba(99, 102, 241, 0.12);
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Left Panel Editor - Expand to fill remaining space */
+    .left-panel .editor-container-de {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+        border-radius: 12px;
+        min-height: 300px;
+    }
+    
+    .left-panel .editor-body-de {
+        flex: 1;
+        display: flex;
+    }
+    
+    .left-panel .prompt-editor-de {
+        flex: 1;
+        resize: none;
     }
 
     .editor-header-de {
@@ -12081,8 +12363,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container" style="padding-top: 70px;">
+    <!-- ════════════════════════════════════════════════════════════════════════
+         🎯 SPLIT PANEL LAYOUT - Left (Dashboard/Editor) | Right (Design Enhancer)
+         ════════════════════════════════════════════════════════════════════════ -->
+    <div class="main-app-wrapper">
+        
+        <!-- ═══════════════════════════════════════════════════════════════════
+             📋 LEFT PANEL - Development Dashboard & Prompt Editor (40%)
+             ═══════════════════════════════════════════════════════════════════ -->
+        <div class="left-panel">
+            <div class="panel-divider"></div>
+            
+            <!-- Left Panel Mini Header -->
+            <div class="left-panel-header">
+                <div class="left-panel-title">
+                    <i class="fas fa-terminal"></i>
+                    <span>Workspace</span>
+                </div>
+                <div class="left-panel-indicator" id="leftPanelSync">
+                    <span>Ready</span>
+                </div>
+            </div>
+            
+            <div class="left-panel-scroll">
 
         <!-- ════════════════════════════════════════════════════════════════
              DEVELOPMENT DASHBOARD - Imported from Prompt-Manager.php
@@ -12326,6 +12629,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <textarea id="promptEditorDE" class="prompt-editor-de" placeholder="Your generated prompt will appear here...&#10;&#10;Use the Development Dashboard above to build your prompt, or type directly."></textarea>
             </div>
         </div>
+        
+            </div><!-- END left-panel-scroll -->
+        </div><!-- END left-panel -->
+        
+        <!-- ═══════════════════════════════════════════════════════════════════
+             🎨 RIGHT PANEL - Design Enhancer Content (60%)
+             ═══════════════════════════════════════════════════════════════════ -->
+        <div class="right-panel">
+            <div class="right-panel-content">
 
         <!-- Header Section -->
         <header class="header fade-in">
@@ -18031,9 +18343,11 @@ Examples:
                 </div>
             </div>
 
-        </div>
+        </div><!-- END cards-grid -->
 
-    </div>
+            </div><!-- END right-panel-content -->
+        </div><!-- END right-panel -->
+    </div><!-- END main-app-wrapper -->
 
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
