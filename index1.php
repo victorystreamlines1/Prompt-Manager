@@ -949,7 +949,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         position: fixed;
         top: 56px;
         right: 0;
-        width: 60%;
+        width: 30%;
         height: 100%;
         background: radial-gradient(ellipse at 70% 20%, rgba(124, 77, 255, 0.05) 0%, transparent 50%),
                     radial-gradient(ellipse at 30% 80%, rgba(0, 230, 118, 0.03) 0%, transparent 50%);
@@ -1031,7 +1031,209 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     .right-panel .header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+    
+    .right-panel .header .subtitle {
+        font-size: 0.85rem;
+    }
+    
+    /* ════════════════════════════════════════════════════════════════════════
+       🎯 RIGHT PANEL COMPACT MODE (30% width optimizations)
+       ════════════════════════════════════════════════════════════════════════ */
+    
+    /* Reduce padding in right panel */
+    .right-panel .right-panel-content {
+        padding: var(--space-md);
+    }
+    
+    /* Compact header */
+    .right-panel .header {
+        padding: var(--space-lg) var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+    
+    /* Compact cards */
+    .right-panel .card {
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+    }
+    
+    .right-panel .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+        padding-bottom: var(--space-sm);
+    }
+    
+    .right-panel .card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .right-panel .card-title {
+        font-size: 1rem;
+    }
+    
+    .right-panel .card-description {
+        font-size: 0.8rem;
+    }
+    
+    /* Compact Execution Mode Section */
+    .right-panel .execution-mode-dropdown-card {
+        padding: var(--space-md);
+    }
+    
+    .right-panel .execution-mode-dropdown-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-md);
+    }
+    
+    .right-panel .execution-mode-dropdown-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+    }
+    
+    .right-panel .execution-mode-dropdown-title {
+        font-size: 1.1rem;
+    }
+    
+    .right-panel .execution-mode-dropdown-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .right-panel .execution-mode-select {
+        padding: 0.8rem 2.5rem 0.8rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .right-panel .help-btn-game,
+    .right-panel .video-btn-game {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    .right-panel .help-btn-label {
+        display: none;
+    }
+    
+    /* Compact Mode Description */
+    .right-panel .mode-description {
+        padding: var(--space-sm);
+    }
+    
+    .right-panel .mode-description-header {
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+    }
+    
+    .right-panel .mode-description p {
+        font-size: 0.8rem;
+    }
+    
+    .right-panel .mode-features {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .right-panel .mode-features span {
+        font-size: 0.75rem;
+    }
+    
+    /* Compact Drop Zone */
+    .right-panel .drop-zone {
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    .right-panel .drop-zone-icon i {
+        font-size: 2.5rem;
+    }
+    
+    .right-panel .drop-zone-title {
+        font-size: 1rem;
+    }
+    
+    .right-panel .drop-zone-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .right-panel .drop-zone-hint {
+        font-size: 0.7rem;
+    }
+    
+    /* Compact Category Grid */
+    .right-panel .category-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+    }
+    
+    .right-panel .category-item {
+        padding: var(--space-sm);
+    }
+    
+    /* Compact Buttons */
+    .right-panel .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .right-panel .btn-group {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .right-panel .btn-group .btn {
+        width: 100%;
+    }
+    
+    /* Compact Options Grid */
+    .right-panel .options-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .right-panel .option-card {
+        padding: var(--space-sm);
+    }
+    
+    /* Compact Slider */
+    .right-panel .slider-container {
+        padding: var(--space-sm);
+    }
+    
+    .right-panel .slider-label {
+        font-size: 0.8rem;
+    }
+    
+    /* Compact Four Column Grid - Stack in right panel */
+    .right-panel .four-column-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Compact File Categories */
+    .right-panel .file-categories h3 {
+        font-size: 1rem;
+    }
+    
+    /* Actions Area Compact */
+    .right-panel .actions-area {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .right-panel .actions-area .btn {
+        width: 100%;
+    }
+    
+    /* Page Detection Compact */
+    .right-panel .page-detection-grid {
+        grid-template-columns: 1fr;
     }
 
     /* Aurora shimmer effect on header - MORE VISIBLE */
@@ -1897,21 +2099,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .style-modal {
         display: none;
         position: fixed;
-        z-index: var(--z-max);
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
+        z-index: 100010; /* Higher than all other overlays */
+        left: 0 !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
         background-color: rgba(5, 10, 21, 0.9);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        contain: none !important;
+        transform: none !important;
         animation: fadeIn 0.3s ease;
     }
 
     .style-modal.show {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
+        position: fixed !important;
+        inset: 0 !important;
     }
 
     .style-modal-content {
@@ -1921,10 +2129,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 rgba(13, 27, 42, 0.98) 100%);
         border-radius: var(--radius-2xl);
         width: 90%;
-        max-width: 900px;
-        max-height: 90vh;
+        max-width: 700px;
+        max-height: 85vh;
         overflow: auto;
         animation: slideUp 0.3s ease;
+        position: relative;
+        margin: auto;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(124, 77, 255, 0.15);
         box-shadow: var(--shadow-xl), var(--glow-aurora);
         border: 2px solid rgba(124, 77, 255, 0.3);
         position: relative;
@@ -11594,9 +11805,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Define global functions early so inline event handlers work
     // These will be overridden with full implementations when main script loads
 
-    window.showStyleSample = function(styleName) {
-        console.log('⏳ Style sample loading for:', styleName);
-    };
+    // showStyleSample - placeholder removed, using full implementation only
 
     window.updateEnhancementStyle = function() {
         console.log('⏳ Enhancement style updating...');
@@ -15327,20 +15536,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Style Sample Modal -->
-            <div id="styleSampleModal" class="style-modal" onclick="closeStyleModal()">
-                <div class="style-modal-content" onclick="event.stopPropagation()">
-                    <div class="style-modal-header">
-                        <h3 id="sampleStyleTitle">Style Preview</h3>
-                        <button class="style-modal-close" onclick="closeStyleModal()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="style-modal-body" id="styleSampleContent">
-                        <!-- Sample content will be dynamically inserted here -->
-                    </div>
-                </div>
-            </div>
+            <!-- Style Sample Modal - moved outside main-app-wrapper for proper positioning -->
 
             <!-- Design Theme Selector -->
             <div id="colorThemeSection" class="card card-full fade-in" style="animation-delay: 0.35s;">
@@ -18393,6 +18589,21 @@ Examples:
             </div><!-- END right-panel-content -->
         </div><!-- END right-panel -->
     </div><!-- END main-app-wrapper -->
+
+    <!-- Style Sample Modal - positioned outside main layout for proper full-screen display -->
+    <div id="styleSampleModal" class="style-modal" onclick="closeStyleModal()">
+        <div class="style-modal-content" onclick="event.stopPropagation()">
+            <div class="style-modal-header">
+                <h3 id="sampleStyleTitle">Style Preview</h3>
+                <button class="style-modal-close" onclick="closeStyleModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="style-modal-body" id="styleSampleContent">
+                <!-- Sample content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
@@ -30316,11 +30527,20 @@ Please provide:
         console.log('✨ Enhancement Style initialized:', enhancementOptions.style);
     });
 
-    // Style Sample Modal Functions (Override global function)
+    // Style Sample Modal Functions
     window.showStyleSample = function(styleName) {
+        console.log('🎨 showStyleSample called for:', styleName);
+        
         const modal = document.getElementById('styleSampleModal');
         const title = document.getElementById('sampleStyleTitle');
         const content = document.getElementById('styleSampleContent');
+        
+        console.log('Modal:', modal, 'Title:', title, 'Content:', content);
+        
+        if (!modal || !title || !content) {
+            console.error('Style modal elements not found');
+            return;
+        }
 
         // Style samples with preview HTML
         const styleSamples = {
