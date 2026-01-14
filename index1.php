@@ -800,8 +800,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* Left Panel - Dashboard & Editor (40%) */
     .left-panel {
         width: 40%;
-        min-width: 400px;
-        max-width: 550px;
+        min-width: 40%;
+        max-width: 40%;
         height: calc(100vh - 56px);
         position: sticky;
         top: 56px;
@@ -846,7 +846,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     /* Right Panel - Design Enhancer Content (60%) */
     .right-panel {
-        flex: 1;
+        width: 60%;
+        min-width: 60%;
+        max-width: 60%;
         min-height: calc(100vh - 56px);
         overflow-y: auto;
         overflow-x: hidden;
