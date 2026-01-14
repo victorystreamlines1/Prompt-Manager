@@ -797,11 +797,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         gap: 0;
     }
     
-    /* Left Panel - Dashboard & Editor (40%) */
+    /* Left Panel - Dashboard & Editor (70%) */
     .left-panel {
-        width: 40%;
-        min-width: 40%;
-        max-width: 40%;
+        width: 70%;
+        min-width: 70%;
+        max-width: 70%;
         height: calc(100vh - 56px);
         position: sticky;
         top: 56px;
@@ -844,11 +844,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         background: linear-gradient(180deg, rgba(124, 77, 255, 0.6), rgba(0, 230, 118, 0.5));
     }
     
-    /* Right Panel - Design Enhancer Content (60%) */
+    /* Right Panel - Design Enhancer Content (30%) */
     .right-panel {
-        width: 60%;
-        min-width: 60%;
-        max-width: 60%;
+        width: 30%;
+        min-width: 30%;
+        max-width: 30%;
         min-height: calc(100vh - 56px);
         overflow-y: auto;
         overflow-x: hidden;
