@@ -1,1 +1,98 @@
-There is a problem in the drop-down selection of the projects. I think whenever I select a project, it clicks on generate automatically, so it generates some production in prompt editor. And this should not happen. Whenever I select, nothing should happen. It will only recall from the database table. the information and put it in the development dashboard, that's it unless I create, I put generate then it will generate in the prompt editor 
+now I want you to bring another section the same way the same exact approach which should have a group like page creator this is a group I want a new group call it branding collapse the same exact way you brought this one okay put it before the page creator because this is branding it's more important. I'll give you the section it's a logo with the default selected parts that can be the ID selected and you should add also a push that will push to project prompts appending to it. I'll give you the HTML now for it so you can find it in index1.php pull it to prompt manager.php -----><div id="logoBrandingSection" class="card card-full fade-in snipcss-lsZoc style-jG3mS">
+    <div class="card-header">
+        <div class="card-icon style-MkKV3" id="style-MkKV3">
+            <i class="fas fa-crown"></i>
+        </div>
+        <h2 class="card-title">Logo &amp; Branding</h2>
+        <div id="logoBrandingBadge" class="style-qzXsE">
+            <i class="fas fa-check-circle"></i>
+            <span id="logoBrandingText">Logo Uploaded</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="card-description">Upload your logo and set the page title for consistent branding across all pages</p>
+        <div class="logo-upload-zone style-3nMiZ" id="logoDropZone" onclick="document.getElementById('logoFileInput').click();">
+            <input type="file" id="logoFileInput" accept="image/*" onchange="handleLogoUpload(this)" class="style-ymO6y">
+            <div id="logoPreviewContainer" class="style-fqb9B">
+                <img id="logoPreview" src="http://localhost/index1.php" alt="Logo Preview" class="style-Adfbj">
+                <p id="logoFileName" class="style-SUoHx"></p>
+                <button type="button" onclick="event.stopPropagation(); clearLogoUpload();" class="btn btn-danger btn-sm style-KgDOb" id="style-KgDOb">
+                    <i class="fas fa-times"></i> Remove Logo </button>
+            </div>
+            <div id="logoUploadPrompt">
+                <div id="style-goXwd" class="style-goXwd">
+                    <i class="fas fa-image style-k5sIE" id="style-k5sIE"></i>
+                </div>
+                <h3 id="style-jHTEV" class="style-jHTEV"> Upload Your Logo</h3>
+                <p id="style-4Vc9l" class="style-4Vc9l">Click to browse or drag &amp; drop your logo image</p>
+                <div id="style-MiS3l" class="style-MiS3l">
+                    <i class="fas fa-info-circle"></i> PNG, JPG, SVG, ICO supported
+                </div>
+            </div>
+        </div>
+        <div class="form-group style-Grbpf" id="style-Grbpf">
+            <label class="form-label style-91sVg" id="style-91sVg">
+                <i class="fas fa-heading style-w8yIi" id="style-w8yIi"></i>
+                <strong>Page Title</strong>
+                <span id="style-tbDV2" class="style-tbDV2">(for browser tab &amp; favicon)</span>
+            </label>
+            <input type="text" id="pageTitleInput" placeholder="Enter your website title (e.g., My Awesome Website)" oninput="updatePageTitlePreview()" fdprocessedid="j88vhp" class="style-JXKIy">
+            <div id="titlePreview" class="style-pDyPs">
+                <span id="style-mI9cg" class="style-mI9cg"><i class="fas fa-eye"></i> Preview: </span>
+                <span id="titlePreviewText" class="style-TR5Nj"></span>
+            </div>
+        </div>
+        <div class="branding-options style-XMwQB" id="style-XMwQB">
+            <h4 id="style-odsmO" class="style-odsmO">
+                <i class="fas fa-cogs style-XeytH" id="style-XeytH"></i> Branding Application Options
+            </h4>
+            <label class="checkbox-item checked style-tybg2" data-branding="favicon" onclick="toggleBrandingOption(this)" id="style-tybg2">
+                <input type="checkbox" id="logoInFavicon" checked onchange="updateBrandingOptions()">
+                <div id="style-ofZ4U" class="style-ofZ4U">
+                    <strong id="style-3k9Rf" class="style-3k9Rf">
+                        <i class="fas fa-bookmark style-4OBok" id="style-4OBok"></i> Set Logo as Favicon for All Pages </strong>
+                    <p id="style-9JKnq" class="style-9JKnq"> Loop through all HTML/PHP files and set the uploaded logo as the favicon (browser tab icon) </p>
+                </div>
+            </label>
+            <label class="checkbox-item checked style-eUVHq" data-branding="logo-pages" onclick="toggleBrandingOption(this)" id="style-eUVHq">
+                <input type="checkbox" id="logoInPages" checked onchange="updateBrandingOptions()">
+                <div id="style-A6BrN" class="style-A6BrN">
+                    <strong id="style-vvVJk" class="style-vvVJk">
+                        <i class="fas fa-images style-FrfAy" id="style-FrfAy"></i> Add Logo to Every Page </strong>
+                    <p id="style-sztYX" class="style-sztYX"> Insert the logo image in header/navigation of all pages for consistent branding </p>
+                </div>
+            </label>
+            <label class="checkbox-item checked" data-branding="title-pages" onclick="toggleBrandingOption(this)">
+                <input type="checkbox" id="titleInPages" checked onchange="updateBrandingOptions()">
+                <div id="style-IcGQ9" class="style-IcGQ9">
+                    <strong id="style-xp4kr" class="style-xp4kr">
+                        <i class="fas fa-font style-aDKhS" id="style-aDKhS"></i> Set Title for All Pages </strong>
+                    <p id="style-qvKRh" class="style-qvKRh"> Update the &lt;title&gt; tag in all HTML/PHP files with the specified page title </p>
+                </div>
+            </label>
+        </div>
+        <div id="customBrandingInstructions" class="style-oVdft">
+            <h4 id="style-ZfRgG" class="style-ZfRgG">
+                <i class="fas fa-edit style-Nntzy" id="style-Nntzy"></i> Custom Branding Instructions
+            </h4>
+            <p id="style-9m272" class="style-9m272"> Since you unchecked some default options, you can specify custom instructions for applying the logo/title to specific files or pages: </p>
+            <textarea id="customBrandingPrompt" placeholder="Example:
+• Apply the logo only to: index.html, about.html, contact.html
+• Set favicon only for: homepage, services page
+• Add title only to pages in the /admin/ folder
+• Use the logo in the footer instead of header
+• Apply different titles for different sections..." oninput="updateCustomBrandingInstructions()" class="style-5bO4z"></textarea>
+            <div id="style-iULCI" class="style-iULCI">
+                <i class="fas fa-info-circle style-PffKh" id="style-PffKh"></i>
+                <span>These instructions will override the default "apply to all pages" behavior for unchecked options.</span>
+            </div>
+        </div>
+        <div id="style-151dZ" class="style-151dZ">
+            <i class="fas fa-lightbulb style-tXOMw" id="style-tXOMw"></i>
+            <div>
+                <strong id="style-nnWYR" class="style-nnWYR">How it works:</strong>
+                <p id="style-9hztI" class="style-9hztI"> ✅ <strong>All checked:</strong> Logo and title will be applied to ALL pages automatically.<br> ⚠️ <strong>Some unchecked:</strong> A custom instructions box will appear where you can specify exactly which files/pages to target.<br> The AI will follow your instructions precisely. </p>
+            </div>
+        </div>
+    </div>
+</div>
