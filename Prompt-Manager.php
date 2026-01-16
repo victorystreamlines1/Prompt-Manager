@@ -13933,8 +13933,36 @@ ${blockContent}
             const hasPageItems = dynamicItems.page.length > 0;
             const hasFrontendItems = dynamicItems.frontend.length > 0;
             
-            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems) {
-                showToast('⚠️ Please add at least one item or select database', 'warning');
+            // Get Project Prompts content
+            const projectPromptsContent = getProjectNotes();
+            const hasProjectPrompts = projectPromptsContent.length > 0;
+            
+            // If nothing at all is selected/available, still append a space
+            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts) {
+                // Append just a space and return
+                if (editor) {
+                    editor.value = editor.value + ' ';
+                    updateCounts();
+                }
+                showToast('ℹ️ Nothing to generate - added space', 'info');
+                return;
+            }
+            
+            // EARLY CHECK: If ONLY Project Prompts has content (no dashboard items selected)
+            // Just send the raw project prompts content directly without any formatting
+            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
+                if (editor) {
+                    if (editor.value.trim()) {
+                        editor.value = editor.value.trimEnd() + '\n\n' + projectPromptsContent;
+                    } else {
+                        editor.value = projectPromptsContent;
+                    }
+                    updateCounts();
+                    recordHistoryState(true);
+                }
+                showToast('✨ Project Prompts sent to Editor', 'success');
+                saveDashboardSettings();
+                saveDynamicItems();
                 return;
             }
             
@@ -13946,7 +13974,7 @@ ${blockContent}
             const pageCount = dynamicItems.page.length;
             const frontendCount = dynamicItems.frontend.length;
             
-            // Header
+            // Header (only added when we have dashboard items)
             promptSections.push(`
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                    🚀 AI DEVELOPMENT INSTRUCTIONS                            ║
@@ -14180,7 +14208,25 @@ design across all components.
 `);
             }
 
-            // Check if we have any actual content
+            // 5. PROJECT PROMPTS SECTION (if has content)
+            if (hasProjectPrompts) {
+                hasContent = true;
+                promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+📝 PROJECT PROMPTS & ADDITIONAL INSTRUCTIONS
+════════════════════════════════════════════════════════════════════════════════
+
+The following additional instructions and prompts have been provided:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+${projectPromptsContent.split('\n').map(line => `│  ${line.substring(0, 73).padEnd(73)}│`).join('\n')}
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚠️ Please consider these instructions when implementing all components.
+`);
+            }
+
+            // Check if we have any actual content from dashboard tools
             if (!hasContent) {
                 showToast('⚠️ No items have data (names or prompts)', 'warning');
                 return;
@@ -14197,6 +14243,7 @@ ${hasDatabaseSelected ? '  ✅ Database Connection (Remote + Localhost)' : '  �
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
+${hasProjectPrompts ? '  ✅ Project Prompts included' : '  ⬜ Project Prompts'}
 
 Total Components: ${backendCount + pageCount + frontendCount}
 
@@ -14209,35 +14256,27 @@ in each section carefully and maintain proper connections between components.
             // Combine all sections
             const fullPrompt = promptSections.join('');
             
-            // Send to Project Prompts textarea instead of main editor
-            const projectPromptsTextarea = document.getElementById('projectNotesTextarea');
-            if (projectPromptsTextarea) {
-                if (projectPromptsTextarea.value.trim()) {
-                    projectPromptsTextarea.value = projectPromptsTextarea.value.trimEnd() + '\n\n' + fullPrompt;
+            // Send to Main Prompt Editor
+            if (editor) {
+                if (editor.value.trim()) {
+                    editor.value = editor.value.trimEnd() + '\n\n' + fullPrompt;
                 } else {
-                    projectPromptsTextarea.value = fullPrompt;
+                    editor.value = fullPrompt;
                 }
                 
-                // Auto-expand the textarea if collapsed
-                const body = document.getElementById('projectNotesBody');
-                if (body && body.classList.contains('collapsed')) {
-                    body.classList.remove('collapsed');
-                    const icon = document.getElementById('notesCollapseIcon');
-                    if (icon) icon.className = 'fas fa-chevron-up';
-                }
+                // Update counts and history
+                updateCounts();
+                recordHistoryState(true);
                 
-                // Scroll to show the textarea
-                projectPromptsTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
-                // Save to localStorage
-                localStorage.setItem('project_notes_temp', projectPromptsTextarea.value);
+                // Scroll to editor
+                editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             
             // Count total items
-            const totalItems = (hasDatabaseSelected ? 1 : 0) + backendCount + pageCount + frontendCount;
+            const totalItems = (hasDatabaseSelected ? 1 : 0) + backendCount + pageCount + frontendCount + (hasProjectPrompts ? 1 : 0);
             
             // Show success toast
-            showToast(`✨ Generated ${totalItems} component${totalItems > 1 ? 's' : ''} → Project Prompts`, 'success');
+            showToast(`✨ Generated ${totalItems} component${totalItems > 1 ? 's' : ''} → Prompt Editor`, 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
@@ -20163,16 +20202,14 @@ function applyProjectToDashboard(project) {
         });
     }
     
-    // Load project notes
+    // Load project notes/prompts
     if (project.project_notes !== undefined) {
         setProjectNotes(project.project_notes || '');
     }
     
-    // Load prompt content into editor
-    const promptEditor = document.getElementById('promptEditor');
-    if (promptEditor && project.prompt_content) {
-        promptEditor.value = project.prompt_content;
-    }
+    // NOTE: We do NOT load prompt_content into the main editor automatically
+    // The user must click Generate to populate the Prompt Editor
+    // This prevents unwanted content appearing in the editor on project select
     
     showToast('Project data loaded to dashboard', 'success');
 }
