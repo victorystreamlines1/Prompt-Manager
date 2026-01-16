@@ -1,1 +1,1 @@
-After you made the modification, there is a problem happening in development dashboard in prompt manager.php and it is not showing the databases. After it sends, it stops showing any databases at all. Please check the connection. and fix the problem. 
+remove the speed monitor from the front screen on the top right 

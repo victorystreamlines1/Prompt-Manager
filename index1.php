@@ -10861,87 +10861,206 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         opacity: 0.6;
     }
     
-    /* Dynamic Item */
+    /* Dynamic Item - Matching Prompt-Manager.php Style */
     .dynamic-item-de {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem;
         background: linear-gradient(135deg, rgba(25, 25, 45, 0.9) 0%, rgba(20, 20, 40, 0.95) 100%);
         border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 10px;
         transition: all 0.25s ease;
         position: relative;
+        overflow: hidden;
     }
     
     .dynamic-item-de:hover {
         border-color: rgba(99, 102, 241, 0.25);
         background: linear-gradient(135deg, rgba(30, 30, 55, 0.95) 0%, rgba(25, 25, 50, 1) 100%);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        transform: translateY(-2px);
     }
     
     .dynamic-item-de.backend-item { border-left: 3px solid #06b6d4; }
     .dynamic-item-de.page-item { border-left: 3px solid #a78bfa; }
     .dynamic-item-de.frontend-item { border-left: 3px solid #fb923c; }
     
+    .dynamic-item-de.backend-item:hover { box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15); }
+    .dynamic-item-de.page-item:hover { box-shadow: 0 4px 20px rgba(167, 139, 250, 0.15); }
+    .dynamic-item-de.frontend-item:hover { box-shadow: 0 4px 20px rgba(251, 146, 60, 0.15); }
+    
     .dynamic-item-header-de {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        padding: 0.65rem 0.75rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, transparent 100%);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    
+    .dynamic-item-de.backend-item .dynamic-item-header-de { 
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.02) 100%); 
+    }
+    .dynamic-item-de.page-item .dynamic-item-header-de { 
+        background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(167, 139, 250, 0.02) 100%); 
+    }
+    .dynamic-item-de.frontend-item .dynamic-item-header-de { 
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(251, 146, 60, 0.02) 100%); 
+    }
+    
+    .dynamic-item-number-de {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.45);
+        background: rgba(99, 102, 241, 0.1);
+        padding: 0.2rem 0.45rem;
+        border-radius: 5px;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+    }
+    
+    .dynamic-item-de.backend-item .dynamic-item-number-de { 
+        background: rgba(6, 182, 212, 0.15); 
+        color: rgba(34, 211, 238, 0.8);
+    }
+    .dynamic-item-de.page-item .dynamic-item-number-de { 
+        background: rgba(167, 139, 250, 0.15); 
+        color: rgba(196, 181, 253, 0.8);
+    }
+    .dynamic-item-de.frontend-item .dynamic-item-number-de { 
+        background: rgba(251, 146, 60, 0.15); 
+        color: rgba(253, 186, 116, 0.8);
     }
     
     .dynamic-item-name-de {
         flex: 1;
         padding: 0.4rem 0.6rem;
-        background: rgba(15, 15, 30, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.15);
+        background: rgba(10, 10, 25, 0.7);
+        border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 6px;
         color: var(--text-primary);
         font-size: 0.75rem;
         font-family: inherit;
+        font-weight: 500;
+        transition: all 0.2s;
+        min-width: 0;
     }
     
     .dynamic-item-name-de:focus {
         outline: none;
-        border-color: rgba(99, 102, 241, 0.4);
+        border-color: rgba(99, 102, 241, 0.35);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+        background: rgba(15, 15, 30, 0.8);
     }
     
-    .dynamic-item-delete-de {
-        width: 24px;
-        height: 24px;
+    .dynamic-item-name-de::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+    
+    .dynamic-item-actions-de {
+        display: flex;
+        gap: 0.35rem;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+    
+    .dynamic-item-file-input-de {
+        display: none;
+    }
+    
+    .dynamic-item-btn-de {
+        width: 26px;
+        height: 26px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 6px;
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        color: #f87171;
-        font-size: 0.65rem;
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        color: rgba(255, 255, 255, 0.6);
         cursor: pointer;
         transition: all 0.2s ease;
+        font-size: 0.65rem;
     }
     
-    .dynamic-item-delete-de:hover {
+    .dynamic-item-btn-de.file-btn {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.2);
+        color: #818cf8;
+    }
+    
+    .dynamic-item-btn-de.file-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.35);
+        color: #a5b4fc;
+        transform: scale(1.05);
+    }
+    
+    .dynamic-item-btn-de.file-btn.has-files {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+    
+    .dynamic-item-btn-de.delete-btn {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+    }
+    
+    .dynamic-item-btn-de.delete-btn:hover {
         background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.3);
         color: #fca5a5;
+        transform: scale(1.05);
+    }
+    
+    .dynamic-item-body-de {
+        padding: 0.6rem 0.75rem 0.75rem;
     }
     
     .dynamic-item-prompt-de {
         width: 100%;
         min-height: 50px;
         padding: 0.5rem;
-        background: rgba(15, 15, 30, 0.6);
-        border: 1px solid rgba(99, 102, 241, 0.15);
+        background: rgba(10, 10, 25, 0.7);
+        border: 1px solid rgba(99, 102, 241, 0.12);
         border-radius: 6px;
         color: var(--text-primary);
         font-size: 0.72rem;
         font-family: inherit;
         resize: vertical;
+        transition: all 0.2s;
     }
     
     .dynamic-item-prompt-de:focus {
         outline: none;
-        border-color: rgba(99, 102, 241, 0.4);
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.06);
+        background: rgba(15, 15, 30, 0.8);
+    }
+    
+    .dynamic-item-files-de {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+        padding: 0.35rem 0.6rem;
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px dashed rgba(99, 102, 241, 0.15);
+        border-radius: 5px;
+        font-size: 0.65rem;
+        color: var(--text-muted);
+    }
+    
+    .dynamic-item-files-de.has-files {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+    }
+    
+    .dynamic-item-files-de i {
+        font-size: 0.6rem;
     }
     
     /* Dashboard Footer */
@@ -33328,7 +33447,41 @@ ${state.feedFromDocumentation ?
     
     function saveDashboardStateDE() {
         try {
-            localStorage.setItem(DASHBOARD_STORAGE_KEY_DE, JSON.stringify(dashboardStateDE));
+            // Convert File objects to file info (File objects can't be serialized)
+            const toSave = {
+                database: dashboardStateDE.database,
+                backend: dashboardStateDE.backend.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => {
+                        // Handle both File objects and already-converted file info
+                        if (f instanceof File) {
+                            return { name: f.name, size: f.size, type: f.type };
+                        }
+                        return f; // Already file info
+                    }) : []
+                })),
+                page: dashboardStateDE.page.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => {
+                        if (f instanceof File) {
+                            return { name: f.name, size: f.size, type: f.type };
+                        }
+                        return f;
+                    }) : []
+                })),
+                frontend: dashboardStateDE.frontend.map(item => ({
+                    ...item,
+                    files: item.files ? item.files.map(f => {
+                        if (f instanceof File) {
+                            return { name: f.name, size: f.size, type: f.type };
+                        }
+                        return f;
+                    }) : []
+                })),
+                currentProject: dashboardStateDE.currentProject
+            };
+            localStorage.setItem(DASHBOARD_STORAGE_KEY_DE, JSON.stringify(toSave));
+            console.log('✅ Dashboard state saved');
         } catch (e) {
             console.error('Error saving dashboard state:', e);
         }
@@ -33338,8 +33491,26 @@ ${state.feedFromDocumentation ?
         try {
             const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY_DE);
             if (saved) {
-                dashboardStateDE = JSON.parse(saved);
+                const data = JSON.parse(saved);
+                // Restore state, files will be empty file info objects (can't restore actual Files)
+                dashboardStateDE = {
+                    database: data.database || { selected: '', remoteCredentials: false, localhostCredentials: false },
+                    backend: (data.backend || []).map(item => ({
+                        ...item,
+                        files: item.files || [] // Keep file info for display
+                    })),
+                    page: (data.page || []).map(item => ({
+                        ...item,
+                        files: item.files || []
+                    })),
+                    frontend: (data.frontend || []).map(item => ({
+                        ...item,
+                        files: item.files || []
+                    })),
+                    currentProject: data.currentProject || null
+                };
                 renderAllItemsDE();
+                console.log('✅ Dashboard state loaded');
             }
         } catch (e) {
             console.error('Error loading dashboard state:', e);
@@ -33464,39 +33635,107 @@ ${state.feedFromDocumentation ?
     // DYNAMIC ITEMS (Backend, Pages, Frontend)
     // ══════════════════════════════════════════════════════════════════
     
-    window.addDynamicItemDE = function(type) {
+    // Store files for dynamic items
+    const dynamicItemFilesDE = {
+        backend: {},
+        page: {},
+        frontend: {}
+    };
+    
+    window.addDynamicItemDE = function(type, prefillName = '', prefillDesc = '') {
         itemCountersDE[type]++;
         const item = {
             id: Date.now() + '_' + itemCountersDE[type],
-            name: '',
-            prompt: ''
+            name: prefillName || '',
+            prompt: prefillDesc || '',
+            files: []
         };
         dashboardStateDE[type].push(item);
-        renderItemDE(type, item);
+        renderAllItemsDE(); // Re-render all to get correct numbering
         updateCountDE(type);
         saveDashboardStateDE();
+        
+        // Focus on the new item's name input only if not prefilled
+        if (!prefillName) {
+            setTimeout(() => {
+                const nameInput = document.querySelector(`#${type}ItemsGridDE .dynamic-item-de[data-id="${item.id}"] .dynamic-item-name-de`);
+                if (nameInput) nameInput.focus();
+            }, 50);
+            showNotificationDE(`New ${type} item added`, 'success');
+        }
     };
     
-    function renderItemDE(type, item) {
+    // Handle file selection for dynamic item
+    window.handleDynamicItemFilesDE = function(type, id, input) {
+        const item = dashboardStateDE[type].find(i => i.id === id);
+        if (item && input.files.length > 0) {
+            item.files = Array.from(input.files);
+            dynamicItemFilesDE[type][id] = item.files;
+            renderAllItemsDE();
+            saveDashboardStateDE();
+            showNotificationDE(`${input.files.length} file(s) attached`, 'success');
+        }
+    };
+    
+    function renderItemDE(type, item, number) {
         const grid = document.getElementById(`${type}ItemsGridDE`);
         const emptyState = document.getElementById(`${type}EmptyStateDE`);
         
         if (emptyState) emptyState.style.display = 'none';
         
+        // Get file count - works with both File objects and file info objects
+        const fileCount = item.files ? item.files.length : 0;
+        const hasFiles = fileCount > 0;
+        
+        // Debug log to verify prompt is being passed
+        console.log(`Rendering ${type} item:`, item.id, 'name:', item.name, 'prompt:', item.prompt?.substring(0, 50));
+        
         const itemEl = document.createElement('div');
         itemEl.className = `dynamic-item-de ${type}-item`;
         itemEl.dataset.id = item.id;
         
+        // Escape HTML helper
+        const escapeHtml = (str) => {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+        
         itemEl.innerHTML = `
             <div class="dynamic-item-header-de">
-                <input type="text" class="dynamic-item-name-de" placeholder="${type.charAt(0).toUpperCase() + type.slice(1)} name..." 
-                       value="${item.name || ''}" onchange="updateItemNameDE('${type}', '${item.id}', this.value)">
-                <button type="button" class="dynamic-item-delete-de" onclick="deleteItemDE('${type}', '${item.id}')" title="Delete">
-                    <i class="fas fa-times"></i>
-                </button>
+                <span class="dynamic-item-number-de">#${number}</span>
+                <input type="text" class="dynamic-item-name-de" 
+                       placeholder="${type.charAt(0).toUpperCase() + type.slice(1)} name..." 
+                       value="${escapeHtml(item.name || '')}" 
+                       onchange="updateItemNameDE('${type}', '${item.id}', this.value)"
+                       oninput="updateItemNameDE('${type}', '${item.id}', this.value)">
+                <div class="dynamic-item-actions-de">
+                    <input type="file" 
+                           class="dynamic-item-file-input-de" 
+                           id="file_${item.id}" 
+                           multiple 
+                           accept="*/*"
+                           onchange="handleDynamicItemFilesDE('${type}', '${item.id}', this)">
+                    <button type="button" 
+                            class="dynamic-item-btn-de file-btn ${hasFiles ? 'has-files' : ''}" 
+                            onclick="document.getElementById('file_${item.id}').click()"
+                            title="${hasFiles ? fileCount + ' file(s) selected' : 'Attach files'}">
+                        <i class="fas fa-${hasFiles ? 'check-circle' : 'paperclip'}"></i>
+                    </button>
+                    <button type="button" 
+                            class="dynamic-item-btn-de delete-btn" 
+                            onclick="deleteItemDE('${type}', '${item.id}')"
+                            title="Delete this item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
-            <textarea class="dynamic-item-prompt-de" placeholder="Description or prompt..." 
-                      onchange="updateItemPromptDE('${type}', '${item.id}', this.value)">${item.prompt || ''}</textarea>
+            <div class="dynamic-item-body-de">
+                <textarea class="dynamic-item-prompt-de" 
+                          placeholder="Enter ${type} instructions or description..."
+                          onchange="updateItemPromptDE('${type}', '${item.id}', this.value)"
+                          oninput="updateItemPromptDE('${type}', '${item.id}', this.value)">${escapeHtml(item.prompt || '')}</textarea>
+                ${hasFiles ? `<div class="dynamic-item-files-de has-files"><i class="fas fa-paperclip"></i> ${fileCount} file${fileCount > 1 ? 's' : ''} attached</div>` : ''}
+            </div>
         `;
         
         grid.appendChild(itemEl);
@@ -33507,13 +33746,21 @@ ${state.feedFromDocumentation ?
             const grid = document.getElementById(`${type}ItemsGridDE`);
             const emptyState = document.getElementById(`${type}EmptyStateDE`);
             
+            if (!grid) return;
+            
             // Clear existing items (but keep empty state)
             const items = grid.querySelectorAll('.dynamic-item-de');
             items.forEach(i => i.remove());
             
             if (dashboardStateDE[type].length > 0) {
                 if (emptyState) emptyState.style.display = 'none';
-                dashboardStateDE[type].forEach(item => renderItemDE(type, item));
+                dashboardStateDE[type].forEach((item, index) => {
+                    // Restore files from cache if available
+                    if (dynamicItemFilesDE[type][item.id]) {
+                        item.files = dynamicItemFilesDE[type][item.id];
+                    }
+                    renderItemDE(type, item, index + 1);
+                });
             } else {
                 if (emptyState) emptyState.style.display = 'flex';
             }

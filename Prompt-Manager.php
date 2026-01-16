@@ -1101,9 +1101,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: sticky;
             top: 0;
             overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Collapsed sidebar state */
+        .sidebar.collapsed {
+            width: 60px;
+            min-width: 60px;
+        }
+        
+        .sidebar.collapsed .sidebar-header img {
+            max-width: 40px;
+        }
+        
+        .sidebar.collapsed .sidebar-content {
+            padding: 0.5rem;
+        }
+        
+        .sidebar.collapsed .section-title,
+        .sidebar.collapsed .file-mode-toggle,
+        .sidebar.collapsed .file-picker-container,
+        .sidebar.collapsed .uploaded-files-header,
+        .sidebar.collapsed .uploaded-files-grid,
+        .sidebar.collapsed .file-transfer-section,
+        .sidebar.collapsed .dev-dashboard-section {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-collapse-btn {
+            transform: rotate(180deg);
+        }
+        
+        /* Sidebar collapse toggle button */
+        .sidebar-collapse-btn {
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: 2px solid var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            color: white;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        
+        .sidebar-collapse-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.6);
+        }
+        
+        .sidebar.collapsed .sidebar-collapse-btn {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        
+        .sidebar.collapsed .sidebar-collapse-btn:hover {
+            transform: translateY(-50%) rotate(180deg) scale(1.1);
         }
 
         .sidebar-header {
+            position: relative;
             padding: 0.75rem 1rem;
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(6, 182, 212, 0.1) 100%);
             border-bottom: 1px solid rgba(99, 102, 241, 0.2);
@@ -2492,9 +2557,228 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             gap: 1.5rem;
             background: var(--gradient-dark);
-            max-width: calc(100vw - 320px);
+            max-width: calc(100vw - 320px - 280px);
             overflow-x: hidden;
             box-sizing: border-box;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           🎨 RIGHT PANEL - Design Enhancer Panel
+           ═══════════════════════════════════════════════════════════════════ */
+        .right-panel {
+            width: 280px;
+            min-width: 280px;
+            max-width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, 
+                var(--bg-secondary) 0%, 
+                rgba(13, 27, 42, 0.95) 50%,
+                var(--bg-secondary) 100%);
+            border-left: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .right-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 70% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                        radial-gradient(ellipse at 30% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .right-panel-content {
+            position: relative;
+            z-index: 1;
+            padding: 1.5rem;
+        }
+        
+        /* Right Panel Header - Design Enhancer */
+        .right-panel .de-header {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: linear-gradient(135deg,
+                rgba(13, 27, 42, 0.95) 0%,
+                rgba(26, 35, 126, 0.3) 50%,
+                rgba(13, 27, 42, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15), 0 16px 64px rgba(139, 92, 246, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: deBorderGlow 8s ease-in-out infinite;
+        }
+        
+        @keyframes deBorderGlow {
+            0%, 100% { border-color: rgba(99, 102, 241, 0.3); box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15); }
+            33% { border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15); }
+            66% { border-color: rgba(233, 30, 99, 0.3); box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15); }
+        }
+        
+        .right-panel .de-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(99, 102, 241, 0.15),
+                rgba(16, 185, 129, 0.15),
+                rgba(233, 30, 99, 0.1),
+                transparent);
+            animation: deShimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes deShimmer {
+            0% { left: -100%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { left: 100%; opacity: 0; }
+        }
+        
+        .right-panel .de-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #6366f1, #e91e63, #06b6d4, #10b981);
+            background-size: 200% 100%;
+            animation: deGradientFlow 3s linear infinite;
+        }
+        
+        @keyframes deGradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .right-panel .de-header h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg,
+                #6366f1 0%,
+                #10b981 50%,
+                #06b6d4 100%);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            animation: deGradientFlow 5s ease infinite, deTextGlow 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        
+        @keyframes deTextGlow {
+            0%, 100% { text-shadow: 0 0 30px rgba(99, 102, 241, 0.5); }
+            50% { text-shadow: 0 0 40px rgba(16, 185, 129, 0.5); }
+        }
+        
+        .right-panel .de-header .de-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           🌓 THEME TOGGLE BUTTON
+           ═══════════════════════════════════════════════════════════════════ */
+        .theme-toggle-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg,
+                rgba(13, 27, 42, 0.9) 0%,
+                rgba(26, 35, 126, 0.5) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .theme-toggle-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.4);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .theme-toggle-btn:focus {
+            outline: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        
+        .theme-toggle-btn i {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #6366f1, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+        }
+        
+        .theme-toggle-btn:hover i {
+            transform: scale(1.1);
+        }
+        
+        /* Light Theme Variables */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-tertiary: #e2e8f0;
+            --bg-card: #ffffff;
+            --border-color: rgba(99, 102, 241, 0.2);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --gradient-dark: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+        
+        [data-theme="light"] .sidebar {
+            background: #ffffff;
+            border-right: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        
+        [data-theme="light"] .right-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+            border-left: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        
+        [data-theme="light"] .right-panel .de-header {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.95) 0%,
+                rgba(241, 245, 249, 0.9) 50%,
+                rgba(255, 255, 255, 0.95) 100%);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        
+        [data-theme="light"] .theme-toggle-btn {
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.95) 0%,
+                rgba(241, 245, 249, 0.9) 100%);
+            border-color: rgba(99, 102, 241, 0.3);
         }
         
         /* Ensure all main content children respect container width */
@@ -8724,9 +9008,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="mainSidebar">
             <div class="sidebar-header">
                 <img src="logoPM.png" alt="Prompt Manager">
+                <button class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
             
             <div class="sidebar-content">
@@ -9403,7 +9690,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </main>
+        
+        <!-- ═══════════════════════════════════════════════════════════════════
+             🎨 RIGHT PANEL - Design Enhancer
+             ═══════════════════════════════════════════════════════════════════ -->
+        <aside class="right-panel">
+            <div class="right-panel-content">
+                <!-- Design Enhancer Header -->
+                <header class="de-header">
+                    <h2>🎨 Design Enhancer</h2>
+                    <p class="de-subtitle">AI-Powered Web Design</p>
+                </header>
+            </div>
+        </aside>
     </div>
+    
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <i class="fas fa-sun" id="themeIcon"></i>
+    </button>
     
     <!-- Save Modal -->
     <div class="modal-overlay" id="saveModal">
@@ -11165,6 +11470,27 @@ ${item.html_code || ''}
                 
                 showToast(`✅ New ${type} item added`, 'success');
             }
+            
+            return id;
+        }
+        
+        // Add dynamic item with full data (used when loading from database)
+        function addDynamicItemWithData(type, itemData) {
+            const item = {
+                id: itemData.id || generateItemId(),
+                name: itemData.name || '',
+                prompt: itemData.prompt || '',
+                files: itemData.files || []
+            };
+            
+            dynamicItems[type].push(item);
+            renderDynamicItems(type);
+            updateDynamicCount(type);
+            saveDynamicItems();
+            
+            console.log(`📦 Added ${type} item from database:`, item.name, 'prompt:', item.prompt?.substring(0, 50));
+            
+            return item.id;
         }
         
         // Delete dynamic item
@@ -11229,8 +11555,12 @@ ${item.html_code || ''}
             div.className = `dynamic-item ${type}-item`;
             div.dataset.id = item.id;
             
+            // Get file count - works with both File objects and file info objects
             const fileCount = item.files ? item.files.length : 0;
             const hasFiles = fileCount > 0;
+            
+            // Debug log to verify prompt is being passed
+            console.log(`Rendering ${type} item:`, item.id, 'name:', item.name, 'prompt:', item.prompt?.substring(0, 50));
             
             div.innerHTML = `
                 <div class="dynamic-item-header">
@@ -11285,21 +11615,39 @@ ${item.html_code || ''}
         // Save dynamic items to localStorage
         function saveDynamicItems() {
             // Convert files to file info (can't store actual File objects)
+            const convertFiles = (files) => {
+                if (!files || !Array.isArray(files)) return [];
+                return files.map(f => {
+                    // Handle both File objects and already-converted file info
+                    if (f instanceof File) {
+                        return { name: f.name, size: f.size, type: f.type };
+                    }
+                    return f; // Already file info
+                });
+            };
+            
             const toSave = {
                 backend: dynamicItems.backend.map(item => ({
-                    ...item,
-                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                    id: item.id,
+                    name: item.name || '',
+                    prompt: item.prompt || '',
+                    files: convertFiles(item.files)
                 })),
                 page: dynamicItems.page.map(item => ({
-                    ...item,
-                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                    id: item.id,
+                    name: item.name || '',
+                    prompt: item.prompt || '',
+                    files: convertFiles(item.files)
                 })),
                 frontend: dynamicItems.frontend.map(item => ({
-                    ...item,
-                    files: item.files ? item.files.map(f => ({ name: f.name, size: f.size, type: f.type })) : []
+                    id: item.id,
+                    name: item.name || '',
+                    prompt: item.prompt || '',
+                    files: convertFiles(item.files)
                 }))
             };
             localStorage.setItem(DYNAMIC_ITEMS_KEY, JSON.stringify(toSave));
+            console.log('✅ Dynamic items saved to localStorage');
         }
         
         // Load dynamic items from localStorage
@@ -11309,12 +11657,14 @@ ${item.html_code || ''}
             
             try {
                 const data = JSON.parse(saved);
-                // Note: File objects can't be restored from localStorage, so files will be empty
+                // Note: File objects can't be restored from localStorage, but file info is preserved
                 ['backend', 'page', 'frontend'].forEach(type => {
                     if (data[type]) {
                         dynamicItems[type] = data[type].map(item => ({
-                            ...item,
-                            files: [] // Files can't be restored
+                            id: item.id,
+                            name: item.name || '',
+                            prompt: item.prompt || '',
+                            files: item.files || [] // Keep file info for display
                         }));
                         renderDynamicItems(type);
                         updateDynamicCount(type);
@@ -15156,6 +15506,39 @@ in each section carefully and maintain proper connections between components.
             return currentFileMode === 'content';
         }
         
+        // ════════════════════════════════════════════════════════════════
+        // SIDEBAR COLLAPSE/EXPAND FUNCTIONALITY
+        // ════════════════════════════════════════════════════════════════
+        
+        const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            if (!sidebar) return;
+            
+            sidebar.classList.toggle('collapsed');
+            
+            // Save state to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCollapsed ? 'true' : 'false');
+            
+            console.log('📌 Sidebar ' + (isCollapsed ? 'collapsed' : 'expanded'));
+        }
+        
+        // Load sidebar state on page load
+        function loadSidebarState() {
+            const sidebar = document.getElementById('mainSidebar');
+            if (!sidebar) return;
+            
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+            if (isCollapsed) {
+                sidebar.classList.add('collapsed');
+            }
+        }
+        
+        // Initialize sidebar state
+        document.addEventListener('DOMContentLoaded', loadSidebarState);
+        
         // Set file mode (called by toggle buttons)
         function setFileMode(mode) {
             currentFileMode = mode;
@@ -18165,39 +18548,56 @@ function collectDashboardData() {
         include_remote: document.getElementById('remoteCheckbox')?.checked ? 1 : 0,
         include_localhost: document.getElementById('localhostCheckbox')?.checked ? 1 : 0,
         
-        // Items
+        // Items - use dynamicItems object which has all the data including prompts and files
         backends: [],
         pages: [],
         frontends: []
     };
     
-    // Collect backend items
-    const backendItems = document.querySelectorAll('#backendItemsGrid .dynamic-item');
-    backendItems.forEach(item => {
-        data.backends.push({
-            name: item.querySelector('.dynamic-item-name')?.value || '',
-            desc: item.querySelector('.dynamic-item-desc')?.value || ''
-        });
-    });
+    // Use the dynamicItems object which properly stores name, prompt, and files
+    if (typeof dynamicItems !== 'undefined') {
+        // Collect backend items from dynamicItems object
+        data.backends = dynamicItems.backend.map(item => ({
+            id: item.id,
+            name: item.name || '',
+            prompt: item.prompt || '',
+            files: (item.files || []).map(f => {
+                // Handle both File objects and file info objects
+                if (f instanceof File) {
+                    return { name: f.name, size: f.size, type: f.type };
+                }
+                return f;
+            })
+        }));
+        
+        // Collect page items from dynamicItems object
+        data.pages = dynamicItems.page.map(item => ({
+            id: item.id,
+            name: item.name || '',
+            prompt: item.prompt || '',
+            files: (item.files || []).map(f => {
+                if (f instanceof File) {
+                    return { name: f.name, size: f.size, type: f.type };
+                }
+                return f;
+            })
+        }));
+        
+        // Collect frontend items from dynamicItems object
+        data.frontends = dynamicItems.frontend.map(item => ({
+            id: item.id,
+            name: item.name || '',
+            prompt: item.prompt || '',
+            files: (item.files || []).map(f => {
+                if (f instanceof File) {
+                    return { name: f.name, size: f.size, type: f.type };
+                }
+                return f;
+            })
+        }));
+    }
     
-    // Collect page items
-    const pageItems = document.querySelectorAll('#pageItemsGrid .dynamic-item');
-    pageItems.forEach(item => {
-        data.pages.push({
-            name: item.querySelector('.dynamic-item-name')?.value || '',
-            desc: item.querySelector('.dynamic-item-desc')?.value || ''
-        });
-    });
-    
-    // Collect frontend items
-    const frontendItems = document.querySelectorAll('#frontendItemsGrid .dynamic-item');
-    frontendItems.forEach(item => {
-        data.frontends.push({
-            name: item.querySelector('.dynamic-item-name')?.value || '',
-            desc: item.querySelector('.dynamic-item-desc')?.value || ''
-        });
-    });
-    
+    console.log('📦 Collected dashboard data:', data);
     return data;
 }
 
@@ -18352,6 +18752,8 @@ function loadSelectedProject() {
 
 // Apply project data to dashboard
 function applyProjectToDashboard(project) {
+    console.log('📥 Applying project to dashboard:', project);
+    
     // Reset first - clears dynamicItems and HTML
     resetDashboardItems();
     
@@ -18375,24 +18777,54 @@ function applyProjectToDashboard(project) {
     if (remoteChk) remoteChk.checked = project.include_remote == 1;
     if (localChk) localChk.checked = project.include_localhost == 1;
     
-    // Add backend items (use 'backend' key)
-    if (project.backends && project.backends.length > 0) {
-        project.backends.forEach(item => {
-            addDynamicItem('backend', item.name, item.desc);
+    // Parse backends, pages, frontends if they are strings
+    let backends = project.backends;
+    let pages = project.pages;
+    let frontends = project.frontends;
+    
+    if (typeof backends === 'string') {
+        try { backends = JSON.parse(backends); } catch(e) { backends = []; }
+    }
+    if (typeof pages === 'string') {
+        try { pages = JSON.parse(pages); } catch(e) { pages = []; }
+    }
+    if (typeof frontends === 'string') {
+        try { frontends = JSON.parse(frontends); } catch(e) { frontends = []; }
+    }
+    
+    // Add backend items - use 'prompt' field (not 'desc')
+    if (backends && backends.length > 0) {
+        backends.forEach(item => {
+            const id = addDynamicItemWithData('backend', {
+                id: item.id,
+                name: item.name || '',
+                prompt: item.prompt || item.desc || '', // Support both 'prompt' and legacy 'desc'
+                files: item.files || []
+            });
         });
     }
     
-    // Add page items (use 'page' key - NOT 'pages')
-    if (project.pages && project.pages.length > 0) {
-        project.pages.forEach(item => {
-            addDynamicItem('page', item.name, item.desc);
+    // Add page items - use 'prompt' field (not 'desc')
+    if (pages && pages.length > 0) {
+        pages.forEach(item => {
+            addDynamicItemWithData('page', {
+                id: item.id,
+                name: item.name || '',
+                prompt: item.prompt || item.desc || '',
+                files: item.files || []
+            });
         });
     }
     
-    // Add frontend items (use 'frontend' key)
-    if (project.frontends && project.frontends.length > 0) {
-        project.frontends.forEach(item => {
-            addDynamicItem('frontend', item.name, item.desc);
+    // Add frontend items - use 'prompt' field (not 'desc')
+    if (frontends && frontends.length > 0) {
+        frontends.forEach(item => {
+            addDynamicItemWithData('frontend', {
+                id: item.id,
+                name: item.name || '',
+                prompt: item.prompt || item.desc || '',
+                files: item.files || []
+            });
         });
     }
     
@@ -18803,6 +19235,46 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
             closeIframePopup();
         }
     });
+})();
+</script>
+
+<!-- Theme Toggle Script -->
+<script>
+// Theme Toggle Function
+function toggleTheme() {
+    const body = document.body;
+    const icon = document.getElementById('themeIcon');
+    const currentTheme = body.getAttribute('data-theme');
+    
+    if (currentTheme === 'light') {
+        body.removeAttribute('data-theme');
+        if (icon) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+        localStorage.setItem('pm-theme', 'dark');
+    } else {
+        body.setAttribute('data-theme', 'light');
+        if (icon) {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+        localStorage.setItem('pm-theme', 'light');
+    }
+}
+
+// Load saved theme on page load
+(function() {
+    const savedTheme = localStorage.getItem('pm-theme');
+    const icon = document.getElementById('themeIcon');
+    
+    if (savedTheme === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+        if (icon) {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    }
 })();
 </script>
 
