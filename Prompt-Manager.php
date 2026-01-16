@@ -6011,6 +6011,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.05);
         }
         
+        .dynamic-item-btn.duplicate-btn {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+        
+        .dynamic-item-btn.duplicate-btn:hover {
+            background: rgba(245, 158, 11, 0.22);
+            border-color: rgba(245, 158, 11, 0.35);
+            color: #fcd34d;
+            transform: scale(1.05);
+        }
+        
         .dynamic-item-body {
             display: flex;
             flex-direction: column;
@@ -11464,6 +11477,39 @@ ${item.html_code || ''}
             }
         }
         
+        // Duplicate dynamic item with all data
+        function duplicateDynamicItem(type, id) {
+            const originalItem = dynamicItems[type].find(item => item.id === id);
+            if (!originalItem) return;
+            
+            // Create new item with copied data
+            const newId = generateItemId();
+            const duplicatedItem = {
+                id: newId,
+                name: originalItem.name ? `${originalItem.name} (Copy)` : '',
+                prompt: originalItem.prompt || '',
+                files: (originalItem.files || []).map(f => {
+                    // Copy file info (not actual File objects)
+                    if (f instanceof File) {
+                        return { name: f.name, size: f.size, type: f.type };
+                    }
+                    return { ...f }; // Clone file info object
+                })
+            };
+            
+            // Insert after original item
+            const originalIndex = dynamicItems[type].findIndex(item => item.id === id);
+            dynamicItems[type].splice(originalIndex + 1, 0, duplicatedItem);
+            
+            renderDynamicItems(type);
+            updateDynamicCount(type);
+            saveDynamicItems();
+            
+            showToast(`📋 ${type.charAt(0).toUpperCase() + type.slice(1)} item duplicated`, 'success');
+            
+            return newId;
+        }
+        
         // Update dynamic item
         function updateDynamicItem(type, id, field, value) {
             const item = dynamicItems[type].find(item => item.id === id);
@@ -11559,6 +11605,12 @@ ${item.html_code || ''}
                                 onclick="document.getElementById('file_${item.id}').click()"
                                 title="${hasFiles ? fileCount + ' file(s) selected' : 'Attach files'}">
                             <i class="fas fa-${hasFiles ? 'check-circle' : 'paperclip'}"></i>
+                        </button>
+                        <button type="button" 
+                                class="dynamic-item-btn duplicate-btn" 
+                                onclick="duplicateDynamicItem('${type}', '${item.id}')"
+                                title="Duplicate this item">
+                            <i class="fas fa-clone"></i>
                         </button>
                         <button type="button" 
                                 class="dynamic-item-btn delete-btn" 

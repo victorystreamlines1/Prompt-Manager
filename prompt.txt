@@ -1,1 +1,1 @@
-Make both panels on the right or on the left collapsible and show their button clearly. The left vertical panel for prompt manager, which is the main dashboard, does not collapse properly. It's still open a little bit on the sides. Also, I want you to apply a collapsible button to collapse the right vertical panel for the design enhancer. 
+Please add a duplication button for the items under the pages in development dashboard containers. For the back end, the pages and front end, duplicate for the items. Any item should be duplicated with all its data. 
