@@ -2882,6 +2882,340 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           👑 BRANDING TOOL - Design Enhancer Right Panel
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        /* Branding Badge */
+        .de-tool-badge.branding-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        /* Logo Upload Zone */
+        .branding-upload-zone {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.04) 100%);
+            border: 2px dashed rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.75rem;
+        }
+        
+        .branding-upload-zone:hover {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%);
+        }
+        
+        .branding-upload-zone.has-logo {
+            border-style: solid;
+            border-color: rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%);
+        }
+        
+        .branding-upload-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .branding-upload-prompt h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.25rem;
+        }
+        
+        .branding-upload-prompt p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        
+        .branding-formats {
+            display: inline-block;
+            font-size: 0.55rem;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            margin-top: 0.4rem;
+        }
+        
+        /* Logo Preview */
+        .branding-logo-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .branding-logo-preview img {
+            max-width: 80px;
+            max-height: 60px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .branding-logo-name {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .branding-remove-btn {
+            font-size: 0.6rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .branding-remove-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        /* Title Input */
+        .branding-title-group {
+            margin-bottom: 0.75rem;
+        }
+        
+        .branding-label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.35rem;
+        }
+        
+        .branding-label i {
+            color: #f59e0b;
+            font-size: 0.65rem;
+        }
+        
+        .branding-input {
+            width: 100%;
+            padding: 0.5rem 0.65rem;
+            font-size: 0.75rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .branding-input:focus {
+            outline: none;
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+        }
+        
+        .branding-title-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(245, 158, 11, 0.05);
+            border-radius: 4px;
+        }
+        
+        .branding-title-preview i {
+            color: #f59e0b;
+        }
+        
+        #brandingTitleText {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Branding Options */
+        .branding-options-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .branding-options-header {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .branding-options-header i {
+            color: #f59e0b;
+            font-size: 0.65rem;
+        }
+        
+        .branding-option-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            margin-bottom: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .branding-option-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        
+        .branding-option-item.checked {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        .branding-option-item input[type="checkbox"] {
+            display: none;
+        }
+        
+        .branding-option-check {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            color: transparent;
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+        
+        .branding-option-item.checked .branding-option-check {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            color: white;
+        }
+        
+        .branding-option-content {
+            flex: 1;
+        }
+        
+        .branding-option-content strong {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.68rem;
+            color: var(--text-primary);
+        }
+        
+        .branding-option-content strong i {
+            font-size: 0.6rem;
+            color: #f59e0b;
+        }
+        
+        .branding-option-content p {
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            margin: 0.15rem 0 0;
+            line-height: 1.3;
+        }
+        
+        /* Custom Instructions */
+        .branding-custom-instructions {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.04) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 0.6rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .branding-custom-header {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #f87171;
+            margin-bottom: 0.4rem;
+        }
+        
+        .branding-custom-textarea {
+            width: 100%;
+            min-height: 70px;
+            padding: 0.5rem;
+            font-size: 0.65rem;
+            font-family: inherit;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+        
+        .branding-custom-textarea:focus {
+            outline: none;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .branding-custom-textarea::placeholder {
+            color: var(--text-muted);
+            font-size: 0.6rem;
+        }
+        
+        /* Push Button */
+        .branding-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .branding-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+        
+        .branding-push-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+        
+        .branding-push-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            📄 PAGES CREATOR TOOL - Design Enhancer Right Panel
            ═══════════════════════════════════════════════════════════════════ */
         .de-tool-section {
@@ -10796,6 +11130,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2>🎨 Design Enhancer</h2>
                     <p class="de-subtitle">AI-Powered Web Design</p>
                 </header>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     👑 BRANDING TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section" id="brandingTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('branding')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-crown"></i>
+                            <span>Logo & Branding</span>
+                        </div>
+                        <div class="de-tool-badge branding-badge" id="brandingBadge">3</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="brandingArrow"></i>
+                    </div>
+                    
+                    <div class="de-tool-body" id="brandingBody">
+                        <!-- Logo Upload Zone -->
+                        <div class="branding-upload-zone" id="brandingLogoZone" onclick="document.getElementById('brandingLogoInput').click()">
+                            <input type="file" id="brandingLogoInput" accept="image/*" onchange="handleBrandingLogoUpload(this)" style="display: none;">
+                            
+                            <!-- Preview State (hidden by default) -->
+                            <div class="branding-logo-preview" id="brandingLogoPreview" style="display: none;">
+                                <img id="brandingLogoImg" src="" alt="Logo">
+                                <p class="branding-logo-name" id="brandingLogoName"></p>
+                                <button type="button" class="branding-remove-btn" onclick="event.stopPropagation(); clearBrandingLogo()">
+                                    <i class="fas fa-times"></i> Remove
+                                </button>
+                            </div>
+                            
+                            <!-- Upload Prompt (shown by default) -->
+                            <div class="branding-upload-prompt" id="brandingUploadPrompt">
+                                <div class="branding-upload-icon">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                <h4>Upload Logo</h4>
+                                <p>Click or drag & drop</p>
+                                <span class="branding-formats">PNG, JPG, SVG, ICO</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Page Title Input -->
+                        <div class="branding-title-group">
+                            <label class="branding-label">
+                                <i class="fas fa-heading"></i>
+                                <span>Page Title</span>
+                            </label>
+                            <input type="text" id="brandingTitleInput" class="branding-input" placeholder="My Awesome Website" oninput="updateBrandingTitlePreview()">
+                            <div class="branding-title-preview" id="brandingTitlePreview">
+                                <i class="fas fa-eye"></i>
+                                <span id="brandingTitleText">Preview will appear here</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Branding Options -->
+                        <div class="branding-options-section">
+                            <div class="branding-options-header">
+                                <i class="fas fa-cogs"></i>
+                                <span>Application Options</span>
+                            </div>
+                            
+                            <div class="branding-option-item checked" data-option="favicon" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingFavicon" checked>
+                                <div class="branding-option-check"><i class="fas fa-check"></i></div>
+                                <div class="branding-option-content">
+                                    <strong><i class="fas fa-bookmark"></i> Favicon</strong>
+                                    <p>Set logo as favicon for all pages</p>
+                                </div>
+                            </div>
+                            
+                            <div class="branding-option-item checked" data-option="logo-pages" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingLogoPages" checked>
+                                <div class="branding-option-check"><i class="fas fa-check"></i></div>
+                                <div class="branding-option-content">
+                                    <strong><i class="fas fa-images"></i> Logo in Header</strong>
+                                    <p>Add logo to every page header</p>
+                                </div>
+                            </div>
+                            
+                            <div class="branding-option-item checked" data-option="title-pages" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingTitlePages" checked>
+                                <div class="branding-option-check"><i class="fas fa-check"></i></div>
+                                <div class="branding-option-content">
+                                    <strong><i class="fas fa-font"></i> Page Titles</strong>
+                                    <p>Update &lt;title&gt; tag in all pages</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Instructions (shown when options unchecked) -->
+                        <div class="branding-custom-instructions" id="brandingCustomInstructions" style="display: none;">
+                            <div class="branding-custom-header">
+                                <i class="fas fa-edit"></i>
+                                <span>Custom Instructions</span>
+                            </div>
+                            <textarea id="brandingCustomPrompt" class="branding-custom-textarea" placeholder="Specify custom instructions for unchecked options...&#10;&#10;Example:&#10;• Apply logo only to: index.html, about.html&#10;• Set favicon for homepage only&#10;• Use logo in footer instead of header"></textarea>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="branding-push-section">
+                            <button type="button" class="branding-push-btn" onclick="pushBrandingToNotes()">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📄 PAGES CREATOR TOOL
@@ -20827,6 +21266,271 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
 })();
 </script>
 
+<!-- Branding Tool Script -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// 👑 BRANDING TOOL - Right Panel
+// ═══════════════════════════════════════════════════════════════════
+
+// Branding State
+let brandingLogoFile = null;
+let brandingLogoDataUrl = null;
+
+// Handle Logo Upload
+function handleBrandingLogoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/x-icon', 'image/ico'];
+    if (!validTypes.includes(file.type) && !file.name.endsWith('.ico')) {
+        showToast('⚠️ Invalid file type. Use PNG, JPG, SVG, or ICO', 'warning');
+        return;
+    }
+    
+    brandingLogoFile = file;
+    
+    // Read and display preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        brandingLogoDataUrl = e.target.result;
+        
+        // Show preview
+        const preview = document.getElementById('brandingLogoPreview');
+        const prompt = document.getElementById('brandingUploadPrompt');
+        const img = document.getElementById('brandingLogoImg');
+        const name = document.getElementById('brandingLogoName');
+        const zone = document.getElementById('brandingLogoZone');
+        
+        if (preview && prompt && img && name && zone) {
+            img.src = brandingLogoDataUrl;
+            name.textContent = file.name;
+            preview.style.display = 'flex';
+            prompt.style.display = 'none';
+            zone.classList.add('has-logo');
+        }
+        
+        updateBrandingBadge();
+        saveBrandingState();
+        showToast('✅ Logo uploaded successfully', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+// Clear Logo
+function clearBrandingLogo() {
+    brandingLogoFile = null;
+    brandingLogoDataUrl = null;
+    
+    const preview = document.getElementById('brandingLogoPreview');
+    const prompt = document.getElementById('brandingUploadPrompt');
+    const zone = document.getElementById('brandingLogoZone');
+    const input = document.getElementById('brandingLogoInput');
+    
+    if (preview) preview.style.display = 'none';
+    if (prompt) prompt.style.display = 'block';
+    if (zone) zone.classList.remove('has-logo');
+    if (input) input.value = '';
+    
+    updateBrandingBadge();
+    saveBrandingState();
+}
+
+// Update Title Preview
+function updateBrandingTitlePreview() {
+    const input = document.getElementById('brandingTitleInput');
+    const preview = document.getElementById('brandingTitleText');
+    
+    if (input && preview) {
+        preview.textContent = input.value || 'Preview will appear here';
+        saveBrandingState();
+    }
+}
+
+// Toggle Branding Option
+function toggleBrandingOptionItem(element) {
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        element.classList.toggle('checked', checkbox.checked);
+    }
+    
+    updateBrandingBadge();
+    updateCustomInstructionsVisibility();
+    saveBrandingState();
+}
+
+// Update Custom Instructions Visibility
+function updateCustomInstructionsVisibility() {
+    const favicon = document.getElementById('brandingFavicon')?.checked;
+    const logoPages = document.getElementById('brandingLogoPages')?.checked;
+    const titlePages = document.getElementById('brandingTitlePages')?.checked;
+    
+    const customSection = document.getElementById('brandingCustomInstructions');
+    if (customSection) {
+        // Show if any option is unchecked
+        customSection.style.display = (!favicon || !logoPages || !titlePages) ? 'block' : 'none';
+    }
+}
+
+// Update Badge Count
+function updateBrandingBadge() {
+    const favicon = document.getElementById('brandingFavicon')?.checked ? 1 : 0;
+    const logoPages = document.getElementById('brandingLogoPages')?.checked ? 1 : 0;
+    const titlePages = document.getElementById('brandingTitlePages')?.checked ? 1 : 0;
+    
+    const count = favicon + logoPages + titlePages;
+    const badge = document.getElementById('brandingBadge');
+    if (badge) {
+        badge.textContent = count;
+        badge.style.opacity = count > 0 ? '1' : '0.5';
+    }
+}
+
+// Save Branding State to localStorage
+function saveBrandingState() {
+    const state = {
+        logoDataUrl: brandingLogoDataUrl,
+        logoFileName: brandingLogoFile?.name || '',
+        title: document.getElementById('brandingTitleInput')?.value || '',
+        favicon: document.getElementById('brandingFavicon')?.checked ?? true,
+        logoPages: document.getElementById('brandingLogoPages')?.checked ?? true,
+        titlePages: document.getElementById('brandingTitlePages')?.checked ?? true,
+        customInstructions: document.getElementById('brandingCustomPrompt')?.value || ''
+    };
+    localStorage.setItem('branding_state', JSON.stringify(state));
+}
+
+// Load Branding State from localStorage
+function loadBrandingState() {
+    const saved = localStorage.getItem('branding_state');
+    if (!saved) return;
+    
+    try {
+        const state = JSON.parse(saved);
+        
+        // Restore logo
+        if (state.logoDataUrl) {
+            brandingLogoDataUrl = state.logoDataUrl;
+            const preview = document.getElementById('brandingLogoPreview');
+            const prompt = document.getElementById('brandingUploadPrompt');
+            const img = document.getElementById('brandingLogoImg');
+            const name = document.getElementById('brandingLogoName');
+            const zone = document.getElementById('brandingLogoZone');
+            
+            if (preview && prompt && img && name && zone) {
+                img.src = brandingLogoDataUrl;
+                name.textContent = state.logoFileName || 'logo';
+                preview.style.display = 'flex';
+                prompt.style.display = 'none';
+                zone.classList.add('has-logo');
+            }
+        }
+        
+        // Restore title
+        const titleInput = document.getElementById('brandingTitleInput');
+        if (titleInput && state.title) {
+            titleInput.value = state.title;
+            updateBrandingTitlePreview();
+        }
+        
+        // Restore checkboxes
+        const faviconChk = document.getElementById('brandingFavicon');
+        const logoPagesChk = document.getElementById('brandingLogoPages');
+        const titlePagesChk = document.getElementById('brandingTitlePages');
+        
+        if (faviconChk) {
+            faviconChk.checked = state.favicon ?? true;
+            faviconChk.closest('.branding-option-item')?.classList.toggle('checked', faviconChk.checked);
+        }
+        if (logoPagesChk) {
+            logoPagesChk.checked = state.logoPages ?? true;
+            logoPagesChk.closest('.branding-option-item')?.classList.toggle('checked', logoPagesChk.checked);
+        }
+        if (titlePagesChk) {
+            titlePagesChk.checked = state.titlePages ?? true;
+            titlePagesChk.closest('.branding-option-item')?.classList.toggle('checked', titlePagesChk.checked);
+        }
+        
+        // Restore custom instructions
+        const customPrompt = document.getElementById('brandingCustomPrompt');
+        if (customPrompt && state.customInstructions) {
+            customPrompt.value = state.customInstructions;
+        }
+        
+        updateBrandingBadge();
+        updateCustomInstructionsVisibility();
+        
+    } catch (e) {
+        console.error('Error loading branding state:', e);
+    }
+}
+
+// Push Branding to Project Prompts
+function pushBrandingToNotes() {
+    const title = document.getElementById('brandingTitleInput')?.value || '';
+    const favicon = document.getElementById('brandingFavicon')?.checked;
+    const logoPages = document.getElementById('brandingLogoPages')?.checked;
+    const titlePages = document.getElementById('brandingTitlePages')?.checked;
+    const customInstructions = document.getElementById('brandingCustomPrompt')?.value || '';
+    
+    // Build prompt text
+    let promptText = '═══════════════════════════════════════════════════════════════════\n';
+    promptText += '👑 BRANDING & LOGO INSTRUCTIONS\n';
+    promptText += '═══════════════════════════════════════════════════════════════════\n\n';
+    
+    if (brandingLogoDataUrl) {
+        promptText += '📷 LOGO:\n';
+        promptText += '   • Logo file has been uploaded and should be used for branding\n';
+        promptText += '   • Logo filename: ' + (document.getElementById('brandingLogoName')?.textContent || 'logo') + '\n\n';
+    } else {
+        promptText += '📷 LOGO: No logo uploaded\n\n';
+    }
+    
+    if (title) {
+        promptText += '📝 PAGE TITLE: "' + title + '"\n\n';
+    }
+    
+    promptText += '⚙️ BRANDING OPTIONS:\n';
+    promptText += '   ' + (favicon ? '✅' : '⬜') + ' Set logo as favicon for all pages\n';
+    promptText += '   ' + (logoPages ? '✅' : '⬜') + ' Add logo to every page header/navigation\n';
+    promptText += '   ' + (titlePages ? '✅' : '⬜') + ' Update <title> tag in all pages\n\n';
+    
+    if (customInstructions.trim()) {
+        promptText += '📋 CUSTOM INSTRUCTIONS:\n';
+        customInstructions.split('\n').forEach(line => {
+            if (line.trim()) promptText += '   ' + line + '\n';
+        });
+        promptText += '\n';
+    }
+    
+    promptText += '═══════════════════════════════════════════════════════════════════\n';
+    
+    // Push to Project Prompts textarea
+    const notesTextarea = document.getElementById('projectNotesTextarea');
+    if (notesTextarea) {
+        if (notesTextarea.value.trim()) {
+            notesTextarea.value = notesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            notesTextarea.value = promptText;
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('project_notes_temp', notesTextarea.value);
+        
+        // Show success
+        showToast('👑 Branding pushed to Project Prompts', 'success');
+    } else {
+        showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Initialize Branding on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    loadBrandingState();
+});
+</script>
+
 <!-- Pages Creator Tool Script -->
 <script>
 // ═══════════════════════════════════════════════════════════════════
@@ -21020,11 +21724,18 @@ function updatePCCounts() {
     }
 }
 
-// Toggle Tool Section
+// Toggle Tool Section (for collapsible panels)
 function toggleToolSection(toolName) {
     const section = document.getElementById(`${toolName}Tool`);
+    const arrow = document.getElementById(`${toolName}Arrow`);
+    
     if (section) {
         section.classList.toggle('collapsed');
+        
+        // Rotate arrow
+        if (arrow) {
+            arrow.style.transform = section.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
+        }
     }
 }
 
