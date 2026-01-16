@@ -2569,7 +2569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             gap: 1.5rem;
             background: var(--gradient-dark);
-            max-width: calc(100vw - 320px - 280px);
+            max-width: calc(100vw - 320px - 340px);
             overflow-x: hidden;
             box-sizing: border-box;
         }
@@ -2578,9 +2578,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            🎨 RIGHT PANEL - Design Enhancer Panel
            ═══════════════════════════════════════════════════════════════════ */
         .right-panel {
-            width: 280px;
-            min-width: 280px;
-            max-width: 280px;
+            width: 340px;
+            min-width: 340px;
+            max-width: 340px;
             min-height: 100vh;
             background: linear-gradient(135deg, 
                 var(--bg-secondary) 0%, 
@@ -2705,6 +2705,572 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 500;
             position: relative;
             z-index: 1;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           📄 PAGES CREATOR TOOL - Design Enhancer Right Panel
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-tool-section {
+            margin-top: 1rem;
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.08) 0%, 
+                rgba(139, 92, 246, 0.04) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .de-tool-section:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+        }
+        
+        .de-tool-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.12) 0%, 
+                rgba(139, 92, 246, 0.06) 100%);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .de-tool-header:hover {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.18) 0%, 
+                rgba(139, 92, 246, 0.1) 100%);
+        }
+        
+        .de-tool-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .de-tool-title i {
+            color: #818cf8;
+            font-size: 0.75rem;
+        }
+        
+        .de-tool-badge {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .de-tool-arrow {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .de-tool-section.collapsed .de-tool-arrow {
+            transform: rotate(-90deg);
+        }
+        
+        .de-tool-body {
+            padding: 0.75rem;
+            max-height: 600px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .de-tool-section.collapsed .de-tool-body {
+            max-height: 0;
+            padding: 0 0.75rem;
+            overflow: hidden;
+        }
+        
+        /* Quick Actions */
+        .pc-quick-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        
+        .pc-action-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 6px;
+            color: #818cf8;
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: all 0.2s ease;
+        }
+        
+        .pc-action-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .pc-action-btn.check-all:hover {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .pc-action-btn.uncheck-all:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .pc-count {
+            flex: 1;
+            text-align: right;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Section Labels */
+        .pc-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .pc-section-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        
+        .pc-section-label i {
+            font-size: 0.6rem;
+            color: #a78bfa;
+        }
+        
+        .pc-custom-badge {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+            font-size: 0.55rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 8px;
+            margin-left: auto;
+        }
+        
+        /* Pages Grid - Compact for panel */
+        .pc-pages-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.4rem;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+        }
+        
+        .pc-pages-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .pc-pages-grid::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+        }
+        
+        .pc-page-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.5rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+        }
+        
+        .pc-page-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+        }
+        
+        .pc-page-item.checked {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: var(--text-primary);
+        }
+        
+        .pc-page-item input[type="checkbox"] {
+            display: none;
+        }
+        
+        .pc-page-item .pc-check {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(99, 102, 241, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: transparent;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .pc-page-item.checked .pc-check {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            color: white;
+        }
+        
+        .pc-page-item i.page-icon {
+            font-size: 0.55rem;
+            color: #a78bfa;
+            flex-shrink: 0;
+        }
+        
+        .pc-page-item span {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Template Search */
+        .pc-template-search {
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .pc-search-wrap {
+            position: relative;
+        }
+        
+        .pc-search-wrap i {
+            position: absolute;
+            left: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a78bfa;
+            font-size: 0.6rem;
+        }
+        
+        .pc-search-wrap input {
+            width: 100%;
+            padding: 0.5rem 0.6rem 0.5rem 1.8rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .pc-search-wrap input:focus {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(30, 41, 59, 0.8);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .pc-search-wrap input::placeholder {
+            color: rgba(139, 92, 246, 0.5);
+        }
+        
+        .pc-template-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .pc-template-results.active {
+            display: block;
+        }
+        
+        .pc-template-item {
+            padding: 0.5rem 0.6rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+            transition: all 0.15s ease;
+        }
+        
+        .pc-template-item:hover {
+            background: rgba(139, 92, 246, 0.15);
+        }
+        
+        .pc-template-item:last-child {
+            border-bottom: none;
+        }
+        
+        .pc-template-item .name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .pc-template-item .desc {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            margin-top: 0.15rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .pc-template-category {
+            padding: 0.4rem 0.6rem;
+            background: rgba(139, 92, 246, 0.1);
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #a78bfa;
+            position: sticky;
+            top: 0;
+        }
+        
+        /* Add Custom Page */
+        .pc-add-custom {
+            display: flex;
+            gap: 0.35rem;
+            margin-bottom: 0.4rem;
+        }
+        
+        .pc-add-custom input {
+            flex: 1;
+            padding: 0.45rem 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .pc-add-custom input:focus {
+            border-color: rgba(249, 115, 22, 0.5);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        .pc-add-custom input::placeholder {
+            color: rgba(249, 115, 22, 0.5);
+        }
+        
+        .pc-add-custom button {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: all 0.2s ease;
+        }
+        
+        .pc-add-custom button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+        
+        #pcCustomPageDesc {
+            width: 100%;
+            padding: 0.45rem 0.6rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(249, 115, 22, 0.15);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 80px;
+            outline: none;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        #pcCustomPageDesc:focus {
+            border-color: rgba(249, 115, 22, 0.4);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        #pcCustomPageDesc::placeholder {
+            color: rgba(249, 115, 22, 0.4);
+        }
+        
+        /* Custom Pages List */
+        .pc-custom-list {
+            max-height: 120px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(249, 115, 22, 0.3) transparent;
+        }
+        
+        .pc-custom-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.5rem;
+            background: rgba(249, 115, 22, 0.08);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 6px;
+            margin-bottom: 0.35rem;
+            transition: all 0.2s ease;
+        }
+        
+        .pc-custom-item.checked {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: rgba(249, 115, 22, 0.4);
+        }
+        
+        .pc-custom-item .pc-check {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(249, 115, 22, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            color: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .pc-custom-item.checked .pc-check {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-color: #f97316;
+            color: white;
+        }
+        
+        .pc-custom-item .name {
+            flex: 1;
+            font-size: 0.62rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .pc-custom-item .delete-btn {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: rgba(239, 68, 68, 0.6);
+            cursor: pointer;
+            font-size: 0.55rem;
+            transition: all 0.2s ease;
+            opacity: 0;
+        }
+        
+        .pc-custom-item:hover .delete-btn {
+            opacity: 1;
+        }
+        
+        .pc-custom-item .delete-btn:hover {
+            color: #ef4444;
+            transform: scale(1.1);
+        }
+        
+        /* Push Section */
+        .pc-push-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        
+        .pc-push-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.65rem;
+            background: linear-gradient(135deg, 
+                rgba(251, 191, 36, 0.15) 0%, 
+                rgba(245, 158, 11, 0.08) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            color: #fbbf24;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pc-push-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(251, 191, 36, 0.25) 0%, 
+                rgba(245, 158, 11, 0.15) 100%);
+            border-color: rgba(251, 191, 36, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.2);
+        }
+        
+        .pc-push-btn i {
+            font-size: 0.65rem;
+        }
+        
+        /* Tools Placeholder */
+        .de-tools-placeholder {
+            margin-top: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px dashed rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            color: var(--text-secondary);
+        }
+        
+        .de-tools-placeholder i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            opacity: 0.4;
+        }
+        
+        .de-tools-placeholder span {
+            font-size: 0.7rem;
+            opacity: 0.6;
         }
         
         /* ═══════════════════════════════════════════════════════════════════
@@ -10009,6 +10575,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2>🎨 Design Enhancer</h2>
                     <p class="de-subtitle">AI-Powered Web Design</p>
                 </header>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📄 PAGES CREATOR TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section" id="pagesCreatorTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('pagesCreator')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Pages Creator</span>
+                        </div>
+                        <div class="de-tool-badge" id="pagesCreatorBadge">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="pagesCreatorArrow"></i>
+                    </div>
+                    
+                    <div class="de-tool-body" id="pagesCreatorBody">
+                        <!-- Quick Actions -->
+                        <div class="pc-quick-actions">
+                            <button type="button" class="pc-action-btn check-all" onclick="pcCheckAll()" title="Select All">
+                                <i class="fas fa-check-double"></i>
+                            </button>
+                            <button type="button" class="pc-action-btn uncheck-all" onclick="pcUncheckAll()" title="Deselect All">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <span class="pc-count" id="pcSelectedCount">0 selected</span>
+                        </div>
+                        
+                        <!-- Predefined Pages Grid -->
+                        <div class="pc-section">
+                            <div class="pc-section-label">
+                                <i class="fas fa-layer-group"></i> Standard Pages
+                            </div>
+                            <div class="pc-pages-grid" id="pcPredefinedPages">
+                                <!-- Predefined pages will be rendered here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Pages Section -->
+                        <div class="pc-section">
+                            <div class="pc-section-label">
+                                <i class="fas fa-plus-circle"></i> Custom Pages
+                                <span class="pc-custom-badge" id="pcCustomBadge">0</span>
+                            </div>
+                            
+                            <!-- Template Search -->
+                            <div class="pc-template-search">
+                                <div class="pc-search-wrap">
+                                    <i class="fas fa-magic"></i>
+                                    <input type="text" 
+                                           id="pcTemplateSearch" 
+                                           placeholder="Search 1150+ templates..."
+                                           oninput="pcSearchTemplates(this.value)"
+                                           onfocus="pcShowTemplateResults()"
+                                           autocomplete="off">
+                                </div>
+                                <div class="pc-template-results" id="pcTemplateResults"></div>
+                            </div>
+                            
+                            <!-- Manual Add -->
+                            <div class="pc-add-custom">
+                                <input type="text" 
+                                       id="pcCustomPageName" 
+                                       placeholder="Page name..."
+                                       onkeypress="if(event.key==='Enter') pcAddCustomPage()">
+                                <button type="button" onclick="pcAddCustomPage()" title="Add Page">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <textarea id="pcCustomPageDesc" 
+                                      placeholder="Page description (optional)..."
+                                      rows="2"></textarea>
+                            
+                            <!-- Custom Pages List -->
+                            <div class="pc-custom-list" id="pcCustomPagesList"></div>
+                        </div>
+                        
+                        <!-- Push to Project Notes -->
+                        <div class="pc-push-section">
+                            <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Notes">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Notes</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- More tools can be added here -->
+                <div class="de-tools-placeholder">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>More tools coming soon...</span>
+                </div>
             </div>
         </aside>
     </div>
@@ -19850,6 +20506,472 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
         }
     });
 })();
+</script>
+
+<!-- Pages Creator Tool Script -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// 📄 PAGES CREATOR TOOL - Right Panel
+// ═══════════════════════════════════════════════════════════════════
+
+// Predefined Pages List
+const pcPredefinedPages = [
+    { id: 'home', name: 'Home', icon: 'fa-home' },
+    { id: 'about', name: 'About', icon: 'fa-info-circle' },
+    { id: 'contact', name: 'Contact', icon: 'fa-envelope' },
+    { id: 'services', name: 'Services', icon: 'fa-cogs' },
+    { id: 'products', name: 'Products', icon: 'fa-box' },
+    { id: 'shop', name: 'Shop', icon: 'fa-shopping-cart' },
+    { id: 'portfolio', name: 'Portfolio', icon: 'fa-briefcase' },
+    { id: 'gallery', name: 'Gallery', icon: 'fa-images' },
+    { id: 'blog', name: 'Blog', icon: 'fa-blog' },
+    { id: 'news', name: 'News', icon: 'fa-newspaper' },
+    { id: 'team', name: 'Team', icon: 'fa-users' },
+    { id: 'testimonials', name: 'Testimonials', icon: 'fa-quote-left' },
+    { id: 'pricing', name: 'Pricing', icon: 'fa-tags' },
+    { id: 'features', name: 'Features', icon: 'fa-star' },
+    { id: 'faq', name: 'FAQ', icon: 'fa-question-circle' },
+    { id: 'careers', name: 'Careers', icon: 'fa-user-tie' },
+    { id: 'support', name: 'Support', icon: 'fa-headset' },
+    { id: 'privacy', name: 'Privacy', icon: 'fa-shield-alt' },
+    { id: 'terms', name: 'Terms', icon: 'fa-file-contract' },
+    { id: 'login', name: 'Login', icon: 'fa-sign-in-alt' },
+    { id: 'register', name: 'Register', icon: 'fa-user-plus' },
+    { id: '404', name: '404 Error', icon: 'fa-exclamation-triangle' },
+    { id: 'coming-soon', name: 'Coming Soon', icon: 'fa-clock' },
+    { id: 'sitemap', name: 'Sitemap', icon: 'fa-sitemap' }
+];
+
+// Page Templates with Descriptions (subset for compact view)
+const pcPageTemplates = {
+    // General Business
+    'investors': { name: 'Investors', desc: 'Investment opportunities, financial highlights, shareholder info, annual reports.' },
+    'partners': { name: 'Partners', desc: 'Business partnerships, partner logos, benefits, and application process.' },
+    'clients': { name: 'Clients', desc: 'Trusted clients display with logos and success metrics.' },
+    'case-studies': { name: 'Case Studies', desc: 'In-depth project analysis with challenges, solutions, results.' },
+    'success-stories': { name: 'Success Stories', desc: 'Customer success narratives with before/after comparisons.' },
+    'awards': { name: 'Awards', desc: 'Industry awards, certifications, recognition display.' },
+    'press': { name: 'Press & Media', desc: 'Media coverage, press releases, and media kit.' },
+    'resources': { name: 'Resources', desc: 'Downloadable guides, templates, and tools hub.' },
+    'downloads': { name: 'Downloads', desc: 'File download center for software and documents.' },
+    'whitepapers': { name: 'Whitepapers', desc: 'In-depth research papers and technical documents.' },
+    // E-Commerce
+    'cart': { name: 'Shopping Cart', desc: 'Cart with quantity controls, price calculations, checkout.' },
+    'checkout': { name: 'Checkout', desc: 'Secure checkout with shipping, payment, confirmation.' },
+    'wishlist': { name: 'Wishlist', desc: 'Save products for later with add to cart functionality.' },
+    'order-tracking': { name: 'Order Tracking', desc: 'Real-time order status and shipment tracking.' },
+    'order-history': { name: 'Order History', desc: 'Purchase history with reorder and invoice downloads.' },
+    'returns': { name: 'Returns', desc: 'Return policy, request form, refund status tracking.' },
+    'shipping-info': { name: 'Shipping Info', desc: 'Shipping policies, delivery times, cost calculator.' },
+    'gift-cards': { name: 'Gift Cards', desc: 'Purchase and manage gift cards with balance check.' },
+    // User Account
+    'dashboard': { name: 'Dashboard', desc: 'User dashboard with activity overview and quick actions.' },
+    'profile': { name: 'Profile', desc: 'User profile management with settings.' },
+    'settings': { name: 'Settings', desc: 'Account settings, preferences, notifications.' },
+    'notifications': { name: 'Notifications', desc: 'User notification center and preferences.' },
+    'messages': { name: 'Messages', desc: 'Messaging system with inbox and conversations.' },
+    // Content
+    'events': { name: 'Events', desc: 'Events calendar with registration and details.' },
+    'webinars': { name: 'Webinars', desc: 'Webinar listings with registration and replays.' },
+    'courses': { name: 'Courses', desc: 'Course catalog with enrollment and progress.' },
+    'tutorials': { name: 'Tutorials', desc: 'Step-by-step tutorials and how-to guides.' },
+    'documentation': { name: 'Documentation', desc: 'Technical documentation and API references.' },
+    'knowledge-base': { name: 'Knowledge Base', desc: 'Searchable articles and help resources.' },
+    // Social
+    'community': { name: 'Community', desc: 'Community forum or discussion board.' },
+    'reviews': { name: 'Reviews', desc: 'Customer reviews and ratings display.' },
+    'referral': { name: 'Referral', desc: 'Referral program with rewards tracking.' },
+    // Legal & Info
+    'cookie-policy': { name: 'Cookie Policy', desc: 'Cookie usage policy and preferences.' },
+    'accessibility': { name: 'Accessibility', desc: 'Accessibility statement and features.' },
+    'disclaimer': { name: 'Disclaimer', desc: 'Legal disclaimer and liability information.' },
+    // Industry Specific
+    'booking': { name: 'Booking', desc: 'Appointment or reservation booking system.' },
+    'appointments': { name: 'Appointments', desc: 'Schedule and manage appointments.' },
+    'locations': { name: 'Locations', desc: 'Store locator with map and details.' },
+    'menu': { name: 'Menu', desc: 'Restaurant or service menu display.' },
+    'catalog': { name: 'Catalog', desc: 'Product or service catalog browser.' },
+    'comparison': { name: 'Comparison', desc: 'Product or plan comparison table.' },
+    'calculator': { name: 'Calculator', desc: 'Interactive calculator for estimates.' },
+    'quote-request': { name: 'Quote Request', desc: 'Request a quote form with requirements.' },
+    'demo-request': { name: 'Demo Request', desc: 'Schedule a product demo.' },
+    'newsletter': { name: 'Newsletter', desc: 'Newsletter subscription and archive.' },
+    'affiliates': { name: 'Affiliates', desc: 'Affiliate program details and signup.' }
+};
+
+// State
+let pcSelectedPredefined = [];
+let pcCustomPages = [];
+
+// Initialize Pages Creator
+function initPagesCreator() {
+    // Load from localStorage
+    const savedPredefined = localStorage.getItem('pc_predefined_pages');
+    const savedCustom = localStorage.getItem('pc_custom_pages');
+    
+    if (savedPredefined) {
+        try { pcSelectedPredefined = JSON.parse(savedPredefined); } catch(e) { pcSelectedPredefined = []; }
+    }
+    if (savedCustom) {
+        try { pcCustomPages = JSON.parse(savedCustom); } catch(e) { pcCustomPages = []; }
+    }
+    
+    renderPredefinedPages();
+    renderCustomPages();
+    updatePCCounts();
+}
+
+// Render Predefined Pages Grid
+function renderPredefinedPages() {
+    const grid = document.getElementById('pcPredefinedPages');
+    if (!grid) return;
+    
+    grid.innerHTML = pcPredefinedPages.map(page => {
+        const isChecked = pcSelectedPredefined.includes(page.id);
+        return `
+            <label class="pc-page-item ${isChecked ? 'checked' : ''}" data-page="${page.id}" onclick="pcTogglePage('${page.id}')">
+                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                <span class="pc-check"><i class="fas fa-check"></i></span>
+                <i class="fas ${page.icon} page-icon"></i>
+                <span>${page.name}</span>
+            </label>
+        `;
+    }).join('');
+}
+
+// Toggle Predefined Page
+function pcTogglePage(pageId) {
+    const idx = pcSelectedPredefined.indexOf(pageId);
+    if (idx > -1) {
+        pcSelectedPredefined.splice(idx, 1);
+    } else {
+        pcSelectedPredefined.push(pageId);
+    }
+    
+    // Update UI
+    const item = document.querySelector(`.pc-page-item[data-page="${pageId}"]`);
+    if (item) {
+        item.classList.toggle('checked', pcSelectedPredefined.includes(pageId));
+    }
+    
+    savePCState();
+    updatePCCounts();
+}
+
+// Check All
+function pcCheckAll() {
+    pcSelectedPredefined = pcPredefinedPages.map(p => p.id);
+    pcCustomPages.forEach(p => p.checked = true);
+    renderPredefinedPages();
+    renderCustomPages();
+    savePCState();
+    updatePCCounts();
+    if (typeof showToast === 'function') showToast('✅ All pages selected', 'success');
+}
+
+// Uncheck All
+function pcUncheckAll() {
+    pcSelectedPredefined = [];
+    pcCustomPages.forEach(p => p.checked = false);
+    renderPredefinedPages();
+    renderCustomPages();
+    savePCState();
+    updatePCCounts();
+}
+
+// Update Counts
+function updatePCCounts() {
+    const predefinedCount = pcSelectedPredefined.length;
+    const customCount = pcCustomPages.filter(p => p.checked).length;
+    const totalCount = predefinedCount + customCount;
+    
+    const badge = document.getElementById('pagesCreatorBadge');
+    const countSpan = document.getElementById('pcSelectedCount');
+    const customBadge = document.getElementById('pcCustomBadge');
+    
+    if (badge) badge.textContent = totalCount;
+    if (countSpan) countSpan.textContent = `${totalCount} selected`;
+    if (customBadge) {
+        customBadge.textContent = pcCustomPages.length;
+        customBadge.style.display = pcCustomPages.length > 0 ? 'inline' : 'none';
+    }
+}
+
+// Toggle Tool Section
+function toggleToolSection(toolName) {
+    const section = document.getElementById(`${toolName}Tool`);
+    if (section) {
+        section.classList.toggle('collapsed');
+    }
+}
+
+// Template Search
+let pcSearchTimeout = null;
+function pcSearchTemplates(query) {
+    clearTimeout(pcSearchTimeout);
+    pcSearchTimeout = setTimeout(() => {
+        const results = document.getElementById('pcTemplateResults');
+        if (!results) return;
+        
+        const q = query.toLowerCase().trim();
+        if (!q) {
+            results.classList.remove('active');
+            return;
+        }
+        
+        const matches = Object.entries(pcPageTemplates)
+            .filter(([id, t]) => 
+                t.name.toLowerCase().includes(q) || 
+                t.desc.toLowerCase().includes(q) ||
+                id.includes(q)
+            )
+            .slice(0, 15);
+        
+        if (matches.length === 0) {
+            results.innerHTML = '<div class="pc-template-item"><span class="name">No templates found</span></div>';
+        } else {
+            results.innerHTML = matches.map(([id, t]) => `
+                <div class="pc-template-item" onclick="pcSelectTemplate('${id}')">
+                    <div class="name">${t.name}</div>
+                    <div class="desc">${t.desc}</div>
+                </div>
+            `).join('');
+        }
+        
+        results.classList.add('active');
+    }, 150);
+}
+
+function pcShowTemplateResults() {
+    const input = document.getElementById('pcTemplateSearch');
+    if (input && input.value.trim()) {
+        pcSearchTemplates(input.value);
+    }
+}
+
+// Select Template
+function pcSelectTemplate(templateId) {
+    const template = pcPageTemplates[templateId];
+    if (!template) return;
+    
+    const nameInput = document.getElementById('pcCustomPageName');
+    const descInput = document.getElementById('pcCustomPageDesc');
+    const results = document.getElementById('pcTemplateResults');
+    const searchInput = document.getElementById('pcTemplateSearch');
+    
+    if (nameInput) nameInput.value = template.name;
+    if (descInput) descInput.value = template.desc;
+    if (results) results.classList.remove('active');
+    if (searchInput) searchInput.value = '';
+    
+    if (typeof showToast === 'function') {
+        showToast(`✨ "${template.name}" template applied`, 'success');
+    }
+}
+
+// Add Custom Page
+function pcAddCustomPage() {
+    const nameInput = document.getElementById('pcCustomPageName');
+    const descInput = document.getElementById('pcCustomPageDesc');
+    
+    const name = nameInput ? nameInput.value.trim() : '';
+    const desc = descInput ? descInput.value.trim() : '';
+    
+    if (!name) {
+        if (typeof showToast === 'function') showToast('⚠️ Please enter a page name', 'warning');
+        return;
+    }
+    
+    // Check duplicate
+    const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (pcCustomPages.some(p => p.id === id) || pcPredefinedPages.some(p => p.id === id)) {
+        if (typeof showToast === 'function') showToast('⚠️ Page already exists', 'warning');
+        return;
+    }
+    
+    pcCustomPages.push({
+        id: id,
+        name: name,
+        desc: desc,
+        checked: true
+    });
+    
+    renderCustomPages();
+    savePCState();
+    updatePCCounts();
+    
+    // Clear inputs
+    if (nameInput) nameInput.value = '';
+    if (descInput) descInput.value = '';
+    
+    if (typeof showToast === 'function') showToast(`✅ "${name}" page added`, 'success');
+}
+
+// Render Custom Pages
+function renderCustomPages() {
+    const list = document.getElementById('pcCustomPagesList');
+    if (!list) return;
+    
+    if (pcCustomPages.length === 0) {
+        list.innerHTML = '';
+        return;
+    }
+    
+    list.innerHTML = pcCustomPages.map(page => `
+        <div class="pc-custom-item ${page.checked ? 'checked' : ''}" data-id="${page.id}">
+            <span class="pc-check" onclick="pcToggleCustom('${page.id}')"><i class="fas fa-check"></i></span>
+            <span class="name" title="${page.desc || ''}">${page.name}</span>
+            <button class="delete-btn" onclick="pcDeleteCustom('${page.id}')" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+// Toggle Custom Page
+function pcToggleCustom(pageId) {
+    const page = pcCustomPages.find(p => p.id === pageId);
+    if (page) {
+        page.checked = !page.checked;
+        renderCustomPages();
+        savePCState();
+        updatePCCounts();
+    }
+}
+
+// Delete Custom Page
+function pcDeleteCustom(pageId) {
+    pcCustomPages = pcCustomPages.filter(p => p.id !== pageId);
+    renderCustomPages();
+    savePCState();
+    updatePCCounts();
+}
+
+// Save State to localStorage
+function savePCState() {
+    localStorage.setItem('pc_predefined_pages', JSON.stringify(pcSelectedPredefined));
+    localStorage.setItem('pc_custom_pages', JSON.stringify(pcCustomPages));
+}
+
+// Push to Project Notes
+function pcPushToNotes() {
+    const selectedPredefined = pcSelectedPredefined.map(id => {
+        const page = pcPredefinedPages.find(p => p.id === id);
+        return page ? { id: page.id, name: page.name, isCustom: false } : null;
+    }).filter(Boolean);
+    
+    const selectedCustom = pcCustomPages.filter(p => p.checked).map(p => ({
+        id: p.id,
+        name: p.name,
+        desc: p.desc,
+        isCustom: true
+    }));
+    
+    const allSelected = [...selectedPredefined, ...selectedCustom];
+    
+    if (allSelected.length === 0) {
+        if (typeof showToast === 'function') showToast('⚠️ No pages selected', 'warning');
+        return;
+    }
+    
+    // Build the prompt text
+    let promptText = `📄 PAGES TO CREATE:\n${'═'.repeat(50)}\n\n`;
+    
+    allSelected.forEach((page, idx) => {
+        promptText += `${idx + 1}. **${page.name}** (${page.id}.php)\n`;
+        
+        // Generate page-specific instructions
+        const pagePrompt = generatePagePrompt(page);
+        promptText += `   ${pagePrompt}\n\n`;
+    });
+    
+    promptText += `${'═'.repeat(50)}\n`;
+    promptText += `Total: ${allSelected.length} page${allSelected.length > 1 ? 's' : ''} to create\n`;
+    
+    // Push to Project Notes
+    const notesTextarea = document.getElementById('projectNotesTextarea');
+    if (notesTextarea) {
+        if (notesTextarea.value.trim()) {
+            notesTextarea.value = notesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            notesTextarea.value = promptText;
+        }
+        
+        // Save to localStorage
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        if (typeof showToast === 'function') {
+            showToast(`📄 ${allSelected.length} page${allSelected.length > 1 ? 's' : ''} pushed to Project Notes`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Notes not found', 'error');
+    }
+}
+
+// Generate Page-Specific Prompt
+function generatePagePrompt(page) {
+    const pagePrompts = {
+        // Standard Pages
+        'home': 'Create an engaging homepage with hero section, key features, testimonials, and call-to-action.',
+        'about': 'Create an About Us page with company story, mission, vision, team introduction, and values.',
+        'contact': 'Create a Contact page with contact form, map integration, contact details, and office hours.',
+        'services': 'Create a Services page listing all services with descriptions, pricing options, and CTAs.',
+        'products': 'Create a Products page with product grid, filtering, sorting, and quick view functionality.',
+        'shop': 'Create a Shop page with product catalog, categories, search, and add-to-cart functionality.',
+        'portfolio': 'Create a Portfolio page showcasing projects with filters, lightbox gallery, and case study links.',
+        'gallery': 'Create a Gallery page with image grid, categories, lightbox, and lazy loading.',
+        'blog': 'Create a Blog page with article listings, categories, search, pagination, and sidebar.',
+        'news': 'Create a News page with latest updates, press releases, and company announcements.',
+        'team': 'Create a Team page displaying team members with photos, roles, bios, and social links.',
+        'testimonials': 'Create a Testimonials page with customer reviews, ratings, and video testimonials.',
+        'pricing': 'Create a Pricing page with pricing tables, feature comparisons, and subscription options.',
+        'features': 'Create a Features page highlighting product/service features with icons and descriptions.',
+        'faq': 'Create an FAQ page with accordion-style questions, categories, and search functionality.',
+        'careers': 'Create a Careers page with job listings, application form, benefits, and company culture.',
+        'support': 'Create a Support page with help center, knowledge base links, ticket system, and live chat.',
+        'privacy': 'Create a Privacy Policy page with data handling practices, user rights, and compliance info.',
+        'terms': 'Create a Terms of Service page with legal terms, usage policies, and user agreements.',
+        'login': 'Create a Login page with secure authentication, remember me, and forgot password options.',
+        'register': 'Create a Registration page with signup form, validation, and social login options.',
+        '404': 'Create a 404 Error page with helpful message, search, navigation links, and back button.',
+        'coming-soon': 'Create a Coming Soon page with countdown timer, email signup, and social links.',
+        'sitemap': 'Create a Sitemap page listing all site pages organized by category with links.'
+    };
+    
+    // Check if it's a predefined page
+    if (pagePrompts[page.id]) {
+        return pagePrompts[page.id];
+    }
+    
+    // For custom pages, use description or generate generic prompt
+    if (page.isCustom && page.desc) {
+        return `Create a "${page.name}" page: ${page.desc}`;
+    }
+    
+    // Check templates
+    if (pcPageTemplates[page.id]) {
+        return `Create a "${page.name}" page: ${pcPageTemplates[page.id].desc}`;
+    }
+    
+    // Generic prompt for unknown pages
+    return `Create a "${page.name}" page with appropriate content, layout, and functionality.`;
+}
+
+// Hide template results when clicking outside
+document.addEventListener('click', function(e) {
+    const results = document.getElementById('pcTemplateResults');
+    const searchWrap = document.querySelector('.pc-template-search');
+    if (results && searchWrap && !searchWrap.contains(e.target)) {
+        results.classList.remove('active');
+    }
+});
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    initPagesCreator();
+});
 </script>
 
 <!-- Theme Toggle Script -->
