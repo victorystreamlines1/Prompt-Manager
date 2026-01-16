@@ -1113,70 +1113,213 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: sticky;
             top: 0;
             overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Collapsed sidebar state */
+        /* Collapsed sidebar state - FULLY HIDDEN */
         .sidebar.collapsed {
-            width: 60px;
-            min-width: 60px;
+            width: 0px;
+            min-width: 0px;
+            border-right: none;
         }
         
-        .sidebar.collapsed .sidebar-header img {
-            max-width: 40px;
-        }
-        
+        .sidebar.collapsed .sidebar-header,
         .sidebar.collapsed .sidebar-content {
-            padding: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
         
-        .sidebar.collapsed .section-title,
-        .sidebar.collapsed .file-mode-toggle,
-        .sidebar.collapsed .file-picker-container,
-        .sidebar.collapsed .uploaded-files-header,
-        .sidebar.collapsed .uploaded-files-grid,
-        .sidebar.collapsed .file-transfer-section,
-        .sidebar.collapsed .dev-dashboard-section {
-            display: none;
-        }
-        
-        .sidebar.collapsed .sidebar-collapse-btn {
-            transform: rotate(180deg);
-        }
-        
-        /* Sidebar collapse toggle button */
-        .sidebar-collapse-btn {
-            position: absolute;
-            right: -14px;
+        /* ═══════════════════════════════════════════════════════════════════
+           🎯 PANEL COLLAPSE BUTTONS - Artistic Design
+           ═══════════════════════════════════════════════════════════════════ */
+        .panel-collapse-btn {
+            position: fixed;
             top: 50%;
             transform: translateY(-50%);
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border: 2px solid var(--bg-secondary);
-            border-radius: 50%;
+            width: 36px;
+            height: 80px;
+            background: linear-gradient(180deg, 
+                rgba(99, 102, 241, 0.95) 0%, 
+                rgba(139, 92, 246, 0.95) 50%,
+                rgba(16, 185, 129, 0.95) 100%);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 100;
+            z-index: 1000;
             color: white;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5),
+                        0 8px 40px rgba(139, 92, 246, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel-collapse-btn::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: linear-gradient(180deg, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 100%);
+            pointer-events: none;
+        }
+        
+        .panel-collapse-btn i {
+            position: relative;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+        
+        .panel-collapse-btn:hover {
+            width: 44px;
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.7),
+                        0 12px 60px rgba(139, 92, 246, 0.5);
+        }
+        
+        .panel-collapse-btn:hover i {
+            transform: scale(1.2);
+        }
+        
+        .panel-collapse-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        /* Left Panel Collapse Button */
+        .panel-collapse-btn.left {
+            left: 320px;
+            border-radius: 0 16px 16px 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar.collapsed ~ .main-content .panel-collapse-btn.left,
+        .panel-collapse-btn.left.panel-hidden {
+            left: 0;
+        }
+        
+        .panel-collapse-btn.left.panel-hidden i {
+            transform: rotate(180deg);
+        }
+        
+        .panel-collapse-btn.left.panel-hidden:hover i {
+            transform: rotate(180deg) scale(1.2);
+        }
+        
+        /* Right Panel Collapse Button */
+        .panel-collapse-btn.right {
+            right: 400px;
+            border-radius: 16px 0 0 16px;
+            background: linear-gradient(180deg, 
+                rgba(233, 30, 99, 0.95) 0%, 
+                rgba(156, 39, 176, 0.95) 50%,
+                rgba(103, 58, 183, 0.95) 100%);
+            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.5),
+                        0 8px 40px rgba(156, 39, 176, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .panel-collapse-btn.right:hover {
+            box-shadow: 0 6px 30px rgba(233, 30, 99, 0.7),
+                        0 12px 60px rgba(156, 39, 176, 0.5);
+        }
+        
+        .right-panel.collapsed ~ .panel-collapse-btn.right,
+        .panel-collapse-btn.right.panel-hidden {
+            right: 0;
+        }
+        
+        .panel-collapse-btn.right.panel-hidden i {
+            transform: rotate(180deg);
+        }
+        
+        .panel-collapse-btn.right.panel-hidden:hover i {
+            transform: rotate(180deg) scale(1.2);
+        }
+        
+        /* Tooltip for collapse buttons */
+        .panel-collapse-btn .collapse-tooltip {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 0.75rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1001;
         }
         
-        .sidebar-collapse-btn:hover {
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.6);
+        .panel-collapse-btn.left .collapse-tooltip {
+            left: 100%;
+            margin-left: 10px;
         }
         
-        .sidebar.collapsed .sidebar-collapse-btn {
-            transform: translateY(-50%) rotate(180deg);
+        .panel-collapse-btn.right .collapse-tooltip {
+            right: 100%;
+            margin-right: 10px;
         }
         
-        .sidebar.collapsed .sidebar-collapse-btn:hover {
-            transform: translateY(-50%) rotate(180deg) scale(1.1);
+        .panel-collapse-btn:hover .collapse-tooltip {
+            opacity: 1;
+        }
+        
+        .panel-collapse-btn.left:hover .collapse-tooltip {
+            transform: translateY(-50%) translateX(5px);
+        }
+        
+        .panel-collapse-btn.right:hover .collapse-tooltip {
+            transform: translateY(-50%) translateX(-5px);
+        }
+        
+        /* Pulse animation on load to draw attention */
+        @keyframes panelBtnPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5), 0 8px 40px rgba(139, 92, 246, 0.3); }
+            50% { box-shadow: 0 4px 30px rgba(99, 102, 241, 0.8), 0 12px 60px rgba(139, 92, 246, 0.5); }
+        }
+        
+        @keyframes panelBtnPulseRight {
+            0%, 100% { box-shadow: 0 4px 20px rgba(233, 30, 99, 0.5), 0 8px 40px rgba(156, 39, 176, 0.3); }
+            50% { box-shadow: 0 4px 30px rgba(233, 30, 99, 0.8), 0 12px 60px rgba(156, 39, 176, 0.5); }
+        }
+        
+        .panel-collapse-btn.left {
+            animation: panelBtnPulse 3s ease-in-out infinite;
+        }
+        
+        .panel-collapse-btn.right {
+            animation: panelBtnPulseRight 3s ease-in-out infinite;
+            animation-delay: 1.5s;
+        }
+        
+        .panel-collapse-btn:hover {
+            animation: none;
+        }
+        
+        /* Glow ring effect */
+        .panel-collapse-btn::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: inherit;
+            background: linear-gradient(180deg, 
+                rgba(255, 255, 255, 0.3) 0%, 
+                transparent 50%,
+                rgba(0, 0, 0, 0.2) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .panel-collapse-btn:hover::after {
+            opacity: 1;
         }
 
         .sidebar-header {
@@ -2572,6 +2715,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: calc(100vw - 320px - 400px);
             overflow-x: hidden;
             box-sizing: border-box;
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Main content expands when panels collapse */
+        .sidebar.collapsed ~ .main-content {
+            max-width: calc(100vw - 400px);
+        }
+        
+        .main-content.right-collapsed {
+            max-width: calc(100vw - 320px);
+        }
+        
+        .sidebar.collapsed ~ .main-content.right-collapsed {
+            max-width: 100vw;
         }
         
         /* ═══════════════════════════════════════════════════════════════════
@@ -2591,6 +2748,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             overflow-y: auto;
             overflow-x: hidden;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Collapsed right panel state - FULLY HIDDEN */
+        .right-panel.collapsed {
+            width: 0px;
+            min-width: 0px;
+            max-width: 0px;
+            border-left: none;
+        }
+        
+        .right-panel.collapsed .right-panel-content {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
         
         .right-panel::before {
@@ -3350,6 +3524,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 rgba(241, 245, 249, 0.9) 50%,
                 rgba(255, 255, 255, 0.95) 100%);
             border-color: rgba(99, 102, 241, 0.25);
+        }
+        
+        [data-theme="light"] .panel-collapse-btn {
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3),
+                        0 8px 40px rgba(139, 92, 246, 0.2);
+        }
+        
+        [data-theme="light"] .panel-collapse-btn:hover {
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.5),
+                        0 12px 60px rgba(139, 92, 246, 0.3);
+        }
+        
+        [data-theme="light"] .panel-collapse-btn.right {
+            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3),
+                        0 8px 40px rgba(156, 39, 176, 0.2);
+        }
+        
+        [data-theme="light"] .panel-collapse-btn.right:hover {
+            box-shadow: 0 6px 30px rgba(233, 30, 99, 0.5),
+                        0 12px 60px rgba(156, 39, 176, 0.3);
         }
         
         [data-theme="light"] .theme-toggle-btn {
@@ -8496,6 +8690,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .main-content {
                 max-width: calc(100vw - 280px);
             }
+            
+            .panel-collapse-btn.left {
+                left: 280px;
+            }
+            
+            .panel-collapse-btn.left.panel-hidden {
+                left: 0;
+            }
+            
+            .right-panel {
+                display: none;
+            }
+            
+            .panel-collapse-btn.right {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
@@ -8514,6 +8724,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .main-content {
                 padding: 1rem;
                 max-width: 100vw;
+            }
+            
+            .panel-collapse-btn {
+                display: none;
             }
 
             .editor-actions {
@@ -9825,13 +10039,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="bg-effects"></div>
     
     <div class="app-container">
+        <!-- Left Panel Collapse Button (Fixed) -->
+        <button class="panel-collapse-btn left" id="leftCollapseBtn" onclick="toggleLeftPanel()" title="Toggle Left Panel">
+            <i class="fas fa-chevron-left"></i>
+            <span class="collapse-tooltip">Hide Sidebar</span>
+        </button>
+        
+        <!-- Right Panel Collapse Button (Fixed) -->
+        <button class="panel-collapse-btn right" id="rightCollapseBtn" onclick="toggleRightPanel()" title="Toggle Right Panel">
+            <i class="fas fa-chevron-right"></i>
+            <span class="collapse-tooltip">Hide Design Panel</span>
+        </button>
+        
         <!-- Sidebar -->
         <aside class="sidebar" id="mainSidebar">
             <div class="sidebar-header">
                 <img src="logoPM.png" alt="Prompt Manager">
-                <button class="sidebar-collapse-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
             </div>
             
             <div class="sidebar-content">
@@ -16556,37 +16779,106 @@ in each section carefully and maintain proper connections between components.
         }
         
         // ════════════════════════════════════════════════════════════════
-        // SIDEBAR COLLAPSE/EXPAND FUNCTIONALITY
+        // PANEL COLLAPSE/EXPAND FUNCTIONALITY
         // ════════════════════════════════════════════════════════════════
         
-        const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+        const LEFT_PANEL_COLLAPSED_KEY = 'leftPanelCollapsed';
+        const RIGHT_PANEL_COLLAPSED_KEY = 'rightPanelCollapsed';
         
-        function toggleSidebar() {
+        // Toggle Left Panel (Sidebar)
+        function toggleLeftPanel() {
             const sidebar = document.getElementById('mainSidebar');
-            if (!sidebar) return;
+            const btn = document.getElementById('leftCollapseBtn');
+            const mainContent = document.querySelector('.main-content');
+            const tooltip = btn.querySelector('.collapse-tooltip');
             
-            sidebar.classList.toggle('collapsed');
+            if (!sidebar || !btn) return;
+            
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            btn.classList.toggle('panel-hidden', isCollapsed);
+            
+            // Update tooltip text
+            if (tooltip) {
+                tooltip.textContent = isCollapsed ? 'Show Sidebar' : 'Hide Sidebar';
+            }
+            
+            // Update button position
+            btn.style.left = isCollapsed ? '0' : '320px';
             
             // Save state to localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCollapsed ? 'true' : 'false');
+            localStorage.setItem(LEFT_PANEL_COLLAPSED_KEY, isCollapsed ? 'true' : 'false');
             
-            console.log('📌 Sidebar ' + (isCollapsed ? 'collapsed' : 'expanded'));
+            console.log('📌 Left Panel ' + (isCollapsed ? 'collapsed' : 'expanded'));
         }
         
-        // Load sidebar state on page load
-        function loadSidebarState() {
-            const sidebar = document.getElementById('mainSidebar');
-            if (!sidebar) return;
+        // Toggle Right Panel (Design Enhancer)
+        function toggleRightPanel() {
+            const rightPanel = document.querySelector('.right-panel');
+            const btn = document.getElementById('rightCollapseBtn');
+            const mainContent = document.querySelector('.main-content');
+            const tooltip = btn.querySelector('.collapse-tooltip');
             
-            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-            if (isCollapsed) {
-                sidebar.classList.add('collapsed');
+            if (!rightPanel || !btn) return;
+            
+            const isCollapsed = rightPanel.classList.toggle('collapsed');
+            btn.classList.toggle('panel-hidden', isCollapsed);
+            mainContent.classList.toggle('right-collapsed', isCollapsed);
+            
+            // Update tooltip text
+            if (tooltip) {
+                tooltip.textContent = isCollapsed ? 'Show Design Panel' : 'Hide Design Panel';
+            }
+            
+            // Update button position
+            btn.style.right = isCollapsed ? '0' : '400px';
+            
+            // Save state to localStorage
+            localStorage.setItem(RIGHT_PANEL_COLLAPSED_KEY, isCollapsed ? 'true' : 'false');
+            
+            console.log('🎨 Right Panel ' + (isCollapsed ? 'collapsed' : 'expanded'));
+        }
+        
+        // Legacy function for backward compatibility
+        function toggleSidebar() {
+            toggleLeftPanel();
+        }
+        
+        // Load panel states on page load
+        function loadPanelStates() {
+            const sidebar = document.getElementById('mainSidebar');
+            const rightPanel = document.querySelector('.right-panel');
+            const leftBtn = document.getElementById('leftCollapseBtn');
+            const rightBtn = document.getElementById('rightCollapseBtn');
+            const mainContent = document.querySelector('.main-content');
+            
+            // Load left panel state
+            if (sidebar && leftBtn) {
+                const leftCollapsed = localStorage.getItem(LEFT_PANEL_COLLAPSED_KEY) === 'true';
+                if (leftCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    leftBtn.classList.add('panel-hidden');
+                    leftBtn.style.left = '0';
+                    const tooltip = leftBtn.querySelector('.collapse-tooltip');
+                    if (tooltip) tooltip.textContent = 'Show Sidebar';
+                }
+            }
+            
+            // Load right panel state
+            if (rightPanel && rightBtn && mainContent) {
+                const rightCollapsed = localStorage.getItem(RIGHT_PANEL_COLLAPSED_KEY) === 'true';
+                if (rightCollapsed) {
+                    rightPanel.classList.add('collapsed');
+                    rightBtn.classList.add('panel-hidden');
+                    rightBtn.style.right = '0';
+                    mainContent.classList.add('right-collapsed');
+                    const tooltip = rightBtn.querySelector('.collapse-tooltip');
+                    if (tooltip) tooltip.textContent = 'Show Design Panel';
+                }
             }
         }
         
-        // Initialize sidebar state
-        document.addEventListener('DOMContentLoaded', loadSidebarState);
+        // Initialize panel states
+        document.addEventListener('DOMContentLoaded', loadPanelStates);
         
         // Set file mode (called by toggle buttons)
         function setFileMode(mode) {
