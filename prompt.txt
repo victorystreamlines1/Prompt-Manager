@@ -1,1 +1,1 @@
-Make the left, sorry, make the right vertical panel design enhancer a little bit bigger. So I can see the number of the containers. I can see the containers created, make it a little bit bigger and width. 
+also make both vertical panels left and right collapsible and properly collapsible because the left vertical panel is not properly collapsible it collapses but partly and partly shows up so try to make it properly collapsible both sides make the collapse button clear and obvious in a nice artistic approach buttons. 

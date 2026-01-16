@@ -2569,7 +2569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1.5rem;
             gap: 1.5rem;
             background: var(--gradient-dark);
-            max-width: calc(100vw - 320px - 340px);
+            max-width: calc(100vw - 320px - 400px);
             overflow-x: hidden;
             box-sizing: border-box;
         }
@@ -2578,9 +2578,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
            🎨 RIGHT PANEL - Design Enhancer Panel
            ═══════════════════════════════════════════════════════════════════ */
         .right-panel {
-            width: 340px;
-            min-width: 340px;
-            max-width: 340px;
+            width: 400px;
+            min-width: 400px;
+            max-width: 400px;
             min-height: 100vh;
             background: linear-gradient(135deg, 
                 var(--bg-secondary) 0%, 
@@ -2876,9 +2876,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Pages Grid - Compact for panel */
         .pc-pages-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.4rem;
-            max-height: 220px;
+            max-height: 240px;
             overflow-y: auto;
             padding-right: 0.25rem;
             scrollbar-width: thin;
