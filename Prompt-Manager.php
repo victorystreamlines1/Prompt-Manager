@@ -11256,7 +11256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      👑 BRANDING TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section" id="brandingTool">
+                <div class="de-tool-section collapsed" id="brandingTool">
                     <div class="de-tool-header" onclick="toggleToolSection('branding')">
                         <div class="de-tool-title">
                             <i class="fas fa-crown"></i>
@@ -11364,7 +11364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📄 PAGES CREATOR TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section" id="pagesCreatorTool">
+                <div class="de-tool-section collapsed" id="pagesCreatorTool">
                     <div class="de-tool-header" onclick="toggleToolSection('pagesCreator')">
                         <div class="de-tool-title">
                             <i class="fas fa-file-alt"></i>
@@ -21714,7 +21714,21 @@ function resetBranding(skipToast = false) {
 // Initialize Branding on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     loadBrandingState();
+    
+    // Initialize collapsed state arrows
+    initCollapsedArrows();
 });
+
+// Initialize arrows for collapsed sections on page load
+function initCollapsedArrows() {
+    const collapsedSections = document.querySelectorAll('.de-tool-section.collapsed');
+    collapsedSections.forEach(section => {
+        const arrow = section.querySelector('.de-tool-arrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(-90deg)';
+        }
+    });
+}
 </script>
 
 <!-- Pages Creator Tool Script -->
