@@ -4588,6 +4588,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.6rem;
         }
         
+        .notes-btn.push-to-prompt-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        
+        .notes-btn.push-to-prompt-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+        
+        .notes-btn.push-to-prompt-btn span {
+            font-size: 0.58rem;
+            letter-spacing: 0.02em;
+        }
+        
         .notes-btn:hover {
             background: rgba(251, 191, 36, 0.2);
             border-color: rgba(251, 191, 36, 0.4);
@@ -9598,6 +9621,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 
                                 <div class="project-notes-actions">
+                                    <button type="button" class="notes-btn push-to-prompt-btn" onclick="pushNotesToPrompt()" title="Push to Prompt Editor">
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span>Push</span>
+                                    </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-eraser"></i>
                                     </button>
@@ -19456,6 +19483,32 @@ function pushFileNamesToNotes() {
     
     const pushBtn = document.getElementById('notesPushBtn');
     if (pushBtn) pushBtn.style.display = 'none';
+}
+
+// Push Project Notes to Prompt Editor
+function pushNotesToPrompt() {
+    const notes = getProjectNotes();
+    
+    if (!notes) {
+        showToast('⚠️ Project Notes is empty', 'warning');
+        return;
+    }
+    
+    const editor = document.getElementById('promptEditor');
+    if (!editor) return;
+    
+    // Append notes to prompt editor
+    if (editor.value.trim()) {
+        editor.value = editor.value.trimEnd() + '\n\n' + notes;
+    } else {
+        editor.value = notes;
+    }
+    
+    // Update counts and history
+    if (typeof updateCounts === 'function') updateCounts();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+    
+    showToast('📝 Notes pushed to Prompt Editor', 'success');
 }
 
 // Initialize resizable notes
