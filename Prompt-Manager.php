@@ -4455,6 +4455,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.35rem;
         }
         
+        /* Notes File Picker */
+        .notes-file-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1;
+            margin: 0 0.75rem;
+            max-width: 400px;
+        }
+        
+        .notes-file-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 6px;
+            color: #22c55e;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+        
+        .notes-file-btn:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.15) 100%);
+            border-color: rgba(34, 197, 94, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .notes-selected-files {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: calc(100% - 60px);
+            padding: 0.15rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(251, 191, 36, 0.3) transparent;
+        }
+        
+        .notes-selected-files::-webkit-scrollbar {
+            height: 3px;
+        }
+        
+        .notes-selected-files::-webkit-scrollbar-thumb {
+            background: rgba(251, 191, 36, 0.3);
+            border-radius: 3px;
+        }
+        
+        .notes-file-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.4rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 4px;
+            font-size: 0.6rem;
+            color: #a78bfa;
+            white-space: nowrap;
+            cursor: default;
+            animation: fadeInScale 0.2s ease;
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .notes-file-tag i {
+            font-size: 0.55rem;
+            opacity: 0.7;
+        }
+        
+        .notes-file-tag .remove-file {
+            margin-left: 0.15rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.15s ease;
+        }
+        
+        .notes-file-tag .remove-file:hover {
+            opacity: 1;
+            color: #f87171;
+        }
+        
+        .notes-push-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            border-radius: 6px;
+            color: #fbbf24;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            animation: pulseGlow 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.5); }
+        }
+        
+        .notes-push-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.35) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border-color: rgba(251, 191, 36, 0.6);
+            transform: scale(1.08);
+        }
+        
         .notes-btn {
             width: 24px;
             height: 24px;
@@ -9454,6 +9572,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-sticky-note"></i>
                                     <span>Project Notes</span>
                                 </div>
+                                
+                                <!-- File Picker for Notes -->
+                                <div class="notes-file-picker">
+                                    <input type="file" 
+                                           id="notesFilePicker" 
+                                           multiple 
+                                           onchange="onNotesFileSelect()" 
+                                           style="display: none;">
+                                    <button type="button" 
+                                            class="notes-file-btn" 
+                                            onclick="document.getElementById('notesFilePicker').click()" 
+                                            title="Select files">
+                                        <i class="fas fa-file-medical"></i>
+                                    </button>
+                                    <div class="notes-selected-files" id="notesSelectedFiles"></div>
+                                    <button type="button" 
+                                            class="notes-push-btn" 
+                                            id="notesPushBtn"
+                                            onclick="pushFileNamesToNotes()" 
+                                            title="Push file names to notes"
+                                            style="display: none;">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                                
                                 <div class="project-notes-actions">
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-eraser"></i>
@@ -19225,6 +19368,94 @@ function setProjectNotes(notes) {
         textarea.value = notes || '';
         saveProjectNotesToStorage();
     }
+}
+
+// Notes File Picker Functions
+let notesSelectedFiles = [];
+
+function onNotesFileSelect() {
+    const input = document.getElementById('notesFilePicker');
+    const container = document.getElementById('notesSelectedFiles');
+    const pushBtn = document.getElementById('notesPushBtn');
+    
+    if (!input || !input.files || input.files.length === 0) return;
+    
+    // Add new files to the selection (avoid duplicates)
+    Array.from(input.files).forEach(file => {
+        if (!notesSelectedFiles.some(f => f.name === file.name)) {
+            notesSelectedFiles.push(file);
+        }
+    });
+    
+    // Update display
+    renderNotesSelectedFiles();
+    
+    // Show push button if files selected
+    if (pushBtn) {
+        pushBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
+    }
+    
+    // Reset input so same files can be selected again
+    input.value = '';
+}
+
+function renderNotesSelectedFiles() {
+    const container = document.getElementById('notesSelectedFiles');
+    if (!container) return;
+    
+    if (notesSelectedFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    container.innerHTML = notesSelectedFiles.map((file, index) => `
+        <span class="notes-file-tag">
+            <i class="fas fa-file"></i>
+            <span>${escapeHtml(file.name)}</span>
+            <i class="fas fa-times remove-file" onclick="removeNotesFile(${index})" title="Remove"></i>
+        </span>
+    `).join('');
+}
+
+function removeNotesFile(index) {
+    notesSelectedFiles.splice(index, 1);
+    renderNotesSelectedFiles();
+    
+    const pushBtn = document.getElementById('notesPushBtn');
+    if (pushBtn) {
+        pushBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
+    }
+}
+
+function pushFileNamesToNotes() {
+    if (notesSelectedFiles.length === 0) return;
+    
+    const textarea = document.getElementById('projectNotesTextarea');
+    if (!textarea) return;
+    
+    // Build file names list
+    const fileNames = notesSelectedFiles.map(f => f.name);
+    const fileNamesText = '📎 Files: ' + fileNames.join(', ');
+    
+    // Append to textarea
+    if (textarea.value.trim()) {
+        textarea.value = textarea.value.trimEnd() + '\n\n' + fileNamesText;
+    } else {
+        textarea.value = fileNamesText;
+    }
+    
+    // Save and clear selection
+    saveProjectNotesToStorage();
+    
+    // Show toast
+    showToast(`📎 Added ${fileNames.length} file name${fileNames.length > 1 ? 's' : ''} to notes`, 'success');
+    
+    // Clear selection
+    notesSelectedFiles = [];
+    renderNotesSelectedFiles();
+    
+    const pushBtn = document.getElementById('notesPushBtn');
+    if (pushBtn) pushBtn.style.display = 'none';
 }
 
 // Initialize resizable notes
