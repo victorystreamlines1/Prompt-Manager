@@ -1,1 +1,1 @@
-Please add a duplication button for the items under the pages in development dashboard containers. For the back end, the pages and front end, duplicate for the items. Any item should be duplicated with all its data. 
+The generate button is not working at all. I don't know what you did, but you stopped it. It's freezing. 

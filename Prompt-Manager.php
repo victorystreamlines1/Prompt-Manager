@@ -12711,15 +12711,16 @@ ${blockContent}
         function generateComprehensivePrompt() {
             const editor = document.getElementById('promptEditor');
             
-            // Check database checkbox
-            const dbChecked = document.getElementById('dbMainCheckbox')?.checked;
+            // Check if database is selected from dropdown (not just checkbox)
+            const dropdown = document.getElementById('dbDropdown');
+            const hasDatabaseSelected = dropdown && dropdown.value && dropdown.value !== '';
             
             // Check if we have any dynamic items or database selected
             const hasBackendItems = dynamicItems.backend.length > 0;
             const hasPageItems = dynamicItems.page.length > 0;
             const hasFrontendItems = dynamicItems.frontend.length > 0;
             
-            if (!dbChecked && !hasBackendItems && !hasPageItems && !hasFrontendItems) {
+            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems) {
                 showToast('⚠️ Please add at least one item or select database', 'warning');
                 return;
             }
@@ -12748,18 +12749,17 @@ details about the application components you need to work with.
    • Frontend Components: ${frontendCount}
 `);
 
-            // 1. DATABASE SECTION (if checked)
-            if (dbChecked) {
-                const dropdown = document.getElementById('dbDropdown');
+            // 1. DATABASE SECTION (if database is selected from dropdown)
+            if (hasDatabaseSelected) {
                 const selectedOption = dropdown.options[dropdown.selectedIndex];
                 
-                if (dropdown.value && selectedOption.dataset) {
+                if (selectedOption && selectedOption.dataset) {
                     hasContent = true;
                     const conn = {
-                        name: selectedOption.textContent.replace('🌐 ', ''),
-                        host: selectedOption.dataset.host,
-                        dbName: selectedOption.dataset.dbname,
-                        username: selectedOption.dataset.username,
+                        name: selectedOption.textContent.replace('🌐 ', '').replace('🖥️ ', ''),
+                        host: selectedOption.dataset.host || '',
+                        dbName: selectedOption.dataset.dbname || '',
+                        username: selectedOption.dataset.username || '',
                         password: selectedOption.dataset.password || '',
                         port: selectedOption.dataset.port || '3306',
                         type: selectedOption.dataset.type || 'shared'
@@ -12770,10 +12770,24 @@ details about the application components you need to work with.
 📦 DATABASE CONNECTION
 ════════════════════════════════════════════════════════════════════════════════
 
-Below are the database credentials for this application. Use the REMOTE connection 
-when connecting from external servers or development machines. Use the LOCALHOST 
-connection when the code is running directly on the Hostinger server for faster 
-database operations.
+Below are the database credentials for this application. Two connection options 
+are provided:
+• REMOTE CONNECTION - For external access from development machines or external servers
+• LOCALHOST CONNECTION - For on-server access when code runs directly on the hosting server
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  🖥️ LOCALHOST CONNECTION (On-Server / Internal Access)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Connection Name: ${conn.name}
+│  Host:           localhost
+│  Database:       ${conn.dbName}
+│  Username:       ${conn.username}
+│  Password:       ${conn.password}
+│  Port:           ${conn.port}
+│  Type:           ${conn.type === 'vps' ? 'VPS' : 'Shared Hosting'}
+│                                                                             │
+│  💡 Use this when your application runs on the same server as the database │
+└─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  🌐 REMOTE CONNECTION (External Access)                                     │
@@ -12785,21 +12799,15 @@ database operations.
 │  Password:       ${conn.password}
 │  Port:           ${conn.port}
 │  Type:           ${conn.type === 'vps' ? 'VPS' : 'Shared Hosting'}
+│                                                                             │
+│  💡 Use this when connecting from external servers or development machines │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  🖥️ LOCALHOST CONNECTION (On-Server Access)                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  Connection Name: ${conn.name}
-│  Host:           localhost
-│  Database:       ${conn.dbName}
-│  Username:       ${conn.username}
-│  Password:       ${conn.password}
-│  Port:           ${conn.port}
-│  Type:           ${conn.type === 'vps' ? 'VPS' : 'Shared Hosting'}
-└─────────────────────────────────────────────────────────────────────────────┘
-
-⚠️ IMPORTANT: Use the appropriate connection based on where your code is running.
+⚠️ IMPORTANT NOTES:
+   • Use LOCALHOST connection for faster performance when code runs on the same server
+   • Use REMOTE connection when accessing from external environments
+   • Never expose these credentials in client-side code
+   • Implement proper error handling for database connections
 `);
                 }
             }
@@ -12972,7 +12980,7 @@ design across all components.
 ════════════════════════════════════════════════════════════════════════════════
 
 Components included in this prompt:
-${dbChecked ? '  ✅ Database Connection (Remote + Localhost)' : '  ⬜ Database Connection'}
+${hasDatabaseSelected ? '  ✅ Database Connection (Remote + Localhost)' : '  ⬜ Database Connection'}
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
@@ -13000,7 +13008,7 @@ in each section carefully and maintain proper connections between components.
             recordHistoryState(true);
             
             // Count total items
-            const totalItems = (dbChecked ? 1 : 0) + backendCount + pageCount + frontendCount;
+            const totalItems = (hasDatabaseSelected ? 1 : 0) + backendCount + pageCount + frontendCount;
             
             // Show success toast
             showToast(`✨ AI prompt generated with ${totalItems} component${totalItems > 1 ? 's' : ''}`, 'success');
