@@ -3094,9 +3094,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-primary);
         }
         
-        .pc-page-item input[type="checkbox"] {
-            display: none;
-        }
+        /* Removed checkbox - using div with onclick instead */
         
         .pc-page-item .pc-check {
             width: 14px;
@@ -10377,12 +10375,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Project Notes Section (Resizable) -->
+                        <!-- Project Prompts Section (Resizable) -->
                         <div class="project-notes-section" id="projectNotesSection">
                             <div class="project-notes-header">
                                 <div class="project-notes-title">
-                                    <i class="fas fa-sticky-note"></i>
-                                    <span>Project Notes</span>
+                                    <i class="fas fa-terminal"></i>
+                                    <span>Project Prompts</span>
                                 </div>
                                 
                                 <!-- File Picker for Notes -->
@@ -10410,9 +10408,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 
                                 <div class="project-notes-actions">
-                                    <button type="button" class="notes-btn push-to-prompt-btn" onclick="pushNotesToPrompt()" title="Push to Prompt Editor">
+                                    <button type="button" class="notes-btn push-to-prompt-btn" onclick="pushNotesToPrompt()" title="Push to Main Prompt Editor">
                                         <i class="fas fa-arrow-right"></i>
-                                        <span>Push</span>
+                                        <span>→ Editor</span>
                                     </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-eraser"></i>
@@ -10425,7 +10423,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="project-notes-body" id="projectNotesBody">
                                 <textarea class="project-notes-textarea" 
                                           id="projectNotesTextarea" 
-                                          placeholder="Add notes, requirements, or additional instructions for this project... These will be included when you generate."
+                                          placeholder="Generated prompts will appear here. You can also add custom instructions..."
                                           oninput="onProjectNotesChange()"></textarea>
                                 <div class="project-notes-resize-handle" id="notesResizeHandle">
                                     <i class="fas fa-grip-lines"></i>
@@ -10873,11 +10871,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="pc-custom-list" id="pcCustomPagesList"></div>
                         </div>
                         
-                        <!-- Push to Project Notes -->
+                        <!-- Push to Project Prompts -->
                         <div class="pc-push-section">
-                            <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Notes">
+                            <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
-                                <span>Push to Project Notes</span>
+                                <span>Push to Project Prompts</span>
                             </button>
                         </div>
                     </div>
@@ -14188,26 +14186,6 @@ design across all components.
                 return;
             }
             
-            // 5. PROJECT NOTES SECTION (if has notes)
-            const projectNotes = getProjectNotes();
-            const hasProjectNotes = projectNotes.length > 0;
-            
-            if (hasProjectNotes) {
-                promptSections.push(`
-════════════════════════════════════════════════════════════════════════════════
-📝 PROJECT NOTES & ADDITIONAL INSTRUCTIONS
-════════════════════════════════════════════════════════════════════════════════
-
-The following notes and additional instructions have been provided for this project:
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-${projectNotes.split('\n').map(line => `│  ${line.padEnd(73)}│`).join('\n')}
-└─────────────────────────────────────────────────────────────────────────────┘
-
-⚠️ Please consider these notes when implementing all components above.
-`);
-            }
-
             // Footer / Summary
             promptSections.push(`
 ════════════════════════════════════════════════════════════════════════════════
@@ -14219,7 +14197,6 @@ ${hasDatabaseSelected ? '  ✅ Database Connection (Remote + Localhost)' : '  �
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
-${hasProjectNotes ? '  ✅ Project Notes included' : '  ⬜ Project Notes'}
 
 Total Components: ${backendCount + pageCount + frontendCount}
 
@@ -14232,22 +14209,35 @@ in each section carefully and maintain proper connections between components.
             // Combine all sections
             const fullPrompt = promptSections.join('');
             
-            // Append to editor
-            if (editor.value.trim()) {
-                editor.value = editor.value.trimEnd() + '\n\n' + fullPrompt;
-            } else {
-                editor.value = fullPrompt;
+            // Send to Project Prompts textarea instead of main editor
+            const projectPromptsTextarea = document.getElementById('projectNotesTextarea');
+            if (projectPromptsTextarea) {
+                if (projectPromptsTextarea.value.trim()) {
+                    projectPromptsTextarea.value = projectPromptsTextarea.value.trimEnd() + '\n\n' + fullPrompt;
+                } else {
+                    projectPromptsTextarea.value = fullPrompt;
+                }
+                
+                // Auto-expand the textarea if collapsed
+                const body = document.getElementById('projectNotesBody');
+                if (body && body.classList.contains('collapsed')) {
+                    body.classList.remove('collapsed');
+                    const icon = document.getElementById('notesCollapseIcon');
+                    if (icon) icon.className = 'fas fa-chevron-up';
+                }
+                
+                // Scroll to show the textarea
+                projectPromptsTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Save to localStorage
+                localStorage.setItem('project_notes_temp', projectPromptsTextarea.value);
             }
-            
-            // Update counts and history
-            updateCounts();
-            recordHistoryState(true);
             
             // Count total items
             const totalItems = (hasDatabaseSelected ? 1 : 0) + backendCount + pageCount + frontendCount;
             
             // Show success toast
-            showToast(`✨ AI prompt generated with ${totalItems} component${totalItems > 1 ? 's' : ''}`, 'success');
+            showToast(`✨ Generated ${totalItems} component${totalItems > 1 ? 's' : ''} → Project Prompts`, 'success');
             
             // Save dashboard settings
             saveDashboardSettings();
@@ -20433,12 +20423,12 @@ function pushFileNamesToNotes() {
     if (pushBtn) pushBtn.style.display = 'none';
 }
 
-// Push Project Notes to Prompt Editor
+// Push Project Prompts content to Main Prompt Editor
 function pushNotesToPrompt() {
     const notes = getProjectNotes();
     
     if (!notes) {
-        showToast('⚠️ Project Notes is empty', 'warning');
+        showToast('⚠️ Project Prompts is empty', 'warning');
         return;
     }
     
@@ -20921,18 +20911,22 @@ function renderPredefinedPages() {
     grid.innerHTML = pcPredefinedPages.map(page => {
         const isChecked = pcSelectedPredefined.includes(page.id);
         return `
-            <label class="pc-page-item ${isChecked ? 'checked' : ''}" data-page="${page.id}" onclick="pcTogglePage('${page.id}')">
-                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+            <div class="pc-page-item ${isChecked ? 'checked' : ''}" data-page="${page.id}" onclick="pcTogglePage('${page.id}', event)">
                 <span class="pc-check"><i class="fas fa-check"></i></span>
                 <i class="fas ${page.icon} page-icon"></i>
-                <span>${page.name}</span>
-            </label>
+                <span title="${page.name}">${page.name}</span>
+            </div>
         `;
     }).join('');
 }
 
 // Toggle Predefined Page
-function pcTogglePage(pageId) {
+function pcTogglePage(pageId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     const idx = pcSelectedPredefined.indexOf(pageId);
     if (idx > -1) {
         pcSelectedPredefined.splice(idx, 1);
@@ -21195,10 +21189,10 @@ function pcPushToNotes() {
         }
         
         if (typeof showToast === 'function') {
-            showToast(`📄 ${allSelected.length} page${allSelected.length > 1 ? 's' : ''} pushed to Project Notes`, 'success');
+            showToast(`📄 ${allSelected.length} page${allSelected.length > 1 ? 's' : ''} pushed to Project Prompts`, 'success');
         }
     } else {
-        if (typeof showToast === 'function') showToast('⚠️ Project Notes not found', 'error');
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
     }
 }
 
