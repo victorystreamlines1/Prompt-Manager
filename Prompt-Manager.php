@@ -19433,9 +19433,9 @@ function pushFileNamesToNotes() {
     const textarea = document.getElementById('projectNotesTextarea');
     if (!textarea) return;
     
-    // Build file names list
-    const fileNames = notesSelectedFiles.map(f => f.name);
-    const fileNamesText = '📎 Files: ' + fileNames.join(', ');
+    // Build file names as numbered list
+    const fileNames = notesSelectedFiles.map((f, i) => `${i + 1}. ${f.name}`);
+    const fileNamesText = '📎 Files:\n' + fileNames.join('\n');
     
     // Append to textarea
     if (textarea.value.trim()) {

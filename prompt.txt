@@ -1,1 +1,1 @@
-yes okay but I don't want them to be lined in a line or in a row I want it to be a column of list items one two three numbered list items better than row 
+Now add the word push to prompt. To prompt editor will push whatever in the project notes into the prompt editor. 
