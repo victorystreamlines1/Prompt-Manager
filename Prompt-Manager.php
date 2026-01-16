@@ -5627,116 +5627,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.6rem;
         }
         
-        /* Propagate Button */
-        .dash-propagate-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.9rem;
-            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
-            border: 1px solid rgba(251, 146, 60, 0.35);
-            border-radius: 10px;
-            color: #fb923c;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .dash-propagate-btn:hover {
-            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
-            border-color: rgba(251, 146, 60, 0.5);
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
-        }
-        
-        .dash-propagate-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .dash-propagate-btn i {
-            font-size: 0.8rem;
-        }
-        
-        .dash-reset-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.15);
-            border-radius: 10px;
-            color: #f87171;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .dash-reset-btn:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            transform: rotate(-180deg);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-        }
-        
-        /* New Tab Button - Opens in new browser tab */
-        .dash-newtab-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            border-radius: 10px;
-            color: #34d399;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-        
-        .dash-newtab-btn:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: #4ade80;
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-        }
-        
-        /* Iframe Popup Button - Opens popup overlay */
-        .dash-iframe-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: rgba(139, 92, 246, 0.08);
-            border: 1px solid rgba(139, 92, 246, 0.15);
-            border-radius: 10px;
-            color: #a78bfa;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .dash-iframe-btn:hover {
-            background: rgba(139, 92, 246, 0.15);
-            border-color: rgba(139, 92, 246, 0.3);
-            color: #c4b5fd;
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
-        }
-        
-        .dash-iframe-btn.active {
-            background: rgba(139, 92, 246, 0.2);
-            border-color: rgba(139, 92, 246, 0.4);
-            color: #ddd6fe;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-        }
         
         /* Draggable Resizable Iframe Popup */
         .iframe-popup-overlay {
@@ -11021,19 +10911,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
-                        <button type="button" class="dash-propagate-btn" onclick="propagateToOtherPagePM()" title="Send all data to Design Enhancer page">
-                            <i class="fas fa-broadcast-tower"></i>
-                            <span>Propagate</span>
-                        </button>
-                        <button type="button" class="dash-newtab-btn" id="dashNewTabBtn" onclick="openOrSwitchToDesignEnhancer()" title="Open/Switch to Design Enhancer Tab">
-                            <i class="fas fa-external-link-alt"></i>
-                        </button>
-                        <button type="button" class="dash-iframe-btn" id="dashIframeBtn" onclick="toggleIframePopup()" title="Open Design Enhancer Popup">
-                            <i class="fas fa-window-restore"></i>
-                        </button>
-                        <button type="button" class="dash-reset-btn" id="dashResetBtn" onclick="resetDashboard()" title="Reset Dashboard">
-                            <i class="fas fa-undo"></i>
-                        </button>
                         <div class="dev-dashboard-status">
                             <span class="status-dot"></span>
                             <span class="status-text">Ready</span>
