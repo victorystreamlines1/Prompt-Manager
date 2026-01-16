@@ -3862,6 +3862,175 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.65rem;
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           📝 CUSTOM INSTRUCTIONS TOOL - Design Enhancer Right Panel
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        /* Badge color for Custom Instructions */
+        .de-tool-badge.ci-badge {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+        
+        /* Custom Instructions Textarea */
+        .ci-textarea-wrapper {
+            margin-bottom: 0.75rem;
+        }
+        
+        .ci-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.06) 0%, rgba(234, 88, 12, 0.03) 100%);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .ci-textarea:focus {
+            outline: none;
+            border-color: rgba(249, 115, 22, 0.5);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        .ci-textarea::placeholder {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+        
+        /* Info & Counter Row */
+        .ci-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0.65rem;
+            background: rgba(249, 115, 22, 0.08);
+            border-radius: 6px;
+            border-left: 3px solid rgba(249, 115, 22, 0.5);
+        }
+        
+        .ci-info-text {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        
+        .ci-info-text i {
+            color: #f97316;
+            font-size: 0.55rem;
+        }
+        
+        .ci-char-count {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            background: rgba(249, 115, 22, 0.15);
+            border-radius: 10px;
+        }
+        
+        .ci-char-count.has-content {
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.2);
+        }
+        
+        /* Quick Templates */
+        .ci-templates-section {
+            margin-bottom: 0.75rem;
+        }
+        
+        .ci-templates-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .ci-templates-label i {
+            color: #fb923c;
+            font-size: 0.55rem;
+        }
+        
+        .ci-templates-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+        
+        .ci-template-btn {
+            padding: 0.3rem 0.5rem;
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            color: #fb923c;
+            font-size: 0.55rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .ci-template-btn:hover {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .ci-template-btn i {
+            margin-right: 0.2rem;
+            font-size: 0.5rem;
+        }
+        
+        /* Push Button */
+        .ci-push-section {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(249, 115, 22, 0.15);
+        }
+        
+        .ci-push-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, 
+                rgba(249, 115, 22, 0.15) 0%, 
+                rgba(234, 88, 12, 0.08) 100%);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            color: #fb923c;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ci-push-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(249, 115, 22, 0.25) 0%, 
+                rgba(234, 88, 12, 0.15) 100%);
+            border-color: rgba(249, 115, 22, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(249, 115, 22, 0.2);
+        }
+        
+        .ci-push-btn i {
+            font-size: 0.65rem;
+        }
+        
         /* Tools Placeholder */
         .de-tools-placeholder {
             margin-top: 1rem;
@@ -11441,6 +11610,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="pc-push-section">
                             <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📝 CUSTOM INSTRUCTIONS TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="customInstructionsTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('customInstructions')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-pen-fancy"></i>
+                            <span>Custom Instructions</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Clear custom instructions?')) resetCustomInstructions();" title="Clear instructions">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge ci-badge" id="ciBadge" style="display: none;">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="customInstructionsArrow"></i>
+                    </div>
+                    
+                    <div class="de-tool-body" id="customInstructionsBody">
+                        <!-- Quick Templates -->
+                        <div class="ci-templates-section">
+                            <div class="ci-templates-label">
+                                <i class="fas fa-magic"></i>
+                                <span>Quick Add</span>
+                            </div>
+                            <div class="ci-templates-grid">
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('colors')">
+                                    <i class="fas fa-palette"></i>Color Scheme
+                                </button>
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('animations')">
+                                    <i class="fas fa-wand-magic-sparkles"></i>Animations
+                                </button>
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('responsive')">
+                                    <i class="fas fa-mobile-alt"></i>Responsive
+                                </button>
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('accessibility')">
+                                    <i class="fas fa-universal-access"></i>A11y
+                                </button>
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('darkmode')">
+                                    <i class="fas fa-moon"></i>Dark Mode
+                                </button>
+                                <button type="button" class="ci-template-btn" onclick="ciAddTemplate('performance')">
+                                    <i class="fas fa-bolt"></i>Performance
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Textarea -->
+                        <div class="ci-textarea-wrapper">
+                            <textarea id="ciTextarea" 
+                                      class="ci-textarea" 
+                                      placeholder="Add specific design requirements...&#10;&#10;Examples:&#10;• Use blue color scheme&#10;• Keep logo prominent&#10;• Add smooth animations&#10;• Make navigation sticky&#10;• Improve accessibility&#10;• Support dark mode"
+                                      oninput="ciUpdateCharCount()"></textarea>
+                        </div>
+                        
+                        <!-- Info & Counter -->
+                        <div class="ci-info-row">
+                            <span class="ci-info-text">
+                                <i class="fas fa-info-circle"></i>
+                                Added to design prompt
+                            </span>
+                            <span class="ci-char-count" id="ciCharCount">0 chars</span>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="ci-push-section">
+                            <button type="button" class="ci-push-btn" onclick="ciPushToNotes()" title="Push instructions to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -21981,6 +22222,11 @@ function deResetAll() {
     // Reset Pages Creator (skip individual toast)
     resetPagesCreator(true);
     
+    // Reset Custom Instructions (skip individual toast)
+    if (typeof resetCustomInstructions === 'function') {
+        resetCustomInstructions(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -22303,6 +22549,154 @@ document.addEventListener('click', function(e) {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     initPagesCreator();
+});
+</script>
+
+<!-- Custom Instructions Tool Script -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// 📝 CUSTOM INSTRUCTIONS TOOL - Right Panel
+// ═══════════════════════════════════════════════════════════════════
+
+// Template definitions for quick add
+const ciTemplates = {
+    colors: '• Use a consistent color scheme throughout\n• Primary color: [specify color]\n• Secondary color: [specify color]\n• Accent color: [specify color]',
+    animations: '• Add smooth scroll behavior\n• Include hover animations on buttons and cards\n• Add page transition effects\n• Use subtle loading animations',
+    responsive: '• Ensure fully responsive design (mobile, tablet, desktop)\n• Mobile-first approach\n• Touch-friendly elements\n• Adaptive images and layouts',
+    accessibility: '• Follow WCAG 2.1 AA standards\n• Add proper ARIA labels\n• Ensure keyboard navigation\n• Include skip links\n• High contrast text',
+    darkmode: '• Add dark mode support with toggle\n• Use CSS variables for theme colors\n• Persist user preference\n• Smooth theme transitions',
+    performance: '• Optimize images (lazy loading, WebP)\n• Minimize CSS/JS bundles\n• Implement code splitting\n• Add loading states\n• Cache static assets'
+};
+
+// Update character count
+function ciUpdateCharCount() {
+    const textarea = document.getElementById('ciTextarea');
+    const counter = document.getElementById('ciCharCount');
+    const badge = document.getElementById('ciBadge');
+    
+    if (textarea && counter) {
+        const count = textarea.value.length;
+        counter.textContent = `${count} chars`;
+        counter.classList.toggle('has-content', count > 0);
+        
+        // Update badge
+        if (badge) {
+            if (count > 0) {
+                badge.style.display = 'inline';
+                badge.textContent = count > 999 ? '999+' : count;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        // Save to localStorage
+        ciSaveToStorage();
+    }
+}
+
+// Add template text
+function ciAddTemplate(templateKey) {
+    const textarea = document.getElementById('ciTextarea');
+    if (!textarea || !ciTemplates[templateKey]) return;
+    
+    const template = ciTemplates[templateKey];
+    const currentValue = textarea.value.trim();
+    
+    if (currentValue) {
+        textarea.value = currentValue + '\n\n' + template;
+    } else {
+        textarea.value = template;
+    }
+    
+    ciUpdateCharCount();
+    
+    if (typeof showToast === 'function') {
+        showToast(`✨ Added ${templateKey} template`, 'success');
+    }
+}
+
+// Push to Project Notes
+function ciPushToNotes() {
+    const textarea = document.getElementById('ciTextarea');
+    const content = textarea ? textarea.value.trim() : '';
+    
+    if (!content) {
+        if (typeof showToast === 'function') showToast('⚠️ No instructions to push', 'warning');
+        return;
+    }
+    
+    // Build the prompt text
+    let promptText = `📝 CUSTOM INSTRUCTIONS:\n${'═'.repeat(50)}\n\n`;
+    promptText += content;
+    promptText += `\n\n${'═'.repeat(50)}\n`;
+    
+    // Push to Project Notes
+    const notesTextarea = document.getElementById('projectNotesTextarea');
+    if (notesTextarea) {
+        if (notesTextarea.value.trim()) {
+            notesTextarea.value = notesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            notesTextarea.value = promptText;
+        }
+        
+        // Save to localStorage
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        if (typeof showToast === 'function') {
+            showToast('📝 Instructions pushed to Project Prompts', 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Reset Custom Instructions
+function resetCustomInstructions(skipToast = false) {
+    const textarea = document.getElementById('ciTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    
+    ciUpdateCharCount();
+    localStorage.removeItem('ci_content');
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Instructions cleared', 'info');
+    }
+    console.log('✅ Custom Instructions reset');
+}
+
+// Save to localStorage
+function ciSaveToStorage() {
+    const textarea = document.getElementById('ciTextarea');
+    if (textarea) {
+        localStorage.setItem('ci_content', textarea.value);
+    }
+}
+
+// Load from localStorage
+function ciLoadFromStorage() {
+    const saved = localStorage.getItem('ci_content');
+    if (saved) {
+        const textarea = document.getElementById('ciTextarea');
+        if (textarea) {
+            textarea.value = saved;
+            ciUpdateCharCount();
+        }
+    }
+}
+
+// Get Custom Instructions content (for prompt generation)
+function getCustomInstructions() {
+    const textarea = document.getElementById('ciTextarea');
+    return textarea ? textarea.value.trim() : '';
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    ciLoadFromStorage();
 });
 </script>
 

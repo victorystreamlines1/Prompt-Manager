@@ -3441,12 +3441,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-size: 1.1rem;
     }
 
-    /* Textarea Enhanced */
-    #additionalInstructions:focus {
-        outline: none;
-        border-color: var(--primary-blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
+    /* Textarea Enhanced - customInstructions migrated to Prompt-Manager.php */
 
     /* Responsive for options */
     @media (max-width: 768px) {
@@ -16806,49 +16801,7 @@ Examples:
                 </div>
             </div>
 
-            <!-- Additional Instructions -->
-            <div id="customInstructionsSection" class="card card-full fade-in" style="animation-delay: 0.45s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: var(--gradient-sunset);">
-                        <i class="fas fa-pen-fancy"></i>
-                    </div>
-                    <h2 class="card-title">Additional Instructions</h2>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Add any specific design requirements or constraints</p>
-
-                    <textarea id="additionalInstructions" placeholder="Example:
-- Use a blue color scheme
-- Keep the existing logo prominent
-- Add smooth scroll animations
-- Make navigation sticky
-- Improve accessibility (WCAG 2.1)
-- Add dark mode support
-- Use modern glassmorphism style" style="
-                            width: 100%;
-                            min-height: 150px;
-                            padding: 1rem;
-                            background: var(--surface-dark);
-                            border: 2px solid var(--glass-border);
-                            border-radius: var(--radius-md);
-                            color: var(--text-primary);
-                            font-family: 'Inter', sans-serif;
-                            font-size: 0.95rem;
-                            line-height: 1.6;
-                            resize: vertical;
-                            transition: all var(--transition-base);
-                        " oninput="updateOptions()"></textarea>
-
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                            <i class="fas fa-info-circle"></i>
-                            These will be added to your design enhancement prompt
-                        </span>
-                        <span id="charCount" style="font-size: 0.85rem; color: var(--text-muted);">0 characters</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Additional Instructions - Migrated to Prompt-Manager.php -->
 
             <!-- Documentation Integration Card -->
             <div id="documentationIntegrationSection" class="card card-full fade-in" style="animation-delay: 0.475s;">
@@ -17373,7 +17326,7 @@ Examples:
             'enhancementOptionsSection', 'designStyleSection', 'colorThemeSection',
             'layoutSection', 'referenceImagesSection', 'excludedFilesSection',
             'homepageCreationSection', 'documentationPageSection',
-            'customInstructionsSection', 'promptOutputSection'
+            'promptOutputSection'
         ];
 
         let currentSection = '';
@@ -17616,23 +17569,7 @@ Examples:
             tip: 'Upload a text file with your app\'s key features and workflows. The AI will expand this into full documentation.',
             sectionId: 'documentationPageSection'
         },
-        customInstructions: {
-            icon: 'fa-pen-fancy',
-            iconBg: 'linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(251, 146, 60, 0.1))',
-            iconColor: '#fb923c',
-            title: 'Custom Instructions',
-            subtitle: 'Add specific requirements',
-            description: 'Add your own custom instructions and requirements. Tell the AI exactly what you want, any specific features, or changes you need.',
-            features: [
-                'Write specific design requirements',
-                'Request particular features or elements',
-                'Specify what to avoid or preserve',
-                'Add accessibility requirements',
-                'Include brand guidelines or rules'
-            ],
-            tip: 'Be specific and clear. Instead of "make it better", say "add a sticky navigation bar with smooth scroll and dark mode toggle".',
-            sectionId: 'customInstructionsSection'
-        },
+        // customInstructions - Migrated to Prompt-Manager.php
         documentationIntegration: {
             icon: 'fa-book',
             iconBg: 'linear-gradient(135deg, rgba(13, 71, 161, 0.2), rgba(0, 188, 212, 0.1))',
@@ -18296,7 +18233,6 @@ Examples:
         excludedFiles: 'excludedFilesSection',
         homepageCreation: 'homepageCreationSection',
         documentationPage: 'documentationPageSection',
-        customInstructions: 'customInstructionsSection',
         documentationIntegration: 'documentationIntegrationSection',
         taskBreakdown: 'taskBreakdownSection',
         promptOutput: 'promptOutputSection'
@@ -18315,7 +18251,6 @@ Examples:
         excludedFiles: true,
         homepageCreation: true,
         documentationPage: true,
-        customInstructions: true,
         documentationIntegration: true,
         taskBreakdown: true,
         promptOutput: true // Always enabled
@@ -19357,16 +19292,8 @@ Examples:
             }
         });
 
-        // Update additional instructions
-        const textarea = document.getElementById('additionalInstructions');
-        if (textarea) {
-            enhancementOptions.instructions = textarea.value;
-            // Update character count
-            const charCount = document.getElementById('charCount');
-            if (charCount) {
-                charCount.textContent = textarea.value.length + ' characters';
-            }
-        }
+        // Additional instructions - Migrated to Prompt-Manager.php
+        // enhancementOptions.instructions is now handled by Custom Instructions tool
 
         // Update enhancement style
         const styleRadios = document.querySelectorAll('input[name="enhancement_style"]');
@@ -20219,11 +20146,7 @@ Examples:
                 }
             }
 
-            // Restore instructions
-            if (options.instructions) {
-                const textarea = document.getElementById('additionalInstructions');
-                if (textarea) textarea.value = options.instructions;
-            }
+            // Instructions - Migrated to Prompt-Manager.php Custom Instructions tool
 
             // Update UI
             updateOptions();
@@ -23497,8 +23420,8 @@ Enhance the design and layout of this website using ONLY CSS and HTML modificati
                 console.log('✅ Homepage Configuration section completed');
             } // End of homepageCreation section
 
-            // Add documentation integration if provided (if customInstructions section is enabled)
-            if (isSectionEnabled('customInstructions') && docCheckbox && docCheckbox.checked &&
+            // Add documentation integration if provided (if documentationIntegration section is enabled)
+            if (isSectionEnabled('documentationIntegration') && docCheckbox && docCheckbox.checked &&
                 documentationFileContent) {
                 console.log('📝 Adding Documentation Integration section...');
                 console.log('   Documentation File:', documentationFileName);
@@ -23683,17 +23606,8 @@ Enhance the design and layout of this website using ONLY CSS and HTML modificati
 
             console.log('✅ Documentation/FormSubmit section completed');
 
-            // Add additional instructions (if customInstructions section is enabled)
-            if (isSectionEnabled('customInstructions') && enhancementOptions.instructions && enhancementOptions
-                .instructions.trim()) {
-                console.log('📝 Adding Additional Requirements section...');
-                console.log('   Instructions length:', enhancementOptions.instructions.trim().length, 'chars');
-                prompt += `## 📝 ADDITIONAL REQUIREMENTS\n\n`;
-                prompt += enhancementOptions.instructions.trim() + '\n\n';
-                console.log('✅ Additional Requirements section completed');
-            } else if (!isSectionEnabled('customInstructions')) {
-                console.log('⏭️ Additional Requirements section DISABLED - skipping');
-            }
+            // Custom Instructions - Migrated to Prompt-Manager.php
+            // Users should use the Custom Instructions tool in Design Enhancer panel
 
             // Add task breakdown section
             console.log('📝 Adding Task Breakdown section...');
@@ -24345,7 +24259,7 @@ Please provide:
         document.getElementById('opt_responsive').checked = true;
         document.getElementById('opt_modern').checked = true;
         document.getElementById('level_moderate').checked = true;
-        document.getElementById('additionalInstructions').value = '';
+        // additionalInstructions - Migrated to Prompt-Manager.php
 
         // Reset SEO option (checked by default)
         const seoCheckbox = document.getElementById('opt_seo');
