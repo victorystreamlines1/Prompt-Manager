@@ -1101,15 +1101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             z-index: 1;
         }
 
-        /* Sidebar - Enhanced */
+        /* Sidebar */
         .sidebar {
             width: 320px;
             min-width: 320px;
-            background: linear-gradient(180deg, 
-                rgba(15, 23, 42, 0.98) 0%, 
-                rgba(20, 28, 50, 0.95) 50%,
-                rgba(15, 23, 42, 0.98) 100%);
-            border-right: 1px solid rgba(99, 102, 241, 0.15);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -1117,7 +1114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             overflow: hidden;
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2);
         }
         
         /* Collapsed sidebar state - FULLY HIDDEN */
@@ -2708,37 +2704,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
         }
 
-        /* Main Content Area - Enhanced */
+        /* Main Content Area */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 1.75rem;
-            gap: 1.75rem;
-            background: linear-gradient(180deg, 
-                rgba(15, 23, 42, 1) 0%, 
-                rgba(10, 18, 36, 1) 50%,
-                rgba(15, 23, 42, 1) 100%);
+            padding: 1.5rem;
+            gap: 1.5rem;
+            background: var(--gradient-dark);
             max-width: calc(100vw - 320px - 400px);
             overflow-x: hidden;
             box-sizing: border-box;
             transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-        
-        /* Subtle pattern overlay */
-        .main-content::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 320px;
-            right: 400px;
-            bottom: 0;
-            background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-                              radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-            transition: all 0.4s ease;
         }
         
         /* Main content expands when panels collapse */
@@ -4014,166 +3991,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(99, 102, 241, 0.3);
         }
         
-        /* Light Theme - Editor Enhancements */
-        [data-theme="light"] .editor-container {
-            background: linear-gradient(145deg, 
-                rgba(255, 255, 255, 0.98) 0%, 
-                rgba(248, 250, 252, 0.95) 50%,
-                rgba(255, 255, 255, 0.98) 100%);
-            border-color: rgba(99, 102, 241, 0.2);
-            box-shadow: 
-                0 4px 30px rgba(99, 102, 241, 0.1),
-                0 0 40px rgba(99, 102, 241, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-        }
-        
-        [data-theme="light"] .editor-container:hover {
-            box-shadow: 
-                0 8px 40px rgba(99, 102, 241, 0.15),
-                0 0 60px rgba(99, 102, 241, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-        
-        [data-theme="light"] .editor-header {
-            background: linear-gradient(135deg, 
-                rgba(99, 102, 241, 0.08) 0%, 
-                rgba(139, 92, 246, 0.05) 50%, 
-                rgba(6, 182, 212, 0.05) 100%);
-        }
-        
-        [data-theme="light"] #promptEditor:not(.searching) {
-            background: linear-gradient(180deg, 
-                rgba(255, 255, 255, 1) 0%, 
-                rgba(248, 250, 252, 0.98) 100%);
-        }
-        
-        [data-theme="light"] #promptEditor:focus {
-            background: linear-gradient(180deg, 
-                rgba(255, 255, 255, 1) 0%, 
-                rgba(250, 251, 255, 1) 100%);
-        }
-        
-        [data-theme="light"] #promptEditor::placeholder {
-            color: rgba(100, 116, 139, 0.6);
-        }
-        
-        [data-theme="light"] #promptEditor::-webkit-scrollbar-track {
-            background: rgba(248, 250, 252, 0.8);
-        }
-        
-        [data-theme="light"] #promptEditor::-webkit-scrollbar-thumb {
-            border-color: rgba(248, 250, 252, 0.8);
-        }
-        
-        [data-theme="light"] .file-transfer-section {
-            background: linear-gradient(135deg, 
-                rgba(248, 250, 252, 0.95) 0%, 
-                rgba(241, 245, 249, 0.9) 100%);
-        }
-        
-        [data-theme="light"] .main-content {
-            background: linear-gradient(180deg, 
-                rgba(248, 250, 252, 1) 0%, 
-                rgba(241, 245, 249, 1) 50%,
-                rgba(248, 250, 252, 1) 100%);
-        }
-        
-        [data-theme="light"] .main-content::before {
-            background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
-                              radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
-        }
-        
         /* Ensure all main content children respect container width */
         .main-content > * {
             max-width: 100%;
             box-sizing: border-box;
         }
 
-        /* Editor Container - Enhanced */
+        /* Editor Container */
         .editor-container {
             display: flex;
             flex-direction: column;
-            background: linear-gradient(145deg, 
-                rgba(15, 23, 42, 0.95) 0%, 
-                rgba(30, 41, 59, 0.9) 50%,
-                rgba(15, 23, 42, 0.95) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            border-radius: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
             overflow: visible;
-            box-shadow: 
-                0 4px 30px rgba(0, 0, 0, 0.3),
-                0 0 40px rgba(99, 102, 241, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: var(--shadow-card);
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .editor-container::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 21px;
-            padding: 1px;
-            background: linear-gradient(135deg, 
-                rgba(99, 102, 241, 0.4) 0%, 
-                rgba(139, 92, 246, 0.2) 25%,
-                rgba(6, 182, 212, 0.3) 50%,
-                rgba(139, 92, 246, 0.2) 75%,
-                rgba(99, 102, 241, 0.4) 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            opacity: 0.6;
-            transition: opacity 0.3s ease;
-        }
-        
-        .editor-container:hover::before {
-            opacity: 1;
-        }
-        
-        .editor-container:hover {
-            box-shadow: 
-                0 8px 40px rgba(0, 0, 0, 0.4),
-                0 0 60px rgba(99, 102, 241, 0.12),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08);
-            transform: translateY(-2px);
-        }
-        
-        .editor-container:focus-within {
-            box-shadow: 
-                0 8px 50px rgba(0, 0, 0, 0.45),
-                0 0 80px rgba(99, 102, 241, 0.15),
-                0 0 0 3px rgba(99, 102, 241, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-        
-        .editor-container:focus-within::before {
-            opacity: 1;
-            background: linear-gradient(135deg, 
-                rgba(99, 102, 241, 0.6) 0%, 
-                rgba(139, 92, 246, 0.4) 25%,
-                rgba(6, 182, 212, 0.5) 50%,
-                rgba(139, 92, 246, 0.4) 75%,
-                rgba(99, 102, 241, 0.6) 100%);
         }
 
         .editor-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, 
-                rgba(99, 102, 241, 0.12) 0%, 
-                rgba(139, 92, 246, 0.08) 50%, 
-                rgba(6, 182, 212, 0.08) 100%);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 0.85rem 1.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(6, 182, 212, 0.05) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
             position: relative;
-            border-radius: 20px 20px 0 0;
         }
 
         .editor-header::before {
@@ -4182,34 +4027,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, 
-                #6366f1 0%, 
-                #8b5cf6 25%, 
-                #06b6d4 50%, 
-                #8b5cf6 75%, 
-                #6366f1 100%);
-            background-size: 200% 100%;
-            border-radius: 20px 20px 0 0;
-            animation: editorGradientFlow 4s ease infinite;
-        }
-        
-        @keyframes editorGradientFlow {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        .editor-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 10%;
-            right: 10%;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(99, 102, 241, 0.4) 50%, 
-                transparent 100%);
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+            border-radius: 16px 16px 0 0;
         }
 
         .editor-title {
@@ -4217,31 +4037,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 0.75rem;
             font-weight: 600;
-            font-size: 1rem;
         }
 
         .editor-title i {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 1.35rem;
-            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4));
-            animation: editorIconPulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes editorIconPulse {
-            0%, 100% { filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4)); }
-            50% { filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6)); }
+            font-size: 1.25rem;
         }
 
         .editor-title span {
-            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%);
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: 0.02em;
-            text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
         }
 
         /* Editor Search Bar */
@@ -4440,124 +4250,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .editor-actions {
             display: flex;
             gap: 0.75rem;
-            flex-wrap: wrap;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.65rem 1.25rem;
+            padding: 0.6rem 1.2rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-family: inherit;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(255, 255, 255, 0.15) 50%, 
-                transparent 100%);
-            transition: left 0.5s ease;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
+            transition: all 0.2s;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #6366f1 100%);
-            background-size: 200% 100%;
+            background: var(--gradient-main);
             color: white;
-            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-            background-position: 100% 50%;
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         .btn-secondary {
-            background: rgba(30, 41, 59, 0.8);
+            background: var(--bg-card);
             color: var(--text-primary);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            border-color: rgba(99, 102, 241, 0.5);
-            background: rgba(99, 102, 241, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #10b981 100%);
-            background-size: 200% 100%;
+            background: var(--success);
             color: white;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
         }
 
         .btn-success:hover {
+            background: #0ea572;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-            background-position: 100% 50%;
         }
 
         .btn-paste {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
-            background-size: 200% 100%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
-            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
         }
 
         .btn-paste:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
-            background-position: 100% 50%;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #ef4444 100%);
-            background-size: 200% 100%;
+            background: var(--danger);
             color: white;
-            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
         }
 
         .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-            background-position: 100% 50%;
+            background: #dc2626;
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
-            background-size: 200% 100%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
-            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
-        }
-        
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
-            background-position: 100% 50%;
         }
 
         .btn-warning:hover {
@@ -5044,153 +4805,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             min-height: 200px;
             max-height: 80vh;
-            height: 300px;
-            padding: 1.5rem 1.75rem;
+            height: 280px;
+            padding: 1.5rem;
             padding-bottom: 2rem;
             background: transparent;
             color: var(--text-primary);
             border: none;
             border-radius: 0;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-            font-size: 0.92rem;
-            line-height: 1.8;
-            letter-spacing: 0.02em;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
             resize: vertical;
             outline: none;
             overflow-y: auto;
             box-sizing: border-box;
-            caret-color: #818cf8;
-            transition: all 0.3s ease;
+            caret-color: var(--text-primary);
         }
 
-        /* When not searching, show enhanced background */
+        /* When not searching, show solid background */
         #promptEditor:not(.searching) {
-            background: linear-gradient(180deg, 
-                rgba(15, 23, 42, 0.98) 0%, 
-                rgba(15, 23, 42, 0.95) 100%);
-        }
-        
-        /* Focus state enhancement */
-        #promptEditor:focus {
-            background: linear-gradient(180deg, 
-                rgba(15, 23, 42, 1) 0%, 
-                rgba(20, 28, 50, 0.98) 100%);
+            background: var(--bg-primary);
         }
 
         /* When searching, make text transparent to show overlay highlights */
         #promptEditor.searching {
             color: transparent;
-            caret-color: #818cf8;
+            caret-color: var(--accent-primary);
         }
 
         #promptEditor::placeholder {
-            color: rgba(148, 163, 184, 0.5);
-            font-style: italic;
-            letter-spacing: 0.03em;
-        }
-        
-        /* Custom scrollbar for editor */
-        #promptEditor::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        #promptEditor::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 5px;
-        }
-        
-        #promptEditor::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 5px;
-            border: 2px solid rgba(15, 23, 42, 0.5);
-        }
-        
-        #promptEditor::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #818cf8 0%, #a78bfa 100%);
-        }
-        
-        /* Selection styling */
-        #promptEditor::selection {
-            background: rgba(99, 102, 241, 0.35);
-            color: #fff;
+            color: var(--text-muted);
         }
 
-        /* Custom Resize Handle - Enhanced */
+        /* Custom Resize Handle */
         .resize-handle {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 18px;
-            background: linear-gradient(90deg, 
-                rgba(99, 102, 241, 0.05) 0%, 
-                rgba(99, 102, 241, 0.1) 50%, 
-                rgba(99, 102, 241, 0.05) 100%);
-            border-top: 1px solid rgba(99, 102, 241, 0.15);
+            height: 20px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
             cursor: ns-resize;
             user-select: none;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .resize-handle::before {
-            content: '';
-            position: absolute;
-            left: 30%;
-            right: 30%;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 3px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(99, 102, 241, 0.3) 20%, 
-                rgba(99, 102, 241, 0.5) 50%, 
-                rgba(99, 102, 241, 0.3) 80%, 
-                transparent 100%);
-            border-radius: 2px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .resize-handle:hover::before {
-            opacity: 1;
+            transition: all 0.2s ease;
         }
 
         .resize-handle:hover {
-            background: linear-gradient(90deg, 
-                rgba(99, 102, 241, 0.1) 0%, 
-                rgba(99, 102, 241, 0.2) 50%, 
-                rgba(99, 102, 241, 0.1) 100%);
+            background: rgba(99, 102, 241, 0.2);
         }
 
         .resize-handle:active {
-            background: linear-gradient(90deg, 
-                rgba(99, 102, 241, 0.15) 0%, 
-                rgba(99, 102, 241, 0.3) 50%, 
-                rgba(99, 102, 241, 0.15) 100%);
+            background: rgba(99, 102, 241, 0.3);
         }
 
         .resize-handle i {
-            color: rgba(148, 163, 184, 0.4);
-            font-size: 0.65rem;
-            transition: all 0.3s ease;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            transition: color 0.2s;
         }
 
         .resize-handle:hover i {
-            color: #818cf8;
-            transform: scale(1.2);
+            color: var(--accent-primary);
         }
 
-        /* File Transfer Section - Enhanced */
+        /* File Transfer Section */
         .file-transfer-section {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1.25rem;
-            background: linear-gradient(135deg, 
-                rgba(30, 41, 59, 0.8) 0%, 
-                rgba(15, 23, 42, 0.9) 100%);
-            border-top: 1px solid rgba(99, 102, 241, 0.12);
-            border-radius: 0 0 20px 20px;
+            padding: 0.6rem 1rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
             gap: 1rem;
         }
 
