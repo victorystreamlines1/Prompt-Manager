@@ -492,6 +492,13 @@ if ($pdo) {
             // Column might already exist
         }
         
+        // Add project_notes column if it doesn't exist (for existing tables)
+        try {
+            $pdo->exec("ALTER TABLE reporter_prompt_projects ADD COLUMN project_notes TEXT AFTER frontends");
+        } catch (PDOException $e) {
+            // Column might already exist
+        }
+        
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
         
@@ -834,6 +841,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $backends = $_POST['backends'] ?? '[]';
         $pages = $_POST['pages'] ?? '[]';
         $frontends = $_POST['frontends'] ?? '[]';
+        $projectNotes = $_POST['project_notes'] ?? '';
         $promptContent = $_POST['prompt_content'] ?? '';
         
         if ($name) {
@@ -845,12 +853,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("UPDATE reporter_prompt_projects SET 
                         name = ?, description = ?, database_id = ?, database_name = ?, 
                         database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
-                        include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, prompt_content = ?
+                        include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, 
+                        project_notes = ?, prompt_content = ?
                         WHERE id = ?");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
-                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent, $id
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
+                        $projectNotes, $promptContent, $id
                     ]);
                     $projectId = $id;
                     $message = 'Project updated successfully!';
@@ -859,12 +869,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Create new project
                     $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
                         (name, description, database_id, database_name, database_host, database_user, 
-                         database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, prompt_content) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, 
+                         project_notes, prompt_content) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
-                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, $promptContent
+                        $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
+                        $projectNotes, $promptContent
                     ]);
                     $projectId = $pdo->lastInsertId();
                     $message = 'Project created successfully!';
@@ -4399,6 +4411,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+        }
+        
+        /* Project Notes Section */
+        .project-notes-section {
+            margin: 0.6rem 0;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(245, 158, 11, 0.03) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .project-notes-section:hover {
+            border-color: rgba(251, 191, 36, 0.35);
+            box-shadow: 0 2px 12px rgba(251, 191, 36, 0.1);
+        }
+        
+        .project-notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.15);
+        }
+        
+        .project-notes-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        
+        .project-notes-title i {
+            font-size: 0.7rem;
+        }
+        
+        .project-notes-actions {
+            display: flex;
+            gap: 0.35rem;
+        }
+        
+        .notes-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 6px;
+            color: #fbbf24;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.6rem;
+        }
+        
+        .notes-btn:hover {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: rgba(251, 191, 36, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .clear-notes-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .project-notes-body {
+            position: relative;
+            transition: all 0.3s ease;
+            max-height: 200px;
+            overflow: hidden;
+        }
+        
+        .project-notes-body.collapsed {
+            max-height: 0;
+            padding: 0;
+        }
+        
+        .project-notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            max-height: 180px;
+            padding: 0.6rem 0.75rem;
+            padding-bottom: 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.72rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+        }
+        
+        .project-notes-textarea::placeholder {
+            color: rgba(251, 191, 36, 0.4);
+            font-style: italic;
+        }
+        
+        .project-notes-textarea:focus {
+            background: rgba(251, 191, 36, 0.03);
+        }
+        
+        .project-notes-resize-handle {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to top, rgba(251, 191, 36, 0.08) 0%, transparent 100%);
+            cursor: ns-resize;
+            color: rgba(251, 191, 36, 0.4);
+            font-size: 0.55rem;
+            transition: all 0.2s ease;
+        }
+        
+        .project-notes-resize-handle:hover {
+            background: linear-gradient(to top, rgba(251, 191, 36, 0.15) 0%, transparent 100%);
+            color: rgba(251, 191, 36, 0.7);
         }
         
         /* Dashboard Footer with Project Management & Generate Button */
@@ -9308,6 +9447,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
+                        <!-- Project Notes Section (Resizable) -->
+                        <div class="project-notes-section" id="projectNotesSection">
+                            <div class="project-notes-header">
+                                <div class="project-notes-title">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <span>Project Notes</span>
+                                </div>
+                                <div class="project-notes-actions">
+                                    <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
+                                        <i class="fas fa-eraser"></i>
+                                    </button>
+                                    <button type="button" class="notes-btn collapse-notes-btn" onclick="toggleProjectNotes()" title="Collapse/Expand">
+                                        <i class="fas fa-chevron-up" id="notesCollapseIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="project-notes-body" id="projectNotesBody">
+                                <textarea class="project-notes-textarea" 
+                                          id="projectNotesTextarea" 
+                                          placeholder="Add notes, requirements, or additional instructions for this project... These will be included when you generate."
+                                          oninput="onProjectNotesChange()"></textarea>
+                                <div class="project-notes-resize-handle" id="notesResizeHandle">
+                                    <i class="fas fa-grip-lines"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Dashboard Footer with Project Management & Generate Button -->
                         <div class="dashboard-footer">
                             <!-- Project Management Section (Left) -->
@@ -12972,6 +13138,26 @@ design across all components.
                 showToast('⚠️ No items have data (names or prompts)', 'warning');
                 return;
             }
+            
+            // 5. PROJECT NOTES SECTION (if has notes)
+            const projectNotes = getProjectNotes();
+            const hasProjectNotes = projectNotes.length > 0;
+            
+            if (hasProjectNotes) {
+                promptSections.push(`
+════════════════════════════════════════════════════════════════════════════════
+📝 PROJECT NOTES & ADDITIONAL INSTRUCTIONS
+════════════════════════════════════════════════════════════════════════════════
+
+The following notes and additional instructions have been provided for this project:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+${projectNotes.split('\n').map(line => `│  ${line.padEnd(73)}│`).join('\n')}
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚠️ Please consider these notes when implementing all components above.
+`);
+            }
 
             // Footer / Summary
             promptSections.push(`
@@ -12984,6 +13170,7 @@ ${hasDatabaseSelected ? '  ✅ Database Connection (Remote + Localhost)' : '  �
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
+${hasProjectNotes ? '  ✅ Project Notes included' : '  ⬜ Project Notes'}
 
 Total Components: ${backendCount + pageCount + frontendCount}
 
@@ -18584,6 +18771,9 @@ function collectDashboardData() {
         include_remote: document.getElementById('remoteCheckbox')?.checked ? 1 : 0,
         include_localhost: document.getElementById('localhostCheckbox')?.checked ? 1 : 0,
         
+        // Project notes
+        project_notes: getProjectNotes(),
+        
         // Items - use dynamicItems object which has all the data including prompts and files
         backends: [],
         pages: [],
@@ -18655,6 +18845,7 @@ function saveProject(projectData) {
     formData.append('backends', JSON.stringify(projectData.backends || []));
     formData.append('pages', JSON.stringify(projectData.pages || []));
     formData.append('frontends', JSON.stringify(projectData.frontends || []));
+    formData.append('project_notes', projectData.project_notes || '');
     // Include prompt editor content
     const promptEditor = document.getElementById('promptEditor');
     formData.append('prompt_content', promptEditor ? promptEditor.value : '');
@@ -18864,6 +19055,11 @@ function applyProjectToDashboard(project) {
         });
     }
     
+    // Load project notes
+    if (project.project_notes !== undefined) {
+        setProjectNotes(project.project_notes || '');
+    }
+    
     // Load prompt content into editor
     const promptEditor = document.getElementById('promptEditor');
     if (promptEditor && project.prompt_content) {
@@ -18971,8 +19167,106 @@ function resetDashboardProject() {
     currentProjectId = null;
     document.getElementById('projectSelector').value = '';
     resetDashboardItems();
+    clearProjectNotes();
     showToast('Dashboard reset to empty state', 'info');
 }
+
+// Project Notes Functions
+function toggleProjectNotes() {
+    const body = document.getElementById('projectNotesBody');
+    const icon = document.getElementById('notesCollapseIcon');
+    
+    if (body.classList.contains('collapsed')) {
+        body.classList.remove('collapsed');
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+    } else {
+        body.classList.add('collapsed');
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+    }
+}
+
+function clearProjectNotes() {
+    const textarea = document.getElementById('projectNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+        saveProjectNotesToStorage();
+    }
+}
+
+function onProjectNotesChange() {
+    saveProjectNotesToStorage();
+}
+
+function saveProjectNotesToStorage() {
+    const textarea = document.getElementById('projectNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('project_notes_temp', textarea.value);
+    }
+}
+
+function loadProjectNotesFromStorage() {
+    const textarea = document.getElementById('projectNotesTextarea');
+    const saved = localStorage.getItem('project_notes_temp');
+    if (textarea && saved) {
+        textarea.value = saved;
+    }
+}
+
+function getProjectNotes() {
+    const textarea = document.getElementById('projectNotesTextarea');
+    return textarea ? textarea.value.trim() : '';
+}
+
+function setProjectNotes(notes) {
+    const textarea = document.getElementById('projectNotesTextarea');
+    if (textarea) {
+        textarea.value = notes || '';
+        saveProjectNotesToStorage();
+    }
+}
+
+// Initialize resizable notes
+function initNotesResize() {
+    const resizeHandle = document.getElementById('notesResizeHandle');
+    const textarea = document.getElementById('projectNotesTextarea');
+    
+    if (!resizeHandle || !textarea) return;
+    
+    let isResizing = false;
+    let startY, startHeight;
+    
+    resizeHandle.addEventListener('mousedown', function(e) {
+        isResizing = true;
+        startY = e.clientY;
+        startHeight = textarea.offsetHeight;
+        document.body.style.cursor = 'ns-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing) return;
+        const diff = e.clientY - startY;
+        const newHeight = Math.min(Math.max(startHeight + diff, 40), 300);
+        textarea.style.height = newHeight + 'px';
+    });
+    
+    document.addEventListener('mouseup', function() {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
+// Initialize notes on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjectNotesFromStorage();
+    initNotesResize();
+});
 
 // Reset only the items (not the project selection)
 function resetDashboardItems() {
