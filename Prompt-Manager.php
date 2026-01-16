@@ -2882,12 +2882,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🎮 DESIGN ENHANCER CONTROL BUTTONS
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 0.8rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .de-control-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 6px;
+            color: #818cf8;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .de-control-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .de-control-btn.collapse-all {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        
+        .de-control-btn.collapse-all:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .de-control-btn.uncollapse-all {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .de-control-btn.uncollapse-all:hover {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        
+        .de-control-btn.reset-all {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .de-control-btn.reset-all:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .de-control-btn i {
+            font-size: 0.6rem;
+        }
+        
+        .de-control-btn span {
+            white-space: nowrap;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            👑 BRANDING TOOL - Design Enhancer Right Panel
            ═══════════════════════════════════════════════════════════════════ */
         
         /* Branding Badge */
         .de-tool-badge.branding-badge {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        /* Reset Button */
+        .de-tool-reset-btn {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+            color: #ef4444;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: auto;
+            margin-right: 0.4rem;
+        }
+        
+        .de-tool-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .de-tool-reset-btn:active {
+            transform: scale(0.95);
         }
         
         /* Logo Upload Zone */
@@ -11131,6 +11237,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="de-subtitle">AI-Powered Web Design</p>
                 </header>
                 
+                <!-- Design Enhancer Control Buttons -->
+                <div class="de-control-buttons">
+                    <button type="button" class="de-control-btn collapse-all" onclick="deCollapseAll()" title="Collapse All Groups">
+                        <i class="fas fa-compress-alt"></i>
+                        <span>Collapse</span>
+                    </button>
+                    <button type="button" class="de-control-btn uncollapse-all" onclick="deUncollapseAll()" title="Expand All Groups">
+                        <i class="fas fa-expand-alt"></i>
+                        <span>Expand</span>
+                    </button>
+                    <button type="button" class="de-control-btn reset-all" onclick="deResetAll()" title="Reset All to Default">
+                        <i class="fas fa-undo"></i>
+                        <span>Reset All</span>
+                    </button>
+                </div>
+                
                 <!-- ═══════════════════════════════════════════════════════════════════
                      👑 BRANDING TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
@@ -11140,6 +11262,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-crown"></i>
                             <span>Logo & Branding</span>
                         </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Reset branding to default?')) resetBranding();" title="Reset to default">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <div class="de-tool-badge branding-badge" id="brandingBadge">3</div>
                         <i class="fas fa-chevron-down de-tool-arrow" id="brandingArrow"></i>
                     </div>
@@ -11245,6 +11370,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-file-alt"></i>
                             <span>Pages Creator</span>
                         </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Reset pages creator to default?')) resetPagesCreator();" title="Reset to default">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <div class="de-tool-badge" id="pagesCreatorBadge">0</div>
                         <i class="fas fa-chevron-down de-tool-arrow" id="pagesCreatorArrow"></i>
                     </div>
@@ -21525,6 +21653,64 @@ function pushBrandingToNotes() {
     }
 }
 
+// Reset Branding to Default
+function resetBranding(skipToast = false) {
+    
+    // Clear logo
+    brandingLogoFile = null;
+    brandingLogoDataUrl = null;
+    
+    const preview = document.getElementById('brandingLogoPreview');
+    const prompt = document.getElementById('brandingUploadPrompt');
+    const zone = document.getElementById('brandingLogoZone');
+    const logoInput = document.getElementById('brandingLogoInput');
+    
+    if (preview) preview.style.display = 'none';
+    if (prompt) prompt.style.display = 'block';
+    if (zone) zone.classList.remove('has-logo');
+    if (logoInput) logoInput.value = '';
+    
+    // Clear title
+    const titleInput = document.getElementById('brandingTitleInput');
+    if (titleInput) titleInput.value = '';
+    updateBrandingTitlePreview();
+    
+    // Reset checkboxes to checked (default)
+    const options = [
+        { id: 'brandingFavicon', default: true },
+        { id: 'brandingLogoPages', default: true },
+        { id: 'brandingTitlePages', default: true }
+    ];
+    
+    options.forEach(opt => {
+        const checkbox = document.getElementById(opt.id);
+        if (checkbox) {
+            checkbox.checked = opt.default;
+            const item = checkbox.closest('.branding-option-item');
+            if (item) item.classList.toggle('checked', opt.default);
+        }
+    });
+    
+    // Clear custom instructions
+    const customPrompt = document.getElementById('brandingCustomPrompt');
+    if (customPrompt) customPrompt.value = '';
+    
+    // Hide custom instructions section
+    const customSection = document.getElementById('brandingCustomInstructions');
+    if (customSection) customSection.style.display = 'none';
+    
+    // Update badge
+    updateBrandingBadge();
+    
+    // Clear localStorage
+    localStorage.removeItem('branding_state');
+    
+    if (!skipToast) {
+        showToast('🔄 Branding reset to default', 'info');
+    }
+    console.log('✅ Branding reset to default');
+}
+
 // Initialize Branding on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     loadBrandingState();
@@ -21737,6 +21923,104 @@ function toggleToolSection(toolName) {
             arrow.style.transform = section.classList.contains('collapsed') ? 'rotate(-90deg)' : 'rotate(0)';
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 🎮 DESIGN ENHANCER CONTROL FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════
+
+// Collapse All Tool Sections
+function deCollapseAll() {
+    const sections = document.querySelectorAll('.de-tool-section');
+    sections.forEach(section => {
+        section.classList.add('collapsed');
+        const arrow = section.querySelector('.de-tool-arrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(-90deg)';
+        }
+    });
+    showToast('All sections collapsed', 'info');
+}
+
+// Expand (Uncollapse) All Tool Sections
+function deUncollapseAll() {
+    const sections = document.querySelectorAll('.de-tool-section');
+    sections.forEach(section => {
+        section.classList.remove('collapsed');
+        const arrow = section.querySelector('.de-tool-arrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(0)';
+        }
+    });
+    showToast('All sections expanded', 'info');
+}
+
+// Reset All Tool Sections to Default
+function deResetAll() {
+    if (!confirm('Reset all Design Enhancer tools to default? This will clear all your selections.')) {
+        return;
+    }
+    
+    // Reset Branding (skip individual toast)
+    resetBranding(true);
+    
+    // Reset Pages Creator (skip individual toast)
+    resetPagesCreator(true);
+    
+    // Expand all sections
+    deUncollapseAll();
+    
+    showToast('✨ All tools reset to default!', 'success');
+}
+
+// Reset Pages Creator to Default
+function resetPagesCreator(skipToast = false) {
+    // Uncheck all predefined pages
+    const predefinedItems = document.querySelectorAll('.pc-page-item');
+    predefinedItems.forEach(item => {
+        item.classList.remove('selected');
+    });
+    pcSelectedPages.clear();
+    
+    // Clear custom pages
+    pcCustomPages = [];
+    const customList = document.getElementById('pcCustomPagesList');
+    if (customList) {
+        customList.innerHTML = '';
+    }
+    
+    // Clear inputs
+    const searchInput = document.getElementById('pcTemplateSearch');
+    if (searchInput) searchInput.value = '';
+    
+    const nameInput = document.getElementById('pcCustomPageName');
+    if (nameInput) nameInput.value = '';
+    
+    const descInput = document.getElementById('pcCustomPageDesc');
+    if (descInput) descInput.value = '';
+    
+    // Hide template results
+    const templateResults = document.getElementById('pcTemplateResults');
+    if (templateResults) templateResults.classList.remove('active');
+    
+    // Update counts
+    pcUpdateSelectedCount();
+    const customBadge = document.getElementById('pcCustomBadge');
+    if (customBadge) {
+        customBadge.textContent = '0';
+        customBadge.style.display = 'none';
+    }
+    
+    // Clear localStorage
+    localStorage.removeItem('pcSelectedPages');
+    localStorage.removeItem('pcCustomPages');
+    localStorage.removeItem('pc_predefined_pages');
+    localStorage.removeItem('pc_custom_pages');
+    
+    if (!skipToast) {
+        showToast('🔄 Pages Creator reset to default', 'info');
+    }
+    console.log('✅ Pages Creator reset to default');
 }
 
 // Template Search

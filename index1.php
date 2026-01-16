@@ -5711,33 +5711,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         animation: pulse 1s ease-in-out infinite;
     }
 
-    /* ══════════════════════════════════════════
-           🖼️ LOGO UPLOAD ZONE - Aurora Purple/Cyan
-           ══════════════════════════════════════════ */
-    .logo-upload-zone:hover {
-        border-color: rgba(139, 92, 246, 0.6) !important;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(6, 182, 212, 0.12) 100%) !important;
-        box-shadow: 0 0 25px rgba(139, 92, 246, 0.3), 0 0 50px rgba(6, 182, 212, 0.15);
-        transform: translateY(-2px);
-    }
-
-    .logo-upload-zone.drag-over {
-        border-color: #06b6d4 !important;
-        border-style: solid !important;
-        background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%) !important;
-        animation: pulse 1s ease-in-out infinite;
-    }
-
-    #pageTitleInput:hover {
-        border-color: rgba(6, 182, 212, 0.5);
-        box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
-    }
-
-    #pageTitleInput:focus {
-        border-color: #06b6d4;
-        box-shadow: 0 0 25px rgba(6, 182, 212, 0.3), 0 0 0 3px rgba(6, 182, 212, 0.1);
-        outline: none;
-    }
+    /* Logo Upload Zone CSS - Migrated to Prompt-Manager.php */
 
     .visual-reference-icon {
         font-size: 4rem;
@@ -12104,329 +12078,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     };
 
     // ============================================
-    // LOGO & BRANDING FUNCTIONS - Define early
+    // LOGO & BRANDING FUNCTIONS - Migrated to Prompt-Manager.php
     // ============================================
-
-    // Logo state
-    window.logoData = {
-        file: null,
-        fileName: '',
-        dataUrl: '',
-        logoInFavicon: true,
-        logoInPages: true,
-        titleInPages: true,
-        pageTitle: '',
-        customInstructions: ''
-    };
-
-    // Handle logo file upload
-    window.handleLogoUpload = function(input) {
-        console.log('🖼️ handleLogoUpload() called');
-        const file = input.files[0];
-
-        if (!file) {
-            console.log('❌ No file selected');
-            return;
-        }
-
-        // Validate file type
-        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/x-icon', 'image/ico',
-            'image/gif', 'image/webp'
-        ];
-        if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.ico')) {
-            showNotification('❌ Invalid file type. Please upload PNG, JPG, SVG, or ICO.', 'error');
-            return;
-        }
-
-        // Store file data
-        window.logoData.file = file;
-        window.logoData.fileName = file.name;
-
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            window.logoData.dataUrl = e.target.result;
-
-            // Update UI
-            const previewContainer = document.getElementById('logoPreviewContainer');
-            const uploadPrompt = document.getElementById('logoUploadPrompt');
-            const logoPreview = document.getElementById('logoPreview');
-            const logoFileName = document.getElementById('logoFileName');
-            const badge = document.getElementById('logoBrandingBadge');
-
-            if (previewContainer && uploadPrompt && logoPreview && logoFileName) {
-                logoPreview.src = e.target.result;
-                logoFileName.textContent = file.name;
-                previewContainer.style.display = 'block';
-                uploadPrompt.style.display = 'none';
-            }
-
-            if (badge) {
-                badge.style.display = 'flex';
-            }
-
-            // Save to localStorage
-            localStorage.setItem('logoData', JSON.stringify({
-                fileName: window.logoData.fileName,
-                dataUrl: window.logoData.dataUrl,
-                logoInFavicon: window.logoData.logoInFavicon,
-                logoInPages: window.logoData.logoInPages,
-                titleInPages: window.logoData.titleInPages,
-                pageTitle: window.logoData.pageTitle,
-                customInstructions: window.logoData.customInstructions
-            }));
-
-            showNotification('✅ Logo uploaded successfully!', 'success');
-            console.log('✅ Logo uploaded:', file.name);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // Clear logo upload
-    window.clearLogoUpload = function() {
-        console.log('🗑️ clearLogoUpload() called');
-
-        window.logoData.file = null;
-        window.logoData.fileName = '';
-        window.logoData.dataUrl = '';
-
-        const previewContainer = document.getElementById('logoPreviewContainer');
-        const uploadPrompt = document.getElementById('logoUploadPrompt');
-        const logoFileInput = document.getElementById('logoFileInput');
-        const badge = document.getElementById('logoBrandingBadge');
-
-        if (previewContainer) previewContainer.style.display = 'none';
-        if (uploadPrompt) uploadPrompt.style.display = 'block';
-        if (logoFileInput) logoFileInput.value = '';
-        if (badge) badge.style.display = 'none';
-
-        localStorage.removeItem('logoData');
-        showNotification('Logo removed', 'info');
-    };
-
-    // Update page title preview
-    window.updatePageTitlePreview = function() {
-        const input = document.getElementById('pageTitleInput');
-        const preview = document.getElementById('titlePreview');
-        const previewText = document.getElementById('titlePreviewText');
-
-        if (input && preview && previewText) {
-            const title = input.value.trim();
-            window.logoData.pageTitle = title;
-
-            if (title) {
-                previewText.textContent = title;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-            }
-
-            // Save to localStorage
-            const savedData = JSON.parse(localStorage.getItem('logoData') || '{}');
-            savedData.pageTitle = title;
-            localStorage.setItem('logoData', JSON.stringify(savedData));
-        }
-    };
-
-    // Toggle branding option visual state
-    window.toggleBrandingOption = function(label) {
-        const checkbox = label.querySelector('input[type="checkbox"]');
-        if (checkbox) {
-            // The checkbox state will be toggled by the click
-            setTimeout(() => {
-                if (checkbox.checked) {
-                    label.classList.add('checked');
-                } else {
-                    label.classList.remove('checked');
-                }
-            }, 10);
-        }
-    };
-
-    // Update branding options state
-    window.updateBrandingOptions = function() {
-        const logoInFavicon = document.getElementById('logoInFavicon');
-        const logoInPages = document.getElementById('logoInPages');
-        const titleInPages = document.getElementById('titleInPages');
-        const customInstructionsContainer = document.getElementById('customBrandingInstructions');
-
-        window.logoData.logoInFavicon = logoInFavicon ? logoInFavicon.checked : true;
-        window.logoData.logoInPages = logoInPages ? logoInPages.checked : true;
-        window.logoData.titleInPages = titleInPages ? titleInPages.checked : true;
-
-        // Update visual state
-        [logoInFavicon, logoInPages, titleInPages].forEach(cb => {
-            if (cb) {
-                const label = cb.closest('.checkbox-item');
-                if (label) {
-                    if (cb.checked) {
-                        label.classList.add('checked');
-                    } else {
-                        label.classList.remove('checked');
-                    }
-                }
-            }
-        });
-
-        // Show/hide custom instructions textarea based on checkbox states
-        const allChecked = window.logoData.logoInFavicon && window.logoData.logoInPages && window.logoData
-            .titleInPages;
-        if (customInstructionsContainer) {
-            if (allChecked) {
-                customInstructionsContainer.style.display = 'none';
-            } else {
-                customInstructionsContainer.style.display = 'block';
-            }
-        }
-
-        // Save to localStorage
-        const savedData = JSON.parse(localStorage.getItem('logoData') || '{}');
-        savedData.logoInFavicon = window.logoData.logoInFavicon;
-        savedData.logoInPages = window.logoData.logoInPages;
-        savedData.titleInPages = window.logoData.titleInPages;
-        savedData.customInstructions = window.logoData.customInstructions;
-        localStorage.setItem('logoData', JSON.stringify(savedData));
-
-        console.log('✅ Branding options updated:', {
-            logoInFavicon: window.logoData.logoInFavicon,
-            logoInPages: window.logoData.logoInPages,
-            titleInPages: window.logoData.titleInPages,
-            hasCustomInstructions: !!window.logoData.customInstructions
-        });
-    };
-
-    // Update custom branding instructions
-    window.updateCustomBrandingInstructions = function() {
-        const textarea = document.getElementById('customBrandingPrompt');
-        if (textarea) {
-            window.logoData.customInstructions = textarea.value.trim();
-
-            // Save to localStorage
-            const savedData = JSON.parse(localStorage.getItem('logoData') || '{}');
-            savedData.customInstructions = window.logoData.customInstructions;
-            localStorage.setItem('logoData', JSON.stringify(savedData));
-
-            console.log('✅ Custom branding instructions updated:', window.logoData.customInstructions.length,
-                'chars');
-        }
-    };
-
-    // Get logo branding settings for prompt
-    window.getLogoBrandingSettings = function() {
-        const hasLogo = window.logoData.dataUrl || window.logoData.fileName;
-        const hasTitle = window.logoData.pageTitle && window.logoData.pageTitle.trim();
-        const hasCustomInstructions = window.logoData.customInstructions && window.logoData.customInstructions
-            .trim();
-
-        // Check if any option is enabled OR has custom instructions
-        const anyEnabled = window.logoData.logoInFavicon || window.logoData.logoInPages || window.logoData
-            .titleInPages;
-
-        // If nothing enabled and no custom instructions, return null
-        if (!anyEnabled && !hasCustomInstructions && !hasLogo && !hasTitle) {
-            return null;
-        }
-
-        // Check if all options are checked (default behavior)
-        const allChecked = window.logoData.logoInFavicon && window.logoData.logoInPages && window.logoData
-            .titleInPages;
-
-        return {
-            hasLogo: !!hasLogo,
-            logoFileName: window.logoData.fileName,
-            hasTitle: !!hasTitle,
-            pageTitle: window.logoData.pageTitle,
-            allChecked: allChecked,
-            hasCustomInstructions: !!hasCustomInstructions,
-            customInstructions: window.logoData.customInstructions || '',
-            options: {
-                logoInFavicon: window.logoData.logoInFavicon && hasLogo,
-                logoInPages: window.logoData.logoInPages && hasLogo,
-                titleInPages: window.logoData.titleInPages && hasTitle
-            }
-        };
-    };
-
-    // Load saved logo data on page load
-    window.loadSavedLogoData = function() {
-        const savedData = localStorage.getItem('logoData');
-        if (savedData) {
-            try {
-                const data = JSON.parse(savedData);
-
-                window.logoData.fileName = data.fileName || '';
-                window.logoData.dataUrl = data.dataUrl || '';
-                window.logoData.logoInFavicon = data.logoInFavicon !== false;
-                window.logoData.logoInPages = data.logoInPages !== false;
-                window.logoData.titleInPages = data.titleInPages !== false;
-                window.logoData.pageTitle = data.pageTitle || '';
-                window.logoData.customInstructions = data.customInstructions || '';
-
-                // Restore UI if logo was saved
-                if (window.logoData.dataUrl) {
-                    const previewContainer = document.getElementById('logoPreviewContainer');
-                    const uploadPrompt = document.getElementById('logoUploadPrompt');
-                    const logoPreview = document.getElementById('logoPreview');
-                    const logoFileName = document.getElementById('logoFileName');
-                    const badge = document.getElementById('logoBrandingBadge');
-
-                    if (previewContainer && uploadPrompt && logoPreview && logoFileName) {
-                        logoPreview.src = window.logoData.dataUrl;
-                        logoFileName.textContent = window.logoData.fileName;
-                        previewContainer.style.display = 'block';
-                        uploadPrompt.style.display = 'none';
-                    }
-                    if (badge) badge.style.display = 'flex';
-                }
-
-                // Restore title
-                const titleInput = document.getElementById('pageTitleInput');
-                if (titleInput && window.logoData.pageTitle) {
-                    titleInput.value = window.logoData.pageTitle;
-                    updatePageTitlePreview();
-                }
-
-                // Restore checkbox states
-                const logoInFavicon = document.getElementById('logoInFavicon');
-                const logoInPages = document.getElementById('logoInPages');
-                const titleInPages = document.getElementById('titleInPages');
-
-                if (logoInFavicon) {
-                    logoInFavicon.checked = window.logoData.logoInFavicon;
-                    const label = logoInFavicon.closest('.checkbox-item');
-                    if (label) label.classList.toggle('checked', window.logoData.logoInFavicon);
-                }
-                if (logoInPages) {
-                    logoInPages.checked = window.logoData.logoInPages;
-                    const label = logoInPages.closest('.checkbox-item');
-                    if (label) label.classList.toggle('checked', window.logoData.logoInPages);
-                }
-                if (titleInPages) {
-                    titleInPages.checked = window.logoData.titleInPages;
-                    const label = titleInPages.closest('.checkbox-item');
-                    if (label) label.classList.toggle('checked', window.logoData.titleInPages);
-                }
-
-                // Restore custom instructions textarea
-                const customInstructionsTextarea = document.getElementById('customBrandingPrompt');
-                const customInstructionsContainer = document.getElementById('customBrandingInstructions');
-                if (customInstructionsTextarea && window.logoData.customInstructions) {
-                    customInstructionsTextarea.value = window.logoData.customInstructions;
-                }
-
-                // Show/hide custom instructions based on checkbox states
-                const allChecked = window.logoData.logoInFavicon && window.logoData.logoInPages && window.logoData
-                    .titleInPages;
-                if (customInstructionsContainer) {
-                    customInstructionsContainer.style.display = allChecked ? 'none' : 'block';
-                }
-
-                console.log('✅ Logo data restored from localStorage');
-            } catch (e) {
-                console.error('Error loading logo data:', e);
-            }
-        }
-    };
     </script>
 </head>
 
@@ -16904,263 +16557,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Logo & Branding Section -->
-            <div id="logoBrandingSection" class="card card-full fade-in" style="animation-delay: 0.397s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <h2 class="card-title">Logo & Branding</h2>
-                    <div id="logoBrandingBadge"
-                        style="background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%); color: white; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: none; margin-left: auto; align-items: center; gap: 0.4rem;">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="logoBrandingText">Logo Uploaded</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Upload your logo and set the page title for consistent branding across
-                        all pages</p>
-
-                    <!-- Logo Upload Zone -->
-                    <div class="logo-upload-zone" id="logoDropZone"
-                        onclick="document.getElementById('logoFileInput').click();" style="
-                        border: 3px dashed rgba(139, 92, 246, 0.4);
-                        border-radius: var(--radius-xl);
-                        padding: 2rem;
-                        text-align: center;
-                        cursor: pointer;
-                        transition: all var(--transition-base);
-                        background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
-                        position: relative;
-                        overflow: hidden;
-                        margin-bottom: 1.5rem;
-                    ">
-                        <input type="file" id="logoFileInput" accept="image/*" style="display: none;"
-                            onchange="handleLogoUpload(this)">
-
-                        <!-- Logo Preview (hidden by default) -->
-                        <div id="logoPreviewContainer" style="display: none;">
-                            <img id="logoPreview" src="" alt="Logo Preview" style="
-                                max-width: 200px;
-                                max-height: 120px;
-                                border-radius: var(--radius-md);
-                                box-shadow: var(--shadow-lg);
-                                margin-bottom: 1rem;
-                                border: 3px solid rgba(139, 92, 246, 0.3);
-                            ">
-                            <p id="logoFileName"
-                                style="color: var(--aurora-green); font-weight: 600; margin: 0.5rem 0;"></p>
-                            <button type="button" onclick="event.stopPropagation(); clearLogoUpload();"
-                                class="btn btn-danger btn-sm" style="margin-top: 0.5rem;">
-                                <i class="fas fa-times"></i> Remove Logo
-                            </button>
-                        </div>
-
-                        <!-- Upload Prompt (shown by default) -->
-                        <div id="logoUploadPrompt">
-                            <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">
-                                <i class="fas fa-image"
-                                    style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
-                            </div>
-                            <h3
-                                style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
-                                Upload Your Logo</h3>
-                            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0.75rem;">Click
-                                to browse or drag & drop your logo image</p>
-                            <div style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 0.5rem;
-                                padding: 0.5rem 1rem;
-                                background: rgba(139, 92, 246, 0.15);
-                                border-radius: var(--radius-full);
-                                color: var(--aurora-violet);
-                                font-size: 0.85rem;
-                                border: 1px solid rgba(139, 92, 246, 0.25);
-                            ">
-                                <i class="fas fa-info-circle"></i>
-                                PNG, JPG, SVG, ICO supported
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Page Title Input -->
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label class="form-label"
-                            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                            <i class="fas fa-heading" style="color: #06b6d4;"></i>
-                            <strong>Page Title</strong>
-                            <span style="color: var(--text-muted); font-weight: 400; font-size: 0.85rem;">(for browser
-                                tab & favicon)</span>
-                        </label>
-                        <input type="text" id="pageTitleInput"
-                            placeholder="Enter your website title (e.g., My Awesome Website)"
-                            oninput="updatePageTitlePreview()" style="
-                                width: 100%;
-                                padding: 1rem 1.25rem;
-                                font-size: 1rem;
-                                background: linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 38, 59, 0.8) 100%);
-                                border: 2px solid rgba(6, 182, 212, 0.3);
-                                border-radius: var(--radius-lg);
-                                color: var(--text-primary);
-                                transition: all var(--transition-base);
-                            ">
-                        <div id="titlePreview" style="
-                            margin-top: 0.75rem;
-                            padding: 0.75rem 1rem;
-                            background: rgba(6, 182, 212, 0.1);
-                            border-radius: var(--radius-md);
-                            border-left: 4px solid #06b6d4;
-                            display: none;
-                        ">
-                            <span style="color: var(--text-muted); font-size: 0.85rem;"><i class="fas fa-eye"></i>
-                                Preview: </span>
-                            <span id="titlePreviewText" style="color: var(--text-primary); font-weight: 600;"></span>
-                        </div>
-                    </div>
-
-                    <!-- Branding Options -->
-                    <div class="branding-options" style="
-                        background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
-                        border: 2px solid rgba(139, 92, 246, 0.2);
-                        border-radius: var(--radius-xl);
-                        padding: 1.5rem;
-                    ">
-                        <h4
-                            style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-cogs" style="color: #8b5cf6;"></i>
-                            Branding Application Options
-                        </h4>
-
-                        <!-- Option 1: Logo in Favicon -->
-                        <label class="checkbox-item checked" data-branding="favicon" style="margin-bottom: 0.75rem;"
-                            onclick="toggleBrandingOption(this)">
-                            <input type="checkbox" id="logoInFavicon" checked onchange="updateBrandingOptions()">
-                            <div style="flex: 1;">
-                                <strong
-                                    style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fas fa-bookmark" style="color: #8b5cf6;"></i>
-                                    Set Logo as Favicon for All Pages
-                                </strong>
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                    Loop through all HTML/PHP files and set the uploaded logo as the favicon (browser
-                                    tab icon)
-                                </p>
-                            </div>
-                        </label>
-
-                        <!-- Option 2: Logo in Every Page -->
-                        <label class="checkbox-item checked" data-branding="logo-pages" style="margin-bottom: 0.75rem;"
-                            onclick="toggleBrandingOption(this)">
-                            <input type="checkbox" id="logoInPages" checked onchange="updateBrandingOptions()">
-                            <div style="flex: 1;">
-                                <strong
-                                    style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fas fa-images" style="color: #06b6d4;"></i>
-                                    Add Logo to Every Page
-                                </strong>
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                    Insert the logo image in header/navigation of all pages for consistent branding
-                                </p>
-                            </div>
-                        </label>
-
-                        <!-- Option 3: Title in Every Page -->
-                        <label class="checkbox-item checked" data-branding="title-pages"
-                            onclick="toggleBrandingOption(this)">
-                            <input type="checkbox" id="titleInPages" checked onchange="updateBrandingOptions()">
-                            <div style="flex: 1;">
-                                <strong
-                                    style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fas fa-font" style="color: #10b981;"></i>
-                                    Set Title for All Pages
-                                </strong>
-                                <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                    Update the &lt;title&gt; tag in all HTML/PHP files with the specified page title
-                                </p>
-                            </div>
-                        </label>
-                    </div>
-
-                    <!-- Custom Branding Instructions (appears when any option is unchecked) -->
-                    <div id="customBrandingInstructions" style="
-                        margin-top: 1.25rem;
-                        padding: 1.5rem;
-                        background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
-                        border: 2px solid rgba(251, 191, 36, 0.3);
-                        border-radius: var(--radius-xl);
-                        display: none;
-                    ">
-                        <h4
-                            style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-edit" style="color: #f59e0b;"></i>
-                            Custom Branding Instructions
-                        </h4>
-                        <p
-                            style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.6;">
-                            Since you unchecked some default options, you can specify custom instructions for applying
-                            the logo/title to specific files or pages:
-                        </p>
-                        <textarea id="customBrandingPrompt" placeholder="Example:
-• Apply the logo only to: index.html, about.html, contact.html
-• Set favicon only for: homepage, services page
-• Add title only to pages in the /admin/ folder
-• Use the logo in the footer instead of header
-• Apply different titles for different sections..." style="
-                            width: 100%;
-                            min-height: 150px;
-                            padding: 1rem 1.25rem;
-                            font-size: 0.95rem;
-                            font-family: var(--font-body);
-                            background: linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 38, 59, 0.8) 100%);
-                            border: 2px solid rgba(251, 191, 36, 0.3);
-                            border-radius: var(--radius-lg);
-                            color: var(--text-primary);
-                            resize: vertical;
-                            transition: all var(--transition-base);
-                            line-height: 1.6;
-                        " oninput="updateCustomBrandingInstructions()"></textarea>
-                        <div style="
-                            margin-top: 0.75rem;
-                            display: flex;
-                            align-items: center;
-                            gap: 0.5rem;
-                            color: var(--text-muted);
-                            font-size: 0.85rem;
-                        ">
-                            <i class="fas fa-info-circle" style="color: #f59e0b;"></i>
-                            <span>These instructions will override the default "apply to all pages" behavior for
-                                unchecked options.</span>
-                        </div>
-                    </div>
-
-                    <!-- Info Note -->
-                    <div style="
-                        margin-top: 1.25rem;
-                        padding: 1rem;
-                        background: rgba(139, 92, 246, 0.08);
-                        border-left: 4px solid #8b5cf6;
-                        border-radius: var(--radius-md);
-                        display: flex;
-                        gap: 0.75rem;
-                        align-items: flex-start;
-                    ">
-                        <i class="fas fa-lightbulb" style="color: #8b5cf6; font-size: 1.2rem; margin-top: 2px;"></i>
-                        <div>
-                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">How it
-                                works:</strong>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin: 0;">
-                                ✅ <strong>All checked:</strong> Logo and title will be applied to ALL pages
-                                automatically.<br>
-                                ⚠️ <strong>Some unchecked:</strong> A custom instructions box will appear where you can
-                                specify exactly which files/pages to target.<br>
-                                The AI will follow your instructions precisely.
-                            </p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            <!-- Logo & Branding Section - Migrated to Prompt-Manager.php -->
 
             <!-- Homepage Options -->
             <div id="homepageCreationSection" class="card card-full fade-in" style="animation-delay: 0.4s;">
@@ -17975,7 +17372,7 @@ Examples:
             'executionModeSection', 'fileUploadSection', 'themeSelectionSection',
             'enhancementOptionsSection', 'designStyleSection', 'colorThemeSection',
             'layoutSection', 'referenceImagesSection', 'excludedFilesSection',
-            'logoBrandingSection', 'homepageCreationSection', 'documentationPageSection',
+            'homepageCreationSection', 'documentationPageSection',
             'customInstructionsSection', 'promptOutputSection'
         ];
 
@@ -18184,23 +17581,6 @@ Examples:
             ],
             tip: 'Always exclude sensitive pages like admin panels, payment pages, or any pages with complex functionality you don\'t want changed.',
             sectionId: 'excludedFilesSection'
-        },
-        logoBranding: {
-            icon: 'fa-crown',
-            iconBg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.1))',
-            iconColor: '#8b5cf6',
-            title: 'Logo & Branding',
-            subtitle: 'Set up your brand identity',
-            description: 'Upload your logo and set branding options. The AI will ensure consistent branding across all pages including favicon and title.',
-            features: [
-                'Upload logo image (PNG, JPG, SVG)',
-                'Set page title for all tabs',
-                'Auto-set logo as favicon',
-                'Apply logo to all pages consistently',
-                'Custom branding instructions option'
-            ],
-            tip: 'Use a transparent PNG logo for best results. The AI will automatically optimize it for different sizes and placements.',
-            sectionId: 'logoBrandingSection'
         },
         homepageCreation: {
             icon: 'fa-home',
@@ -18914,7 +18294,6 @@ Examples:
         layout: 'layoutSection',
         referenceImages: 'referenceImagesSection',
         excludedFiles: 'excludedFilesSection',
-        logoBranding: 'logoBrandingSection',
         homepageCreation: 'homepageCreationSection',
         documentationPage: 'documentationPageSection',
         customInstructions: 'customInstructionsSection',
@@ -18934,7 +18313,6 @@ Examples:
         layout: true,
         referenceImages: true,
         excludedFiles: true,
-        logoBranding: true,
         homepageCreation: true,
         documentationPage: true,
         customInstructions: true,
@@ -20011,8 +19389,7 @@ Examples:
             'designStyleSection',        // Enhanced Style Types - not needed, keeping current style
             'colorThemeSection',         // Design Theme Selection - theme is already in the preserved design
             'layoutSection',             // Page Layout Structure - layout is preserved from original
-            'referenceImagesSection',    // Visual Design Reference - not changing visual design
-            'logoBrandingSection'        // Logo & Branding - keeping existing branding
+            'referenceImagesSection'     // Visual Design Reference - not changing visual design
         ];
         
         // Sidebar section names that correspond to the hidden sections
@@ -20020,8 +19397,7 @@ Examples:
             'designStyle',
             'colorTheme', 
             'layout',
-            'referenceImages',
-            'logoBranding'
+            'referenceImages'
         ];
         
         const isPreserveMode = level === 'preserve';
@@ -23217,169 +22593,7 @@ Enhance the design and layout of this website using ONLY CSS and HTML modificati
                 console.log('   Both excluded:', excludedFiles.filter(f => f.excludeTheme && f.excludeLayout).length);
             }
 
-            // Add Logo & Branding section (if logoBranding section is enabled AND NOT in preserve mode)
-            const logoBrandingSettings = window.getLogoBrandingSettings ? window.getLogoBrandingSettings() : null;
-
-            if (!isSectionEnabled('logoBranding') || isPreserveMode) {
-                console.log('⏭️ Logo & Branding section DISABLED or PRESERVE MODE - skipping');
-            } else {
-                console.log('📝 Adding Logo & Branding section...');
-            }
-
-            if (isSectionEnabled('logoBranding') && !isPreserveMode && logoBrandingSettings && (logoBrandingSettings.options
-                    .logoInFavicon || logoBrandingSettings.options
-                    .logoInPages || logoBrandingSettings.options.titleInPages || logoBrandingSettings
-                    .hasCustomInstructions)) {
-                prompt += `## 🎨 LOGO & BRANDING CONFIGURATION\n\n`;
-
-                const enabledFeatures = [];
-                const disabledFeatures = [];
-
-                // Check which features are enabled/disabled for summary
-                if (logoBrandingSettings.hasLogo) {
-                    if (logoBrandingSettings.options.logoInFavicon) {
-                        enabledFeatures.push('Favicon');
-                    } else {
-                        disabledFeatures.push('Favicon');
-                    }
-                    if (logoBrandingSettings.options.logoInPages) {
-                        enabledFeatures.push('Logo on Pages');
-                    } else {
-                        disabledFeatures.push('Logo on Pages');
-                    }
-                }
-                if (logoBrandingSettings.hasTitle) {
-                    if (logoBrandingSettings.options.titleInPages) {
-                        enabledFeatures.push('Page Title');
-                    } else {
-                        disabledFeatures.push('Page Title');
-                    }
-                }
-
-                // Show logo and title info with file reference
-                if (logoBrandingSettings.hasLogo) {
-                    prompt += `**📸 Logo File:** \`${logoBrandingSettings.logoFileName}\`\n`;
-                    prompt += `**📍 Location:** Find this file in the project root directory\n`;
-                    prompt += `**⚠️ Note:** DO NOT ask for the logo - it's already in the project files.\n`;
-                }
-                if (logoBrandingSettings.hasTitle) {
-                    prompt += `**📝 Page Title:** "${logoBrandingSettings.pageTitle}"\n`;
-                }
-                prompt += `\n`;
-
-                // Logo in Favicon
-                if (logoBrandingSettings.options.logoInFavicon && logoBrandingSettings.hasLogo) {
-                    prompt += `### 📌 Set Logo as Favicon for All Pages ✅\n\n`;
-                    prompt += `**Instructions:**\n`;
-                    prompt += `1. Loop through ALL HTML and PHP files in the application\n`;
-                    prompt += `2. For each file, add or update the favicon link in the <head> section:\n`;
-                    prompt += `   \`<link rel="icon" type="image/x-icon" href="[logo-path]">\`\n`;
-                    prompt += `   \`<link rel="shortcut icon" href="[logo-path]">\`\n`;
-                    prompt +=
-                        `3. Ensure the logo file is placed in an accessible location (e.g., /assets/images/ or root)\n`;
-                    prompt += `4. If the logo is not in ICO format, also add:\n`;
-                    prompt += `   \`<link rel="icon" type="image/png" href="[logo-path]">\`\n`;
-                    prompt += `5. Apply this to EVERY page consistently\n\n`;
-                }
-
-                // Logo in Every Page
-                if (logoBrandingSettings.options.logoInPages && logoBrandingSettings.hasLogo) {
-                    prompt += `### 🖼️ Add Logo to Every Page ✅\n\n`;
-                    prompt += `**Instructions:**\n`;
-                    prompt += `1. Loop through ALL HTML and PHP files in the application\n`;
-                    prompt += `2. For each page, add the logo image in the header/navigation area:\n`;
-                    prompt += `   \`<img src="[logo-path]" alt="Logo" class="site-logo">\`\n`;
-                    prompt += `3. Style the logo appropriately:\n`;
-                    prompt += `   - Responsive sizing (max-height: 50-60px for headers)\n`;
-                    prompt += `   - Proper alignment with navigation elements\n`;
-                    prompt += `   - Link the logo to the homepage\n`;
-                    prompt += `4. Ensure consistent placement across all pages\n`;
-                    prompt += `5. Add appropriate CSS for the logo styling\n\n`;
-                }
-
-                // Title in Every Page
-                if (logoBrandingSettings.options.titleInPages && logoBrandingSettings.hasTitle) {
-                    prompt += `### 📝 Set Title for All Pages ✅\n\n`;
-                    prompt += `**Instructions:**\n`;
-                    prompt += `1. Loop through ALL HTML and PHP files in the application\n`;
-                    prompt += `2. For each file, update the <title> tag in the <head> section:\n`;
-                    prompt += `   \`<title>${logoBrandingSettings.pageTitle}</title>\`\n`;
-                    prompt += `   OR for page-specific titles:\n`;
-                    prompt += `   \`<title>[Page Name] | ${logoBrandingSettings.pageTitle}</title>\`\n`;
-                    prompt += `3. Update any meta tags related to the title:\n`;
-                    prompt += `   \`<meta property="og:title" content="${logoBrandingSettings.pageTitle}">\`\n`;
-                    prompt += `   \`<meta property="og:site_name" content="${logoBrandingSettings.pageTitle}">\`\n`;
-                    prompt += `4. Apply consistently across ALL pages\n\n`;
-                }
-
-                // Custom Instructions Section (when some options are unchecked)
-                if (logoBrandingSettings.hasCustomInstructions) {
-                    prompt += `### ⚠️ CUSTOM BRANDING INSTRUCTIONS\n\n`;
-                    prompt += `**Important:** The user has provided specific instructions for branding application.\n`;
-                    prompt += `Some default options were disabled. Follow these custom instructions:\n\n`;
-                    prompt += `\`\`\`\n${logoBrandingSettings.customInstructions}\n\`\`\`\n\n`;
-                    prompt += `**Rules for Custom Instructions:**\n`;
-                    prompt += `1. Follow the user's specific file/page selections above\n`;
-                    prompt += `2. Only apply branding to the files/pages mentioned\n`;
-                    prompt += `3. Do NOT apply default "all pages" behavior for unchecked options\n`;
-                    prompt += `4. For checked options, still apply to ALL pages unless overridden above\n\n`;
-                }
-
-                // Show disabled features notice
-                if (disabledFeatures.length > 0 && !logoBrandingSettings.hasCustomInstructions) {
-                    prompt += `### ⏭️ Disabled Features (Skip These):\n`;
-                    disabledFeatures.forEach(feature => {
-                        prompt += `- ❌ ${feature} - Do NOT apply globally\n`;
-                    });
-                    prompt += `\n`;
-                }
-
-                prompt += `**📋 Summary of Branding Tasks:**\n`;
-                prompt +=
-                    `- ✅ Enabled features: ${enabledFeatures.length > 0 ? enabledFeatures.join(', ') : 'None (using custom instructions)'}\n`;
-                if (disabledFeatures.length > 0) {
-                    prompt += `- ❌ Disabled features: ${disabledFeatures.join(', ')}\n`;
-                }
-                if (logoBrandingSettings.hasCustomInstructions) {
-                    prompt += `- 📝 Custom instructions: YES - Follow user's specific requirements\n`;
-                } else {
-                    prompt += `- Apply to: ALL HTML and PHP files in the application\n`;
-                }
-                prompt += `- Consistency: Ensure uniform branding where applied\n\n`;
-
-                console.log('✅ Logo & Branding section completed');
-                console.log('   Enabled features:', enabledFeatures);
-                console.log('   Disabled features:', disabledFeatures);
-                console.log('   Has custom instructions:', logoBrandingSettings.hasCustomInstructions);
-            } else if (isSectionEnabled('logoBranding') && !isPreserveMode && logoBrandingSettings && (logoBrandingSettings.hasLogo ||
-                    logoBrandingSettings.hasTitle)) {
-                // Logo/Title uploaded but all options unchecked - check for custom instructions
-                prompt += `## 🎨 LOGO & BRANDING CONFIGURATION\n\n`;
-
-                if (logoBrandingSettings.hasLogo) {
-                    prompt += `**📸 Logo File:** ${logoBrandingSettings.logoFileName}\n`;
-                }
-                if (logoBrandingSettings.hasTitle) {
-                    prompt += `**📝 Page Title:** "${logoBrandingSettings.pageTitle}"\n`;
-                }
-                prompt += `\n`;
-
-                prompt += `**⚠️ Notice:** All automatic branding options are disabled.\n\n`;
-
-                if (logoBrandingSettings.hasCustomInstructions) {
-                    prompt += `### 📝 CUSTOM BRANDING INSTRUCTIONS\n\n`;
-                    prompt += `The user has provided specific instructions for how to apply branding:\n\n`;
-                    prompt += `\`\`\`\n${logoBrandingSettings.customInstructions}\n\`\`\`\n\n`;
-                    prompt += `**Follow these custom instructions exactly.**\n\n`;
-                } else {
-                    prompt += `The user has uploaded branding assets but chose NOT to apply them automatically.\n`;
-                    prompt += `Do NOT add the logo or title unless specifically requested elsewhere.\n\n`;
-                }
-
-                console.log('✅ Logo & Branding section completed (with custom instructions only)');
-            } else {
-                console.log('⏭️ Logo & Branding section skipped (no options enabled or no content)');
-            }
+            // Logo & Branding section - Migrated to Prompt-Manager.php
 
             // Add homepage configuration section (if homepageCreation section is enabled)
             if (isSectionEnabled('homepageCreation')) {
@@ -25002,14 +24216,7 @@ Please provide:
             // Log Additional Pages
             const pagesCount = typeof pagesToCreate !== 'undefined' ? pagesToCreate.length : 0;
             console.log(`📄 Additional Pages: ${pagesCount > 0 ? pagesCount + ' pages' : 'None'}`);
-            // Log Logo & Branding
-            const brandingInfo = logoBrandingSettings ?
-                (logoBrandingSettings.hasLogo ? `Logo: ${logoBrandingSettings.logoFileName}` : '') +
-                (logoBrandingSettings.hasLogo && logoBrandingSettings.hasTitle ? ' | ' : '') +
-                (logoBrandingSettings.hasTitle ? `Title: ${logoBrandingSettings.pageTitle}` : '') +
-                (logoBrandingSettings.hasCustomInstructions ? ' | Custom Instructions' : '') :
-                'None';
-            console.log(`👑 Logo & Branding: ${brandingInfo || 'None'}`);
+            // Logo & Branding - Migrated to Prompt-Manager.php
             // Log Documentation Page
             console.log(
                 `📖 Documentation Page: ${typeof docPageSettings !== 'undefined' && docPageSettings && docPageSettings.enabled ? 'YES - ' + docPageSettings.fileName : 'NO'}`
@@ -25402,64 +24609,7 @@ Please provide:
             }
         }
 
-        // Reset logo branding
-        if (window.logoData) {
-            window.logoData = {
-                file: null,
-                fileName: '',
-                dataUrl: '',
-                logoInFavicon: true,
-                logoInPages: true,
-                titleInPages: true,
-                pageTitle: '',
-                customInstructions: ''
-            };
-        }
-        const logoPreviewContainer = document.getElementById('logoPreviewContainer');
-        const logoUploadPrompt = document.getElementById('logoUploadPrompt');
-        const logoFileInput = document.getElementById('logoFileInput');
-        const logoBadge = document.getElementById('logoBrandingBadge');
-        const pageTitleInput = document.getElementById('pageTitleInput');
-        const titlePreview = document.getElementById('titlePreview');
-
-        if (logoPreviewContainer) logoPreviewContainer.style.display = 'none';
-        if (logoUploadPrompt) logoUploadPrompt.style.display = 'block';
-        if (logoFileInput) logoFileInput.value = '';
-        if (logoBadge) logoBadge.style.display = 'none';
-        if (pageTitleInput) pageTitleInput.value = '';
-        if (titlePreview) titlePreview.style.display = 'none';
-
-        // Reset branding checkboxes to checked (default)
-        const logoInFavicon = document.getElementById('logoInFavicon');
-        const logoInPages = document.getElementById('logoInPages');
-        const titleInPages = document.getElementById('titleInPages');
-
-        if (logoInFavicon) {
-            logoInFavicon.checked = true;
-            const label = logoInFavicon.closest('.checkbox-item');
-            if (label) label.classList.add('checked');
-        }
-        if (logoInPages) {
-            logoInPages.checked = true;
-            const label = logoInPages.closest('.checkbox-item');
-            if (label) label.classList.add('checked');
-        }
-        if (titleInPages) {
-            titleInPages.checked = true;
-            const label = titleInPages.closest('.checkbox-item');
-            if (label) label.classList.add('checked');
-        }
-
-        // Reset custom branding instructions textarea and hide it
-        const customBrandingPrompt = document.getElementById('customBrandingPrompt');
-        const customBrandingInstructions = document.getElementById('customBrandingInstructions');
-        if (customBrandingPrompt) {
-            customBrandingPrompt.value = '';
-        }
-        if (customBrandingInstructions) {
-            customBrandingInstructions.style.display = 'none';
-        }
-
+        // Logo & Branding - Migrated to Prompt-Manager.php
         localStorage.removeItem('logoData');
 
         // Reset exclusions
@@ -25567,10 +24717,7 @@ Please provide:
             // Don't show automatically - user can regenerate if needed
         }
 
-        // Load logo branding data
-        if (window.loadSavedLogoData) {
-            window.loadSavedLogoData();
-        }
+        // Logo & Branding data - Migrated to Prompt-Manager.php
 
         // Load FormSubmit.co state
         const savedFormSubmit = localStorage.getItem('enableFormSubmit');
@@ -28742,46 +27889,7 @@ Please provide:
         });
     }
 
-    // Initialize Logo Uploader
-    function initLogoUploader() {
-        const logoDropZone = document.getElementById('logoDropZone');
-        const logoFileInput = document.getElementById('logoFileInput');
-
-        if (!logoDropZone || !logoFileInput) {
-            console.log('⚠️ Logo uploader elements not found');
-            return;
-        }
-
-        // Drag and drop
-        logoDropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            logoDropZone.classList.add('drag-over');
-        });
-
-        logoDropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            logoDropZone.classList.remove('drag-over');
-        });
-
-        logoDropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            logoDropZone.classList.remove('drag-over');
-
-            const files = e.dataTransfer.files;
-            if (files && files.length > 0) {
-                // Set the file to the input and trigger the handler
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(files[0]);
-                logoFileInput.files = dataTransfer.files;
-                window.handleLogoUpload(logoFileInput);
-            }
-        });
-
-        console.log('✅ Logo uploader initialized');
-    }
+    // Logo Uploader - Migrated to Prompt-Manager.php
 
     // Handle Reference Files
     function handleReferenceFiles(files) {
@@ -29341,7 +28449,7 @@ Please provide:
         loadTaskBreakdownSettings();
         loadReferenceFromStorage();
         initReferenceUploader();
-        initLogoUploader();
+        // initLogoUploader() - Migrated to Prompt-Manager.php
         loadExclusionsFromStorage();
         initExclusionManager();
 
