@@ -4031,6 +4031,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.65rem;
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           🎭 DESIGN ENHANCER CONFIRM MODAL
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .de-confirm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .de-confirm-modal {
+            background: linear-gradient(145deg, 
+                rgba(30, 41, 59, 0.98) 0%, 
+                rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 0;
+            min-width: 320px;
+            max-width: 400px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+        
+        .de-confirm-overlay.active .de-confirm-modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .de-confirm-header {
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, 
+                rgba(239, 68, 68, 0.15) 0%, 
+                rgba(234, 88, 12, 0.1) 100%);
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .de-confirm-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            animation: de-pulse-icon 2s ease-in-out infinite;
+        }
+        
+        @keyframes de-pulse-icon {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(239, 68, 68, 0.6); }
+        }
+        
+        .de-confirm-header-text h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .de-confirm-header-text p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .de-confirm-body {
+            padding: 1.5rem;
+        }
+        
+        .de-confirm-message {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .de-confirm-warning {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .de-confirm-warning i {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            margin-top: 0.1rem;
+        }
+        
+        .de-confirm-warning span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .de-confirm-actions {
+            padding: 1rem 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .de-confirm-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .de-confirm-btn.cancel {
+            background: rgba(100, 116, 139, 0.2);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: var(--text-secondary);
+        }
+        
+        .de-confirm-btn.cancel:hover {
+            background: rgba(100, 116, 139, 0.3);
+            border-color: rgba(100, 116, 139, 0.5);
+            color: var(--text-primary);
+        }
+        
+        .de-confirm-btn.confirm {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .de-confirm-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.4);
+        }
+        
+        .de-confirm-btn.confirm:active {
+            transform: translateY(0);
+        }
+        
+        /* Light theme adjustments */
+        [data-theme="light"] .de-confirm-modal {
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.98) 0%, 
+                rgba(248, 250, 252, 0.98) 100%);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        
+        [data-theme="light"] .de-confirm-header {
+            background: linear-gradient(135deg, 
+                rgba(239, 68, 68, 0.1) 0%, 
+                rgba(234, 88, 12, 0.05) 100%);
+        }
+        
         /* Tools Placeholder */
         .de-tools-placeholder {
             margin-top: 1rem;
@@ -11431,7 +11620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-crown"></i>
                             <span>Logo & Branding</span>
                         </div>
-                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Reset branding to default?')) resetBranding();" title="Reset to default">
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetBranding();" title="Reset to default">
                             <i class="fas fa-times"></i>
                         </button>
                         <div class="de-tool-badge branding-badge" id="brandingBadge">3</div>
@@ -11539,7 +11728,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-file-alt"></i>
                             <span>Pages Creator</span>
                         </div>
-                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Reset pages creator to default?')) resetPagesCreator();" title="Reset to default">
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetPagesCreator();" title="Reset to default">
                             <i class="fas fa-times"></i>
                         </button>
                         <div class="de-tool-badge" id="pagesCreatorBadge">0</div>
@@ -11626,7 +11815,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-pen-fancy"></i>
                             <span>Custom Instructions</span>
                         </div>
-                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); if(confirm('Clear custom instructions?')) resetCustomInstructions();" title="Clear instructions">
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetCustomInstructions();" title="Clear instructions">
                             <i class="fas fa-times"></i>
                         </button>
                         <div class="de-tool-badge ci-badge" id="ciBadge" style="display: none;">0</div>
@@ -11696,6 +11885,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </aside>
+    </div>
+    
+    <!-- Design Enhancer Confirm Modal -->
+    <div class="de-confirm-overlay" id="deConfirmOverlay">
+        <div class="de-confirm-modal">
+            <div class="de-confirm-header">
+                <div class="de-confirm-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="de-confirm-header-text">
+                    <h3 id="deConfirmTitle">Confirm Reset</h3>
+                    <p id="deConfirmSubtitle">Design Enhancer</p>
+                </div>
+            </div>
+            <div class="de-confirm-body">
+                <p class="de-confirm-message" id="deConfirmMessage">Are you sure you want to reset?</p>
+                <div class="de-confirm-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="deConfirmWarning">This action cannot be undone.</span>
+                </div>
+            </div>
+            <div class="de-confirm-actions">
+                <button type="button" class="de-confirm-btn cancel" onclick="deConfirmCancel()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="button" class="de-confirm-btn confirm" onclick="deConfirmAccept()">
+                    <i class="fas fa-check"></i>
+                    <span id="deConfirmBtnText">Reset</span>
+                </button>
+            </div>
+        </div>
     </div>
     
     <!-- Theme Toggle Button -->
@@ -22184,6 +22405,140 @@ function toggleToolSection(toolName) {
 // 🎮 DESIGN ENHANCER CONTROL FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════
+// 🎭 DESIGN ENHANCER CUSTOM CONFIRM MODAL
+// ═══════════════════════════════════════════════════════════════════
+
+let deConfirmCallback = null;
+let deConfirmResolve = null;
+
+// Show custom confirm modal (returns Promise)
+function deConfirm(options = {}) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('deConfirmOverlay');
+        const titleEl = document.getElementById('deConfirmTitle');
+        const subtitleEl = document.getElementById('deConfirmSubtitle');
+        const messageEl = document.getElementById('deConfirmMessage');
+        const warningEl = document.getElementById('deConfirmWarning');
+        const btnTextEl = document.getElementById('deConfirmBtnText');
+        const iconEl = overlay.querySelector('.de-confirm-icon i');
+        
+        // Set content
+        titleEl.textContent = options.title || 'Confirm Reset';
+        subtitleEl.textContent = options.subtitle || 'Design Enhancer';
+        messageEl.textContent = options.message || 'Are you sure you want to reset?';
+        warningEl.textContent = options.warning || 'This action cannot be undone.';
+        btnTextEl.textContent = options.confirmText || 'Reset';
+        
+        // Set icon
+        if (options.icon) {
+            iconEl.className = 'fas ' + options.icon;
+        } else {
+            iconEl.className = 'fas fa-exclamation-triangle';
+        }
+        
+        // Store resolve function
+        deConfirmResolve = resolve;
+        
+        // Show modal
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus confirm button for accessibility
+        setTimeout(() => {
+            overlay.querySelector('.de-confirm-btn.confirm').focus();
+        }, 100);
+    });
+}
+
+// Cancel confirmation
+function deConfirmCancel() {
+    const overlay = document.getElementById('deConfirmOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    if (deConfirmResolve) {
+        deConfirmResolve(false);
+        deConfirmResolve = null;
+    }
+}
+
+// Accept confirmation
+function deConfirmAccept() {
+    const overlay = document.getElementById('deConfirmOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    if (deConfirmResolve) {
+        deConfirmResolve(true);
+        deConfirmResolve = null;
+    }
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('deConfirmOverlay');
+        if (overlay && overlay.classList.contains('active')) {
+            deConfirmCancel();
+        }
+    }
+});
+
+// Close on overlay click (outside modal)
+document.addEventListener('click', function(e) {
+    const overlay = document.getElementById('deConfirmOverlay');
+    if (e.target === overlay) {
+        deConfirmCancel();
+    }
+});
+
+// Individual confirm functions for each tool
+async function confirmResetBranding() {
+    const confirmed = await deConfirm({
+        title: 'Reset Branding',
+        subtitle: 'Logo & Branding Tool',
+        message: 'Are you sure you want to reset all branding settings?',
+        warning: 'Your logo, page title, and branding options will be cleared.',
+        confirmText: 'Reset Branding',
+        icon: 'fa-crown'
+    });
+    
+    if (confirmed) {
+        resetBranding();
+    }
+}
+
+async function confirmResetPagesCreator() {
+    const confirmed = await deConfirm({
+        title: 'Reset Pages Creator',
+        subtitle: 'Pages Creator Tool',
+        message: 'Are you sure you want to reset the pages creator?',
+        warning: 'All selected pages and custom pages will be cleared.',
+        confirmText: 'Reset Pages',
+        icon: 'fa-file-alt'
+    });
+    
+    if (confirmed) {
+        resetPagesCreator();
+    }
+}
+
+async function confirmResetCustomInstructions() {
+    const confirmed = await deConfirm({
+        title: 'Clear Instructions',
+        subtitle: 'Custom Instructions Tool',
+        message: 'Are you sure you want to clear your custom instructions?',
+        warning: 'All your typed instructions will be removed.',
+        confirmText: 'Clear All',
+        icon: 'fa-pen-fancy'
+    });
+    
+    if (confirmed) {
+        resetCustomInstructions();
+    }
+}
+
 // Collapse All Tool Sections
 function deCollapseAll() {
     const sections = document.querySelectorAll('.de-tool-section');
@@ -22211,10 +22566,17 @@ function deUncollapseAll() {
 }
 
 // Reset All Tool Sections to Default
-function deResetAll() {
-    if (!confirm('Reset all Design Enhancer tools to default? This will clear all your selections.')) {
-        return;
-    }
+async function deResetAll() {
+    const confirmed = await deConfirm({
+        title: 'Reset All Tools',
+        subtitle: 'Design Enhancer',
+        message: 'Are you sure you want to reset all Design Enhancer tools to their default state?',
+        warning: 'All your branding settings, page selections, and custom instructions will be cleared.',
+        confirmText: 'Reset All',
+        icon: 'fa-undo'
+    });
+    
+    if (!confirmed) return;
     
     // Reset Branding (skip individual toast)
     resetBranding(true);

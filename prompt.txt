@@ -1,0 +1,1 @@
+In development dashboard in prompt manager.php, I want you to remove the four buttons on the top right of the development dashboard. It's propagate and open switch design and open design enhancer pop-up and also the refresh dashboard. these four buttons on top right and development dashboard I wanted them to be removed completely 
