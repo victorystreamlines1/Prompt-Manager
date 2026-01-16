@@ -6062,6 +6062,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #34d399;
         }
         
+        /* Files List with File Names */
+        .dynamic-item-files-list {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(52, 211, 153, 0.05);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 8px;
+        }
+        
+        .dynamic-item-files-list.has-files {
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+        
+        .files-list-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.7rem;
+            color: #34d399;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+        
+        .files-list-header i {
+            font-size: 0.65rem;
+        }
+        
+        .files-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        
+        .file-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 12px;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        .file-tag:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        
+        .file-tag i {
+            font-size: 0.55rem;
+            color: #6366f1;
+        }
+        
+        /* Backend files - Cyan theme */
+        #backendSection .file-tag {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%);
+            border-color: rgba(6, 182, 212, 0.25);
+        }
+        
+        #backendSection .file-tag:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.2) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        
+        #backendSection .file-tag i {
+            color: #06b6d4;
+        }
+        
+        /* Pages files - Purple theme */
+        #pageSection .file-tag {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: rgba(167, 139, 250, 0.25);
+        }
+        
+        #pageSection .file-tag:hover {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(167, 139, 250, 0.4);
+        }
+        
+        #pageSection .file-tag i {
+            color: #a78bfa;
+        }
+        
+        /* Frontend files - Orange theme */
+        #frontendSection .file-tag {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border-color: rgba(251, 146, 60, 0.25);
+        }
+        
+        #frontendSection .file-tag:hover {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.25) 0%, rgba(249, 115, 22, 0.2) 100%);
+            border-color: rgba(251, 146, 60, 0.4);
+        }
+        
+        #frontendSection .file-tag i {
+            color: #fb923c;
+        }
+        
         .dynamic-item-file-input {
             display: none;
         }
@@ -11414,6 +11521,23 @@ ${item.html_code || ''}
             // Debug log to verify prompt is being passed
             console.log(`Rendering ${type} item:`, item.id, 'name:', item.name, 'prompt:', item.prompt?.substring(0, 50));
             
+            // Build file list HTML
+            let filesListHtml = '';
+            if (hasFiles) {
+                const fileNames = item.files.map(f => {
+                    const name = f.name || f.fileName || 'Unknown file';
+                    return `<span class="file-tag" title="${escapeHtml(name)}"><i class="fas fa-file-code"></i> ${escapeHtml(name)}</span>`;
+                }).join('');
+                filesListHtml = `
+                    <div class="dynamic-item-files-list has-files">
+                        <div class="files-list-header">
+                            <i class="fas fa-paperclip"></i> 
+                            <span>${fileCount} file${fileCount > 1 ? 's' : ''} attached:</span>
+                        </div>
+                        <div class="files-tags-container">${fileNames}</div>
+                    </div>`;
+            }
+            
             div.innerHTML = `
                 <div class="dynamic-item-header">
                     <span class="dynamic-item-number">#${number}</span>
@@ -11449,7 +11573,7 @@ ${item.html_code || ''}
                               placeholder="Enter ${type} instructions or description..."
                               onchange="updateDynamicItem('${type}', '${item.id}', 'prompt', this.value)"
                               oninput="updateDynamicItem('${type}', '${item.id}', 'prompt', this.value)">${escapeHtml(item.prompt || '')}</textarea>
-                    ${hasFiles ? `<div class="dynamic-item-files has-files"><i class="fas fa-paperclip"></i> ${fileCount} file${fileCount > 1 ? 's' : ''} attached</div>` : ''}
+                    ${filesListHtml}
                 </div>
             `;
             
