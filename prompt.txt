@@ -1,1 +1,1 @@
-Now I want you to remove the arrow next to the generate button in the development dashboard of prompt manager.php 
+why is project prompt is not drivable anymore it used to be drivable just keep it at the same default height and restore the drigability 

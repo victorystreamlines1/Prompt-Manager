@@ -5098,6 +5098,244 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(168, 85, 247, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           📊 ENHANCEMENT LEVEL TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        .el-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .el-radio-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .el-radio-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .el-radio-item.selected {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        
+        .el-radio-item input[type="radio"] {
+            width: 14px;
+            height: 14px;
+            margin-top: 2px;
+            accent-color: #f59e0b;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .el-radio-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .el-radio-content strong {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+        }
+        
+        .el-radio-content p {
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        /* Level-specific colors */
+        .el-radio-item[data-level="preserve"] {
+            border-color: rgba(34, 197, 94, 0.15);
+        }
+        .el-radio-item[data-level="preserve"]:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        .el-radio-item[data-level="preserve"].selected {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.08) 100%);
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        
+        .el-radio-item[data-level="subtle"] {
+            border-color: rgba(59, 130, 246, 0.15);
+        }
+        .el-radio-item[data-level="subtle"]:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .el-radio-item[data-level="subtle"].selected {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .el-radio-item[data-level="moderate"] {
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+        .el-radio-item[data-level="moderate"]:hover {
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .el-radio-item[data-level="moderate"].selected {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        
+        .el-radio-item[data-level="aggressive"] {
+            border-color: rgba(239, 68, 68, 0.15);
+        }
+        .el-radio-item[data-level="aggressive"]:hover {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .el-radio-item[data-level="aggressive"].selected {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.08) 100%);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Enhancement Level Notes */
+        .el-notes-section {
+            margin-top: 0.75rem;
+        }
+        
+        .el-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #f59e0b;
+            margin-bottom: 0.4rem;
+        }
+        
+        .el-notes-label i {
+            font-size: 0.6rem;
+        }
+        
+        .el-notes-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 120px;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .el-notes-textarea:focus {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .el-notes-textarea::placeholder {
+            color: rgba(245, 158, 11, 0.4);
+            font-style: italic;
+        }
+        
+        .el-char-count {
+            text-align: right;
+            font-size: 0.55rem;
+            color: rgba(245, 158, 11, 0.5);
+            margin-top: 0.25rem;
+        }
+        
+        /* Push Button */
+        .el-push-section {
+            margin-top: 0.6rem;
+        }
+        
+        .el-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            color: #fbbf24;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .el-push-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.2) 100%);
+            border-color: rgba(245, 158, 11, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .el-push-btn i {
+            font-size: 0.6rem;
+        }
+        
+        /* Light theme adjustments */
+        [data-theme="light"] .el-radio-item {
+            background: rgba(248, 250, 252, 0.6);
+        }
+        
+        [data-theme="light"] .el-radio-item:hover {
+            background: rgba(248, 250, 252, 0.8);
+        }
+        
+        [data-theme="light"] .el-radio-item.selected {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .el-notes-label {
+            color: #d97706;
+        }
+        
+        [data-theme="light"] .el-notes-textarea {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+        
+        [data-theme="light"] .el-notes-textarea:focus {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .el-notes-textarea::placeholder {
+            color: rgba(217, 119, 6, 0.4);
+        }
+        
+        [data-theme="light"] .el-char-count {
+            color: rgba(217, 119, 6, 0.5);
+        }
+        
+        [data-theme="light"] .el-push-btn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.08) 100%);
+            border-color: rgba(245, 158, 11, 0.2);
+            color: #d97706;
+        }
+        
+        [data-theme="light"] .el-push-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.12) 100%);
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -13234,6 +13472,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="df-push-section">
                             <button type="button" class="df-push-btn" onclick="dfPushToNotes()" title="Push design focus areas and notes to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📊 ENHANCEMENT LEVEL TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="enhancementLevelTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('enhancementLevel')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-sliders-h"></i>
+                            <span>Enhancement Level</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetEnhancementLevel();" title="Reset enhancement level">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge el-badge" id="elBadge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">Moderate</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="enhancementLevelArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="enhancementLevelBody">
+                        <p style="font-size: 0.6rem; color: var(--text-secondary); margin: 0 0 0.6rem 0;">How aggressive should the design improvements be?</p>
+                        
+                        <!-- Radio Options -->
+                        <div class="el-radio-group">
+                            <label class="el-radio-item" data-level="preserve" onclick="elSelectLevel('preserve')">
+                                <input type="radio" name="el_level" id="el_preserve" value="preserve">
+                                <div class="el-radio-content">
+                                    <strong>🛡️ Preserve Design</strong>
+                                    <p>Keep current design intact, only fix bugs and add functionality</p>
+                                </div>
+                            </label>
+                            <label class="el-radio-item" data-level="subtle" onclick="elSelectLevel('subtle')">
+                                <input type="radio" name="el_level" id="el_subtle" value="subtle">
+                                <div class="el-radio-content">
+                                    <strong>🔹 Subtle Enhancement</strong>
+                                    <p>Minor improvements, keep existing design mostly intact</p>
+                                </div>
+                            </label>
+                            <label class="el-radio-item selected" data-level="moderate" onclick="elSelectLevel('moderate')">
+                                <input type="radio" name="el_level" id="el_moderate" value="moderate" checked>
+                                <div class="el-radio-content">
+                                    <strong>⭐ Moderate Enhancement</strong>
+                                    <p>Balanced improvements, modern look while preserving structure</p>
+                                </div>
+                            </label>
+                            <label class="el-radio-item" data-level="aggressive" onclick="elSelectLevel('aggressive')">
+                                <input type="radio" name="el_level" id="el_aggressive" value="aggressive">
+                                <div class="el-radio-content">
+                                    <strong>🚀 Aggressive Enhancement</strong>
+                                    <p>Complete design overhaul with cutting-edge modern CSS</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="el-notes-section">
+                            <label class="el-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Enhancement Instructions</span>
+                            </label>
+                            <textarea 
+                                id="elNotesTextarea" 
+                                class="el-notes-textarea" 
+                                placeholder="Add specific instructions about how aggressive the changes should be..."
+                                oninput="elUpdateCharCount()"
+                            ></textarea>
+                            <div class="el-char-count" id="elCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="el-push-section">
+                            <button type="button" class="el-push-btn" onclick="elPushToNotes()" title="Push enhancement level and notes to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -24031,6 +24344,11 @@ async function deResetAll() {
         dfResetAll(true);
     }
     
+    // Reset Enhancement Level (skip individual toast)
+    if (typeof elResetAll === 'function') {
+        elResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -26909,6 +27227,219 @@ function getDesignFocusOptions() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     dfInit();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     📊 ENHANCEMENT LEVEL TOOL - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Enhancement Level state
+let elSelectedLevel = 'moderate';
+
+// Level details for prompt generation
+const elLevelDetails = {
+    preserve: {
+        name: 'Preserve Design',
+        icon: '🛡️',
+        desc: 'Keep current design intact, only fix bugs and add functionality',
+        instructions: 'Do NOT change the existing design. Focus only on fixing bugs, improving performance, and adding new functionality without modifying the visual appearance.'
+    },
+    subtle: {
+        name: 'Subtle Enhancement',
+        icon: '🔹',
+        desc: 'Minor improvements, keep existing design mostly intact',
+        instructions: 'Make minor visual improvements while maintaining the existing design language. Small refinements to spacing, colors, and typography are acceptable but keep the overall look consistent.'
+    },
+    moderate: {
+        name: 'Moderate Enhancement',
+        icon: '⭐',
+        desc: 'Balanced improvements, modern look while preserving structure',
+        instructions: 'Apply balanced design improvements that modernize the look while preserving the overall structure. Update colors, add subtle animations, improve spacing, and use modern CSS techniques.'
+    },
+    aggressive: {
+        name: 'Aggressive Enhancement',
+        icon: '🚀',
+        desc: 'Complete design overhaul with cutting-edge modern CSS',
+        instructions: 'Perform a complete design overhaul using cutting-edge modern CSS. Reimagine the visual design with bold new styles, advanced animations, glassmorphism, gradients, and the latest CSS features. Be creative and dramatic.'
+    }
+};
+
+// Initialize Enhancement Level
+function elInit() {
+    elLoadFromStorage();
+    elUpdateUI();
+}
+
+// Select level
+function elSelectLevel(level) {
+    elSelectedLevel = level;
+    
+    // Update visual state
+    document.querySelectorAll('.el-radio-item').forEach(item => {
+        item.classList.remove('selected');
+        const radio = item.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+    });
+    
+    const selectedItem = document.querySelector(`.el-radio-item[data-level="${level}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+        const radio = selectedItem.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    }
+    
+    elUpdateBadge();
+    elSaveToStorage();
+}
+
+// Update badge
+function elUpdateBadge() {
+    const badge = document.getElementById('elBadge');
+    if (!badge) return;
+    
+    const details = elLevelDetails[elSelectedLevel];
+    badge.textContent = details.name.replace(/^[^\s]+\s/, ''); // Remove emoji
+    
+    // Change badge color based on level
+    const colors = {
+        preserve: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+        subtle: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+        moderate: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+        aggressive: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+    };
+    badge.style.background = colors[elSelectedLevel] || colors.moderate;
+}
+
+// Update character count
+function elUpdateCharCount() {
+    const textarea = document.getElementById('elNotesTextarea');
+    const countEl = document.getElementById('elCharCount');
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        elSaveToStorage();
+    }
+}
+
+// Update UI from state
+function elUpdateUI() {
+    elSelectLevel(elSelectedLevel);
+    elUpdateCharCount();
+}
+
+// Push to Project Prompts
+function elPushToNotes() {
+    const notesTextarea = document.getElementById('elNotesTextarea');
+    const additionalNotes = notesTextarea ? notesTextarea.value.trim() : '';
+    const details = elLevelDetails[elSelectedLevel];
+    
+    let promptText = `## 📊 ENHANCEMENT LEVEL\n\n`;
+    promptText += `**${details.icon} Level: ${details.name}**\n\n`;
+    promptText += `**Description:** ${details.desc}\n\n`;
+    promptText += `**Instructions:**\n${details.instructions}\n\n`;
+    
+    // Add additional notes if present
+    if (additionalNotes) {
+        promptText += `---\n\n### 📝 ADDITIONAL ENHANCEMENT INSTRUCTIONS:\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        promptText += `---\n\n`;
+    }
+    
+    // Push to Project Notes
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (projectNotesTextarea) {
+        if (projectNotesTextarea.value.trim()) {
+            projectNotesTextarea.value = projectNotesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            projectNotesTextarea.value = promptText;
+        }
+        
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        const notesInfo = additionalNotes ? ' + custom notes' : '';
+        if (typeof showToast === 'function') {
+            showToast(`📊 Enhancement level (${details.name})${notesInfo} pushed to Project Prompts`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Save to localStorage
+function elSaveToStorage() {
+    const data = {
+        level: elSelectedLevel,
+        notes: document.getElementById('elNotesTextarea')?.value || ''
+    };
+    localStorage.setItem('el_data', JSON.stringify(data));
+}
+
+// Load from localStorage
+function elLoadFromStorage() {
+    const saved = localStorage.getItem('el_data');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            elSelectedLevel = data.level || 'moderate';
+            const textarea = document.getElementById('elNotesTextarea');
+            if (textarea && data.notes) {
+                textarea.value = data.notes;
+            }
+        } catch (e) {
+            elSelectedLevel = 'moderate';
+        }
+    }
+}
+
+// Reset enhancement level
+function elResetAll(skipToast = false) {
+    elSelectedLevel = 'moderate';
+    const textarea = document.getElementById('elNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    elUpdateUI();
+    localStorage.removeItem('el_data');
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Enhancement level reset to Moderate', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetEnhancementLevel() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Enhancement Level',
+            subtitle: 'Design Enhancer',
+            message: 'Are you sure you want to reset the enhancement level?',
+            warning: 'Level will be set to "Moderate" and notes will be cleared.',
+            confirmText: 'Reset',
+            icon: 'fa-sliders-h'
+        });
+        if (confirmed) {
+            elResetAll();
+        }
+    } else if (confirm('Reset enhancement level to default?')) {
+        elResetAll();
+    }
+}
+
+// Get enhancement level (for external access)
+function getEnhancementLevel() {
+    return {
+        level: elSelectedLevel,
+        details: elLevelDetails[elSelectedLevel],
+        notes: document.getElementById('elNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    elInit();
 });
 </script>
 

@@ -12867,64 +12867,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      Design Enhancer panel of Prompt-Manager.php
                 ================================================================ -->
 
-                <!-- Enhancement Level -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-icon" style="background: var(--gradient-warning);">
-                            <i class="fas fa-sliders-h"></i>
-                        </div>
-                        <h2 class="card-title">Enhancement Level</h2>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-description">How aggressive should the design improvements be?</p>
-
-                        <div class="checkbox-group">
-                            <label class="checkbox-item" data-level="preserve">
-                                <input type="radio" name="enhancement_level" id="level_preserve" value="preserve"
-                                    onchange="updateOptions()">
-                                <div>
-                                    <strong>🛡️ Preserve Design</strong>
-                                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                        Keep current design intact, only fix bugs and add functionality
-                                    </p>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item" data-level="subtle">
-                                <input type="radio" name="enhancement_level" id="level_subtle" value="subtle"
-                                    onchange="updateOptions()">
-                                <div>
-                                    <strong>🔹 Subtle Enhancement</strong>
-                                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                        Minor improvements, keep existing design mostly intact
-                                    </p>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item checked" data-level="moderate">
-                                <input type="radio" name="enhancement_level" id="level_moderate" value="moderate"
-                                    checked onchange="updateOptions()">
-                                <div>
-                                    <strong>⭐ Moderate Enhancement</strong>
-                                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                        Balanced improvements, modern look while preserving structure
-                                    </p>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item" data-level="aggressive">
-                                <input type="radio" name="enhancement_level" id="level_aggressive" value="aggressive"
-                                    onchange="updateOptions()">
-                                <div>
-                                    <strong>🚀 Aggressive Enhancement</strong>
-                                    <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
-                                        Complete design overhaul with cutting-edge modern CSS
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+                <!-- ================================================================
+                     ENHANCEMENT LEVEL - FULLY MIGRATED
+                     This section has been completely migrated to Prompt-Manager.php
+                     All HTML, CSS, and JavaScript functionality now lives in the
+                     Design Enhancer panel of Prompt-Manager.php
+                ================================================================ -->
 
                 <!-- ================================================================
                      ENHANCED STYLE TYPES - FULLY MIGRATED
