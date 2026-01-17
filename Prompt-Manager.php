@@ -5336,6 +5336,447 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(245, 158, 11, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           📋 TASK BREAKDOWN TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        .tb-slider-container {
+            margin-bottom: 0.75rem;
+        }
+        
+        .tb-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+        
+        .tb-slider-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+        
+        .tb-slider-value {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #06b6d4;
+            background: rgba(6, 182, 212, 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            min-width: 28px;
+            text-align: center;
+        }
+        
+        .tb-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(6, 182, 212, 0.15);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        
+        .tb-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(6, 182, 212, 0.4);
+            transition: all 0.2s ease;
+        }
+        
+        .tb-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(6, 182, 212, 0.5);
+        }
+        
+        .tb-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(6, 182, 212, 0.4);
+        }
+        
+        .tb-slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.3rem;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+        }
+        
+        /* Optimize Token Checkbox */
+        .tb-optimize-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 8px;
+            padding: 0.6rem;
+            margin: 0.75rem 0;
+        }
+        
+        .tb-optimize-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        
+        .tb-optimize-label input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin-top: 2px;
+            accent-color: #10b981;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .tb-optimize-content {
+            flex: 1;
+        }
+        
+        .tb-optimize-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.25rem;
+        }
+        
+        .tb-optimize-header i {
+            color: #10b981;
+            font-size: 0.65rem;
+        }
+        
+        .tb-optimize-header strong {
+            font-size: 0.65rem;
+            color: var(--text-primary);
+        }
+        
+        .tb-optimize-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            font-size: 0.45rem;
+            font-weight: 600;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .tb-optimize-desc {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .tb-optimize-desc i {
+            color: #10b981;
+            margin-right: 0.2rem;
+        }
+        
+        /* Info Tip */
+        .tb-info-tip {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin: 0.75rem 0;
+        }
+        
+        .tb-info-tip i {
+            color: #6366f1;
+            font-size: 0.7rem;
+            margin-top: 0.1rem;
+        }
+        
+        .tb-info-tip div {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .tb-info-tip strong {
+            color: #6366f1;
+        }
+        
+        /* Execution Mode Options */
+        .tb-execution-section {
+            margin-top: 0.75rem;
+        }
+        
+        .tb-execution-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 0.4rem;
+        }
+        
+        .tb-execution-label i {
+            font-size: 0.6rem;
+        }
+        
+        .tb-execution-desc {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .tb-execution-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .tb-radio-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tb-radio-option:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+        
+        .tb-radio-option.selected {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        
+        .tb-radio-option input[type="radio"] {
+            width: 14px;
+            height: 14px;
+            margin-top: 2px;
+            accent-color: #06b6d4;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .tb-radio-content {
+            flex: 1;
+        }
+        
+        .tb-radio-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .tb-radio-header i {
+            color: #06b6d4;
+            font-size: 0.65rem;
+            margin-top: 0.1rem;
+        }
+        
+        .tb-radio-header strong {
+            font-size: 0.65rem;
+            color: var(--text-primary);
+        }
+        
+        .tb-radio-header p {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            margin: 0.15rem 0 0 0;
+        }
+        
+        .tb-radio-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.3rem;
+        }
+        
+        .tb-radio-features span {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.5rem;
+            color: #22d3ee;
+            background: rgba(6, 182, 212, 0.1);
+            padding: 0.15rem 0.35rem;
+            border-radius: 4px;
+        }
+        
+        .tb-radio-features span i {
+            font-size: 0.45rem;
+            color: #06b6d4;
+        }
+        
+        /* Task Breakdown Notes */
+        .tb-notes-section {
+            margin-top: 0.75rem;
+        }
+        
+        .tb-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 0.4rem;
+        }
+        
+        .tb-notes-label i {
+            font-size: 0.6rem;
+        }
+        
+        .tb-notes-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 120px;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .tb-notes-textarea:focus {
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .tb-notes-textarea::placeholder {
+            color: rgba(6, 182, 212, 0.4);
+            font-style: italic;
+        }
+        
+        .tb-char-count {
+            text-align: right;
+            font-size: 0.55rem;
+            color: rgba(6, 182, 212, 0.5);
+            margin-top: 0.25rem;
+        }
+        
+        /* Push Button */
+        .tb-push-section {
+            margin-top: 0.6rem;
+        }
+        
+        .tb-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            color: #22d3ee;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .tb-push-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.2) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .tb-push-btn i {
+            font-size: 0.6rem;
+        }
+        
+        /* Light theme adjustments */
+        [data-theme="light"] .tb-slider {
+            background: rgba(6, 182, 212, 0.1);
+        }
+        
+        [data-theme="light"] .tb-slider-value {
+            background: rgba(6, 182, 212, 0.1);
+            color: #0891b2;
+        }
+        
+        [data-theme="light"] .tb-optimize-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.03) 100%);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+        
+        [data-theme="light"] .tb-info-tip {
+            background: rgba(99, 102, 241, 0.05);
+            border-color: rgba(99, 102, 241, 0.1);
+        }
+        
+        [data-theme="light"] .tb-radio-option {
+            background: rgba(248, 250, 252, 0.6);
+            border-color: rgba(6, 182, 212, 0.1);
+        }
+        
+        [data-theme="light"] .tb-radio-option:hover {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+        
+        [data-theme="light"] .tb-radio-option.selected {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(8, 145, 178, 0.05) 100%);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+        
+        [data-theme="light"] .tb-execution-label,
+        [data-theme="light"] .tb-notes-label {
+            color: #0891b2;
+        }
+        
+        [data-theme="light"] .tb-notes-textarea {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(6, 182, 212, 0.15);
+        }
+        
+        [data-theme="light"] .tb-notes-textarea:focus {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .tb-notes-textarea::placeholder {
+            color: rgba(8, 145, 178, 0.4);
+        }
+        
+        [data-theme="light"] .tb-char-count {
+            color: rgba(8, 145, 178, 0.5);
+        }
+        
+        [data-theme="light"] .tb-push-btn {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.2);
+            color: #0891b2;
+        }
+        
+        [data-theme="light"] .tb-push-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.12) 100%);
+            border-color: rgba(6, 182, 212, 0.35);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -13556,6 +13997,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="el-push-section">
                             <button type="button" class="el-push-btn" onclick="elPushToNotes()" title="Push enhancement level and notes to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📋 TASK BREAKDOWN TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="taskBreakdownTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('taskBreakdown')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-tasks"></i>
+                            <span>Task Breakdown</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetTaskBreakdown();" title="Reset task breakdown">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge tb-badge" id="tbBadge" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">3 Parts</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="taskBreakdownArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="taskBreakdownBody">
+                        <p style="font-size: 0.6rem; color: var(--text-secondary); margin: 0 0 0.6rem 0;">Split design enhancement into manageable parts (1-30)</p>
+                        
+                        <!-- Parts Slider -->
+                        <div class="tb-slider-container">
+                            <div class="tb-slider-header">
+                                <span class="tb-slider-label">Number of Parts:</span>
+                                <span class="tb-slider-value" id="tbPartsValue">3</span>
+                            </div>
+                            <input type="range" id="tbPartsSlider" class="tb-slider" min="1" max="30" value="3" oninput="tbUpdateParts(this.value)">
+                            <div class="tb-slider-ticks">
+                                <span>1</span>
+                                <span>10</span>
+                                <span>15</span>
+                                <span>20</span>
+                                <span>25</span>
+                                <span>30</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Optimize Token Limit -->
+                        <div class="tb-optimize-box">
+                            <label class="tb-optimize-label" onclick="tbToggleOptimize()">
+                                <input type="checkbox" id="tbOptimizeToken" checked>
+                                <div class="tb-optimize-content">
+                                    <div class="tb-optimize-header">
+                                        <i class="fas fa-microchip"></i>
+                                        <strong>Optimize IDE Token Limit</strong>
+                                        <span class="tb-optimize-badge">Recommended</span>
+                                    </div>
+                                    <p class="tb-optimize-desc">
+                                        <i class="fas fa-bolt"></i> Each task will fully utilize the maximum allowed token/memory limit of your IDE without exceeding it.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <!-- Info Tip -->
+                        <div class="tb-info-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <div>
+                                <strong>Recommended:</strong> 3-5 parts for small, 6-10 for medium, 11-20 for large, 21-30 for very large projects.
+                            </div>
+                        </div>
+                        
+                        <!-- Execution Mode -->
+                        <div class="tb-execution-section">
+                            <label class="tb-execution-label">
+                                <i class="fas fa-cogs"></i>
+                                <span>Task Execution Mode</span>
+                            </label>
+                            <p class="tb-execution-desc">Choose how AI should execute the task breakdown</p>
+                            
+                            <div class="tb-execution-options">
+                                <label class="tb-radio-option selected" data-mode="step-by-step" onclick="tbSelectMode('step-by-step')">
+                                    <input type="radio" name="tb_execution_mode" id="tb_stepByStep" value="step-by-step" checked>
+                                    <div class="tb-radio-content">
+                                        <div class="tb-radio-header">
+                                            <i class="fas fa-step-forward"></i>
+                                            <div>
+                                                <strong>Step-by-Step Execution</strong>
+                                                <p>Complete each part and wait for your review before proceeding</p>
+                                            </div>
+                                        </div>
+                                        <div class="tb-radio-features">
+                                            <span><i class="fas fa-check"></i> Review each step</span>
+                                            <span><i class="fas fa-check"></i> Provide feedback</span>
+                                            <span><i class="fas fa-check"></i> Better for complex</span>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="tb-radio-option" data-mode="automatic" onclick="tbSelectMode('automatic')">
+                                    <input type="radio" name="tb_execution_mode" id="tb_automatic" value="automatic">
+                                    <div class="tb-radio-content">
+                                        <div class="tb-radio-header">
+                                            <i class="fas fa-bolt"></i>
+                                            <div>
+                                                <strong>Automatic Sequential Execution</strong>
+                                                <p>Complete all parts automatically without waiting for feedback</p>
+                                            </div>
+                                        </div>
+                                        <div class="tb-radio-features">
+                                            <span><i class="fas fa-check"></i> Faster completion</span>
+                                            <span><i class="fas fa-check"></i> No interruptions</span>
+                                            <span><i class="fas fa-check"></i> Best for simple</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="tb-notes-section">
+                            <label class="tb-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Task Instructions</span>
+                            </label>
+                            <textarea 
+                                id="tbNotesTextarea" 
+                                class="tb-notes-textarea" 
+                                placeholder="Add specific instructions about how tasks should be broken down or executed..."
+                                oninput="tbUpdateCharCount()"
+                            ></textarea>
+                            <div class="tb-char-count" id="tbCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="tb-push-section">
+                            <button type="button" class="tb-push-btn" onclick="tbPushToNotes()" title="Push task breakdown settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -24498,6 +25070,11 @@ async function deResetAll() {
         elResetAll(true);
     }
     
+    // Reset Task Breakdown (skip individual toast)
+    if (typeof tbResetAll === 'function') {
+        tbResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -27589,6 +28166,238 @@ function getEnhancementLevel() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     elInit();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     📋 TASK BREAKDOWN TOOL - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Task Breakdown state
+let tbParts = 3;
+let tbOptimizeToken = true;
+let tbExecutionMode = 'step-by-step';
+
+// Initialize Task Breakdown
+function tbInit() {
+    tbLoadFromStorage();
+    tbUpdateUI();
+}
+
+// Update parts value
+function tbUpdateParts(value) {
+    tbParts = parseInt(value);
+    const valueEl = document.getElementById('tbPartsValue');
+    if (valueEl) valueEl.textContent = tbParts;
+    tbUpdateBadge();
+    tbSaveToStorage();
+}
+
+// Toggle optimize token
+function tbToggleOptimize() {
+    const checkbox = document.getElementById('tbOptimizeToken');
+    if (checkbox) {
+        tbOptimizeToken = checkbox.checked;
+        tbSaveToStorage();
+    }
+}
+
+// Select execution mode
+function tbSelectMode(mode) {
+    tbExecutionMode = mode;
+    
+    // Update visual state
+    document.querySelectorAll('.tb-radio-option').forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+    });
+    
+    const selectedOption = document.querySelector(`.tb-radio-option[data-mode="${mode}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        const radio = selectedOption.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    }
+    
+    tbSaveToStorage();
+}
+
+// Update badge
+function tbUpdateBadge() {
+    const badge = document.getElementById('tbBadge');
+    if (!badge) return;
+    badge.textContent = `${tbParts} Part${tbParts > 1 ? 's' : ''}`;
+}
+
+// Update character count
+function tbUpdateCharCount() {
+    const textarea = document.getElementById('tbNotesTextarea');
+    const countEl = document.getElementById('tbCharCount');
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        tbSaveToStorage();
+    }
+}
+
+// Update UI from state
+function tbUpdateUI() {
+    // Update slider
+    const slider = document.getElementById('tbPartsSlider');
+    const valueEl = document.getElementById('tbPartsValue');
+    if (slider) slider.value = tbParts;
+    if (valueEl) valueEl.textContent = tbParts;
+    
+    // Update optimize checkbox
+    const optimizeCheckbox = document.getElementById('tbOptimizeToken');
+    if (optimizeCheckbox) optimizeCheckbox.checked = tbOptimizeToken;
+    
+    // Update execution mode
+    tbSelectMode(tbExecutionMode);
+    
+    tbUpdateBadge();
+    tbUpdateCharCount();
+}
+
+// Push to Project Prompts
+function tbPushToNotes() {
+    const notesTextarea = document.getElementById('tbNotesTextarea');
+    const additionalNotes = notesTextarea ? notesTextarea.value.trim() : '';
+    
+    let promptText = `## 📋 TASK BREAKDOWN & EXECUTION\n\n`;
+    promptText += `**Number of Parts:** ${tbParts}\n\n`;
+    
+    if (tbOptimizeToken) {
+        promptText += `**🔧 Token Optimization:** ENABLED\n`;
+        promptText += `Each task will fully utilize the maximum allowed token/memory limit of the IDE without exceeding it.\n\n`;
+    }
+    
+    promptText += `**Execution Mode:** ${tbExecutionMode === 'step-by-step' ? '⏱️ Step-by-Step' : '⚡ Automatic Sequential'}\n\n`;
+    
+    if (tbExecutionMode === 'step-by-step') {
+        promptText += `**Instructions:**\n`;
+        promptText += `- Complete each part and wait for user review before proceeding\n`;
+        promptText += `- Allow user to provide feedback between steps\n`;
+        promptText += `- Maintain controlled progression through all ${tbParts} parts\n\n`;
+    } else {
+        promptText += `**Instructions:**\n`;
+        promptText += `- Complete all ${tbParts} parts automatically in succession\n`;
+        promptText += `- Do not wait for feedback between parts\n`;
+        promptText += `- Maintain continuous workflow until completion\n\n`;
+    }
+    
+    // Add additional notes if present
+    if (additionalNotes) {
+        promptText += `---\n\n### 📝 ADDITIONAL TASK INSTRUCTIONS:\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        promptText += `---\n\n`;
+    }
+    
+    // Push to Project Notes
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (projectNotesTextarea) {
+        if (projectNotesTextarea.value.trim()) {
+            projectNotesTextarea.value = projectNotesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            projectNotesTextarea.value = promptText;
+        }
+        
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        const modeText = tbExecutionMode === 'step-by-step' ? 'Step-by-Step' : 'Automatic';
+        const notesInfo = additionalNotes ? ' + custom notes' : '';
+        if (typeof showToast === 'function') {
+            showToast(`📋 Task breakdown (${tbParts} parts, ${modeText})${notesInfo} pushed to Project Prompts`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Save to localStorage
+function tbSaveToStorage() {
+    const data = {
+        parts: tbParts,
+        optimizeToken: tbOptimizeToken,
+        executionMode: tbExecutionMode,
+        notes: document.getElementById('tbNotesTextarea')?.value || ''
+    };
+    localStorage.setItem('tb_data', JSON.stringify(data));
+}
+
+// Load from localStorage
+function tbLoadFromStorage() {
+    const saved = localStorage.getItem('tb_data');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            tbParts = data.parts || 3;
+            tbOptimizeToken = data.optimizeToken !== false;
+            tbExecutionMode = data.executionMode || 'step-by-step';
+            const textarea = document.getElementById('tbNotesTextarea');
+            if (textarea && data.notes) {
+                textarea.value = data.notes;
+            }
+        } catch (e) {
+            console.error('Error loading task breakdown data:', e);
+        }
+    }
+}
+
+// Reset task breakdown
+function tbResetAll(skipToast = false) {
+    tbParts = 3;
+    tbOptimizeToken = true;
+    tbExecutionMode = 'step-by-step';
+    
+    const textarea = document.getElementById('tbNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    
+    tbUpdateUI();
+    localStorage.removeItem('tb_data');
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Task breakdown reset to default', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetTaskBreakdown() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Task Breakdown',
+            subtitle: 'Design Enhancer',
+            message: 'Are you sure you want to reset the task breakdown settings?',
+            warning: 'Parts will be set to 3, token optimization enabled, and notes cleared.',
+            confirmText: 'Reset',
+            icon: 'fa-tasks'
+        });
+        if (confirmed) {
+            tbResetAll();
+        }
+    } else if (confirm('Reset task breakdown to default?')) {
+        tbResetAll();
+    }
+}
+
+// Get task breakdown settings (for external access)
+function getTaskBreakdown() {
+    return {
+        parts: tbParts,
+        optimizeToken: tbOptimizeToken,
+        executionMode: tbExecutionMode,
+        notes: document.getElementById('tbNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    tbInit();
 });
 </script>
 
