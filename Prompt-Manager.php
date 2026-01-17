@@ -12063,9 +12063,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             <!-- Generate Section (Right) -->
                             <div class="generate-group">
-                                <button type="button" class="footer-arrow-btn" title="Insert ALL sections to prompt" onclick="appendAllSectionsToPrompt()">
-                                    <i class="fas fa-arrow-down"></i>
-                                </button>
                                 <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
                                     <i class="fas fa-magic"></i>
                                     <span>Generate</span>
