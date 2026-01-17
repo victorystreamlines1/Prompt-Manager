@@ -13580,252 +13580,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Logo & Branding Section - Migrated to Prompt-Manager.php -->
 
-            <!-- Homepage Options -->
-            <div id="homepageCreationSection" class="card card-full fade-in" style="animation-delay: 0.4s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: var(--gradient-ocean);">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h2 class="card-title">Homepage Configuration</h2>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Choose how to handle the homepage design</p>
-
-                    <div class="homepage-option-box">
-                        <label class="homepage-checkbox-label">
-                            <input type="checkbox" id="createNewHomepage" onchange="updateHomepageOption()"
-                                class="homepage-checkbox">
-                            <div class="homepage-checkbox-content">
-                                <div class="homepage-checkbox-header">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <strong>Create New Landing Homepage</strong>
-                                </div>
-                                <p class="homepage-checkbox-description">
-                                    Generate a brand new, modern landing page that will guide users to a target page of
-                                    your choice
-                                </p>
-                            </div>
-                        </label>
-
-                        <!-- Target Page Picker (shown when checkbox is checked) -->
-                        <div class="target-page-picker" id="targetPagePicker" style="display: none;">
-                            <div class="target-page-header">
-                                <i class="fas fa-link"></i>
-                                <strong>Select Target Page (After Landing)</strong>
-                            </div>
-                            <p class="target-page-description">
-                                Choose which page the landing page should link to. This will be the main content page
-                                users reach after the landing page.
-                            </p>
-
-                            <div class="file-picker-container">
-                                <label for="targetPageFile" class="file-picker-label">
-                                    <i class="fas fa-file-code"></i>
-                                    <span id="targetPageFileName">No file selected (will use current homepage)</span>
-                                </label>
-                                <input type="file" id="targetPageFile" accept="text/html,.php,.htm"
-                                    onchange="handleTargetPageSelection()" style="display: none;">
-                                <div class="file-picker-buttons">
-                                    <button type="button" class="btn btn-outline btn-sm"
-                                        onclick="document.getElementById('targetPageFile').click()">
-                                        <i class="fas fa-folder-open"></i>
-                                        Browse Files
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="clearTargetPage()"
-                                        id="clearTargetBtn" style="display: none;">
-                                        <i class="fas fa-times"></i>
-                                        Clear
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="target-page-info">
-                                <i class="fas fa-lightbulb"></i>
-                                <div>
-                                    <strong>How it works:</strong>
-                                    <p>The new landing page will include a prominent call-to-action button/link that
-                                        directs users to your selected target page. If no file is selected, it will
-                                        default to linking to your current homepage.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ═══════════════════════════════════════════════════════════════════
-                             📄 PAGES CREATOR SECTION - MIGRATED TO Prompt-Manager.php
-                             This section has been moved to the Design Enhancer Right Panel
-                             in Prompt-Manager.php for better organization.
-                             To use Pages Creator, please open Prompt-Manager.php and use
-                             the Design Enhancer panel on the right side.
-                             ═══════════════════════════════════════════════════════════════════ -->
-
-                        <!-- Documentation Page Creator Section -->
-                        <div id="documentationPageSection" class="documentation-creator-section"
-                            style="margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%); border: 2px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius-lg); position: relative; overflow: hidden;">
-
-                            <!-- Decorative Background -->
-                            <div
-                                style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1)); border-radius: 50%; filter: blur(20px);">
-                            </div>
-
-                            <label class="homepage-checkbox-label"
-                                style="margin-bottom: 0; background: transparent; border: none;">
-                                <input type="checkbox" id="enableDocPageCreation" onchange="toggleDocPageCreation()"
-                                    class="homepage-checkbox">
-                                <div class="homepage-checkbox-content">
-                                    <div class="homepage-checkbox-header">
-                                        <i class="fas fa-book-open" style="color: #8b5cf6; font-size: 1.3rem;"></i>
-                                        <strong style="font-size: 1.1rem;">Create Documentation Page (Optional)</strong>
-                                        <span
-                                            style="background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; margin-left: 0.5rem; font-weight: 600;">NEW</span>
-                                    </div>
-                                    <p class="homepage-checkbox-description"
-                                        style="margin-top: 0.5rem; color: var(--text-muted);">
-                                        <i class="fas fa-magic" style="color: #a855f7; margin-right: 0.3rem;"></i>
-                                        AI will create a beautiful, easy-to-understand documentation page explaining
-                                        your website for beginners
-                                    </p>
-                                </div>
-                            </label>
-
-                            <!-- Documentation Options Container (Hidden by default) -->
-                            <div id="docPageOptionsContainer"
-                                style="display: none; margin-top: 1.5rem; animation: fadeIn 0.3s ease;">
-
-                                <!-- Page Name Input -->
-                                <div style="margin-bottom: 1.5rem;">
-                                    <label
-                                        style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">
-                                        <i class="fas fa-file-signature" style="color: #8b5cf6;"></i>
-                                        Page Name
-                                        <span
-                                            style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(optional)</span>
-                                    </label>
-                                    <div style="position: relative;">
-                                        <input type="text" id="docPageName" placeholder="documentation"
-                                            style="width: 100%; padding: 0.875rem 1rem 0.875rem 2.75rem; border: 2px solid var(--glass-border); border-radius: var(--radius-md); background: var(--surface-dark); color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease;"
-                                            oninput="updateDocPagePreview()">
-                                        <i class="fas fa-link"
-                                            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                                    </div>
-                                    <div
-                                        style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
-                                        <i class="fas fa-eye" style="color: #10b981;"></i>
-                                        <span>Preview: </span>
-                                        <code id="docPagePreview"
-                                            style="background: rgba(139, 92, 246, 0.15); padding: 0.25rem 0.5rem; border-radius: 4px; color: #a855f7; font-family: monospace;">documentation.html</code>
-                                    </div>
-                                </div>
-
-                                <!-- What Will Be Included Box -->
-                                <div
-                                    style="background: rgba(139, 92, 246, 0.08); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid rgba(139, 92, 246, 0.2);">
-                                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                                        <i class="fas fa-sparkles" style="color: #a855f7; font-size: 1.2rem;"></i>
-                                        <strong style="color: var(--text-primary);">What AI Will Create For
-                                            You:</strong>
-                                    </div>
-                                    <div
-                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Website purpose explanation</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Simple step-by-step guides</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Visual illustrations & icons</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Beginner-friendly language</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Feature demonstrations</span>
-                                        </div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                            <span>Easy navigation structure</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Notes Textarea -->
-                                <div>
-                                    <label
-                                        style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">
-                                        <i class="fas fa-comment-dots" style="color: #8b5cf6;"></i>
-                                        Additional Notes for Documentation
-                                        <span
-                                            style="font-weight: 400; color: var(--text-muted); font-size: 0.85rem;">(optional)</span>
-                                    </label>
-                                    <textarea id="docPageNotes" placeholder="Add any specific details you want included in the documentation page...
-
-Examples:
-• Focus on the checkout process
-• Explain how to create an account
-• Include FAQ section
-• Add troubleshooting tips
-• Highlight key features
-• Include contact support section" style="width: 100%; min-height: 120px; padding: 1rem; border: 2px solid var(--glass-border); border-radius: var(--radius-md); background: var(--surface-dark); color: var(--text-primary); font-size: 0.95rem; resize: vertical; line-height: 1.6; transition: all 0.3s ease;"
-                                        oninput="this.style.borderColor = this.value ? 'rgba(139, 92, 246, 0.5)' : 'var(--glass-border)'"></textarea>
-                                    <div
-                                        style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.8rem;">
-                                        <i class="fas fa-info-circle"></i>
-                                        <span>These notes will be included in the AI prompt to customize your
-                                            documentation page</span>
-                                    </div>
-                                </div>
-
-                                <!-- Helpful Tip -->
-                                <div
-                                    style="margin-top: 1.25rem; padding: 1rem; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.1)); border-left: 4px solid #10b981; border-radius: var(--radius-md);">
-                                    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                        <i class="fas fa-lightbulb"
-                                            style="color: #10b981; font-size: 1.1rem; margin-top: 0.1rem;"></i>
-                                        <div>
-                                            <strong style="color: #10b981;">Pro Tip:</strong>
-                                            <span style="color: var(--text-secondary); font-size: 0.9rem;"> The
-                                                documentation page will be designed to match your selected theme and
-                                                will be mobile-friendly. Perfect for helping new users understand your
-                                                website!</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="homepage-info-box" id="homepageInfoUnchecked" style="margin-top: 1.5rem;">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>Default Behavior (Unchecked):</strong>
-                                <p>Only enhance and improve the existing homepage design without creating a new one. The
-                                    current homepage will remain as the main entry point with modernized styling.</p>
-                            </div>
-                        </div>
-
-                        <div class="homepage-info-box homepage-info-checked" id="homepageInfoChecked"
-                            style="display: none; margin-top: 1.5rem;">
-                            <i class="fas fa-star"></i>
-                            <div>
-                                <strong>New Landing Page Creation (Checked):</strong>
-                                <p>AI will create a stunning new landing page with a clear navigation path to your
-                                    selected target page. The target page will maintain all its functionality with
-                                    enhanced design.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 🏠 HOMEPAGE CONFIGURATION - FULLY MIGRATED
+                 This section has been completely migrated to Prompt-Manager.php
+                 All HTML, CSS, and JavaScript functionality now lives in the
+                 Design Enhancer panel of Prompt-Manager.php
+                 ═══════════════════════════════════════════════════════════════════ -->
 
             <!-- Additional Instructions - Migrated to Prompt-Manager.php -->
 
@@ -14207,7 +13967,8 @@ Examples:
             tip: 'Always exclude sensitive pages like admin panels, payment pages, or any pages with complex functionality you don\'t want changed.',
             sectionId: 'excludedFilesSection'
         },
-        homepageCreation: {
+        // homepageCreation - MIGRATED TO Prompt-Manager.php
+        /* homepageCreation: {
             icon: 'fa-home',
             iconBg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1))',
             iconColor: '#3b82f6',
@@ -14223,8 +13984,9 @@ Examples:
             ],
             tip: 'Enable "Feed from Documentation" to have page content automatically extracted from your uploaded documentation file.',
             sectionId: 'homepageCreationSection'
-        },
-        documentationPage: {
+        }, */
+        // documentationPage - MIGRATED TO Prompt-Manager.php
+        /* documentationPage: {
             icon: 'fa-book-open',
             iconBg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1))',
             iconColor: '#a855f7',
@@ -14240,7 +14002,7 @@ Examples:
             ],
             tip: 'Upload a text file with your app\'s key features and workflows. The AI will expand this into full documentation.',
             sectionId: 'documentationPageSection'
-        },
+        }, */
         // customInstructions - Migrated to Prompt-Manager.php
         // documentationIntegration - Migrated to Prompt-Manager.php
         taskBreakdown: {
@@ -14887,8 +14649,8 @@ Examples:
         layout: 'layoutSection',
         // referenceImages: 'referenceImagesSection', - MIGRATED TO Prompt-Manager.php
         excludedFiles: 'excludedFilesSection',
-        homepageCreation: 'homepageCreationSection',
-        documentationPage: 'documentationPageSection',
+        // homepageCreation: 'homepageCreationSection', - MIGRATED TO Prompt-Manager.php
+        // documentationPage: 'documentationPageSection', - MIGRATED TO Prompt-Manager.php
         // documentationIntegration: 'documentationIntegrationSection', - MIGRATED TO Prompt-Manager.php
         taskBreakdown: 'taskBreakdownSection',
         promptOutput: 'promptOutputSection'
@@ -14905,8 +14667,8 @@ Examples:
         layout: true,
         referenceImages: false, // MIGRATED TO Prompt-Manager.php
         excludedFiles: true,
-        homepageCreation: true,
-        documentationPage: true,
+        homepageCreation: false, // MIGRATED TO Prompt-Manager.php
+        documentationPage: false, // MIGRATED TO Prompt-Manager.php
         documentationIntegration: false, // MIGRATED TO Prompt-Manager.php
         taskBreakdown: true,
         promptOutput: true // Always enabled

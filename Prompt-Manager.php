@@ -6314,6 +6314,362 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🏠 HOMEPAGE CONFIGURATION STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .hp-option-box {
+            padding: 0.5rem;
+            background: rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 8px;
+        }
+        
+        .hp-checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .hp-checkbox-label:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        
+        .hp-checkbox-label.checked {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .hp-checkbox-label input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: #10b981;
+        }
+        
+        .hp-checkbox-content {
+            flex: 1;
+        }
+        
+        .hp-checkbox-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.2rem;
+        }
+        
+        .hp-checkbox-header i {
+            color: #10b981;
+            font-size: 0.6rem;
+        }
+        
+        .hp-checkbox-header strong {
+            font-size: 0.55rem;
+            color: var(--text-primary);
+        }
+        
+        .hp-checkbox-description {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        /* Target Page Picker */
+        .hp-target-picker {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .hp-target-picker.show {
+            display: block;
+        }
+        
+        .hp-target-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .hp-target-header i {
+            color: #10b981;
+            font-size: 0.55rem;
+        }
+        
+        .hp-target-header strong {
+            font-size: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .hp-target-description {
+            font-size: 0.45rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+        }
+        
+        .hp-file-picker {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .hp-file-picker input[type="file"] {
+            display: none;
+        }
+        
+        .hp-file-display {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 4px;
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .hp-file-display.has-file {
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        
+        .hp-file-display i {
+            color: #10b981;
+        }
+        
+        .hp-file-buttons {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .hp-browse-btn,
+        .hp-clear-btn {
+            flex: 1;
+            padding: 0.35rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.45rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: all 0.2s ease;
+        }
+        
+        .hp-browse-btn {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--text-primary);
+        }
+        
+        .hp-browse-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.15) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .hp-browse-btn i {
+            color: #10b981;
+        }
+        
+        .hp-clear-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--text-secondary);
+            display: none;
+        }
+        
+        .hp-clear-btn.show {
+            display: flex;
+        }
+        
+        .hp-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+        
+        .hp-clear-btn i {
+            color: #ef4444;
+        }
+        
+        .hp-info-tip {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            padding: 0.4rem;
+            background: rgba(251, 191, 36, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 4px;
+            font-size: 0.45rem;
+        }
+        
+        .hp-info-tip > i {
+            color: #fbbf24;
+            margin-top: 2px;
+        }
+        
+        .hp-info-tip strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+        
+        .hp-info-tip p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        /* Info Boxes */
+        .hp-info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            padding: 0.4rem;
+            border-radius: 4px;
+            font-size: 0.45rem;
+        }
+        
+        .hp-info-box > i {
+            margin-top: 2px;
+        }
+        
+        .hp-info-box strong {
+            display: block;
+            margin-bottom: 0.15rem;
+            color: var(--text-primary);
+        }
+        
+        .hp-info-box p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .hp-info-unchecked {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .hp-info-unchecked > i {
+            color: #3b82f6;
+        }
+        
+        .hp-info-checked {
+            display: none;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .hp-info-checked.show {
+            display: flex;
+        }
+        
+        .hp-info-checked > i {
+            color: #10b981;
+        }
+        
+        .hp-info-unchecked.hide {
+            display: none;
+        }
+        
+        /* Notes Section */
+        .hp-notes-section {
+            margin-top: 0.5rem;
+        }
+        
+        .hp-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .hp-notes-label i {
+            color: #10b981;
+        }
+        
+        .hp-notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.5rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+        
+        .hp-notes-textarea:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .hp-notes-textarea::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        
+        .hp-char-count {
+            font-size: 0.4rem;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 0.2rem;
+        }
+        
+        /* Push Section */
+        .hp-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .hp-push-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        
+        .hp-push-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.2) 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .hp-push-btn i {
+            color: #10b981;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            📚 DOCUMENTATION INTEGRATION STYLES
            ═══════════════════════════════════════════════════════════════════ */
         .di-checkbox-group {
@@ -6893,7 +7249,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-1px);
         }
         
-        /* Light Theme */
+        /* Light Theme - Homepage Configuration */
+        [data-theme="light"] .hp-option-box {
+            background: rgba(16, 185, 129, 0.02);
+        }
+        
+        [data-theme="light"] .hp-checkbox-label {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .hp-checkbox-label:hover {
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        [data-theme="light"] .hp-checkbox-label.checked {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .hp-target-picker {
+            background: rgba(255, 255, 255, 0.6);
+        }
+        
+        [data-theme="light"] .hp-file-display {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .hp-notes-textarea {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .hp-info-tip {
+            background: rgba(251, 191, 36, 0.03);
+        }
+        
+        /* Light Theme - Documentation Integration */
         [data-theme="light"] .di-checkbox-item {
             background: rgba(255, 255, 255, 0.8);
             border-color: rgba(0, 0, 0, 0.1);
@@ -15452,6 +15842,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="vr-push-section">
                             <button type="button" class="vr-push-btn" onclick="vrPushToNotes()" title="Push visual reference settings to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🏠 HOMEPAGE CONFIGURATION TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="homepageTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('homepage')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-home"></i>
+                            <span>Homepage Configuration</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetHomepage();" title="Reset homepage settings">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge hp-badge" id="hpBadge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: none;">Ready</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="homepageArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="homepageBody">
+                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Choose how to handle the homepage design</p>
+                        
+                        <!-- Create New Homepage Checkbox -->
+                        <div class="hp-option-box">
+                            <label class="hp-checkbox-label" onclick="hpToggleCreateHomepage(event)">
+                                <input type="checkbox" id="hpCreateNewHomepage">
+                                <div class="hp-checkbox-content">
+                                    <div class="hp-checkbox-header">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <strong>Create New Landing Homepage</strong>
+                                    </div>
+                                    <p class="hp-checkbox-description">Generate a brand new, modern landing page that will guide users to a target page of your choice</p>
+                                </div>
+                            </label>
+                            
+                            <!-- Target Page Picker -->
+                            <div class="hp-target-picker" id="hpTargetPicker">
+                                <div class="hp-target-header">
+                                    <i class="fas fa-link"></i>
+                                    <strong>Select Target Page (After Landing)</strong>
+                                </div>
+                                <p class="hp-target-description">Choose which page the landing page should link to. This will be the main content page users reach after the landing page.</p>
+                                
+                                <div class="hp-file-picker">
+                                    <input type="file" id="hpTargetFile" accept=".html,.php,.htm" onchange="hpHandleTargetFile(event)">
+                                    <div class="hp-file-display" id="hpFileDisplay">
+                                        <i class="fas fa-file-code"></i>
+                                        <span id="hpTargetFileName">No file selected (will use current homepage)</span>
+                                    </div>
+                                    <div class="hp-file-buttons">
+                                        <button type="button" class="hp-browse-btn" onclick="document.getElementById('hpTargetFile').click()">
+                                            <i class="fas fa-folder-open"></i>
+                                            <span>Browse</span>
+                                        </button>
+                                        <button type="button" class="hp-clear-btn" id="hpClearBtn" onclick="hpClearTargetFile()">
+                                            <i class="fas fa-times"></i>
+                                            <span>Clear</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="hp-info-tip">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <div>
+                                        <strong>How it works:</strong>
+                                        <p>The new landing page will include a prominent call-to-action button/link that directs users to your selected target page.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Info Box - Unchecked State -->
+                            <div class="hp-info-box hp-info-unchecked" id="hpInfoUnchecked">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Default Behavior (Unchecked):</strong>
+                                    <p>Only enhance and improve the existing homepage design without creating a new one.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Info Box - Checked State -->
+                            <div class="hp-info-box hp-info-checked" id="hpInfoChecked">
+                                <i class="fas fa-star"></i>
+                                <div>
+                                    <strong>New Landing Page Creation (Checked):</strong>
+                                    <p>AI will create a stunning new landing page with a clear navigation path to your selected target page.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="hp-notes-section">
+                            <label class="hp-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Homepage Instructions</span>
+                            </label>
+                            <textarea 
+                                id="hpNotesTextarea" 
+                                class="hp-notes-textarea" 
+                                placeholder="Add specific instructions for the homepage design..."
+                                oninput="hpUpdateCharCount()"
+                            ></textarea>
+                            <div class="hp-char-count" id="hpCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="hp-push-section">
+                            <button type="button" class="hp-push-btn" onclick="hpPushToNotes()" title="Push homepage settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -26598,6 +27098,11 @@ async function deResetAll() {
         vrResetAll(true);
     }
     
+    // Reset Homepage Configuration (skip individual toast)
+    if (typeof hpResetAll === 'function') {
+        hpResetAll(true);
+    }
+    
     // Reset Documentation Integration (skip individual toast)
     if (typeof diResetAll === 'function') {
         diResetAll(true);
@@ -30310,6 +30815,333 @@ function getVisualReference() {
 document.addEventListener('DOMContentLoaded', function() {
     vrInit();
 });
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🏠 HOMEPAGE CONFIGURATION JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Homepage Configuration state
+let hpCreateNew = false;
+let hpTargetFileName = null;
+
+// Initialize Homepage Configuration
+function hpInit() {
+    hpLoadFromStorage();
+    hpUpdateUI();
+}
+
+// Toggle create new homepage checkbox
+function hpToggleCreateHomepage(event) {
+    const checkbox = document.getElementById('hpCreateNewHomepage');
+    
+    // If click was NOT on the checkbox itself, toggle it manually
+    if (event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+        checkbox.checked = !checkbox.checked;
+    }
+    
+    hpCreateNew = checkbox.checked;
+    
+    const label = checkbox.closest('.hp-checkbox-label');
+    label.classList.toggle('checked', checkbox.checked);
+    
+    // Show/hide target picker
+    const targetPicker = document.getElementById('hpTargetPicker');
+    if (checkbox.checked) {
+        targetPicker.classList.add('show');
+    } else {
+        targetPicker.classList.remove('show');
+    }
+    
+    // Toggle info boxes
+    const infoUnchecked = document.getElementById('hpInfoUnchecked');
+    const infoChecked = document.getElementById('hpInfoChecked');
+    
+    if (checkbox.checked) {
+        infoUnchecked.classList.add('hide');
+        infoChecked.classList.add('show');
+    } else {
+        infoUnchecked.classList.remove('hide');
+        infoChecked.classList.remove('show');
+    }
+    
+    hpSaveToStorage();
+    hpUpdateBadge();
+}
+
+// Handle target file selection
+function hpHandleTargetFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    hpTargetFileName = file.name;
+    
+    // Update display
+    const fileDisplay = document.getElementById('hpFileDisplay');
+    const fileNameSpan = document.getElementById('hpTargetFileName');
+    const clearBtn = document.getElementById('hpClearBtn');
+    
+    fileNameSpan.textContent = file.name;
+    fileDisplay.classList.add('has-file');
+    clearBtn.classList.add('show');
+    
+    hpSaveToStorage();
+    hpUpdateBadge();
+    showNotification(`📄 Target page selected: ${file.name}`, 'success');
+}
+
+// Clear target file
+function hpClearTargetFile() {
+    hpTargetFileName = null;
+    
+    const fileInput = document.getElementById('hpTargetFile');
+    const fileDisplay = document.getElementById('hpFileDisplay');
+    const fileNameSpan = document.getElementById('hpTargetFileName');
+    const clearBtn = document.getElementById('hpClearBtn');
+    
+    fileInput.value = '';
+    fileNameSpan.textContent = 'No file selected (will use current homepage)';
+    fileDisplay.classList.remove('has-file');
+    clearBtn.classList.remove('show');
+    
+    hpSaveToStorage();
+    hpUpdateBadge();
+}
+
+// Update badge
+function hpUpdateBadge() {
+    const badge = document.getElementById('hpBadge');
+    if (badge) {
+        if (hpCreateNew) {
+            badge.style.display = 'inline-flex';
+            badge.textContent = hpTargetFileName ? 'Configured' : 'New Landing';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Update UI from state
+function hpUpdateUI() {
+    // Checkbox
+    const checkbox = document.getElementById('hpCreateNewHomepage');
+    if (checkbox) {
+        checkbox.checked = hpCreateNew;
+        const label = checkbox.closest('.hp-checkbox-label');
+        if (label) label.classList.toggle('checked', hpCreateNew);
+    }
+    
+    // Target picker visibility
+    const targetPicker = document.getElementById('hpTargetPicker');
+    if (targetPicker) {
+        targetPicker.classList.toggle('show', hpCreateNew);
+    }
+    
+    // Info boxes
+    const infoUnchecked = document.getElementById('hpInfoUnchecked');
+    const infoChecked = document.getElementById('hpInfoChecked');
+    if (infoUnchecked) infoUnchecked.classList.toggle('hide', hpCreateNew);
+    if (infoChecked) infoChecked.classList.toggle('show', hpCreateNew);
+    
+    // File display
+    if (hpTargetFileName) {
+        const fileDisplay = document.getElementById('hpFileDisplay');
+        const fileNameSpan = document.getElementById('hpTargetFileName');
+        const clearBtn = document.getElementById('hpClearBtn');
+        
+        if (fileNameSpan) fileNameSpan.textContent = hpTargetFileName;
+        if (fileDisplay) fileDisplay.classList.add('has-file');
+        if (clearBtn) clearBtn.classList.add('show');
+    }
+    
+    // Load notes
+    hpLoadNotesFromStorage();
+    
+    // Update badge
+    hpUpdateBadge();
+}
+
+// Push to Project Prompts
+function hpPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('hpNotesTextarea')?.value.trim() || '';
+    
+    // Build prompt content
+    let promptContent = '';
+    
+    if (hpCreateNew) {
+        promptContent += `\n\n🏠 HOMEPAGE CONFIGURATION\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `• Mode: Create New Landing Homepage\n`;
+        
+        if (hpTargetFileName) {
+            promptContent += `• Target Page: ${hpTargetFileName}\n\n`;
+            promptContent += `INSTRUCTIONS: Create a stunning new landing page with a modern design. Include a prominent call-to-action that directs users to "${hpTargetFileName}". The landing page should:\n`;
+        } else {
+            promptContent += `• Target Page: Current homepage (default)\n\n`;
+            promptContent += `INSTRUCTIONS: Create a stunning new landing page with a modern design. Include a prominent call-to-action that directs users to the main content. The landing page should:\n`;
+        }
+        
+        promptContent += `- Have a hero section with compelling headline\n`;
+        promptContent += `- Feature key benefits/features\n`;
+        promptContent += `- Include clear navigation path\n`;
+        promptContent += `- Be fully responsive and mobile-friendly\n`;
+        promptContent += `- Match the overall site theme\n`;
+    } else {
+        promptContent += `\n\n🏠 HOMEPAGE CONFIGURATION\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `• Mode: Enhance Existing Homepage\n\n`;
+        promptContent += `INSTRUCTIONS: Enhance and improve the existing homepage design without creating a new one. The current homepage will remain as the main entry point with modernized styling, improved UX, and better visual appeal.\n`;
+    }
+    
+    // Additional notes
+    if (notesContent) {
+        promptContent += `\nAdditional Instructions:\n${notesContent}\n`;
+    }
+    
+    if (!promptContent.trim()) {
+        showNotification('⚠️ No homepage configuration to push', 'warning');
+        return;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification('🏠 Homepage configuration pushed to Project Prompts', 'success');
+}
+
+// Character count
+function hpUpdateCharCount() {
+    const textarea = document.getElementById('hpNotesTextarea');
+    const charCount = document.getElementById('hpCharCount');
+    if (textarea && charCount) {
+        charCount.textContent = `${textarea.value.length} characters`;
+        hpSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function hpSaveNotesToStorage() {
+    const textarea = document.getElementById('hpNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('hpNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function hpLoadNotesFromStorage() {
+    const savedNotes = localStorage.getItem('hpNotes');
+    const textarea = document.getElementById('hpNotesTextarea');
+    if (savedNotes && textarea) {
+        textarea.value = savedNotes;
+        hpUpdateCharCount();
+    }
+}
+
+// Save to localStorage
+function hpSaveToStorage() {
+    localStorage.setItem('hpCreateNew', hpCreateNew);
+    if (hpTargetFileName) {
+        localStorage.setItem('hpTargetFileName', hpTargetFileName);
+    } else {
+        localStorage.removeItem('hpTargetFileName');
+    }
+}
+
+// Load from localStorage
+function hpLoadFromStorage() {
+    hpCreateNew = localStorage.getItem('hpCreateNew') === 'true';
+    hpTargetFileName = localStorage.getItem('hpTargetFileName') || null;
+}
+
+// Reset all
+function hpResetAll(skipToast = false) {
+    hpCreateNew = false;
+    hpTargetFileName = null;
+    
+    // Clear UI
+    const checkbox = document.getElementById('hpCreateNewHomepage');
+    if (checkbox) {
+        checkbox.checked = false;
+        const label = checkbox.closest('.hp-checkbox-label');
+        if (label) label.classList.remove('checked');
+    }
+    
+    const targetPicker = document.getElementById('hpTargetPicker');
+    if (targetPicker) targetPicker.classList.remove('show');
+    
+    const fileInput = document.getElementById('hpTargetFile');
+    if (fileInput) fileInput.value = '';
+    
+    const fileDisplay = document.getElementById('hpFileDisplay');
+    if (fileDisplay) fileDisplay.classList.remove('has-file');
+    
+    const fileNameSpan = document.getElementById('hpTargetFileName');
+    if (fileNameSpan) fileNameSpan.textContent = 'No file selected (will use current homepage)';
+    
+    const clearBtn = document.getElementById('hpClearBtn');
+    if (clearBtn) clearBtn.classList.remove('show');
+    
+    const infoUnchecked = document.getElementById('hpInfoUnchecked');
+    if (infoUnchecked) infoUnchecked.classList.remove('hide');
+    
+    const infoChecked = document.getElementById('hpInfoChecked');
+    if (infoChecked) infoChecked.classList.remove('show');
+    
+    // Clear notes
+    const notesTextarea = document.getElementById('hpNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        hpUpdateCharCount();
+    }
+    
+    // Clear storage
+    localStorage.removeItem('hpCreateNew');
+    localStorage.removeItem('hpTargetFileName');
+    localStorage.removeItem('hpNotes');
+    
+    hpUpdateBadge();
+    
+    if (!skipToast) {
+        showNotification('🏠 Homepage settings reset', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetHomepage() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Homepage',
+            subtitle: 'Design Enhancer',
+            message: 'This will clear all homepage configuration settings and notes.',
+            warning: 'This action cannot be undone.',
+            confirmText: 'Reset',
+            icon: 'fa-home'
+        });
+        if (confirmed) {
+            hpResetAll();
+        }
+    } else {
+        if (confirm('Reset all homepage settings?')) {
+            hpResetAll();
+        }
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', hpInit);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════
