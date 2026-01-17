@@ -24194,6 +24194,594 @@ h1 { color: var(--aura-gold); text-shadow: 2px 2px 0 var(--power-red), 4px 4px 0
     }
 };
 
+// Style Item Visual Styles - matching index1.php colors and effects
+const styleItemStyles = {
+    'ai-choice': {
+        bg: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
+        border: '2px solid rgba(102, 126, 234, 0.4)',
+        iconColor: '#667eea',
+        nameGradient: 'linear-gradient(135deg, #667eea, #764ba2)',
+        descColor: 'var(--text-secondary)'
+    },
+    'modern-sleek': {
+        bg: 'rgba(37, 99, 235, 0.08)',
+        border: '2px solid rgba(37, 99, 235, 0.3)',
+        iconColor: '#2563eb',
+        nameGradient: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+        descColor: 'var(--text-secondary)'
+    },
+    'minimalist': {
+        bg: 'rgba(148, 163, 184, 0.08)',
+        border: '2px solid rgba(226, 232, 240, 0.4)',
+        borderLeft: '4px solid #94a3b8',
+        iconColor: '#94a3b8',
+        nameColor: '#94a3b8',
+        descColor: 'var(--text-secondary)'
+    },
+    'bold-creative': {
+        bg: 'linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(254, 202, 87, 0.15), rgba(236, 72, 153, 0.15))',
+        border: '3px solid rgba(236, 72, 153, 0.5)',
+        iconColor: '#ec4899',
+        nameGradient: 'linear-gradient(135deg, #ff6b6b, #feca57, #ec4899)',
+        descColor: 'var(--text-secondary)'
+    },
+    'professional': {
+        bg: 'linear-gradient(to right, rgba(71, 85, 105, 0.1), rgba(71, 85, 105, 0.05))',
+        border: '2px solid rgba(71, 85, 105, 0.4)',
+        borderLeft: '5px solid #475569',
+        iconColor: '#475569',
+        nameColor: '#475569',
+        descColor: 'var(--text-secondary)'
+    },
+    'elegant': {
+        bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(124, 58, 237, 0.12))',
+        border: '2px solid rgba(168, 85, 247, 0.4)',
+        iconColor: '#a855f7',
+        nameGradient: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 4px 20px rgba(168, 85, 247, 0.2)'
+    },
+    'tech-futuristic': {
+        bg: 'rgba(6, 182, 212, 0.1)',
+        border: '2px solid rgba(6, 182, 212, 0.5)',
+        iconColor: '#06b6d4',
+        nameColor: '#00d9ff',
+        descColor: '#7dd3fc',
+        glow: '0 0 20px rgba(6, 182, 212, 0.3)',
+        textShadow: '0 0 8px rgba(0, 217, 255, 0.6)'
+    },
+    'warm-friendly': {
+        bg: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.15))',
+        border: '2px solid rgba(245, 158, 11, 0.5)',
+        iconColor: '#f59e0b',
+        nameColor: '#d97706',
+        descColor: 'var(--text-secondary)',
+        glow: '0 4px 15px rgba(245, 158, 11, 0.2)'
+    },
+    'dark-dramatic': {
+        bg: 'linear-gradient(135deg, rgba(30, 27, 75, 0.5), rgba(49, 46, 129, 0.5))',
+        border: '2px solid rgba(99, 102, 241, 0.5)',
+        iconColor: '#818cf8',
+        nameColor: '#c7d2fe',
+        descColor: '#a5b4fc',
+        glow: '0 0 25px rgba(99, 102, 241, 0.3)',
+        textShadow: '0 2px 10px rgba(99, 102, 241, 0.5)'
+    },
+    'playful-vibrant': {
+        bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(251, 191, 36, 0.15), rgba(244, 114, 182, 0.15))',
+        border: '3px solid rgba(34, 197, 94, 0.5)',
+        iconColor: '#22c55e',
+        nameGradient: 'linear-gradient(135deg, #22c55e, #fbbf24, #f472b6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 8px 25px rgba(34, 197, 94, 0.2)'
+    },
+    'luminous-aurora': {
+        bg: 'linear-gradient(135deg, rgba(14, 116, 144, 0.25), rgba(30, 64, 175, 0.25), rgba(109, 40, 217, 0.25))',
+        border: '2px solid rgba(99, 102, 241, 0.4)',
+        iconColor: '#60a5fa',
+        nameColor: '#c7d2fe',
+        descColor: '#e0e7ff',
+        glow: '0 10px 30px rgba(56, 189, 248, 0.2)'
+    },
+    'monochrome-noir': {
+        bg: 'linear-gradient(135deg, #18181b 0%, #111827 100%)',
+        border: '2px solid rgba(148, 163, 184, 0.3)',
+        iconColor: '#94a3b8',
+        nameColor: '#f8fafc',
+        descColor: '#e2e8f0',
+        glow: '0 12px 30px rgba(15, 23, 42, 0.45)'
+    },
+    'geometric-harmony': {
+        bg: 'linear-gradient(135deg, rgba(191, 219, 254, 0.2) 0%, rgba(224, 231, 255, 0.2) 100%)',
+        border: '2px solid rgba(59, 130, 246, 0.4)',
+        iconColor: '#2563eb',
+        nameColor: '#1d4ed8',
+        descColor: 'var(--text-secondary)',
+        glow: '0 12px 35px rgba(59, 130, 246, 0.15)'
+    },
+    'pastel-symphony': {
+        bg: 'linear-gradient(135deg, rgba(252, 231, 243, 0.3), rgba(229, 231, 247, 0.3), rgba(207, 250, 254, 0.3))',
+        border: '2px solid rgba(244, 114, 182, 0.4)',
+        iconColor: '#f43f5e',
+        nameColor: '#9f1239',
+        descColor: '#9d174d',
+        glow: '0 10px 30px rgba(244, 114, 182, 0.15)'
+    },
+    'desert-mirage': {
+        bg: 'linear-gradient(135deg, rgba(250, 204, 21, 0.18), rgba(245, 158, 11, 0.18), rgba(234, 88, 12, 0.18))',
+        border: '2px solid rgba(217, 119, 6, 0.4)',
+        iconColor: '#f97316',
+        nameColor: '#9a3412',
+        descColor: '#7c2d12',
+        glow: '0 10px 28px rgba(217, 119, 6, 0.18)'
+    },
+    'frosted-candy': {
+        bg: 'linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(69, 183, 209, 0.2), rgba(126, 217, 87, 0.2))',
+        border: '2px solid rgba(255, 107, 157, 0.5)',
+        iconColor: '#ff6b9d',
+        nameGradient: 'linear-gradient(135deg, #ff6b9d, #45b7d1)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(255, 107, 157, 0.2)'
+    },
+    'steampunk-industrial': {
+        bg: 'linear-gradient(135deg, rgba(181, 166, 66, 0.15), rgba(184, 115, 51, 0.15))',
+        border: '3px solid rgba(181, 166, 66, 0.5)',
+        iconColor: '#b87333',
+        nameColor: '#b5a642',
+        descColor: '#f5deb3',
+        glow: '0 8px 25px rgba(181, 166, 66, 0.2)'
+    },
+    'vaporwave-dreams': {
+        bg: 'linear-gradient(135deg, rgba(255, 113, 206, 0.2), rgba(1, 205, 254, 0.2), rgba(185, 103, 255, 0.2))',
+        border: '2px solid rgba(255, 113, 206, 0.5)',
+        iconColor: '#ff71ce',
+        nameGradient: 'linear-gradient(135deg, #ff71ce, #01cdfe, #b967ff)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(255, 113, 206, 0.25)'
+    },
+    'origami-folds': {
+        bg: 'rgba(248, 248, 248, 0.1)',
+        border: '2px solid rgba(231, 76, 60, 0.3)',
+        iconColor: '#e74c3c',
+        nameColor: '#e74c3c',
+        descColor: 'var(--text-secondary)',
+        glow: '5px 5px 0 rgba(0, 0, 0, 0.1)'
+    },
+    'gothic-renaissance': {
+        bg: 'linear-gradient(135deg, rgba(201, 162, 39, 0.1), rgba(139, 0, 0, 0.1))',
+        border: '2px solid rgba(201, 162, 39, 0.5)',
+        iconColor: '#c9a227',
+        nameColor: '#c9a227',
+        descColor: '#f4e4bc',
+        glow: '0 10px 30px rgba(139, 0, 0, 0.2)'
+    },
+    'gradient-flow': {
+        bg: 'linear-gradient(-45deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2), rgba(240, 147, 251, 0.2), rgba(245, 87, 108, 0.2))',
+        border: '2px solid rgba(102, 126, 234, 0.4)',
+        iconColor: '#667eea',
+        nameGradient: 'linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(102, 126, 234, 0.25)'
+    },
+    'neumorphism': {
+        bg: 'rgba(224, 229, 236, 0.15)',
+        border: '1px solid rgba(163, 177, 198, 0.3)',
+        iconColor: '#6366f1',
+        nameColor: '#6366f1',
+        descColor: 'var(--text-secondary)',
+        glow: '8px 8px 16px rgba(163, 177, 198, 0.3), -8px -8px 16px rgba(255, 255, 255, 0.1)'
+    },
+    'retro-vintage': {
+        bg: 'linear-gradient(135deg, rgba(180, 83, 9, 0.15), rgba(249, 115, 22, 0.15))',
+        border: '3px solid rgba(120, 53, 15, 0.5)',
+        iconColor: '#f97316',
+        nameColor: '#b45309',
+        descColor: '#78350f',
+        glow: '5px 5px 0 rgba(120, 53, 15, 0.3)'
+    },
+    'brutalist': {
+        bg: 'rgba(255, 255, 255, 0.05)',
+        border: '4px solid #ffffff',
+        iconColor: '#ffffff',
+        nameColor: '#ffffff',
+        descColor: 'var(--text-secondary)',
+        glow: '10px 10px 0 rgba(0, 0, 0, 0.8)'
+    },
+    'cyberpunk-neon': {
+        bg: 'rgba(255, 0, 255, 0.08)',
+        border: '2px solid rgba(255, 0, 255, 0.6)',
+        iconColor: '#ff00ff',
+        nameColor: '#00ffff',
+        descColor: '#ff00ff',
+        glow: '0 0 20px rgba(255, 0, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.2)',
+        textShadow: '0 0 10px #00ffff'
+    },
+    'glassmorphism': {
+        bg: 'rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        iconColor: '#667eea',
+        nameGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 8px 32px rgba(31, 38, 135, 0.37)',
+        backdrop: 'blur(10px)'
+    },
+    'luxury-premium': {
+        bg: 'linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(26, 26, 26, 0.3))',
+        border: '2px solid rgba(212, 175, 55, 0.5)',
+        iconColor: '#d4af37',
+        nameColor: '#d4af37',
+        descColor: '#f5f5dc',
+        glow: '0 10px 30px rgba(212, 175, 55, 0.2)'
+    },
+    'nature-organic': {
+        bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.15))',
+        border: '2px solid rgba(34, 197, 94, 0.5)',
+        iconColor: '#22c55e',
+        nameColor: '#16a34a',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(34, 197, 94, 0.2)'
+    },
+    'artistic-creative': {
+        bg: 'linear-gradient(135deg, rgba(155, 89, 182, 0.1), rgba(26, 188, 156, 0.1))',
+        border: '2px solid rgba(155, 89, 182, 0.4)',
+        iconColor: '#9b59b6',
+        nameColor: '#9b59b6',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(155, 89, 182, 0.2)'
+    },
+    'swiss-minimalism': {
+        bg: 'rgba(255, 0, 0, 0.05)',
+        border: '2px solid rgba(26, 26, 26, 0.3)',
+        borderBottom: '4px solid #ff0000',
+        iconColor: '#ff0000',
+        nameColor: '#1a1a1a',
+        descColor: 'var(--text-secondary)'
+    },
+    'handcrafted-artisan': {
+        bg: 'rgba(139, 69, 19, 0.1)',
+        border: '2px dashed rgba(139, 69, 19, 0.5)',
+        iconColor: '#8b4513',
+        nameColor: '#556b2f',
+        descColor: '#8b4513'
+    },
+    'scandi-modern': {
+        bg: 'rgba(212, 165, 116, 0.1)',
+        border: '2px solid rgba(51, 51, 51, 0.2)',
+        iconColor: '#d4a574',
+        nameColor: '#333333',
+        descColor: 'var(--text-secondary)',
+        glow: '0 4px 20px rgba(0,0,0,0.05)'
+    },
+    'matrix-hacker': {
+        bg: 'rgba(0, 255, 65, 0.05)',
+        border: '2px solid rgba(0, 255, 65, 0.5)',
+        iconColor: '#00ff41',
+        nameColor: '#00ff41',
+        descColor: '#00ff41',
+        glow: '0 0 20px rgba(0, 255, 65, 0.3)',
+        textShadow: '0 0 10px #00ff41'
+    },
+    'neon-synthwave': {
+        bg: 'linear-gradient(135deg, rgba(255, 110, 199, 0.15), rgba(0, 212, 255, 0.15))',
+        border: '2px solid rgba(255, 110, 199, 0.5)',
+        iconColor: '#ff6ec7',
+        nameGradient: 'linear-gradient(135deg, #ff6ec7, #00d4ff)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 30px rgba(255, 110, 199, 0.3)'
+    },
+    'neon-arcade': {
+        bg: 'rgba(255, 0, 255, 0.1)',
+        border: '4px solid rgba(255, 0, 255, 0.6)',
+        iconColor: '#ff00ff',
+        nameColor: '#00ffff',
+        descColor: '#ffff00',
+        glow: '0 0 20px rgba(255, 0, 255, 0.5)',
+        textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff'
+    },
+    'hologram-hud': {
+        bg: 'rgba(0, 212, 255, 0.08)',
+        border: '2px solid rgba(0, 212, 255, 0.5)',
+        iconColor: '#00d4ff',
+        nameColor: '#00d4ff',
+        descColor: '#00ff9d',
+        glow: '0 0 25px rgba(0, 212, 255, 0.3)'
+    },
+    'anime-powerup': {
+        bg: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(0, 191, 255, 0.15))',
+        border: '3px solid rgba(255, 215, 0, 0.6)',
+        iconColor: '#ffd700',
+        nameGradient: 'linear-gradient(135deg, #ffd700, #00bfff)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 30px rgba(255, 215, 0, 0.4)'
+    },
+    'victorian-mansion': {
+        bg: 'linear-gradient(135deg, rgba(139, 0, 0, 0.15), rgba(75, 0, 130, 0.15))',
+        border: '2px solid rgba(139, 0, 0, 0.5)',
+        iconColor: '#8b0000',
+        nameColor: '#daa520',
+        descColor: '#f5deb3',
+        glow: '0 10px 30px rgba(139, 0, 0, 0.25)'
+    },
+    'ancient-manuscript': {
+        bg: 'linear-gradient(135deg, rgba(210, 180, 140, 0.2), rgba(139, 90, 43, 0.15))',
+        border: '2px solid rgba(139, 90, 43, 0.5)',
+        iconColor: '#8b5a2b',
+        nameColor: '#8b4513',
+        descColor: '#d2691e'
+    },
+    'digital-papercut': {
+        bg: 'rgba(255, 255, 255, 0.1)',
+        border: '2px solid rgba(99, 102, 241, 0.3)',
+        iconColor: '#6366f1',
+        nameColor: '#6366f1',
+        descColor: 'var(--text-secondary)',
+        glow: '0 5px 0 rgba(99, 102, 241, 0.1), 0 10px 0 rgba(99, 102, 241, 0.05)'
+    },
+    'vintage-blueprint': {
+        bg: 'rgba(30, 64, 175, 0.15)',
+        border: '2px solid rgba(59, 130, 246, 0.5)',
+        iconColor: '#60a5fa',
+        nameColor: '#93c5fd',
+        descColor: '#bfdbfe',
+        glow: '0 8px 25px rgba(59, 130, 246, 0.2)'
+    },
+    'celestial-dreams': {
+        bg: 'linear-gradient(135deg, rgba(30, 27, 75, 0.4), rgba(76, 29, 149, 0.4))',
+        border: '2px solid rgba(167, 139, 250, 0.5)',
+        iconColor: '#a78bfa',
+        nameGradient: 'linear-gradient(135deg, #a78bfa, #c4b5fd)',
+        descColor: '#c4b5fd',
+        glow: '0 10px 30px rgba(167, 139, 250, 0.25)'
+    },
+    'kinetic-waves': {
+        bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))',
+        border: '2px solid rgba(6, 182, 212, 0.5)',
+        iconColor: '#06b6d4',
+        nameGradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(6, 182, 212, 0.2)'
+    },
+    'opulent-baroque': {
+        bg: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(139, 69, 19, 0.15))',
+        border: '2px solid rgba(212, 175, 55, 0.6)',
+        iconColor: '#d4af37',
+        nameColor: '#d4af37',
+        descColor: '#f5deb3',
+        glow: '0 10px 30px rgba(212, 175, 55, 0.25)'
+    },
+    'holographic-spectrum': {
+        bg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(6, 182, 212, 0.15), rgba(168, 85, 247, 0.15))',
+        border: '2px solid rgba(236, 72, 153, 0.4)',
+        iconColor: '#ec4899',
+        nameGradient: 'linear-gradient(135deg, #ec4899, #06b6d4, #a855f7)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(236, 72, 153, 0.2)'
+    },
+    'ink-splash': {
+        bg: 'rgba(30, 41, 59, 0.3)',
+        border: '2px solid rgba(71, 85, 105, 0.5)',
+        iconColor: '#1e293b',
+        nameColor: '#334155',
+        descColor: 'var(--text-secondary)'
+    },
+    'bioluminescent-glow': {
+        bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.15))',
+        border: '2px solid rgba(16, 185, 129, 0.5)',
+        iconColor: '#10b981',
+        nameColor: '#34d399',
+        descColor: '#6ee7b7',
+        glow: '0 0 25px rgba(16, 185, 129, 0.3)'
+    },
+    'liquid-metal': {
+        bg: 'linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(71, 85, 105, 0.2))',
+        border: '2px solid rgba(148, 163, 184, 0.5)',
+        iconColor: '#94a3b8',
+        nameGradient: 'linear-gradient(135deg, #94a3b8, #cbd5e1)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(148, 163, 184, 0.25)'
+    },
+    'quantum-glitch': {
+        bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(139, 92, 246, 0.15))',
+        border: '2px solid rgba(6, 182, 212, 0.5)',
+        iconColor: '#06b6d4',
+        nameGradient: 'linear-gradient(135deg, #06b6d4, #8b5cf6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 25px rgba(6, 182, 212, 0.3)'
+    },
+    'cosmic-horror': {
+        bg: 'linear-gradient(135deg, rgba(88, 28, 135, 0.3), rgba(0, 0, 0, 0.4))',
+        border: '2px solid rgba(88, 28, 135, 0.5)',
+        iconColor: '#7c3aed',
+        nameColor: '#a78bfa',
+        descColor: '#c4b5fd',
+        glow: '0 10px 30px rgba(88, 28, 135, 0.3)'
+    },
+    'temporal-paradox': {
+        bg: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(139, 92, 246, 0.15))',
+        border: '2px solid rgba(212, 175, 55, 0.5)',
+        iconColor: '#d4af37',
+        nameGradient: 'linear-gradient(135deg, #d4af37, #8b5cf6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(212, 175, 55, 0.2)'
+    },
+    'psychedelic-mandelbrot': {
+        bg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.15))',
+        border: '2px solid rgba(236, 72, 153, 0.5)',
+        iconColor: '#ec4899',
+        nameGradient: 'linear-gradient(135deg, #ec4899, #a855f7, #06b6d4)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(236, 72, 153, 0.25)'
+    },
+    'biopunk-organism': {
+        bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15))',
+        border: '2px solid rgba(16, 185, 129, 0.5)',
+        iconColor: '#10b981',
+        nameColor: '#34d399',
+        descColor: '#6ee7b7',
+        glow: '0 10px 30px rgba(16, 185, 129, 0.25)'
+    },
+    'holographic-interference': {
+        bg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(251, 191, 36, 0.12), rgba(6, 182, 212, 0.12))',
+        border: '2px solid rgba(236, 72, 153, 0.4)',
+        iconColor: '#ec4899',
+        nameGradient: 'linear-gradient(135deg, #ec4899, #fbbf24, #06b6d4)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(236, 72, 153, 0.2)'
+    },
+    'crystalline-tesseract': {
+        bg: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15))',
+        border: '2px solid rgba(59, 130, 246, 0.5)',
+        iconColor: '#3b82f6',
+        nameGradient: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(59, 130, 246, 0.25)'
+    },
+    'void-walker': {
+        bg: 'linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(30, 27, 75, 0.4))',
+        border: '2px solid rgba(107, 114, 128, 0.4)',
+        iconColor: '#6b7280',
+        nameColor: '#9ca3af',
+        descColor: '#d1d5db',
+        glow: '0 10px 30px rgba(0, 0, 0, 0.4)'
+    },
+    'neuron-synapse': {
+        bg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15))',
+        border: '2px solid rgba(139, 92, 246, 0.5)',
+        iconColor: '#8b5cf6',
+        nameGradient: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(139, 92, 246, 0.25)'
+    },
+    'alchemical-transmutation': {
+        bg: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(180, 83, 9, 0.15))',
+        border: '2px solid rgba(212, 175, 55, 0.5)',
+        iconColor: '#d4af37',
+        nameColor: '#d4af37',
+        descColor: '#fbbf24',
+        glow: '0 10px 30px rgba(212, 175, 55, 0.25)'
+    },
+    'cyberpunk-racer': {
+        bg: 'linear-gradient(135deg, rgba(255, 0, 255, 0.1), rgba(0, 255, 255, 0.1))',
+        border: '2px solid rgba(255, 0, 255, 0.5)',
+        iconColor: '#ff00ff',
+        nameGradient: 'linear-gradient(135deg, #ff00ff, #00ffff)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 25px rgba(255, 0, 255, 0.3)',
+        textShadow: '0 0 10px #ff00ff'
+    },
+    'rgb-gaming-rig': {
+        bg: 'linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(0, 255, 0, 0.1), rgba(0, 0, 255, 0.1))',
+        border: '2px solid rgba(255, 0, 255, 0.5)',
+        iconColor: '#ff00ff',
+        nameGradient: 'linear-gradient(135deg, #ff0000, #00ff00, #0000ff)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 25px rgba(255, 0, 255, 0.3)'
+    },
+    'battle-royale': {
+        bg: 'linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15))',
+        border: '3px solid rgba(255, 215, 0, 0.6)',
+        iconColor: '#ffd700',
+        nameColor: '#ffd700',
+        descColor: '#fbbf24',
+        glow: '0 10px 30px rgba(255, 215, 0, 0.3)'
+    },
+    'esports-arena': {
+        bg: 'linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(59, 130, 246, 0.15))',
+        border: '2px solid rgba(124, 58, 237, 0.5)',
+        iconColor: '#7c3aed',
+        nameGradient: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(124, 58, 237, 0.25)'
+    },
+    'pixel-art-retro': {
+        bg: 'rgba(16, 185, 129, 0.1)',
+        border: '4px solid rgba(16, 185, 129, 0.6)',
+        iconColor: '#10b981',
+        nameColor: '#10b981',
+        descColor: '#6ee7b7'
+    },
+    'laser-tag-glow': {
+        bg: 'rgba(0, 0, 0, 0.3)',
+        border: '2px solid rgba(255, 0, 255, 0.6)',
+        iconColor: '#ff00ff',
+        nameColor: '#00ffff',
+        descColor: '#ff00ff',
+        glow: '0 0 25px rgba(255, 0, 255, 0.4)',
+        textShadow: '0 0 10px #00ffff'
+    },
+    'boss-fight-epic': {
+        bg: 'linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(127, 29, 29, 0.2))',
+        border: '3px solid rgba(220, 38, 38, 0.6)',
+        iconColor: '#dc2626',
+        nameColor: '#fca5a5',
+        descColor: '#fecaca',
+        glow: '0 10px 30px rgba(220, 38, 38, 0.3)'
+    },
+    'streamer-overlay': {
+        bg: 'linear-gradient(135deg, rgba(145, 70, 255, 0.15), rgba(99, 102, 241, 0.15))',
+        border: '2px solid rgba(145, 70, 255, 0.5)',
+        iconColor: '#9146ff',
+        nameColor: '#9146ff',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(145, 70, 255, 0.25)'
+    },
+    'neon-samurai': {
+        bg: 'linear-gradient(135deg, rgba(255, 0, 255, 0.1), rgba(255, 0, 0, 0.1))',
+        border: '2px solid rgba(255, 0, 255, 0.5)',
+        iconColor: '#ff00ff',
+        nameGradient: 'linear-gradient(135deg, #ff00ff, #ff0000)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 0 25px rgba(255, 0, 255, 0.3)'
+    },
+    'glitch-destroyer': {
+        bg: 'rgba(239, 68, 68, 0.1)',
+        border: '2px solid rgba(239, 68, 68, 0.5)',
+        iconColor: '#ef4444',
+        nameColor: '#f87171',
+        descColor: '#fca5a5',
+        glow: '0 0 20px rgba(239, 68, 68, 0.3)'
+    },
+    'voxel-minecraft': {
+        bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(146, 64, 14, 0.15))',
+        border: '4px solid rgba(16, 185, 129, 0.5)',
+        iconColor: '#10b981',
+        nameColor: '#10b981',
+        descColor: '#6ee7b7'
+    },
+    'neon-synthcore': {
+        bg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15))',
+        border: '2px solid rgba(236, 72, 153, 0.5)',
+        iconColor: '#ec4899',
+        nameGradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(236, 72, 153, 0.25)'
+    },
+    'space-invaders': {
+        bg: 'rgba(0, 255, 0, 0.08)',
+        border: '4px solid rgba(0, 255, 0, 0.5)',
+        iconColor: '#00ff00',
+        nameColor: '#00ff00',
+        descColor: '#86efac',
+        textShadow: '0 0 10px #00ff00'
+    },
+    'vr-metaverse': {
+        bg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15))',
+        border: '2px solid rgba(139, 92, 246, 0.5)',
+        iconColor: '#8b5cf6',
+        nameGradient: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+        descColor: 'var(--text-secondary)',
+        glow: '0 10px 30px rgba(139, 92, 246, 0.25)'
+    },
+    'championship-trophy': {
+        bg: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.15))',
+        border: '3px solid rgba(255, 215, 0, 0.7)',
+        iconColor: '#ffd700',
+        nameColor: '#ffd700',
+        descColor: '#fbbf24',
+        glow: '0 10px 35px rgba(255, 215, 0, 0.35)'
+    }
+};
+
 // Initialize Style Types
 function stInit() {
     stRenderStyles();
@@ -24201,30 +24789,59 @@ function stInit() {
     stUpdateUI();
 }
 
-// Render all styles
+// Render all styles with individual colors
 function stRenderStyles() {
     const container = document.getElementById('stStylesContainer');
     if (!container) return;
     
-    container.innerHTML = styleTypesData.map(style => `
+    container.innerHTML = styleTypesData.map(style => {
+        const itemStyle = styleItemStyles[style.id] || {};
+        
+        // Build inline style
+        let inlineStyle = '';
+        if (itemStyle.bg) inlineStyle += `background: ${itemStyle.bg};`;
+        if (itemStyle.border) inlineStyle += `border: ${itemStyle.border};`;
+        if (itemStyle.borderLeft) inlineStyle += `border-left: ${itemStyle.borderLeft};`;
+        if (itemStyle.borderBottom) inlineStyle += `border-bottom: ${itemStyle.borderBottom};`;
+        if (itemStyle.glow) inlineStyle += `box-shadow: ${itemStyle.glow};`;
+        if (itemStyle.backdrop) inlineStyle += `backdrop-filter: ${itemStyle.backdrop}; -webkit-backdrop-filter: ${itemStyle.backdrop};`;
+        
+        // Build name style
+        let nameStyle = '';
+        if (itemStyle.nameGradient) {
+            nameStyle = `background: ${itemStyle.nameGradient}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;`;
+        } else if (itemStyle.nameColor) {
+            nameStyle = `color: ${itemStyle.nameColor};`;
+        }
+        if (itemStyle.textShadow) nameStyle += `text-shadow: ${itemStyle.textShadow};`;
+        
+        // Icon style
+        let iconStyle = itemStyle.iconColor ? `color: ${itemStyle.iconColor};` : '';
+        if (itemStyle.textShadow) iconStyle += `text-shadow: ${itemStyle.textShadow};`;
+        
+        // Desc style
+        let descStyle = itemStyle.descColor ? `color: ${itemStyle.descColor};` : '';
+        
+        return `
         <div class="st-style-item ${selectedStyles.includes(style.id) ? 'selected' : ''}" 
              data-style="${style.id}" 
-             onclick="stToggleStyle('${style.id}')">
+             onclick="stToggleStyle('${style.id}')"
+             style="${inlineStyle}">
             <div class="st-style-check">
                 <i class="fas fa-check"></i>
             </div>
             <div class="st-style-content">
                 <div class="st-style-name">
-                    <i class="fas ${style.icon}"></i>
-                    <span>${style.name}</span>
+                    <i class="fas ${style.icon}" style="${iconStyle}"></i>
+                    <span style="${nameStyle}">${style.name}</span>
                 </div>
-                <div class="st-style-desc">${style.desc}</div>
+                <div class="st-style-desc" style="${descStyle}">${style.desc}</div>
             </div>
             <button type="button" class="st-view-sample-btn" onclick="event.stopPropagation(); stShowSample('${style.id}')" title="View Sample">
                 <i class="fas fa-eye"></i>
             </button>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Toggle style selection
