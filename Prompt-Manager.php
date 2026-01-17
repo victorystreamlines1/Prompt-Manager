@@ -32636,13 +32636,19 @@ function dtPushToNotes() {
     // Case 2: AI Decision + Other Themes selected
     else if (hasAI && otherThemes.length > 0) {
         promptContent += `**Mode: AI Selection from Provided Themes**\n\n`;
-        promptContent += `🤖 **AI DECISION + THEME OPTIONS**\n`;
-        promptContent += `The AI should analyze the uploaded website and SELECT the most appropriate theme(s) from the options below.\n\n`;
-        promptContent += `**Instructions for AI:**\n`;
-        promptContent += `- Review and understand the uploaded website's content and purpose\n`;
-        promptContent += `- Analyze the ${otherThemes.length} theme option(s) provided below\n`;
-        promptContent += `- SELECT the theme that best matches the website's goals and audience\n`;
-        promptContent += `- You may blend elements from multiple themes if appropriate\n`;
+        promptContent += `🤖 **AI DECISION + THEME OPTIONS**\n\n`;
+        
+        promptContent += `**CRITICAL - Before selecting a theme, the AI MUST:**\n`;
+        promptContent += `1. **Read and analyze all uploaded files thoroughly** to understand the website content\n`;
+        promptContent += `2. **Study the functionality and features** of the website (forms, navigation, interactivity)\n`;
+        promptContent += `3. **Understand the environment and purpose** (e-commerce, portfolio, dashboard, blog, etc.)\n`;
+        promptContent += `4. **Analyze the structure and code organization** to determine the appropriate visual approach\n`;
+        promptContent += `5. **Consider the objectives and target audience** based on the content analysis\n\n`;
+        
+        promptContent += `**After comprehensive analysis, the AI should:**\n`;
+        promptContent += `- SELECT the most appropriate theme from the ${otherThemes.length} option(s) below\n`;
+        promptContent += `- Ensure the selected theme is compatible with the website's functionality and objectives\n`;
+        promptContent += `- You may blend elements from multiple themes if it better serves the website's purpose\n`;
         promptContent += `- Apply the selected theme's CSS variables and styling\n\n`;
         
         promptContent += `**Available Theme Options (${otherThemes.length}):**\n`;
@@ -32656,6 +32662,8 @@ function dtPushToNotes() {
                 promptContent += `\`\`\`css\n/* ${themeName} Theme CSS */\n${dtThemeCSS[theme]}\n\`\`\`\n\n`;
             }
         });
+        
+        promptContent += `**AI Final Instruction:** Based on your comprehensive analysis of the uploaded content, website functionality, structure, and environment, select the theme that is most compatible with the website's objectives and provides the best user experience.\n`;
     }
     // Case 3: Only specific themes selected (no AI)
     else if (otherThemes.length > 0) {
@@ -32996,8 +33004,14 @@ function plPushToNotes() {
         // Handle AI Decision logic (similar to Design Theme)
         if (hasAI && otherLayouts.length > 0) {
             // AI with other layouts - AI selects from the listed layouts
-            promptContent += `**🤖 AI Decision Mode + Specific Layouts:**\n`;
-            promptContent += `The AI should analyze the uploaded content and select the most appropriate layout from the following options, or intelligently combine them:\n\n`;
+            promptContent += `**🤖 AI Decision Mode + Specific Layouts:**\n\n`;
+            promptContent += `**IMPORTANT - Before selecting a layout, the AI MUST:**\n`;
+            promptContent += `1. **Read and analyze all uploaded files thoroughly** to understand the website content\n`;
+            promptContent += `2. **Study the functionality and features** of the website (forms, navigation, interactivity)\n`;
+            promptContent += `3. **Understand the environment and purpose** (e-commerce, portfolio, dashboard, blog, etc.)\n`;
+            promptContent += `4. **Analyze the structure and code organization** to determine the best layout approach\n`;
+            promptContent += `5. **Consider the objectives and target audience** based on the content analysis\n\n`;
+            promptContent += `After thorough analysis, select the most appropriate layout from the following options that best serves the website's functionality and objectives:\n\n`;
             
             plSelectedLayouts.forEach((layout, index) => {
                 const layoutInfo = plLayoutDescriptions[layout];
@@ -33010,7 +33024,7 @@ function plPushToNotes() {
                 }
             });
             
-            promptContent += `\n**AI Instruction:** Based on your analysis of the uploaded files, select the most suitable layout from the options above, or create an intelligent hybrid combining their best structural elements.\n`;
+            promptContent += `\n**AI Instruction:** Based on your comprehensive analysis of the uploaded content, website functionality, structure, and environment, select the most suitable layout from the options above that is fully compatible with the website's objectives and user experience goals. You may also create an intelligent hybrid combining the best structural elements from multiple layouts if it better serves the website's purpose.\n`;
         } else if (hasAI && otherLayouts.length === 0) {
             // Only AI Decision - AI creates layout from imagination
             promptContent += `**🤖 Full AI Decision:**\n`;
