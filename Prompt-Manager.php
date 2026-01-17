@@ -6814,6 +6814,372 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           📁 UNIFIED FILE UPLOAD ZONE STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .uf-drop-zone {
+            border: 2px dashed rgba(124, 77, 255, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.6) 0%, rgba(124, 77, 255, 0.08) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .uf-drop-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.1) 0%, rgba(0, 230, 118, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .uf-drop-zone:hover {
+            border-color: #7c4dff;
+            background: linear-gradient(135deg, rgba(27, 38, 59, 0.8) 0%, rgba(124, 77, 255, 0.15) 100%);
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.2);
+        }
+        
+        .uf-drop-zone:hover::before {
+            opacity: 1;
+        }
+        
+        .uf-drop-zone.drag-over {
+            border-color: #00e676;
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.1) 0%, rgba(124, 77, 255, 0.1) 100%);
+            box-shadow: 0 0 25px rgba(0, 230, 118, 0.3);
+        }
+        
+        .uf-drop-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .uf-drop-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #7c4dff 0%, #00e676 50%, #00bcd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.4rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .uf-drop-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+        
+        .uf-drop-subtitle {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+        
+        .uf-drop-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.15) 0%, rgba(0, 230, 118, 0.1) 100%);
+            border-radius: 20px;
+            color: #00e676;
+            font-size: 0.55rem;
+            border: 1px solid rgba(124, 77, 255, 0.2);
+        }
+        
+        /* File Categories */
+        .uf-categories {
+            display: none;
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid rgba(124, 77, 255, 0.2);
+        }
+        
+        .uf-categories.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .uf-categories-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .uf-categories-title i {
+            color: #7c4dff;
+        }
+        
+        .uf-category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .uf-category-box {
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.7) 0%, rgba(27, 38, 59, 0.5) 100%);
+            border: 1px solid rgba(124, 77, 255, 0.15);
+            border-radius: 6px;
+            padding: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        
+        .uf-category-box:hover {
+            border-color: rgba(124, 77, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .uf-category-box.has-files {
+            border-color: #00e676;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.08) 0%, rgba(124, 77, 255, 0.08) 100%);
+        }
+        
+        .uf-category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .uf-category-icon {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.6rem;
+        }
+        
+        .uf-category-title {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        
+        .uf-category-count {
+            background: linear-gradient(135deg, #7c4dff 0%, #00e676 100%);
+            color: white;
+            padding: 0.1rem 0.35rem;
+            border-radius: 10px;
+            font-size: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .uf-file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        
+        .uf-file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.3rem;
+            background: rgba(27, 38, 59, 0.5);
+            border-radius: 4px;
+            font-size: 0.55rem;
+            transition: all 0.2s ease;
+        }
+        
+        .uf-file-item:hover {
+            background: rgba(124, 77, 255, 0.1);
+            transform: translateX(3px);
+        }
+        
+        .uf-file-item i {
+            color: #7c4dff;
+            font-size: 0.5rem;
+        }
+        
+        .uf-file-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+        
+        .uf-file-size {
+            color: var(--text-muted);
+            font-size: 0.5rem;
+            padding: 0.1rem 0.25rem;
+            background: rgba(124, 77, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .uf-file-remove {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.1rem;
+            transition: all 0.2s ease;
+            font-size: 0.5rem;
+        }
+        
+        .uf-file-remove:hover {
+            color: #e91e63;
+        }
+        
+        .uf-empty-category {
+            color: var(--text-muted);
+            font-size: 0.5rem;
+            text-align: center;
+            padding: 0.3rem;
+        }
+        
+        /* Page Detection */
+        .uf-page-detection {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.08) 0%, rgba(124, 77, 255, 0.05) 100%);
+            border: 1px solid rgba(0, 188, 212, 0.2);
+            border-radius: 6px;
+        }
+        
+        .uf-page-detection-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #00bcd4;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .uf-page-select-group {
+            margin-bottom: 0.4rem;
+        }
+        
+        .uf-page-select-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .uf-page-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .uf-page-label i {
+            color: #00bcd4;
+        }
+        
+        .uf-page-select {
+            width: 100%;
+            padding: 0.3rem 0.4rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(0, 188, 212, 0.2);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.55rem;
+            cursor: pointer;
+        }
+        
+        .uf-page-select:focus {
+            outline: none;
+            border-color: #00bcd4;
+        }
+        
+        .uf-page-badge {
+            font-size: 0.45rem;
+            padding: 0.1rem 0.3rem;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        
+        .uf-page-badge.set {
+            background: rgba(0, 230, 118, 0.15);
+            color: #00e676;
+            border: 1px solid rgba(0, 230, 118, 0.3);
+        }
+        
+        .uf-page-badge.not-set {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        /* Actions */
+        .uf-actions {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        
+        .uf-btn {
+            flex: 1;
+            padding: 0.35rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            border: none;
+        }
+        
+        .uf-btn-primary {
+            background: linear-gradient(135deg, #7c4dff 0%, #00e676 100%);
+            color: white;
+        }
+        
+        .uf-btn-primary:hover {
+            box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .uf-btn-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(233, 30, 99, 0.1) 100%);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .uf-btn-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .uf-total-badge {
+            background: linear-gradient(135deg, #7c4dff 0%, #00e676 100%);
+            color: white;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            margin-left: 0.3rem;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            🚫 FILE EXCLUSION MANAGER STYLES
            ═══════════════════════════════════════════════════════════════════ */
         .ex-file-picker {
@@ -7694,6 +8060,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .hp-info-tip {
             background: rgba(251, 191, 36, 0.03);
+        }
+        
+        /* Light Theme - Unified File Upload Zone */
+        [data-theme="light"] .uf-drop-zone {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(124, 77, 255, 0.05) 100%);
+            border-color: rgba(124, 77, 255, 0.3);
+        }
+        
+        [data-theme="light"] .uf-category-box {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .uf-file-item {
+            background: rgba(245, 245, 245, 0.8);
+        }
+        
+        [data-theme="light"] .uf-page-detection {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.05) 0%, rgba(124, 77, 255, 0.03) 100%);
+        }
+        
+        [data-theme="light"] .uf-page-select {
+            background: rgba(255, 255, 255, 0.9);
         }
         
         /* Light Theme - File Exclusion Manager */
@@ -15414,6 +15802,167 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <!-- ═══════════════════════════════════════════════════════════════════
+                     📁 UNIFIED FILE UPLOAD ZONE TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="fileUploadTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('fileUpload')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Project Files Upload</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetFileUpload();" title="Clear all files">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge" id="ufBadge" style="display: none;">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="fileUploadArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="fileUploadBody">
+                        <!-- Hidden File Input -->
+                        <input type="file" id="ufFileInput" multiple accept="*" style="display: none;">
+                        
+                        <!-- Drop Zone -->
+                        <div class="uf-drop-zone" id="ufDropZone" onclick="document.getElementById('ufFileInput').click();">
+                            <div class="uf-drop-content">
+                                <div class="uf-drop-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="uf-drop-title">Drag & Drop Your Project Files</div>
+                                <div class="uf-drop-subtitle">or click to browse files</div>
+                                <div class="uf-drop-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    HTML, CSS, JS, PHP, Images & More
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- File Categories -->
+                        <div class="uf-categories" id="ufCategories">
+                            <div class="uf-categories-title">
+                                <i class="fas fa-folder-tree"></i>
+                                Categorized Files
+                            </div>
+                            <div class="uf-category-grid" id="ufCategoryGrid">
+                                <!-- Categories populated by JS -->
+                            </div>
+                            
+                            <!-- Page Detection -->
+                            <div class="uf-page-detection" id="ufPageDetection" style="display: none;">
+                                <div class="uf-page-detection-title">
+                                    <i class="fas fa-search-location"></i>
+                                    Page Detection
+                                </div>
+                                <div class="uf-page-select-group">
+                                    <div class="uf-page-label">
+                                        <i class="fas fa-home"></i>
+                                        Homepage
+                                        <span class="uf-page-badge not-set" id="ufHomepageBadge">Not Set</span>
+                                    </div>
+                                    <select class="uf-page-select" id="ufHomepageSelect" onchange="ufHandleHomepageDetection()">
+                                        <option value="">-- Select Homepage --</option>
+                                    </select>
+                                </div>
+                                <div class="uf-page-select-group">
+                                    <div class="uf-page-label">
+                                        <i class="fas fa-star"></i>
+                                        Featured Page
+                                        <span class="uf-page-badge not-set" id="ufFeaturedBadge">Not Set</span>
+                                    </div>
+                                    <select class="uf-page-select" id="ufFeaturedSelect" onchange="ufHandleFeaturedDetection()" disabled>
+                                        <option value="">-- Select Homepage First --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Actions -->
+                            <div class="uf-actions">
+                                <button class="uf-btn uf-btn-primary" onclick="ufPushToNotes()">
+                                    <i class="fas fa-arrow-right"></i>
+                                    Push to Prompts
+                                    <span class="uf-total-badge" id="ufTotalBadge">0</span>
+                                </button>
+                                <button class="uf-btn uf-btn-danger" onclick="ufClearAll()">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🚫 FILE EXCLUSION MANAGER TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="exclusionTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('exclusion')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-ban"></i>
+                            <span>File Exclusion</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetExclusions();" title="Clear all exclusions">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge ex-badge" id="exBadge" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); display: none;">0 files</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="exclusionArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="exclusionBody">
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Exclude specific files from all code changes</p>
+                        
+                        <!-- File Picker -->
+                        <div class="ex-file-picker" id="exFilePicker">
+                            <input type="file" id="exFileInput" multiple accept=".html,.php,.htm" style="display: none;">
+                            <div class="ex-file-picker-content">
+                                <div class="ex-file-picker-icon">
+                                    <i class="fas fa-file-circle-xmark"></i>
+                                </div>
+                                <div class="ex-file-picker-title">Select Files to Exclude</div>
+                                <div class="ex-file-picker-hint">Click to choose pages that should remain unchanged</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Excluded Files List -->
+                        <div class="ex-files-list" id="exFilesList">
+                            <div class="ex-files-header">
+                                <i class="fas fa-list-check"></i>
+                                <span>Excluded Pages</span>
+                            </div>
+                            <div id="exFilesContainer"></div>
+                            
+                            <!-- Warning -->
+                            <div class="ex-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <strong>Important:</strong>
+                                    <p>Excluded files will be COMPLETELY skipped - no HTML, CSS, JavaScript, or any code changes will be made to these files.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="ex-notes-section">
+                            <label class="ex-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Exclusion Instructions</span>
+                            </label>
+                            <textarea 
+                                id="exNotesTextarea" 
+                                class="ex-notes-textarea" 
+                                placeholder="Add specific instructions about file exclusions..."
+                                oninput="exUpdateCharCount()"
+                            ></textarea>
+                            <div class="ex-char-count" id="exCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="ex-push-section">
+                            <button type="button" class="ex-push-btn" onclick="exPushToNotes()" title="Push exclusion settings to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
                      👑 BRANDING TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
                 <div class="de-tool-section collapsed" id="brandingTool">
@@ -16437,79 +16986,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="hp-push-section">
                             <button type="button" class="hp-push-btn" onclick="hpPushToNotes()" title="Push homepage settings to Project Prompts">
-                                <i class="fas fa-arrow-down"></i>
-                                <span>Push to Project Prompts</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ═══════════════════════════════════════════════════════════════════
-                     🚫 FILE EXCLUSION MANAGER TOOL
-                     ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="exclusionTool">
-                    <div class="de-tool-header" onclick="toggleToolSection('exclusion')">
-                        <div class="de-tool-title">
-                            <i class="fas fa-ban"></i>
-                            <span>File Exclusion</span>
-                        </div>
-                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetExclusions();" title="Clear all exclusions">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <div class="de-tool-badge ex-badge" id="exBadge" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); display: none;">0 files</div>
-                        <i class="fas fa-chevron-down de-tool-arrow" id="exclusionArrow"></i>
-                    </div>
-                    <div class="de-tool-body" id="exclusionBody">
-                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Exclude specific pages from theme and/or layout changes</p>
-                        
-                        <!-- File Picker -->
-                        <div class="ex-file-picker" id="exFilePicker">
-                            <input type="file" id="exFileInput" multiple accept=".html,.php,.htm" style="display: none;">
-                            <div class="ex-file-picker-content">
-                                <div class="ex-file-picker-icon">
-                                    <i class="fas fa-file-circle-xmark"></i>
-                                </div>
-                                <div class="ex-file-picker-title">Select Files to Exclude</div>
-                                <div class="ex-file-picker-hint">Click to choose pages that should keep their original design</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Excluded Files List -->
-                        <div class="ex-files-list" id="exFilesList">
-                            <div class="ex-files-header">
-                                <i class="fas fa-list-check"></i>
-                                <span>Excluded Pages</span>
-                            </div>
-                            <div id="exFilesContainer"></div>
-                            
-                            <!-- Warning -->
-                            <div class="ex-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <div>
-                                    <strong>Important:</strong>
-                                    <p>Excluded files will be COMPLETELY skipped - no HTML, CSS, JavaScript, or any code changes will be made to these files.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Notes Textarea -->
-                        <div class="ex-notes-section">
-                            <label class="ex-notes-label">
-                                <i class="fas fa-edit"></i>
-                                <span>Additional Exclusion Instructions</span>
-                            </label>
-                            <textarea 
-                                id="exNotesTextarea" 
-                                class="ex-notes-textarea" 
-                                placeholder="Add specific instructions about file exclusions..."
-                                oninput="exUpdateCharCount()"
-                            ></textarea>
-                            <div class="ex-char-count" id="exCharCount">0 characters</div>
-                        </div>
-                        
-                        <!-- Push to Project Prompts -->
-                        <div class="ex-push-section">
-                            <button type="button" class="ex-push-btn" onclick="exPushToNotes()" title="Push exclusion settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -27661,6 +28137,11 @@ async function deResetAll() {
         hpResetAll(true);
     }
     
+    // Reset File Upload (skip individual toast)
+    if (typeof ufResetAll === 'function') {
+        ufResetAll(true);
+    }
+    
     // Reset File Exclusion Manager (skip individual toast)
     if (typeof exResetAll === 'function') {
         exResetAll(true);
@@ -31838,6 +32319,496 @@ document.addEventListener('DOMContentLoaded', hpInit);
      🚫 FILE EXCLUSION MANAGER JAVASCRIPT
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
+// ═══════════════════════════════════════════════════════════════════
+// 📁 UNIFIED FILE UPLOAD ZONE
+// ═══════════════════════════════════════════════════════════════════
+
+// Category configuration
+const ufCategoryConfig = {
+    html: { title: 'HTML', icon: 'fa-html5', gradient: 'linear-gradient(135deg, #e34c26 0%, #f06529 100%)', extensions: ['html', 'htm'] },
+    css: { title: 'CSS', icon: 'fa-css3-alt', gradient: 'linear-gradient(135deg, #264de4 0%, #2965f1 100%)', extensions: ['css', 'scss', 'sass', 'less'] },
+    javascript: { title: 'JavaScript', icon: 'fa-js', gradient: 'linear-gradient(135deg, #f7df1e 0%, #f0db4f 100%)', extensions: ['js', 'jsx', 'ts', 'tsx'] },
+    php: { title: 'PHP', icon: 'fa-php', gradient: 'linear-gradient(135deg, #777bb3 0%, #8892bf 100%)', extensions: ['php', 'phtml'] },
+    images: { title: 'Images', icon: 'fa-images', gradient: 'linear-gradient(135deg, #00bcd4 0%, #4dd0e1 100%)', extensions: ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico'] },
+    other: { title: 'Other', icon: 'fa-file', gradient: 'linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%)', extensions: [] }
+};
+
+// File storage
+let ufFileStorage = {
+    html: [], css: [], javascript: [], php: [], images: [], other: []
+};
+
+// Page detection
+let ufDetectedHomepage = '';
+let ufDetectedFeatured = '';
+
+// Initialize
+function ufInit() {
+    ufLoadFromStorage();
+    ufSetupDropZone();
+    ufDisplayCategories();
+    ufUpdateBadge();
+}
+
+// Setup drop zone events
+function ufSetupDropZone() {
+    const dropZone = document.getElementById('ufDropZone');
+    const fileInput = document.getElementById('ufFileInput');
+    
+    if (!dropZone || !fileInput) return;
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            ufHandleFiles(e.target.files);
+        }
+    });
+    
+    // Drag events
+    dropZone.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('drag-over');
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            ufHandleFiles(e.dataTransfer.files);
+        }
+    });
+}
+
+// Handle uploaded files
+function ufHandleFiles(files) {
+    if (!files || files.length === 0) {
+        showNotification('No files selected', 'warning');
+        return;
+    }
+    
+    // Categorize files
+    Array.from(files).forEach(file => {
+        const category = ufCategorizeFile(file);
+        // Check if file already exists
+        const exists = ufFileStorage[category].some(f => f.name === file.name);
+        if (!exists) {
+            ufFileStorage[category].push(file);
+        }
+    });
+    
+    // Display and save
+    ufDisplayCategories();
+    ufSaveToStorage();
+    ufUpdateBadge();
+    
+    // Show categories section
+    document.getElementById('ufCategories').classList.add('show');
+    
+    showNotification(`✅ ${files.length} file(s) processed`, 'success');
+}
+
+// Categorize file by extension
+function ufCategorizeFile(file) {
+    const extension = file.name.toLowerCase().split('.').pop();
+    
+    for (const [category, config] of Object.entries(ufCategoryConfig)) {
+        if (config.extensions.includes(extension)) {
+            return category;
+        }
+    }
+    return 'other';
+}
+
+// Display categorized files
+function ufDisplayCategories() {
+    const grid = document.getElementById('ufCategoryGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    
+    Object.entries(ufCategoryConfig).forEach(([category, config]) => {
+        const files = ufFileStorage[category];
+        const hasFiles = files.length > 0;
+        
+        const categoryBox = document.createElement('div');
+        categoryBox.className = `uf-category-box ${hasFiles ? 'has-files' : ''}`;
+        
+        categoryBox.innerHTML = `
+            <div class="uf-category-header">
+                <div class="uf-category-icon" style="background: ${config.gradient};">
+                    <i class="fab ${config.icon}"></i>
+                </div>
+                <div class="uf-category-title">${config.title}</div>
+                ${hasFiles ? `<div class="uf-category-count">${files.length}</div>` : ''}
+            </div>
+            ${hasFiles ? `
+                <div class="uf-file-list">
+                    ${files.map((file, index) => `
+                        <div class="uf-file-item">
+                            <i class="fas fa-file"></i>
+                            <span class="uf-file-name" title="${file.name}">${file.name}</span>
+                            <span class="uf-file-size">${ufFormatFileSize(file.size)}</span>
+                            <button class="uf-file-remove" onclick="ufRemoveFile('${category}', ${index})" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `<div class="uf-empty-category">No files</div>`}
+        `;
+        
+        grid.appendChild(categoryBox);
+    });
+    
+    // Update page detection
+    ufPopulatePageDetection();
+}
+
+// Format file size
+function ufFormatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Remove file
+function ufRemoveFile(category, index) {
+    ufFileStorage[category].splice(index, 1);
+    ufDisplayCategories();
+    ufSaveToStorage();
+    ufUpdateBadge();
+    showNotification('File removed', 'info');
+}
+
+// Populate page detection dropdowns
+function ufPopulatePageDetection() {
+    const homepageSelect = document.getElementById('ufHomepageSelect');
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    const detectionSection = document.getElementById('ufPageDetection');
+    
+    if (!homepageSelect || !featuredSelect) return;
+    
+    // Get all HTML and PHP files
+    const pageFiles = [
+        ...ufFileStorage.html.map(f => ({ name: f.name, type: 'HTML' })),
+        ...ufFileStorage.php.map(f => ({ name: f.name, type: 'PHP' }))
+    ];
+    
+    // Show/hide detection section
+    if (pageFiles.length > 0) {
+        detectionSection.style.display = 'block';
+    } else {
+        detectionSection.style.display = 'none';
+        ufDetectedHomepage = '';
+        ufDetectedFeatured = '';
+        return;
+    }
+    
+    // Save current selections
+    const currentHomepage = homepageSelect.value;
+    const currentFeatured = featuredSelect.value;
+    
+    // Repopulate dropdowns
+    homepageSelect.innerHTML = '<option value="">-- Select Homepage --</option>';
+    featuredSelect.innerHTML = '<option value="">-- Select Featured Page --</option>';
+    
+    pageFiles.forEach(file => {
+        const option1 = document.createElement('option');
+        option1.value = file.name;
+        option1.textContent = `${file.name} (${file.type})`;
+        homepageSelect.appendChild(option1);
+        
+        const option2 = document.createElement('option');
+        option2.value = file.name;
+        option2.textContent = `${file.name} (${file.type})`;
+        featuredSelect.appendChild(option2);
+    });
+    
+    // Restore selections
+    if (currentHomepage && pageFiles.some(f => f.name === currentHomepage)) {
+        homepageSelect.value = currentHomepage;
+        ufHandleHomepageDetection();
+    }
+    if (currentFeatured && pageFiles.some(f => f.name === currentFeatured)) {
+        featuredSelect.value = currentFeatured;
+    }
+}
+
+// Handle homepage detection
+function ufHandleHomepageDetection() {
+    const homepageSelect = document.getElementById('ufHomepageSelect');
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    const homepageBadge = document.getElementById('ufHomepageBadge');
+    
+    ufDetectedHomepage = homepageSelect.value;
+    
+    if (ufDetectedHomepage) {
+        homepageBadge.textContent = 'Set';
+        homepageBadge.className = 'uf-page-badge set';
+        featuredSelect.disabled = false;
+        
+        // Remove homepage from featured options
+        Array.from(featuredSelect.options).forEach(option => {
+            if (option.value === ufDetectedHomepage) {
+                option.disabled = true;
+            } else {
+                option.disabled = false;
+            }
+        });
+    } else {
+        homepageBadge.textContent = 'Not Set';
+        homepageBadge.className = 'uf-page-badge not-set';
+        featuredSelect.disabled = true;
+        featuredSelect.value = '';
+        ufDetectedFeatured = '';
+        document.getElementById('ufFeaturedBadge').textContent = 'Not Set';
+        document.getElementById('ufFeaturedBadge').className = 'uf-page-badge not-set';
+    }
+    
+    ufSaveToStorage();
+}
+
+// Handle featured page detection
+function ufHandleFeaturedDetection() {
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    const featuredBadge = document.getElementById('ufFeaturedBadge');
+    
+    ufDetectedFeatured = featuredSelect.value;
+    
+    if (ufDetectedFeatured) {
+        featuredBadge.textContent = 'Set';
+        featuredBadge.className = 'uf-page-badge set';
+    } else {
+        featuredBadge.textContent = 'Not Set';
+        featuredBadge.className = 'uf-page-badge not-set';
+    }
+    
+    ufSaveToStorage();
+}
+
+// Update badge
+function ufUpdateBadge() {
+    const badge = document.getElementById('ufBadge');
+    const totalBadge = document.getElementById('ufTotalBadge');
+    
+    const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (badge) {
+        if (totalFiles > 0) {
+            badge.style.display = 'inline-flex';
+            badge.textContent = totalFiles;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (totalBadge) {
+        totalBadge.textContent = totalFiles;
+    }
+}
+
+// Push to Project Prompts
+function ufPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (totalFiles === 0) {
+        showNotification('⚠️ No files to push', 'warning');
+        return;
+    }
+    
+    let promptContent = `\n\n📁 PROJECT FILES OVERVIEW\n`;
+    promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    promptContent += `**Total Files: ${totalFiles}**\n\n`;
+    
+    // List files by category
+    Object.entries(ufCategoryConfig).forEach(([category, config]) => {
+        const files = ufFileStorage[category];
+        if (files.length > 0) {
+            promptContent += `**${config.title} Files (${files.length}):**\n`;
+            files.forEach((file, index) => {
+                promptContent += `${index + 1}. ${file.name}\n`;
+            });
+            promptContent += `\n`;
+        }
+    });
+    
+    // Page detection info
+    if (ufDetectedHomepage) {
+        promptContent += `**🏠 Homepage:** ${ufDetectedHomepage}\n`;
+    }
+    if (ufDetectedFeatured) {
+        promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
+    }
+    
+    promptContent += `\n**NOTE:** These files represent the current project structure. Please consider them when making changes.\n`;
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification('📁 Project files pushed to Project Prompts', 'success');
+}
+
+// Clear all files
+function ufClearAll() {
+    Object.keys(ufFileStorage).forEach(key => ufFileStorage[key] = []);
+    ufDetectedHomepage = '';
+    ufDetectedFeatured = '';
+    
+    // Reset UI
+    document.getElementById('ufFileInput').value = '';
+    document.getElementById('ufCategories').classList.remove('show');
+    
+    // Reset dropdowns
+    const homepageSelect = document.getElementById('ufHomepageSelect');
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    if (homepageSelect) homepageSelect.value = '';
+    if (featuredSelect) {
+        featuredSelect.value = '';
+        featuredSelect.disabled = true;
+    }
+    
+    // Reset badges
+    document.getElementById('ufHomepageBadge').textContent = 'Not Set';
+    document.getElementById('ufHomepageBadge').className = 'uf-page-badge not-set';
+    document.getElementById('ufFeaturedBadge').textContent = 'Not Set';
+    document.getElementById('ufFeaturedBadge').className = 'uf-page-badge not-set';
+    
+    ufDisplayCategories();
+    ufUpdateBadge();
+    
+    // Clear storage
+    localStorage.removeItem('ufFileStorage');
+    localStorage.removeItem('ufDetectedHomepage');
+    localStorage.removeItem('ufDetectedFeatured');
+    
+    showNotification('🗑️ All files cleared', 'info');
+}
+
+// Confirm reset
+async function confirmResetFileUpload() {
+    const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (totalFiles === 0) {
+        showNotification('⚠️ No files to clear', 'warning');
+        return;
+    }
+    
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Clear All Files',
+            subtitle: 'Project Files Upload',
+            message: `Are you sure you want to clear all ${totalFiles} uploaded file(s)?`,
+            warning: 'This action cannot be undone.',
+            confirmText: 'Clear All',
+            icon: 'fa-cloud-upload-alt'
+        });
+        if (confirmed) {
+            ufClearAll();
+        }
+    } else {
+        if (confirm(`Clear all ${totalFiles} files?`)) {
+            ufClearAll();
+        }
+    }
+}
+
+// Save to storage
+function ufSaveToStorage() {
+    // Store file names only (can't store File objects)
+    const storageData = {};
+    Object.entries(ufFileStorage).forEach(([category, files]) => {
+        storageData[category] = files.map(f => ({ name: f.name, size: f.size }));
+    });
+    localStorage.setItem('ufFileStorage', JSON.stringify(storageData));
+    localStorage.setItem('ufDetectedHomepage', ufDetectedHomepage);
+    localStorage.setItem('ufDetectedFeatured', ufDetectedFeatured);
+}
+
+// Load from storage
+function ufLoadFromStorage() {
+    try {
+        const stored = localStorage.getItem('ufFileStorage');
+        if (stored) {
+            const data = JSON.parse(stored);
+            // Restore as pseudo-file objects (for display only)
+            Object.entries(data).forEach(([category, files]) => {
+                ufFileStorage[category] = files.map(f => ({ name: f.name, size: f.size }));
+            });
+            document.getElementById('ufCategories')?.classList.add('show');
+        }
+        
+        ufDetectedHomepage = localStorage.getItem('ufDetectedHomepage') || '';
+        ufDetectedFeatured = localStorage.getItem('ufDetectedFeatured') || '';
+        
+        // Restore page detection UI
+        if (ufDetectedHomepage) {
+            const homepageSelect = document.getElementById('ufHomepageSelect');
+            const homepageBadge = document.getElementById('ufHomepageBadge');
+            if (homepageSelect) homepageSelect.value = ufDetectedHomepage;
+            if (homepageBadge) {
+                homepageBadge.textContent = 'Set';
+                homepageBadge.className = 'uf-page-badge set';
+            }
+            const featuredSelect = document.getElementById('ufFeaturedSelect');
+            if (featuredSelect) featuredSelect.disabled = false;
+        }
+        if (ufDetectedFeatured) {
+            const featuredSelect = document.getElementById('ufFeaturedSelect');
+            const featuredBadge = document.getElementById('ufFeaturedBadge');
+            if (featuredSelect) featuredSelect.value = ufDetectedFeatured;
+            if (featuredBadge) {
+                featuredBadge.textContent = 'Set';
+                featuredBadge.className = 'uf-page-badge set';
+            }
+        }
+    } catch (e) {
+        console.error('Error loading file upload state:', e);
+    }
+}
+
+// Reset function for deResetAll
+function ufResetAll(skipToast = false) {
+    ufClearAll();
+    if (!skipToast) {
+        showNotification('📁 File upload cleared', 'info');
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', ufInit);
+
+// ═══════════════════════════════════════════════════════════════════
+// 🚫 FILE EXCLUSION MANAGER
+// ═══════════════════════════════════════════════════════════════════
+
 // File Exclusion Manager state
 let exExcludedFiles = [];
 
