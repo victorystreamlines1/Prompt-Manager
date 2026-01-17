@@ -1,1 +1,58 @@
-Now I want you to add a text area. into the selected style enhanced style type into the enhanced style type and the prompt manager dot php add a text area that will be pushed whenever you select the style to be pushed all together with the text area.
+now migrate this part without the help and the video no need for any help or video exactly the same approach also add a text for the push whenever I push I have the ability to put text and then push the selection ----><div id="executionModeSection" class="execution-mode-dropdown-card fade-in snipcss-IYTVs style-SS9AC">
+    <div class="execution-mode-dropdown-header">
+        <div class="execution-mode-dropdown-icon">
+            <i class="fas fa-rocket"></i>
+        </div>
+        <div class="execution-mode-dropdown-title-section">
+            <h2 class="execution-mode-dropdown-title">🚀 Execution Mode</h2>
+            <p class="execution-mode-dropdown-subtitle">Choose how the AI should process your application</p>
+        </div>
+        <div id="style-ZwoMR" class="style-ZwoMR">
+            <button class="help-btn-game" onclick="showExecutionModeHelp()" title="How does this work?" fdprocessedid="58hbs">
+                <i class="fas fa-question"></i>
+            </button>
+            <span class="help-btn-label">Help</span>
+            <button class="video-btn-game" onclick="showExecutionModeVideo()" title="Watch Video Tutorial" fdprocessedid="p0g0fg">
+                <i class="fas fa-play"></i>
+                <span>Video</span>
+            </button>
+        </div>
+    </div>
+    <div class="execution-mode-dropdown-container">
+        <select id="executionModeSelect" class="execution-mode-select" onchange="updateExecutionModeType()" fdprocessedid="zznq5">
+            <option value="read-before" selected>📖 Read Before Executing (Recommended)</option>
+            <option value="default-process">⚡ Default Process (Faster)</option>
+        </select>
+        <div class="execution-mode-dropdown-arrow">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+    <div id="executionModeDescription" class="execution-mode-description-box">
+        <div id="readBeforeDescription" class="mode-description active style-LGZc4">
+            <div class="mode-description-header">
+                <i class="fas fa-book-reader style-di5sO" id="style-di5sO"></i>
+                <strong>Read Before Executing</strong>
+                <span class="mode-badge recommended">Recommended</span>
+            </div>
+            <p>AI will <strong>read and analyze ALL uploaded files completely</strong> before making any design decisions. This ensures context-aware, tailored enhancements.</p>
+            <div class="mode-features">
+                <span><i class="fas fa-check"></i> Thorough analysis</span>
+                <span><i class="fas fa-check"></i> Context-aware</span>
+                <span><i class="fas fa-check"></i> Tailored results</span>
+            </div>
+        </div>
+        <div id="defaultProcessDescription" class="mode-description style-392ML">
+            <div class="mode-description-header">
+                <i class="fas fa-bolt style-ADCKr" id="style-ADCKr"></i>
+                <strong>Default Process</strong>
+                <span class="mode-badge fast">Faster</span>
+            </div>
+            <p>AI proceeds at its own discretion. It may read files as needed but is <strong>not required to read everything first</strong>. Best for quick modifications.</p>
+            <div class="mode-features">
+                <span><i class="fas fa-check"></i> Quick execution</span>
+                <span><i class="fas fa-check"></i> AI discretion</span>
+                <span><i class="fas fa-check"></i> Flexible approach</span>
+            </div>
+        </div>
+    </div>
+</div>
