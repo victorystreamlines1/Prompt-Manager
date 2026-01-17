@@ -2005,49 +2005,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         color: var(--primary-blue);
     }
 
-    /* Documentation Upload Section */
-    #documentationUploadSection {
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
-    }
-
-    #emailInputSection {
-        transition: all 0.3s ease;
-    }
-
-    #integrationModeSection {
-        transition: all 0.3s ease;
-    }
-
-    .file-upload-wrapper {
-        width: 100%;
-    }
-
-    .btn-secondary {
-        background: var(--surface-dark);
-        color: var(--text-primary);
-        border: 2px solid var(--glass-border);
-        padding: 0.875rem 1.75rem;
-        border-radius: var(--radius-md);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-    }
-
-    .btn-secondary:hover {
-        background: var(--surface-light);
-        border-color: var(--primary-blue);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-icon-small:hover {
-        background: rgba(239, 68, 68, 0.2) !important;
-        transform: scale(1.1);
-    }
+    /* Documentation Upload Section - MIGRATED TO Prompt-Manager.php */
 
     /* Four Column Grid - 2x2 Layout */
     .four-column-grid {
@@ -13871,204 +13829,12 @@ Examples:
 
             <!-- Additional Instructions - Migrated to Prompt-Manager.php -->
 
-            <!-- Documentation Integration Card -->
-            <div id="documentationIntegrationSection" class="card card-full fade-in" style="animation-delay: 0.475s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: var(--gradient-ocean);">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h2 class="card-title">Documentation Integration</h2>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Integrate a documentation file to guide the enhancement process</p>
-
-                    <!-- Documentation Checkbox -->
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="enableDocumentation" onchange="toggleDocumentationUpload()">
-                            <span class="checkbox-checkmark"></span>
-                            <span class="checkbox-label">
-                                <i class="fas fa-file-alt"></i>
-                                Include Documentation File
-                            </span>
-                        </label>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; margin-left: 2rem;">
-                            Upload a documentation file to be integrated completely in the enhancement process
-                        </p>
-                    </div>
-
-                    <!-- FormSubmit.co Integration -->
-                    <div class="form-group"
-                        style="margin-bottom: 1.5rem; padding: 1rem; background: var(--surface-dark); border-radius: var(--radius-md); border: 2px solid var(--glass-border);">
-                        <label class="custom-checkbox" style="margin-bottom: 1rem;">
-                            <input type="checkbox" id="enableFormSubmit" onchange="toggleEmailInput()">
-                            <span class="checkbox-checkmark"></span>
-                            <span class="checkbox-label">
-                                <i class="fas fa-envelope"></i>
-                                Include FormSubmit.co (Free Email Service)
-                            </span>
-                        </label>
-                        <p
-                            style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; margin-left: 2rem;">
-                            Automatically configure contact forms to send emails using FormSubmit.co
-                        </p>
-
-                        <!-- Email Input (Initially Hidden) -->
-                        <div id="emailInputSection" style="display: none; margin-left: 2rem;">
-                            <label
-                                style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
-                                <i class="fas fa-at"></i> Email Address for Contact Forms
-                            </label>
-                            <input type="email" id="contactEmail" placeholder="your-email@example.com" style="
-                                    width: 100%;
-                                    padding: 0.75rem 1rem;
-                                    background: var(--bg-darker);
-                                    border: 2px solid var(--glass-border);
-                                    border-radius: var(--radius-md);
-                                    color: var(--text-primary);
-                                    font-family: 'Inter', sans-serif;
-                                    font-size: 0.95rem;
-                                    transition: all var(--transition-base);
-                                "
-                                onfocus="this.style.borderColor='var(--primary-blue)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                                onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'; saveContactEmail();"
-                                oninput="saveContactEmail();">
-                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
-                                <i class="fas fa-info-circle"></i>
-                                Contact form submissions will be sent to this email address
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- File Upload Section (Initially Hidden) -->
-                    <div id="documentationUploadSection" style="display: none; margin-top: 1rem;">
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="documentationFile" accept=".txt,.md,.doc,.docx,.pdf,.html,.json"
-                                style="display: none;" onchange="handleDocumentationUpload(event)">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="document.getElementById('documentationFile').click()"
-                                style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                Choose Documentation File
-                            </button>
-
-                            <!-- File Info Display -->
-                            <div id="fileInfoDisplay"
-                                style="display: none; margin-top: 1rem; padding: 1rem; background: var(--surface-dark); border-radius: var(--radius-md); border: 2px solid var(--glass-border);">
-                                <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                        <div
-                                            style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--gradient-ocean); display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-file" style="color: white; font-size: 1.2rem;"></i>
-                                        </div>
-                                        <div>
-                                            <div id="fileName" style="font-weight: 600; color: var(--text-primary);">
-                                            </div>
-                                            <div id="fileSize" style="font-size: 0.85rem; color: var(--text-muted);">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-icon-small" onclick="removeDocumentationFile()"
-                                        title="Remove file"
-                                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition-base);">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div id="filePreview"
-                                    style="margin-top: 1rem; padding: 1rem; background: var(--bg-darker); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Documentation Integration Mode Selection -->
-                        <div id="integrationModeSection" style="display: none; margin-top: 1.5rem;">
-                            <h3
-                                style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fas fa-cogs" style="color: var(--primary-blue);"></i>
-                                Documentation Integration Mode
-                            </h3>
-
-                            <div class="checkbox-group">
-                                <!-- Create New Pages -->
-                                <label class="checkbox-item" data-mode="create">
-                                    <input type="radio" name="integration_mode" value="create" id="mode_create"
-                                        onchange="updateIntegrationMode()">
-                                    <div>
-                                        <strong
-                                            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <i class="fas fa-plus-circle" style="color: #10b981;"></i>
-                                            Create New Pages
-                                        </strong>
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                                            Create all required pages from scratch (About Us, Contact, Services, etc.)
-                                            as if the application has no pages yet
-                                        </span>
-                                    </div>
-                                </label>
-
-                                <!-- Injection -->
-                                <label class="checkbox-item" data-mode="injection">
-                                    <input type="radio" name="integration_mode" value="injection" id="mode_injection"
-                                        onchange="updateIntegrationMode()">
-                                    <div>
-                                        <strong
-                                            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <i class="fas fa-syringe" style="color: #f59e0b;"></i>
-                                            Injection
-                                        </strong>
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                                            Inject documentation content into existing files. Create contact page if not
-                                            available
-                                        </span>
-                                    </div>
-                                </label>
-
-                                <!-- Integration -->
-                                <label class="checkbox-item" data-mode="integration">
-                                    <input type="radio" name="integration_mode" value="integration"
-                                        id="mode_integration" onchange="updateIntegrationMode()">
-                                    <div>
-                                        <strong
-                                            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <i class="fas fa-puzzle-piece" style="color: #8b5cf6;"></i>
-                                            Integration (Smart Merge)
-                                        </strong>
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                                            Integrate missing documentation content into existing pages AND create
-                                            missing pages that should exist
-                                        </span>
-                                    </div>
-                                </label>
-
-                                <!-- AI Decision -->
-                                <label class="checkbox-item" data-mode="ai-decision">
-                                    <input type="radio" name="integration_mode" value="ai-decision"
-                                        id="mode_ai_decision" checked onchange="updateIntegrationMode()">
-                                    <div>
-                                        <strong
-                                            style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <i class="fas fa-robot" style="color: #ec4899;"></i>
-                                            AI Decision (Recommended)
-                                        </strong>
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">
-                                            Let AI analyze the situation and choose the best approach automatically
-                                        </span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="info-tip" style="margin-top: 1.5rem;">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <strong>Supported formats:</strong> .txt, .md, .doc, .docx, .pdf, .html, .json
-                            <br>
-                            The documentation will be included in the prompt to guide the AI in the enhancement process.
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- ================================================================
+                 DOCUMENTATION INTEGRATION - FULLY MIGRATED
+                 This section has been completely migrated to Prompt-Manager.php
+                 All HTML, CSS, and JavaScript functionality now lives in the
+                 Design Enhancer panel of Prompt-Manager.php
+            ================================================================ -->
 
             <!-- ================================================================
                  TASK BREAKDOWN - FULLY MIGRATED
@@ -14476,23 +14242,7 @@ Examples:
             sectionId: 'documentationPageSection'
         },
         // customInstructions - Migrated to Prompt-Manager.php
-        documentationIntegration: {
-            icon: 'fa-book',
-            iconBg: 'linear-gradient(135deg, rgba(13, 71, 161, 0.2), rgba(0, 188, 212, 0.1))',
-            iconColor: '#0d47a1',
-            title: 'Documentation Integration',
-            subtitle: 'Integrate docs & forms',
-            description: 'Upload documentation files to guide the AI enhancement process. Also configure FormSubmit.co for contact forms to enable email functionality without backend code.',
-            features: [
-                'Upload documentation files (TXT, MD, DOC, PDF)',
-                'AI uses docs to understand your project better',
-                'Configure FormSubmit.co for contact forms',
-                'Free email service integration',
-                'Choose integration mode (full or reference)'
-            ],
-            tip: 'Upload a detailed project description or requirements document. The AI will use this to make more informed design decisions.',
-            sectionId: 'documentationIntegrationSection'
-        },
+        // documentationIntegration - Migrated to Prompt-Manager.php
         taskBreakdown: {
             icon: 'fa-tasks',
             iconBg: 'linear-gradient(135deg, rgba(233, 30, 99, 0.2), rgba(255, 214, 0, 0.1))',
@@ -15139,7 +14889,7 @@ Examples:
         excludedFiles: 'excludedFilesSection',
         homepageCreation: 'homepageCreationSection',
         documentationPage: 'documentationPageSection',
-        documentationIntegration: 'documentationIntegrationSection',
+        // documentationIntegration: 'documentationIntegrationSection', - MIGRATED TO Prompt-Manager.php
         taskBreakdown: 'taskBreakdownSection',
         promptOutput: 'promptOutputSection'
     };
@@ -15157,7 +14907,7 @@ Examples:
         excludedFiles: true,
         homepageCreation: true,
         documentationPage: true,
-        documentationIntegration: true,
+        documentationIntegration: false, // MIGRATED TO Prompt-Manager.php
         taskBreakdown: true,
         promptOutput: true // Always enabled
     };
@@ -16865,138 +16615,16 @@ Examples:
         }
     });
 
-    // Documentation file management
+    // ================================================================
+    // DOCUMENTATION INTEGRATION - MIGRATED TO Prompt-Manager.php
+    // Variables and functions (toggleDocumentationUpload, toggleEmailInput, saveContactEmail,
+    // updateIntegrationMode, handleDocumentationUpload, removeDocumentationFile) 
+    // now live in Prompt-Manager.php Design Enhancer panel
+    // ================================================================
+    // Variables kept for backward compatibility but functionality moved
     let documentationFileContent = null;
     let documentationFileName = null;
-    let integrationMode = 'ai-decision'; // Default mode
-
-    function toggleDocumentationUpload() {
-        const checkbox = document.getElementById('enableDocumentation');
-        const uploadSection = document.getElementById('documentationUploadSection');
-
-        if (checkbox.checked) {
-            uploadSection.style.display = 'block';
-            // Animate in
-            setTimeout(() => {
-                uploadSection.style.opacity = '1';
-                uploadSection.style.transform = 'translateY(0)';
-            }, 10);
-        } else {
-            uploadSection.style.display = 'none';
-            // Clear file if unchecked
-            removeDocumentationFile();
-            // Hide integration mode section
-            document.getElementById('integrationModeSection').style.display = 'none';
-        }
-    }
-
-    function toggleEmailInput() {
-        const checkbox = document.getElementById('enableFormSubmit');
-        const emailSection = document.getElementById('emailInputSection');
-
-        if (checkbox.checked) {
-            emailSection.style.display = 'block';
-            // Focus on email input
-            setTimeout(() => {
-                document.getElementById('contactEmail').focus();
-            }, 100);
-            // Save checkbox state
-            localStorage.setItem('enableFormSubmit', 'true');
-            console.log('✅ FormSubmit.co enabled');
-        } else {
-            emailSection.style.display = 'none';
-            // Save checkbox state
-            localStorage.setItem('enableFormSubmit', 'false');
-            console.log('❌ FormSubmit.co disabled');
-        }
-    }
-
-    // Save email when it changes
-    function saveContactEmail() {
-        const email = document.getElementById('contactEmail').value.trim();
-        if (email) {
-            localStorage.setItem('formSubmitEmail', email);
-            console.log('💾 Email saved:', email);
-        }
-    }
-
-    function updateIntegrationMode() {
-        const radios = document.querySelectorAll('input[name="integration_mode"]');
-        radios.forEach(radio => {
-            const parent = radio.closest('.checkbox-item');
-            if (radio.checked) {
-                integrationMode = radio.value;
-                parent.classList.add('checked');
-                console.log('✅ Integration mode selected:', integrationMode);
-            } else {
-                parent.classList.remove('checked');
-            }
-        });
-
-        // Save to localStorage
-        localStorage.setItem('integrationMode', integrationMode);
-    }
-
-    function handleDocumentationUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        documentationFileName = file.name;
-        const fileSize = formatFileSize(file.size);
-
-        // Display file info
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('fileSize').textContent = fileSize;
-
-        // Read file content
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            documentationFileContent = e.target.result;
-
-            // Show preview (first 500 characters)
-            const preview = documentationFileContent.substring(0, 500);
-            document.getElementById('filePreview').textContent = preview + (documentationFileContent.length > 500 ?
-                '\n\n...(truncated)' : '');
-
-            // Show file info display
-            document.getElementById('fileInfoDisplay').style.display = 'block';
-
-            // Show integration mode section
-            const modeSection = document.getElementById('integrationModeSection');
-            modeSection.style.display = 'block';
-
-            // Initialize mode selection UI
-            updateIntegrationMode();
-
-            showNotification('📄 Documentation file loaded successfully!', 'success');
-            console.log('Documentation loaded:', file.name, 'Size:', fileSize);
-        };
-
-        reader.onerror = function() {
-            showNotification('❌ Error reading file. Please try again.', 'error');
-        };
-
-        reader.readAsText(file);
-    }
-
-    function removeDocumentationFile() {
-        documentationFileContent = null;
-        documentationFileName = null;
-
-        // Clear file input
-        document.getElementById('documentationFile').value = '';
-
-        // Hide file info display
-        document.getElementById('fileInfoDisplay').style.display = 'none';
-
-        // Hide integration mode section
-        document.getElementById('integrationModeSection').style.display = 'none';
-
-        // Clear preview
-        document.getElementById('filePreview').textContent = '';
-
-        showNotification('🗑️ Documentation file removed', 'info');
-    }
+    let integrationMode = 'ai-decision';
 
     // Load saved options on page load
     function loadSavedOptions() {
@@ -25496,20 +25124,13 @@ Please provide:
             }
         }
 
-        // Load saved FormSubmit checkbox state
-        const savedFormSubmitState = localStorage.getItem('enableFormSubmit');
-        if (savedFormSubmitState === 'true') {
-            const checkbox = document.getElementById('enableFormSubmit');
-            if (checkbox) {
-                checkbox.checked = true;
-                toggleEmailInput();
-            }
-        }
+        // Load saved FormSubmit checkbox state - MIGRATED TO Prompt-Manager.php
+        // FormSubmit functionality now handled in Design Enhancer Documentation tool
 
         // Initialize Enhancement Style UI on load
         updateEnhancementStyle();
 
-        console.log('🔄 Documentation & FormSubmit settings loaded from localStorage');
+        console.log('🔄 FormSubmit settings migrated to Prompt-Manager.php');
         console.log('✨ Enhancement Style initialized:', enhancementOptions.style);
     });
 

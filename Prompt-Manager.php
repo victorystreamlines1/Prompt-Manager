@@ -6313,6 +6313,510 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(236, 72, 153, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           📚 DOCUMENTATION INTEGRATION STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .di-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .di-checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .di-checkbox-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .di-checkbox-item.checked {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .di-checkbox-item input[type="checkbox"],
+        .di-checkbox-item input[type="radio"] {
+            margin-top: 2px;
+            accent-color: #3b82f6;
+        }
+        
+        .di-checkbox-item .di-label {
+            flex: 1;
+        }
+        
+        .di-checkbox-item .di-label strong {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+        }
+        
+        .di-checkbox-item .di-label span {
+            font-size: 0.52rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+        
+        /* FormSubmit Section */
+        .di-formsubmit-box {
+            padding: 0.5rem;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .di-email-section {
+            display: none;
+            margin-top: 0.4rem;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
+        }
+        
+        .di-email-section.show {
+            display: block;
+        }
+        
+        .di-email-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .di-email-label i {
+            color: #3b82f6;
+        }
+        
+        .di-email-input {
+            width: 100%;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.55rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .di-email-input:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
+        }
+        
+        .di-email-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.48rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        
+        /* Documentation Upload Section */
+        .di-upload-section {
+            display: none;
+            margin-top: 0.5rem;
+        }
+        
+        .di-upload-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .di-upload-zone {
+            width: 100%;
+            padding: 0.6rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .di-upload-zone:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .di-upload-zone input[type="file"] {
+            display: none;
+        }
+        
+        .di-upload-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+            color: #3b82f6;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .di-upload-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        /* File Info Display */
+        .di-file-info {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 6px;
+        }
+        
+        .di-file-info.show {
+            display: block;
+        }
+        
+        .di-file-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .di-file-details {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .di-file-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+        }
+        
+        .di-file-name {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .di-file-size {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+        }
+        
+        .di-file-remove {
+            padding: 0.25rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 4px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.5rem;
+        }
+        
+        .di-file-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .di-file-preview {
+            margin-top: 0.4rem;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        /* Integration Mode Section */
+        .di-mode-section {
+            display: none;
+            margin-top: 0.5rem;
+        }
+        
+        .di-mode-section.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .di-mode-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+        
+        .di-mode-header i {
+            color: #3b82f6;
+        }
+        
+        .di-mode-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .di-mode-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.35rem;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .di-mode-option:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .di-mode-option.checked {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .di-mode-option input[type="radio"] {
+            margin-top: 2px;
+            accent-color: #3b82f6;
+        }
+        
+        .di-mode-content {
+            flex: 1;
+        }
+        
+        .di-mode-content strong {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.55rem;
+            color: var(--text-primary);
+            margin-bottom: 0.1rem;
+        }
+        
+        .di-mode-content strong i.create-icon { color: #10b981; }
+        .di-mode-content strong i.inject-icon { color: #f59e0b; }
+        .di-mode-content strong i.merge-icon { color: #8b5cf6; }
+        .di-mode-content strong i.ai-icon { color: #ec4899; }
+        
+        .di-mode-content span {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+        
+        /* Info Tip */
+        .di-info-tip {
+            display: flex;
+            gap: 0.4rem;
+            padding: 0.4rem;
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        
+        .di-info-tip i {
+            color: #3b82f6;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        
+        .di-info-tip div {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .di-info-tip strong {
+            color: var(--text-primary);
+        }
+        
+        /* Notes Textarea */
+        .di-notes-section {
+            margin-top: 0.5rem;
+            padding-top: 0.4rem;
+            border-top: 1px solid rgba(59, 130, 246, 0.15);
+        }
+        
+        .di-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .di-notes-label i {
+            color: #3b82f6;
+        }
+        
+        .di-notes-textarea {
+            width: 100%;
+            min-height: 45px;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-size: 0.52rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .di-notes-textarea:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        .di-char-count {
+            text-align: right;
+            font-size: 0.48rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+        
+        /* Push Button */
+        .di-push-section {
+            margin-top: 0.4rem;
+        }
+        
+        .di-push-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 5px;
+            color: #3b82f6;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+        
+        .di-push-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        /* Light Theme */
+        [data-theme="light"] .di-checkbox-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .di-checkbox-item:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        [data-theme="light"] .di-checkbox-item.checked {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .di-formsubmit-box {
+            background: rgba(59, 130, 246, 0.03);
+        }
+        
+        [data-theme="light"] .di-email-section {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .di-email-input {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        
+        [data-theme="light"] .di-upload-zone {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .di-file-info {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .di-file-preview {
+            background: rgba(248, 250, 252, 0.9);
+        }
+        
+        [data-theme="light"] .di-mode-option {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        [data-theme="light"] .di-mode-option:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        [data-theme="light"] .di-mode-option.checked {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .di-info-tip {
+            background: rgba(59, 130, 246, 0.03);
+        }
+        
+        [data-theme="light"] .di-notes-textarea {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .di-push-btn {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            color: #2563eb;
+        }
+        
+        [data-theme="light"] .di-push-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -14786,6 +15290,170 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="vr-push-section">
                             <button type="button" class="vr-push-btn" onclick="vrPushToNotes()" title="Push visual reference settings to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📚 DOCUMENTATION INTEGRATION TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="documentationTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('documentation')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-book"></i>
+                            <span>Documentation</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetDocumentation();" title="Reset documentation settings">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge di-badge" id="diBadge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); display: none;">Ready</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="documentationArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="documentationBody">
+                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Integrate documentation to guide the AI enhancement process</p>
+                        
+                        <!-- Include Documentation Checkbox -->
+                        <div class="di-checkbox-group">
+                            <label class="di-checkbox-item" onclick="diToggleDocCheckbox(event)">
+                                <input type="checkbox" id="diEnableDoc">
+                                <div class="di-label">
+                                    <strong><i class="fas fa-file-alt"></i> Include Documentation File</strong>
+                                    <span>Upload a documentation file to guide AI in the enhancement</span>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <!-- FormSubmit.co Integration -->
+                        <div class="di-formsubmit-box">
+                            <label class="di-checkbox-item" onclick="diToggleFormSubmit(event)">
+                                <input type="checkbox" id="diEnableFormSubmit">
+                                <div class="di-label">
+                                    <strong><i class="fas fa-envelope"></i> Include FormSubmit.co</strong>
+                                    <span>Configure contact forms to send emails using FormSubmit.co</span>
+                                </div>
+                            </label>
+                            
+                            <!-- Email Input Section -->
+                            <div class="di-email-section" id="diEmailSection">
+                                <label class="di-email-label">
+                                    <i class="fas fa-at"></i>
+                                    <span>Email Address for Contact Forms</span>
+                                </label>
+                                <input 
+                                    type="email" 
+                                    id="diContactEmail" 
+                                    class="di-email-input"
+                                    placeholder="your-email@example.com"
+                                    oninput="diSaveEmail()">
+                                <div class="di-email-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Form submissions will be sent to this email</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Section -->
+                        <div class="di-upload-section" id="diUploadSection">
+                            <div class="di-upload-zone" onclick="document.getElementById('diFileInput').click()">
+                                <input type="file" id="diFileInput" accept=".txt,.md,.doc,.docx,.pdf,.html,.json" onchange="diHandleFile(event)">
+                                <button type="button" class="di-upload-btn">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Choose Documentation File</span>
+                                </button>
+                            </div>
+                            
+                            <!-- File Info Display -->
+                            <div class="di-file-info" id="diFileInfo">
+                                <div class="di-file-header">
+                                    <div class="di-file-details">
+                                        <div class="di-file-icon">
+                                            <i class="fas fa-file"></i>
+                                        </div>
+                                        <div>
+                                            <div class="di-file-name" id="diFileName"></div>
+                                            <div class="di-file-size" id="diFileSize"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="di-file-remove" onclick="diRemoveFile()" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="di-file-preview" id="diFilePreview"></div>
+                            </div>
+                            
+                            <!-- Integration Mode Section -->
+                            <div class="di-mode-section" id="diModeSection">
+                                <div class="di-mode-header">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>Documentation Integration Mode</span>
+                                </div>
+                                
+                                <div class="di-mode-options">
+                                    <label class="di-mode-option" data-mode="create">
+                                        <input type="radio" name="di_mode" value="create" onchange="diSelectMode('create')">
+                                        <div class="di-mode-content" onclick="diSelectModeByClick('create')">
+                                            <strong><i class="fas fa-plus-circle create-icon"></i> Create New Pages</strong>
+                                            <span>Create all required pages from scratch (About Us, Contact, etc.)</span>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="di-mode-option" data-mode="injection">
+                                        <input type="radio" name="di_mode" value="injection" onchange="diSelectMode('injection')">
+                                        <div class="di-mode-content" onclick="diSelectModeByClick('injection')">
+                                            <strong><i class="fas fa-syringe inject-icon"></i> Injection</strong>
+                                            <span>Inject documentation content into existing files</span>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="di-mode-option" data-mode="integration">
+                                        <input type="radio" name="di_mode" value="integration" onchange="diSelectMode('integration')">
+                                        <div class="di-mode-content" onclick="diSelectModeByClick('integration')">
+                                            <strong><i class="fas fa-puzzle-piece merge-icon"></i> Integration (Smart Merge)</strong>
+                                            <span>Integrate missing content AND create missing pages</span>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="di-mode-option checked" data-mode="ai-decision">
+                                        <input type="radio" name="di_mode" value="ai-decision" checked onchange="diSelectMode('ai-decision')">
+                                        <div class="di-mode-content" onclick="diSelectModeByClick('ai-decision')">
+                                            <strong><i class="fas fa-robot ai-icon"></i> AI Decision (Recommended)</strong>
+                                            <span>Let AI analyze and choose the best approach</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Info Tip -->
+                        <div class="di-info-tip">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>Supported formats:</strong> .txt, .md, .doc, .docx, .pdf, .html, .json<br>
+                                Documentation guides AI in the enhancement process.
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="di-notes-section">
+                            <label class="di-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Documentation Notes</span>
+                            </label>
+                            <textarea 
+                                id="diNotesTextarea" 
+                                class="di-notes-textarea" 
+                                placeholder="Add specific instructions about how documentation should be integrated..."
+                                oninput="diUpdateCharCount()"
+                            ></textarea>
+                            <div class="di-char-count" id="diCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="di-push-section">
+                            <button type="button" class="di-push-btn" onclick="diPushToNotes()" title="Push documentation settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -25738,6 +26406,11 @@ async function deResetAll() {
         vrResetAll(true);
     }
     
+    // Reset Documentation Integration (skip individual toast)
+    if (typeof diResetAll === 'function') {
+        diResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -29444,6 +30117,515 @@ function getVisualReference() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     vrInit();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     📚 DOCUMENTATION INTEGRATION JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Documentation Integration state
+let diFileContent = null;
+let diFileName = null;
+let diIntegrationMode = 'ai-decision';
+let diEnableDoc = false;
+let diEnableFormSubmit = false;
+let diContactEmail = '';
+
+// Initialize Documentation Integration
+function diInit() {
+    diLoadFromStorage();
+    diUpdateUI();
+}
+
+// Toggle documentation checkbox
+function diToggleDocCheckbox(event) {
+    const checkbox = document.getElementById('diEnableDoc');
+    
+    // If click was NOT on the checkbox itself, toggle it manually
+    if (event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+        checkbox.checked = !checkbox.checked;
+    }
+    
+    // Update state
+    diEnableDoc = checkbox.checked;
+    
+    const label = checkbox.closest('.di-checkbox-item');
+    label.classList.toggle('checked', checkbox.checked);
+    
+    const uploadSection = document.getElementById('diUploadSection');
+    if (checkbox.checked) {
+        uploadSection.classList.add('show');
+    } else {
+        uploadSection.classList.remove('show');
+        diRemoveFile();
+    }
+    
+    diSaveToStorage();
+    diUpdateBadge();
+}
+
+// Toggle FormSubmit checkbox
+function diToggleFormSubmit(event) {
+    const checkbox = document.getElementById('diEnableFormSubmit');
+    
+    // If click was NOT on the checkbox itself, toggle it manually
+    if (event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+        checkbox.checked = !checkbox.checked;
+    }
+    
+    // Update state
+    diEnableFormSubmit = checkbox.checked;
+    
+    const label = checkbox.closest('.di-checkbox-item');
+    label.classList.toggle('checked', checkbox.checked);
+    
+    const emailSection = document.getElementById('diEmailSection');
+    if (checkbox.checked) {
+        emailSection.classList.add('show');
+        setTimeout(() => {
+            document.getElementById('diContactEmail').focus();
+        }, 100);
+    } else {
+        emailSection.classList.remove('show');
+    }
+    
+    diSaveToStorage();
+    diUpdateBadge();
+    showNotification(checkbox.checked ? '✅ FormSubmit.co enabled' : '❌ FormSubmit.co disabled', 'info');
+}
+
+// Save email
+function diSaveEmail() {
+    const email = document.getElementById('diContactEmail').value.trim();
+    diContactEmail = email;
+    localStorage.setItem('diContactEmail', email);
+}
+
+// Handle file upload
+function diHandleFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    diFileName = file.name;
+    const fileSize = formatFileSize(file.size);
+    
+    // Display file info
+    document.getElementById('diFileName').textContent = file.name;
+    document.getElementById('diFileSize').textContent = fileSize;
+    
+    // Read file content
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        diFileContent = e.target.result;
+        
+        // Show preview (first 400 characters)
+        const preview = diFileContent.substring(0, 400);
+        document.getElementById('diFilePreview').textContent = preview + 
+            (diFileContent.length > 400 ? '\n\n...(truncated)' : '');
+        
+        // Show file info display
+        document.getElementById('diFileInfo').classList.add('show');
+        
+        // Show integration mode section
+        document.getElementById('diModeSection').classList.add('show');
+        
+        // Initialize mode selection UI
+        diSelectMode(diIntegrationMode);
+        
+        diSaveToStorage();
+        diUpdateBadge();
+        showNotification('📄 Documentation file loaded!', 'success');
+    };
+    
+    reader.onerror = function() {
+        showNotification('❌ Error reading file', 'error');
+    };
+    
+    reader.readAsText(file);
+}
+
+// Remove file
+function diRemoveFile() {
+    diFileContent = null;
+    diFileName = null;
+    
+    // Clear file input
+    document.getElementById('diFileInput').value = '';
+    
+    // Hide file info display
+    document.getElementById('diFileInfo').classList.remove('show');
+    
+    // Hide integration mode section
+    document.getElementById('diModeSection').classList.remove('show');
+    
+    // Clear preview
+    document.getElementById('diFilePreview').textContent = '';
+    
+    diSaveToStorage();
+    diUpdateBadge();
+}
+
+// Select integration mode (called from radio onchange)
+function diSelectMode(mode) {
+    diIntegrationMode = mode;
+    
+    // Update UI
+    document.querySelectorAll('.di-mode-option').forEach(option => {
+        option.classList.remove('checked');
+    });
+    
+    const selectedOption = document.querySelector(`.di-mode-option[data-mode="${mode}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('checked');
+    }
+    
+    localStorage.setItem('diIntegrationMode', mode);
+}
+
+// Select integration mode by clicking on label content
+function diSelectModeByClick(mode) {
+    const radio = document.querySelector(`input[name="di_mode"][value="${mode}"]`);
+    if (radio) {
+        radio.checked = true;
+        diSelectMode(mode);
+    }
+}
+
+// Update badge
+function diUpdateBadge() {
+    const badge = document.getElementById('diBadge');
+    if (badge) {
+        const hasDoc = diEnableDoc && diFileContent;
+        const hasEmail = diEnableFormSubmit && diContactEmail;
+        
+        if (hasDoc || hasEmail) {
+            let text = [];
+            if (hasDoc) text.push('Doc');
+            if (hasEmail) text.push('Form');
+            badge.textContent = text.join(' + ');
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Update UI from state
+function diUpdateUI() {
+    // Documentation checkbox
+    const docCheckbox = document.getElementById('diEnableDoc');
+    if (docCheckbox) {
+        docCheckbox.checked = diEnableDoc;
+        const docLabel = docCheckbox.closest('.di-checkbox-item');
+        if (docLabel) docLabel.classList.toggle('checked', diEnableDoc);
+    }
+    
+    // Upload section visibility
+    const uploadSection = document.getElementById('diUploadSection');
+    if (uploadSection) {
+        uploadSection.classList.toggle('show', diEnableDoc);
+    }
+    
+    // FormSubmit checkbox
+    const formCheckbox = document.getElementById('diEnableFormSubmit');
+    if (formCheckbox) {
+        formCheckbox.checked = diEnableFormSubmit;
+        const formLabel = formCheckbox.closest('.di-checkbox-item');
+        if (formLabel) formLabel.classList.toggle('checked', diEnableFormSubmit);
+    }
+    
+    // Email section visibility
+    const emailSection = document.getElementById('diEmailSection');
+    if (emailSection) {
+        emailSection.classList.toggle('show', diEnableFormSubmit);
+    }
+    
+    // Email input
+    const emailInput = document.getElementById('diContactEmail');
+    if (emailInput) {
+        emailInput.value = diContactEmail;
+    }
+    
+    // File info display
+    if (diFileName && diFileContent) {
+        document.getElementById('diFileName').textContent = diFileName;
+        document.getElementById('diFileInfo').classList.add('show');
+        document.getElementById('diModeSection').classList.add('show');
+        
+        const preview = diFileContent.substring(0, 400);
+        document.getElementById('diFilePreview').textContent = preview + 
+            (diFileContent.length > 400 ? '\n\n...(truncated)' : '');
+    }
+    
+    // Mode selection
+    diSelectMode(diIntegrationMode);
+    
+    // Load notes
+    diLoadNotesFromStorage();
+    
+    // Update badge
+    diUpdateBadge();
+}
+
+// Push to Project Prompts
+function diPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('diNotesTextarea')?.value.trim() || '';
+    
+    // Build prompt content
+    let promptContent = '';
+    
+    // Documentation Integration
+    if (diEnableDoc && diFileContent && diFileName) {
+        const modeNames = {
+            'create': 'Create New Pages',
+            'injection': 'Injection',
+            'integration': 'Integration (Smart Merge)',
+            'ai-decision': 'AI Decision (Recommended)'
+        };
+        
+        promptContent += `\n\n📚 DOCUMENTATION INTEGRATION\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `• File: ${diFileName}\n`;
+        promptContent += `• Mode: ${modeNames[diIntegrationMode] || diIntegrationMode}\n\n`;
+        
+        if (diIntegrationMode === 'create') {
+            promptContent += `INSTRUCTIONS: Create all required pages from scratch based on the documentation content. Treat this as if the application has no existing pages.\n`;
+        } else if (diIntegrationMode === 'injection') {
+            promptContent += `INSTRUCTIONS: Inject the documentation content into existing files. Create contact page if not available.\n`;
+        } else if (diIntegrationMode === 'integration') {
+            promptContent += `INSTRUCTIONS: Integrate missing documentation content into existing pages AND create any missing pages that should exist.\n`;
+        } else {
+            promptContent += `INSTRUCTIONS: Analyze the situation and choose the best approach (create, inject, or integrate) automatically based on the existing project structure.\n`;
+        }
+        
+        promptContent += `\n📄 DOCUMENTATION CONTENT:\n`;
+        promptContent += `\`\`\`\n${diFileContent}\n\`\`\`\n`;
+    }
+    
+    // FormSubmit Integration
+    if (diEnableFormSubmit && diContactEmail) {
+        promptContent += `\n\n📧 FORMSUBMIT.CO INTEGRATION\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `• Email: ${diContactEmail}\n\n`;
+        promptContent += `INSTRUCTIONS: Configure all contact forms to use FormSubmit.co for email delivery.\n`;
+        promptContent += `Form action should be: https://formsubmit.co/${diContactEmail}\n`;
+        promptContent += `Include hidden fields for _subject, _captcha, _next as needed.\n`;
+    }
+    
+    // Additional notes
+    if (notesContent) {
+        if (!promptContent) {
+            promptContent += `\n\n📚 DOCUMENTATION NOTES\n`;
+            promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        } else {
+            promptContent += `\nAdditional Instructions:\n`;
+        }
+        promptContent += `${notesContent}\n`;
+    }
+    
+    if (!promptContent) {
+        showNotification('⚠️ No documentation or settings to push', 'warning');
+        return;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification('📚 Documentation settings pushed to Project Prompts', 'success');
+}
+
+// Character count for notes
+function diUpdateCharCount() {
+    const textarea = document.getElementById('diNotesTextarea');
+    const countEl = document.getElementById('diCharCount');
+    
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        diSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function diSaveNotesToStorage() {
+    const textarea = document.getElementById('diNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('diNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function diLoadNotesFromStorage() {
+    const savedNotes = localStorage.getItem('diNotes');
+    const textarea = document.getElementById('diNotesTextarea');
+    
+    if (savedNotes && textarea) {
+        textarea.value = savedNotes;
+        diUpdateCharCount();
+    }
+}
+
+// Save to localStorage
+function diSaveToStorage() {
+    localStorage.setItem('diEnableDoc', diEnableDoc);
+    localStorage.setItem('diEnableFormSubmit', diEnableFormSubmit);
+    localStorage.setItem('diContactEmail', diContactEmail);
+    localStorage.setItem('diIntegrationMode', diIntegrationMode);
+    
+    if (diFileContent && diFileName) {
+        try {
+            localStorage.setItem('diFileContent', diFileContent);
+            localStorage.setItem('diFileName', diFileName);
+        } catch (e) {
+            console.warn('Failed to save documentation file:', e);
+            if (e.name === 'QuotaExceededError') {
+                showNotification('⚠️ File too large for storage', 'warning');
+            }
+        }
+    } else {
+        localStorage.removeItem('diFileContent');
+        localStorage.removeItem('diFileName');
+    }
+}
+
+// Load from localStorage
+function diLoadFromStorage() {
+    diEnableDoc = localStorage.getItem('diEnableDoc') === 'true';
+    diEnableFormSubmit = localStorage.getItem('diEnableFormSubmit') === 'true';
+    diContactEmail = localStorage.getItem('diContactEmail') || '';
+    diIntegrationMode = localStorage.getItem('diIntegrationMode') || 'ai-decision';
+    
+    const savedContent = localStorage.getItem('diFileContent');
+    const savedName = localStorage.getItem('diFileName');
+    
+    if (savedContent && savedName) {
+        diFileContent = savedContent;
+        diFileName = savedName;
+    }
+}
+
+// Reset all
+function diResetAll(skipToast = false) {
+    diFileContent = null;
+    diFileName = null;
+    diIntegrationMode = 'ai-decision';
+    diEnableDoc = false;
+    diEnableFormSubmit = false;
+    diContactEmail = '';
+    
+    // Clear UI
+    const docCheckbox = document.getElementById('diEnableDoc');
+    if (docCheckbox) {
+        docCheckbox.checked = false;
+        const label = docCheckbox.closest('.di-checkbox-item');
+        if (label) label.classList.remove('checked');
+    }
+    
+    const formCheckbox = document.getElementById('diEnableFormSubmit');
+    if (formCheckbox) {
+        formCheckbox.checked = false;
+        const label = formCheckbox.closest('.di-checkbox-item');
+        if (label) label.classList.remove('checked');
+    }
+    
+    const emailInput = document.getElementById('diContactEmail');
+    if (emailInput) emailInput.value = '';
+    
+    document.getElementById('diUploadSection')?.classList.remove('show');
+    document.getElementById('diEmailSection')?.classList.remove('show');
+    document.getElementById('diFileInfo')?.classList.remove('show');
+    document.getElementById('diModeSection')?.classList.remove('show');
+    
+    const fileInput = document.getElementById('diFileInput');
+    if (fileInput) fileInput.value = '';
+    
+    document.getElementById('diFilePreview').textContent = '';
+    
+    // Reset mode selection
+    diSelectMode('ai-decision');
+    
+    // Clear notes
+    const notesTextarea = document.getElementById('diNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        diUpdateCharCount();
+    }
+    
+    // Clear storage
+    localStorage.removeItem('diEnableDoc');
+    localStorage.removeItem('diEnableFormSubmit');
+    localStorage.removeItem('diContactEmail');
+    localStorage.removeItem('diIntegrationMode');
+    localStorage.removeItem('diFileContent');
+    localStorage.removeItem('diFileName');
+    localStorage.removeItem('diNotes');
+    
+    diUpdateBadge();
+    
+    if (!skipToast) {
+        showNotification('📚 Documentation settings reset', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetDocumentation() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Documentation',
+            subtitle: 'Design Enhancer',
+            message: 'This will clear all documentation files, settings, and notes.',
+            warning: 'This action cannot be undone.',
+            confirmText: 'Reset',
+            icon: 'fa-book'
+        });
+        if (confirmed) {
+            diResetAll();
+        }
+    } else if (confirm('Reset documentation settings to default?')) {
+        diResetAll();
+    }
+}
+
+// Helper function for file size formatting
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Get documentation settings (for external access)
+function getDocumentation() {
+    return {
+        enabled: diEnableDoc,
+        fileContent: diFileContent,
+        fileName: diFileName,
+        mode: diIntegrationMode,
+        formSubmit: diEnableFormSubmit,
+        email: diContactEmail,
+        notes: document.getElementById('diNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    diInit();
 });
 </script>
 
