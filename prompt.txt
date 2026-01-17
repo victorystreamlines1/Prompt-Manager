@@ -1,1 +1,1 @@
-make sure you also add the styles on the same item. You can see in the index1.html, sorry, index1.php, the items are colored, showing the style. So I want the exact same color, color the items, and make sure all of them render the CSS. 
+Also make sure the all, I don't know how much they are, 55 or 60 items are available in both the index1.php and promptmanager.php. Make sure they're all available and you did not miss anything.

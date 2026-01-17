@@ -6608,18 +6608,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .project-notes-textarea {
             width: 100%;
-            min-height: 60px;
-            max-height: 180px;
-            padding: 0.6rem 0.75rem;
-            padding-bottom: 1.5rem;
+            min-height: 200px;
+            max-height: 80vh;
+            height: 280px;
+            padding: 1rem;
+            padding-bottom: 2rem;
             background: transparent;
             border: none;
             color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.72rem;
-            line-height: 1.5;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
             resize: vertical;
             outline: none;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
         
         .project-notes-textarea::placeholder {
