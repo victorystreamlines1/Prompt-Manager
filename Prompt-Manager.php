@@ -6939,6 +6939,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
         
+        /* Send to File Button for Project Prompts */
+        .notes-btn.send-to-file-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #22d3ee;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        
+        .notes-btn.send-to-file-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+        
+        .notes-btn.send-to-file-btn:disabled {
+            background: rgba(100, 116, 139, 0.1);
+            border-color: rgba(100, 116, 139, 0.2);
+            color: #64748b;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .notes-btn.send-to-file-btn span {
+            font-size: 0.58rem;
+            letter-spacing: 0.02em;
+        }
+        
         .notes-btn:hover {
             background: rgba(251, 191, 36, 0.2);
             border-color: rgba(251, 191, 36, 0.4);
@@ -11968,6 +12001,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                                 
                                 <div class="project-notes-actions">
+                                    <button type="button" class="notes-btn send-to-file-btn" id="btnSendNotesToFile" onclick="sendNotesToPromptFile()" disabled title="Send to prompt.txt">
+                                        <i class="fas fa-paper-plane"></i>
+                                        <span>Send</span>
+                                    </button>
                                     <button type="button" class="notes-btn push-to-prompt-btn" onclick="pushNotesToPrompt()" title="Push to Main Prompt Editor">
                                         <i class="fas fa-arrow-right"></i>
                                         <span>→ Editor</span>
@@ -17292,12 +17329,16 @@ in each section carefully and maintain proper connections between components.
             const pathIndicator = document.getElementById('folderPathIndicator');
             const pathText = document.getElementById('folderPathText');
             
+            // Also update the Project Prompts Send button
+            const btnSendNotes = document.getElementById('btnSendNotesToFile');
+            
             if (isConnected) {
                 btnFolder.classList.add('connected');
                 btnFolder.classList.remove('needs-reconnect');
                 btnFolder.title = `Connected to ${folderName}/prompt.txt`;
                 btnSend.disabled = false;
                 btnPull.disabled = false;
+                if (btnSendNotes) btnSendNotes.disabled = false;
                 btnClear.classList.add('show');
                 pathIndicator.classList.add('show');
                 pathIndicator.classList.remove('disconnected');
@@ -17309,6 +17350,7 @@ in each section carefully and maintain proper connections between components.
                 btnFolder.title = `Click to reconnect to ${folderName}`;
                 btnSend.disabled = true;
                 btnPull.disabled = true;
+                if (btnSendNotes) btnSendNotes.disabled = true;
                 btnClear.classList.add('show');
                 pathIndicator.classList.add('show', 'disconnected');
                 pathText.textContent = `${folderName}/prompt.txt (click Folder to reconnect)`;
@@ -17318,6 +17360,7 @@ in each section carefully and maintain proper connections between components.
                 btnFolder.title = 'Select folder for prompt.txt';
                 btnSend.disabled = true;
                 btnPull.disabled = true;
+                if (btnSendNotes) btnSendNotes.disabled = true;
                 btnClear.classList.remove('show');
                 pathIndicator.classList.remove('show', 'disconnected');
             }
@@ -17373,6 +17416,49 @@ in each section carefully and maintain proper connections between components.
                     updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
                     // Stop auto-send timer
                     stopAutoSendTimer();
+                } else {
+                    showToast('❌ Error writing to file: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Send Project Prompts content to prompt.txt
+        async function sendNotesToPromptFile() {
+            if (!promptFileHandle) {
+                showToast('❌ No folder connected. Please select a folder first.', 'error');
+                return;
+            }
+            
+            const notesTextarea = document.getElementById('projectNotesTextarea');
+            const content = notesTextarea ? notesTextarea.value : '';
+            
+            try {
+                // Create a writable stream
+                const writable = await promptFileHandle.createWritable();
+                
+                // Write the content (even if empty - perfect mirror)
+                await writable.write(content);
+                
+                // Close the stream
+                await writable.close();
+                
+                const folderName = localStorage.getItem('promptFolderName') || 'folder';
+                if (content.trim()) {
+                    showToast(`✅ Project Prompts synced to ${folderName}/prompt.txt`, 'success');
+                } else {
+                    showToast(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
+                }
+                console.log('📤 Project Prompts synced to prompt.txt, length:', content.length);
+                
+            } catch (err) {
+                console.error('Error writing Project Prompts to prompt.txt:', err);
+                
+                if (err.name === 'NotAllowedError') {
+                    showToast('❌ Permission denied. Please select the folder again.', 'error');
+                    // Reset connection
+                    promptFolderHandle = null;
+                    promptFileHandle = null;
+                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
                 } else {
                     showToast('❌ Error writing to file: ' + err.message, 'error');
                 }
