@@ -12701,73 +12701,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </header>
 
-        <!-- Execution Mode Selection - DROPDOWN -->
-        <div id="executionModeSection" class="execution-mode-dropdown-card fade-in" style="margin-bottom: 2rem;">
-            <div class="execution-mode-dropdown-header">
-                <div class="execution-mode-dropdown-icon">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <div class="execution-mode-dropdown-title-section">
-                    <h2 class="execution-mode-dropdown-title">🚀 Execution Mode</h2>
-                    <p class="execution-mode-dropdown-subtitle">Choose how the AI should process your application</p>
-                </div>
-                <!-- Game-like Help Button & Video Button -->
-                <div style="display: flex; align-items: center; margin-left: auto; gap: 0.5rem;">
-                    <button class="help-btn-game" onclick="showExecutionModeHelp()" title="How does this work?">
-                        <i class="fas fa-question"></i>
-                    </button>
-                    <span class="help-btn-label">Help</span>
-                    
-                    <!-- Video Tutorial Button -->
-                    <button class="video-btn-game" onclick="showExecutionModeVideo()" title="Watch Video Tutorial">
-                        <i class="fas fa-play"></i>
-                        <span>Video</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="execution-mode-dropdown-container">
-                <select id="executionModeSelect" class="execution-mode-select" onchange="updateExecutionModeType()">
-                    <option value="read-before" selected>📖 Read Before Executing (Recommended)</option>
-                    <option value="default-process">⚡ Default Process (Faster)</option>
-                </select>
-                <div class="execution-mode-dropdown-arrow">
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-
-            <!-- Description Box - Changes based on selection -->
-            <div id="executionModeDescription" class="execution-mode-description-box">
-                <div id="readBeforeDescription" class="mode-description active">
-                    <div class="mode-description-header">
-                        <i class="fas fa-book-reader" style="color: #10b981;"></i>
-                        <strong>Read Before Executing</strong>
-                        <span class="mode-badge recommended">Recommended</span>
-                    </div>
-                    <p>AI will <strong>read and analyze ALL uploaded files completely</strong> before making any design
-                        decisions. This ensures context-aware, tailored enhancements.</p>
-                    <div class="mode-features">
-                        <span><i class="fas fa-check"></i> Thorough analysis</span>
-                        <span><i class="fas fa-check"></i> Context-aware</span>
-                        <span><i class="fas fa-check"></i> Tailored results</span>
-                    </div>
-                </div>
-                <div id="defaultProcessDescription" class="mode-description" style="display: none;">
-                    <div class="mode-description-header">
-                        <i class="fas fa-bolt" style="color: #f59e0b;"></i>
-                        <strong>Default Process</strong>
-                        <span class="mode-badge fast">Faster</span>
-                    </div>
-                    <p>AI proceeds at its own discretion. It may read files as needed but is <strong>not required to
-                            read everything first</strong>. Best for quick modifications.</p>
-                    <div class="mode-features">
-                        <span><i class="fas fa-check"></i> Quick execution</span>
-                        <span><i class="fas fa-check"></i> AI discretion</span>
-                        <span><i class="fas fa-check"></i> Flexible approach</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- ================================================================
+             EXECUTION MODE - FULLY MIGRATED
+             This section has been completely migrated to Prompt-Manager.php
+             All HTML, CSS, and JavaScript functionality now lives in the
+             Design Enhancer panel of Prompt-Manager.php
+        ================================================================ -->
 
         <!-- Cards Grid -->
         <div class="cards-grid">

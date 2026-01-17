@@ -4529,6 +4529,284 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: rgba(109, 40, 217, 0.5);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           🚀 EXECUTION MODE TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        .em-select-container {
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+        
+        .em-select {
+            width: 100%;
+            padding: 0.7rem 2.5rem 0.7rem 0.8rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        .em-select:focus {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+        
+        .em-select:hover {
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        
+        .em-select-arrow {
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #22c55e;
+            pointer-events: none;
+            font-size: 0.7rem;
+        }
+        
+        .em-description-box {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 10px;
+            padding: 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .em-mode-description {
+            display: none;
+        }
+        
+        .em-mode-description.active {
+            display: block;
+            animation: emFadeIn 0.3s ease;
+        }
+        
+        @keyframes emFadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .em-mode-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .em-mode-header i {
+            font-size: 0.9rem;
+        }
+        
+        .em-mode-header i.read-icon {
+            color: #22c55e;
+        }
+        
+        .em-mode-header i.fast-icon {
+            color: #f59e0b;
+        }
+        
+        .em-mode-header strong {
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        .em-mode-badge {
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .em-mode-badge.recommended {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .em-mode-badge.fast {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .em-mode-description p {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .em-mode-description p strong {
+            color: var(--text-primary);
+        }
+        
+        .em-mode-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        
+        .em-mode-features span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.55rem;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+        
+        .em-mode-features span i {
+            font-size: 0.5rem;
+        }
+        
+        /* Execution Mode Notes */
+        .em-notes-section {
+            margin-top: 0.75rem;
+        }
+        
+        .em-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 0.4rem;
+        }
+        
+        .em-notes-label i {
+            font-size: 0.6rem;
+        }
+        
+        .em-notes-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 120px;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .em-notes-textarea:focus {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .em-notes-textarea::placeholder {
+            color: rgba(34, 197, 94, 0.4);
+            font-style: italic;
+        }
+        
+        .em-char-count {
+            text-align: right;
+            font-size: 0.55rem;
+            color: rgba(34, 197, 94, 0.5);
+            margin-top: 0.25rem;
+        }
+        
+        /* Push Button */
+        .em-push-section {
+            margin-top: 0.6rem;
+        }
+        
+        .em-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.1) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            color: #4ade80;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .em-push-btn:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(22, 163, 74, 0.2) 100%);
+            border-color: rgba(34, 197, 94, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .em-push-btn i {
+            font-size: 0.6rem;
+        }
+        
+        /* Light theme adjustments for execution mode */
+        [data-theme="light"] .em-select {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(34, 197, 94, 0.15);
+        }
+        
+        [data-theme="light"] .em-select:focus {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08);
+        }
+        
+        [data-theme="light"] .em-description-box {
+            background: rgba(248, 250, 252, 0.6);
+            border-color: rgba(34, 197, 94, 0.1);
+        }
+        
+        [data-theme="light"] .em-notes-label {
+            color: #16a34a;
+        }
+        
+        [data-theme="light"] .em-notes-textarea {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(34, 197, 94, 0.15);
+        }
+        
+        [data-theme="light"] .em-notes-textarea:focus {
+            border-color: rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .em-notes-textarea::placeholder {
+            color: rgba(22, 163, 74, 0.4);
+        }
+        
+        [data-theme="light"] .em-char-count {
+            color: rgba(22, 163, 74, 0.5);
+        }
+        
+        [data-theme="light"] .em-push-btn {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.08) 100%);
+            border-color: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+        }
+        
+        [data-theme="light"] .em-push-btn:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.12) 100%);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -12445,6 +12723,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="st-push-section">
                             <button type="button" class="st-push-btn" onclick="stPushToNotes()" title="Push selected styles and notes to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🚀 EXECUTION MODE TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="executionModeTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('executionMode')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-rocket"></i>
+                            <span>Execution Mode</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetExecutionMode();" title="Reset execution mode">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge em-badge" id="emBadge" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Default</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="executionModeArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="executionModeBody">
+                        <!-- Execution Mode Dropdown -->
+                        <div class="em-select-container">
+                            <select id="emSelect" class="em-select" onchange="emUpdateMode()">
+                                <option value="read-before" selected>📖 Read Before Executing (Recommended)</option>
+                                <option value="default-process">⚡ Default Process (Faster)</option>
+                            </select>
+                            <div class="em-select-arrow">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Mode Description Box -->
+                        <div class="em-description-box">
+                            <div id="emReadBeforeDesc" class="em-mode-description active">
+                                <div class="em-mode-header">
+                                    <i class="fas fa-book-reader read-icon"></i>
+                                    <strong>Read Before Executing</strong>
+                                    <span class="em-mode-badge recommended">Recommended</span>
+                                </div>
+                                <p>AI will <strong>read and analyze ALL uploaded files completely</strong> before making any design decisions. This ensures context-aware, tailored enhancements.</p>
+                                <div class="em-mode-features">
+                                    <span><i class="fas fa-check"></i> Thorough analysis</span>
+                                    <span><i class="fas fa-check"></i> Context-aware</span>
+                                    <span><i class="fas fa-check"></i> Tailored results</span>
+                                </div>
+                            </div>
+                            <div id="emDefaultProcessDesc" class="em-mode-description">
+                                <div class="em-mode-header">
+                                    <i class="fas fa-bolt fast-icon"></i>
+                                    <strong>Default Process</strong>
+                                    <span class="em-mode-badge fast">Faster</span>
+                                </div>
+                                <p>AI proceeds at its own discretion. It may read files as needed but is <strong>not required to read everything first</strong>. Best for quick modifications.</p>
+                                <div class="em-mode-features">
+                                    <span><i class="fas fa-check"></i> Quick execution</span>
+                                    <span><i class="fas fa-check"></i> AI discretion</span>
+                                    <span><i class="fas fa-check"></i> Flexible approach</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="em-notes-section">
+                            <label class="em-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Execution Instructions</span>
+                            </label>
+                            <textarea 
+                                id="emNotesTextarea" 
+                                class="em-notes-textarea" 
+                                placeholder="Add specific instructions about how the AI should process your files..."
+                                oninput="emUpdateCharCount()"
+                            ></textarea>
+                            <div class="em-char-count" id="emCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="em-push-section">
+                            <button type="button" class="em-push-btn" onclick="emPushToNotes()" title="Push execution mode and notes to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -23183,6 +23543,11 @@ async function deResetAll() {
         stResetAll(true);
     }
     
+    // Reset Execution Mode (skip individual toast)
+    if (typeof emResetAll === 'function') {
+        emResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -25594,6 +25959,208 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         stCloseSample();
     }
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🚀 EXECUTION MODE TOOL - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Execution Mode state
+let currentExecutionMode = 'read-before';
+
+// Initialize Execution Mode
+function emInit() {
+    emLoadFromStorage();
+    emUpdateUI();
+}
+
+// Update mode when dropdown changes
+function emUpdateMode() {
+    const select = document.getElementById('emSelect');
+    if (!select) return;
+    
+    currentExecutionMode = select.value;
+    
+    // Update descriptions
+    const readBeforeDesc = document.getElementById('emReadBeforeDesc');
+    const defaultProcessDesc = document.getElementById('emDefaultProcessDesc');
+    
+    if (currentExecutionMode === 'read-before') {
+        if (readBeforeDesc) readBeforeDesc.classList.add('active');
+        if (defaultProcessDesc) defaultProcessDesc.classList.remove('active');
+    } else {
+        if (readBeforeDesc) readBeforeDesc.classList.remove('active');
+        if (defaultProcessDesc) defaultProcessDesc.classList.add('active');
+    }
+    
+    emUpdateBadge();
+    emSaveToStorage();
+}
+
+// Update badge display
+function emUpdateBadge() {
+    const badge = document.getElementById('emBadge');
+    if (!badge) return;
+    
+    if (currentExecutionMode === 'read-before') {
+        badge.textContent = 'Read First';
+        badge.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+    } else {
+        badge.textContent = 'Fast Mode';
+        badge.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    }
+}
+
+// Update character count
+function emUpdateCharCount() {
+    const textarea = document.getElementById('emNotesTextarea');
+    const countEl = document.getElementById('emCharCount');
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        emSaveToStorage();
+    }
+}
+
+// Update UI from state
+function emUpdateUI() {
+    const select = document.getElementById('emSelect');
+    if (select) {
+        select.value = currentExecutionMode;
+    }
+    emUpdateMode();
+    emUpdateCharCount();
+}
+
+// Push to Project Prompts
+function emPushToNotes() {
+    const notesTextarea = document.getElementById('emNotesTextarea');
+    const additionalNotes = notesTextarea ? notesTextarea.value.trim() : '';
+    
+    // Build prompt text
+    let promptText = `## 🚀 EXECUTION MODE\n\n`;
+    
+    if (currentExecutionMode === 'read-before') {
+        promptText += `**📖 Mode: Read Before Executing (Recommended)**\n\n`;
+        promptText += `⚠️ **CRITICAL INSTRUCTION:**\n`;
+        promptText += `Before making ANY design decisions or code changes, you MUST:\n\n`;
+        promptText += `1. **Read and analyze ALL uploaded files completely**\n`;
+        promptText += `2. Understand the application's purpose, structure, and existing patterns\n`;
+        promptText += `3. Identify the tech stack, frameworks, and design system in use\n`;
+        promptText += `4. Note any existing color schemes, typography, and component styles\n`;
+        promptText += `5. Only THEN proceed with context-aware, tailored enhancements\n\n`;
+        promptText += `This ensures your changes are consistent with the existing codebase and design language.\n\n`;
+    } else {
+        promptText += `**⚡ Mode: Default Process (Faster)**\n\n`;
+        promptText += `You may proceed at your own discretion:\n`;
+        promptText += `- Read files as needed during execution\n`;
+        promptText += `- Not required to analyze everything first\n`;
+        promptText += `- Best suited for quick modifications\n`;
+        promptText += `- Use your judgment on what needs reading\n\n`;
+    }
+    
+    // Add additional notes if present
+    if (additionalNotes) {
+        promptText += `---\n\n### 📝 ADDITIONAL EXECUTION INSTRUCTIONS:\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        promptText += `---\n\n`;
+    }
+    
+    // Push to Project Notes
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (projectNotesTextarea) {
+        if (projectNotesTextarea.value.trim()) {
+            projectNotesTextarea.value = projectNotesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            projectNotesTextarea.value = promptText;
+        }
+        
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        const notesInfo = additionalNotes ? ' + custom instructions' : '';
+        if (typeof showToast === 'function') {
+            const modeName = currentExecutionMode === 'read-before' ? 'Read First' : 'Fast Mode';
+            showToast(`🚀 Execution mode (${modeName})${notesInfo} pushed to Project Prompts`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Save to localStorage
+function emSaveToStorage() {
+    const data = {
+        mode: currentExecutionMode,
+        notes: document.getElementById('emNotesTextarea')?.value || ''
+    };
+    localStorage.setItem('em_data', JSON.stringify(data));
+}
+
+// Load from localStorage
+function emLoadFromStorage() {
+    const saved = localStorage.getItem('em_data');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            currentExecutionMode = data.mode || 'read-before';
+            const textarea = document.getElementById('emNotesTextarea');
+            if (textarea && data.notes) {
+                textarea.value = data.notes;
+            }
+        } catch (e) {
+            currentExecutionMode = 'read-before';
+        }
+    }
+}
+
+// Reset execution mode
+function emResetAll(skipToast = false) {
+    currentExecutionMode = 'read-before';
+    const textarea = document.getElementById('emNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    emUpdateUI();
+    localStorage.removeItem('em_data');
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Execution mode reset to default', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetExecutionMode() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Execution Mode',
+            subtitle: 'Design Enhancer',
+            message: 'Are you sure you want to reset the execution mode?',
+            warning: 'Mode will be set to "Read Before Executing" and notes will be cleared.',
+            confirmText: 'Reset',
+            icon: 'fa-rocket'
+        });
+        if (confirmed) {
+            emResetAll();
+        }
+    } else if (confirm('Reset execution mode to default?')) {
+        emResetAll();
+    }
+}
+
+// Get execution mode (for external access)
+function getExecutionMode() {
+    return {
+        mode: currentExecutionMode,
+        notes: document.getElementById('emNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    emInit();
 });
 </script>
 
