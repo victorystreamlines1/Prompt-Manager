@@ -6574,7 +6574,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             min-height: 200px;
             max-height: 80vh;
-            height: 280px;
+            height: auto; /* Auto-expand based on content */
             padding: 1.5rem;
             padding-bottom: 2rem;
             background: transparent;
@@ -6584,11 +6584,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.95rem;
             line-height: 1.7;
-            resize: vertical;
+            resize: none; /* Disable manual resize, use auto-expand */
             outline: none;
-            overflow-y: auto;
+            overflow-y: hidden; /* Hidden to allow auto-expand */
             box-sizing: border-box;
             caret-color: var(--text-primary);
+            transition: height 0.1s ease;
         }
 
         /* When not searching, show solid background */
@@ -7529,7 +7530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             min-height: 150px;
             max-height: 80vh;
-            height: 280px;
+            height: auto; /* Auto-expand based on content */
             padding: 1rem;
             padding-bottom: 2rem;
             background: transparent;
@@ -7538,10 +7539,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
             line-height: 1.7;
-            resize: none; /* Disable native resize, use custom handle */
+            resize: none; /* Disable native resize, use auto-expand */
             outline: none;
-            overflow-y: auto;
+            overflow-y: hidden; /* Hidden to allow auto-expand */
             box-sizing: border-box;
+            transition: height 0.1s ease;
         }
         
         .project-notes-textarea::placeholder {
@@ -23331,10 +23333,101 @@ function initNotesResize() {
     console.log('Notes resize initialized');
 }
 
+// Auto-expand textarea based on content
+function autoExpandTextarea(textarea, minHeight = 150, maxHeight = null) {
+    if (!textarea) return;
+    
+    // Get max height (80vh or specified)
+    const effectiveMaxHeight = maxHeight || Math.floor(window.innerHeight * 0.8);
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Calculate new height
+    let newHeight = textarea.scrollHeight;
+    
+    // Apply constraints
+    if (newHeight < minHeight) {
+        newHeight = minHeight;
+    } else if (newHeight > effectiveMaxHeight) {
+        newHeight = effectiveMaxHeight;
+        textarea.style.overflowY = 'auto'; // Enable scroll when max reached
+    } else {
+        textarea.style.overflowY = 'hidden'; // Hide scroll when not needed
+    }
+    
+    textarea.style.height = newHeight + 'px';
+}
+
+// Initialize auto-expand for both textareas
+function initAutoExpand() {
+    const promptEditor = document.getElementById('promptEditor');
+    const projectNotes = document.getElementById('projectNotesTextarea');
+    
+    // Prompt Editor auto-expand
+    if (promptEditor) {
+        // Initial adjustment
+        autoExpandTextarea(promptEditor, 200);
+        
+        // On input
+        promptEditor.addEventListener('input', function() {
+            autoExpandTextarea(this, 200);
+        });
+        
+        // On paste (with slight delay to get pasted content)
+        promptEditor.addEventListener('paste', function() {
+            setTimeout(() => autoExpandTextarea(this, 200), 10);
+        });
+        
+        // On value change (programmatic)
+        const originalPromptSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+        Object.defineProperty(promptEditor, 'value', {
+            set: function(val) {
+                originalPromptSetter.call(this, val);
+                setTimeout(() => autoExpandTextarea(this, 200), 10);
+            },
+            get: function() {
+                return Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get.call(this);
+            }
+        });
+    }
+    
+    // Project Notes auto-expand
+    if (projectNotes) {
+        // Initial adjustment
+        autoExpandTextarea(projectNotes, 150);
+        
+        // On input
+        projectNotes.addEventListener('input', function() {
+            autoExpandTextarea(this, 150);
+        });
+        
+        // On paste
+        projectNotes.addEventListener('paste', function() {
+            setTimeout(() => autoExpandTextarea(this, 150), 10);
+        });
+        
+        // On value change (programmatic)
+        const originalNotesSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+        Object.defineProperty(projectNotes, 'value', {
+            set: function(val) {
+                originalNotesSetter.call(this, val);
+                setTimeout(() => autoExpandTextarea(this, 150), 10);
+            },
+            get: function() {
+                return Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get.call(this);
+            }
+        });
+    }
+    
+    console.log('Auto-expand initialized for textareas');
+}
+
 // Initialize notes on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadProjectNotesFromStorage();
     initNotesResize();
+    initAutoExpand();
 });
 
 // Reset only the items (not the project selection)
