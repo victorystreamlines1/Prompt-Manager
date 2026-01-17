@@ -3047,7 +3047,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .branding-formats {
             display: inline-block;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #f59e0b;
             background: rgba(245, 158, 11, 0.1);
             padding: 0.15rem 0.4rem;
@@ -3210,7 +3210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: transparent;
             transition: all 0.2s ease;
             margin-top: 2px;
@@ -3240,7 +3240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .branding-option-content p {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             color: var(--text-muted);
             margin: 0.15rem 0 0;
             line-height: 1.3;
@@ -3481,7 +3481,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .pc-custom-badge {
             background: rgba(249, 115, 22, 0.2);
             color: #fb923c;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             padding: 0.1rem 0.35rem;
             border-radius: 8px;
             margin-left: auto;
@@ -3544,7 +3544,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: transparent;
             transition: all 0.2s ease;
             flex-shrink: 0;
@@ -3557,7 +3557,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .pc-page-item i.page-icon {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #a78bfa;
             flex-shrink: 0;
         }
@@ -3651,7 +3651,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .pc-template-item .desc {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             margin-top: 0.15rem;
             display: -webkit-box;
@@ -3777,7 +3777,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: transparent;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -3809,7 +3809,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
             color: rgba(239, 68, 68, 0.6);
             cursor: pointer;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             transition: all 0.2s ease;
             opacity: 0;
         }
@@ -3925,7 +3925,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .ci-info-text i {
             color: #f97316;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
         
         .ci-char-count {
@@ -3959,7 +3959,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .ci-templates-label i {
             color: #fb923c;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
         
         .ci-templates-grid {
@@ -3974,7 +3974,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(249, 115, 22, 0.2);
             border-radius: 12px;
             color: #fb923c;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -3989,7 +3989,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .ci-template-btn i {
             margin-right: 0.2rem;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         /* Push Button */
@@ -4154,7 +4154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .st-preview-subtitle {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             margin: 0;
         }
@@ -4176,7 +4176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
             border: 1px solid rgba(168, 85, 247, 0.3);
             border-radius: 20px;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #c4b5fd;
             font-weight: 600;
             transition: all 0.2s ease;
@@ -4184,7 +4184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .st-selected-tag i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         /* Scroll Controls */
@@ -4293,7 +4293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .st-style-check i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: white;
             opacity: 0;
             transform: scale(0);
@@ -4326,7 +4326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .st-style-desc {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             line-height: 1.3;
             display: -webkit-box;
@@ -4351,7 +4351,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(168, 85, 247, 0.2);
             border-radius: 6px;
             color: #a78bfa;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.2s ease;
             opacity: 0;
@@ -4397,7 +4397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .st-info-text {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             display: flex;
             align-items: center;
@@ -4413,7 +4413,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
             border: 1px solid rgba(168, 85, 247, 0.3);
             border-radius: 20px;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #c4b5fd;
             font-weight: 600;
         }
@@ -4467,7 +4467,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .st-notes-char-count {
             text-align: right;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(167, 139, 250, 0.5);
             margin-top: 0.25rem;
         }
@@ -4622,7 +4622,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .em-mode-badge {
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
         }
@@ -4660,7 +4660,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #22c55e;
             background: rgba(34, 197, 94, 0.1);
             padding: 0.2rem 0.4rem;
@@ -4668,7 +4668,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .em-mode-features span i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         /* Execution Mode Notes */
@@ -4720,7 +4720,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .em-char-count {
             text-align: right;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(34, 197, 94, 0.5);
             margin-top: 0.25rem;
         }
@@ -4861,7 +4861,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .df-checkbox-content p {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             color: var(--text-secondary);
             margin: 0;
             line-height: 1.4;
@@ -4917,7 +4917,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: #10b981;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-weight: 600;
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
@@ -4925,7 +4925,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .df-seo-desc {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             color: var(--text-secondary);
             margin: 0 0 0.5rem 0;
             line-height: 1.4;
@@ -4954,7 +4954,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .df-seo-features span i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         /* Design Focus Notes */
@@ -5006,7 +5006,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .df-char-count {
             text-align: right;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(168, 85, 247, 0.5);
             margin-top: 0.25rem;
         }
@@ -5152,7 +5152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .el-radio-content p {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             color: var(--text-secondary);
             margin: 0;
             line-height: 1.4;
@@ -5252,7 +5252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .el-char-count {
             text-align: right;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(245, 158, 11, 0.5);
             margin-top: 0.25rem;
         }
@@ -5406,7 +5406,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             justify-content: space-between;
             margin-top: 0.3rem;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
         }
         
@@ -5461,7 +5461,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: #10b981;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             font-weight: 600;
             padding: 0.1rem 0.3rem;
             border-radius: 4px;
@@ -5469,7 +5469,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .tb-optimize-desc {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             margin: 0;
             line-height: 1.4;
@@ -5499,7 +5499,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .tb-info-tip div {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             line-height: 1.4;
         }
@@ -5528,7 +5528,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .tb-execution-desc {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             margin: 0 0 0.5rem 0;
         }
@@ -5593,7 +5593,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .tb-radio-header p {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             margin: 0.15rem 0 0 0;
         }
@@ -5609,7 +5609,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.2rem;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: #22d3ee;
             background: rgba(6, 182, 212, 0.1);
             padding: 0.15rem 0.35rem;
@@ -5617,7 +5617,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .tb-radio-features span i {
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             color: #06b6d4;
         }
         
@@ -5670,7 +5670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .tb-char-count {
             text-align: right;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(6, 182, 212, 0.5);
             margin-top: 0.25rem;
         }
@@ -5865,7 +5865,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(124, 77, 255, 0.1) 100%);
             border-radius: 20px;
             color: #ec4899;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             border: 1px solid rgba(236, 72, 153, 0.2);
         }
         
@@ -5933,7 +5933,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
             padding: 0.3rem 0.4rem;
             color: white;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
@@ -5956,7 +5956,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             transition: all 0.3s ease;
             opacity: 0;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         .vr-image-card:hover .vr-image-remove {
@@ -6084,7 +6084,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .vr-mode-description {
             color: var(--text-secondary);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             line-height: 1.4;
             margin-bottom: 0.4rem;
         }
@@ -6096,7 +6096,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .vr-mode-feature {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             padding: 0.15rem 0.4rem;
             background: rgba(236, 72, 153, 0.1);
             border: 1px solid rgba(236, 72, 153, 0.2);
@@ -6109,7 +6109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .vr-mode-feature i {
             color: #ec4899;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
         }
         
         .vr-mode-option.selected .vr-mode-feature {
@@ -6143,12 +6143,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: block;
             color: var(--text-primary);
             margin-bottom: 0.15rem;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
         
         .vr-info-box p {
             color: var(--text-secondary);
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             line-height: 1.4;
             margin: 0;
         }
@@ -6166,7 +6166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(239, 68, 68, 0.3);
             border-radius: 6px;
             color: #ef4444;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -6210,7 +6210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(236, 72, 153, 0.2);
             border-radius: 6px;
             color: var(--text-primary);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-family: inherit;
             resize: vertical;
             transition: all 0.3s ease;
@@ -6228,7 +6228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .vr-char-count {
             text-align: right;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             margin-top: 0.2rem;
         }
@@ -6262,7 +6262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .vr-push-btn i {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
         
         /* Light Theme */
@@ -6367,18 +6367,162 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .hp-checkbox-header strong {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-primary);
         }
         
         .hp-checkbox-description {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-secondary);
             margin: 0;
             line-height: 1.4;
         }
         
-        /* Target Page Picker */
+        /* New Page Section (shown when creating new landing page) */
+        .hp-new-page-section {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .hp-new-page-section.show {
+            display: block;
+        }
+        
+        .hp-input-group {
+            margin-bottom: 0.6rem;
+        }
+        
+        .hp-input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .hp-input-label i {
+            color: #10b981;
+        }
+        
+        .hp-page-name-input {
+            width: 100%;
+            padding: 0.5rem 0.6rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        
+        .hp-page-name-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .hp-input-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .hp-input-hint i {
+            color: rgba(16, 185, 129, 0.7);
+        }
+        
+        .hp-target-picker-inner {
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px dashed rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Existing Page Section (shown when NOT creating new) */
+        .hp-existing-page-section {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .hp-existing-page-section.hide {
+            display: none;
+        }
+        
+        .hp-existing-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .hp-existing-header i {
+            color: #3b82f6;
+            font-size: 0.7rem;
+        }
+        
+        .hp-existing-header strong {
+            font-size: 0.7rem;
+            color: var(--text-primary);
+        }
+        
+        .hp-existing-description {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+        }
+        
+        .hp-existing-display {
+            border-color: rgba(59, 130, 246, 0.2) !important;
+        }
+        
+        .hp-existing-display.has-file {
+            color: #3b82f6 !important;
+            border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .hp-existing-display i {
+            color: #3b82f6 !important;
+        }
+        
+        .hp-existing-page-section .hp-browse-btn {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .hp-existing-page-section .hp-browse-btn:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.15) 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        
+        .hp-existing-page-section .hp-browse-btn i {
+            color: #3b82f6;
+        }
+        
+        .hp-enhance-tip {
+            background: rgba(59, 130, 246, 0.05) !important;
+            border-color: rgba(59, 130, 246, 0.2) !important;
+        }
+        
+        .hp-enhance-tip > i {
+            color: #3b82f6 !important;
+        }
+        
+        /* Target Page Picker (old - keeping for compatibility) */
         .hp-target-picker {
             display: none;
             margin-top: 0.5rem;
@@ -6402,16 +6546,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .hp-target-header i {
             color: #10b981;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
         
         .hp-target-header strong {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-primary);
         }
         
         .hp-target-description {
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             color: var(--text-secondary);
             margin: 0 0 0.5rem 0;
             line-height: 1.4;
@@ -6435,7 +6579,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(16, 185, 129, 0.2);
             border-radius: 4px;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-secondary);
         }
         
@@ -6458,7 +6602,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex: 1;
             padding: 0.35rem 0.5rem;
             border-radius: 4px;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -6512,7 +6656,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(251, 191, 36, 0.05);
             border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 4px;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
         }
         
         .hp-info-tip > i {
@@ -6540,7 +6684,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 0.5rem;
             padding: 0.4rem;
             border-radius: 4px;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
         }
         
         .hp-info-box > i {
@@ -6595,7 +6739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.3rem;
@@ -6613,7 +6757,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(16, 185, 129, 0.2);
             border-radius: 6px;
             color: var(--text-primary);
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-family: inherit;
             resize: vertical;
             transition: all 0.2s ease;
@@ -6631,7 +6775,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .hp-char-count {
-            font-size: 0.4rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             text-align: right;
             margin-top: 0.2rem;
@@ -6649,7 +6793,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(16, 185, 129, 0.3);
             border-radius: 6px;
             color: var(--text-primary);
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
@@ -6751,7 +6895,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
@@ -6768,7 +6912,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(59, 130, 246, 0.2);
             border-radius: 4px;
             color: var(--text-primary);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-family: inherit;
             transition: all 0.3s ease;
         }
@@ -6829,7 +6973,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 4px;
             color: #3b82f6;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -6885,7 +7029,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .di-file-size {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
         }
         
@@ -6897,7 +7041,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #ef4444;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         .di-file-remove:hover {
@@ -6980,7 +7124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.3rem;
@@ -6997,7 +7141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(16, 185, 129, 0.3);
             border-radius: 4px;
             color: var(--text-primary);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             transition: all 0.2s ease;
         }
         
@@ -7011,7 +7155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             color: var(--text-secondary);
             margin-top: 0.25rem;
         }
@@ -7045,7 +7189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px dashed rgba(239, 68, 68, 0.4);
             border-radius: 4px;
             color: var(--text-primary);
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -7082,7 +7226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid rgba(239, 68, 68, 0.2);
             border-radius: 4px;
-            font-size: 0.45rem;
+            font-size: 0.6rem;
         }
         
         .di-injection-file-name {
@@ -7094,7 +7238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .di-injection-file-name i {
             color: #ef4444;
-            font-size: 0.5rem;
+            font-size: 0.65rem;
         }
         
         .di-injection-file-remove {
@@ -7129,7 +7273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-primary);
             margin-bottom: 0.1rem;
         }
@@ -7140,7 +7284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .di-mode-content strong i.ai-icon { color: #ec4899; }
         
         .di-mode-content span {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             line-height: 1.3;
         }
@@ -7164,7 +7308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .di-info-tip div {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: var(--text-secondary);
             line-height: 1.4;
         }
@@ -7184,7 +7328,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
@@ -7233,7 +7377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(59, 130, 246, 0.3);
             border-radius: 5px;
             color: #3b82f6;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -7269,6 +7413,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .hp-target-picker {
             background: rgba(255, 255, 255, 0.6);
+        }
+        
+        [data-theme="light"] .hp-new-page-section {
+            background: rgba(16, 185, 129, 0.03);
+        }
+        
+        [data-theme="light"] .hp-page-name-input {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .hp-existing-page-section {
+            background: rgba(59, 130, 246, 0.03);
         }
         
         [data-theme="light"] .hp-file-display {
@@ -8263,7 +8419,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .history-label {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -9420,7 +9576,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .notes-file-tag i {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             opacity: 0.7;
         }
         
@@ -9498,7 +9654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .notes-btn.push-to-prompt-btn span {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             letter-spacing: 0.02em;
         }
         
@@ -9531,7 +9687,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .notes-btn.send-to-file-btn span {
-            font-size: 0.58rem;
+            font-size: 0.73rem;
             letter-spacing: 0.02em;
         }
         
@@ -11348,7 +11504,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .file-tag i {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #6366f1;
         }
         
@@ -11880,7 +12036,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-checkbox .checkbox-box i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: white;
             opacity: 0;
             transform: scale(0);
@@ -11946,7 +12102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             font-size: 0.7rem;
         }
 
@@ -12722,7 +12878,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .value-label {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
         }
@@ -12767,7 +12923,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dist-append-check .check-box i {
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             color: transparent;
         }
 
@@ -13326,13 +13482,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .slider-label .label-badge i {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: #8b5cf6;
         }
 
         .slider-label .active-group {
             color: var(--text-muted);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             padding-left: 0.3rem;
             border-left: 1px solid rgba(139, 92, 246, 0.3);
         }
@@ -13525,7 +13681,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-limit-selector label {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -13558,7 +13714,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-size: 0.5rem;
+            font-size: 0.65rem;
             cursor: pointer;
             opacity: 0.6;
             transition: all 0.2s;
@@ -13698,7 +13854,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dict-card-group-badge .dict-label {
             color: #c4b5fd;
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
 
         .dict-card-phrase {
@@ -13728,7 +13884,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: transparent;
             border: 1px solid rgba(99, 102, 241, 0.15);
             color: var(--text-muted);
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             padding: 0.2rem 0.35rem;
             border-radius: 4px;
             cursor: pointer;
@@ -13778,7 +13934,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-view-code-btn i {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
         }
 
         /* Dictionary Field Checkboxes */
@@ -13828,7 +13984,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-icon i {
-            font-size: 0.45rem;
+            font-size: 0.6rem;
             color: transparent;
             transition: all 0.2s;
         }
@@ -13843,7 +13999,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dict-field-check .check-label {
-            font-size: 0.55rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             font-weight: 500;
             letter-spacing: 0.2px;
@@ -15743,7 +15899,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-chevron-down de-tool-arrow" id="visualReferenceArrow"></i>
                     </div>
                     <div class="de-tool-body" id="visualReferenceBody">
-                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Upload screenshots or design inspirations for AI reference</p>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Upload screenshots or design inspirations for AI reference</p>
                         
                         <!-- Upload Zone -->
                         <div class="vr-upload-zone" id="vrDropZone">
@@ -15865,7 +16021,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-chevron-down de-tool-arrow" id="homepageArrow"></i>
                     </div>
                     <div class="de-tool-body" id="homepageBody">
-                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Choose how to handle the homepage design</p>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Choose how to handle the homepage design</p>
                         
                         <!-- Create New Homepage Checkbox -->
                         <div class="hp-option-box">
@@ -15880,37 +16036,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </label>
                             
-                            <!-- Target Page Picker -->
-                            <div class="hp-target-picker" id="hpTargetPicker">
-                                <div class="hp-target-header">
-                                    <i class="fas fa-link"></i>
-                                    <strong>Select Target Page (After Landing)</strong>
+                            <!-- New Landing Page Name Input (shown when creating new) -->
+                            <div class="hp-new-page-section" id="hpNewPageSection">
+                                <div class="hp-input-group">
+                                    <label class="hp-input-label">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Landing Page Name</span>
+                                    </label>
+                                    <input type="text" id="hpNewPageName" class="hp-page-name-input" value="index" placeholder="Enter page name..." oninput="hpSaveNewPageName()">
+                                    <div class="hp-input-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Default: index (the file will be created as index.html or index.php)</span>
+                                    </div>
                                 </div>
-                                <p class="hp-target-description">Choose which page the landing page should link to. This will be the main content page users reach after the landing page.</p>
+                                
+                                <!-- Target Page Picker -->
+                                <div class="hp-target-picker-inner">
+                                    <div class="hp-target-header">
+                                        <i class="fas fa-link"></i>
+                                        <strong>Select Target Page (After Landing)</strong>
+                                    </div>
+                                    <p class="hp-target-description">Choose which page the landing page should link to. This will be the main content page users reach after the landing page.</p>
+                                    
+                                    <div class="hp-file-picker">
+                                        <input type="file" id="hpTargetFile" accept=".html,.php,.htm" onchange="hpHandleTargetFile(event)">
+                                        <div class="hp-file-display" id="hpFileDisplay">
+                                            <i class="fas fa-file-code"></i>
+                                            <span id="hpTargetFileName">No file selected (will use current homepage)</span>
+                                        </div>
+                                        <div class="hp-file-buttons">
+                                            <button type="button" class="hp-browse-btn" onclick="document.getElementById('hpTargetFile').click()">
+                                                <i class="fas fa-folder-open"></i>
+                                                <span>Browse</span>
+                                            </button>
+                                            <button type="button" class="hp-clear-btn" id="hpClearBtn" onclick="hpClearTargetFile()">
+                                                <i class="fas fa-times"></i>
+                                                <span>Clear</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="hp-info-tip">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <div>
+                                            <strong>How it works:</strong>
+                                            <p>The new landing page will include a prominent call-to-action button/link that directs users to your selected target page.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Existing Landing Page Picker (shown when NOT creating new) -->
+                            <div class="hp-existing-page-section" id="hpExistingPageSection">
+                                <div class="hp-existing-header">
+                                    <i class="fas fa-file-code"></i>
+                                    <strong>Select Existing Landing Page to Enhance</strong>
+                                </div>
+                                <p class="hp-existing-description">Choose which existing landing page you want to enhance and improve.</p>
                                 
                                 <div class="hp-file-picker">
-                                    <input type="file" id="hpTargetFile" accept=".html,.php,.htm" onchange="hpHandleTargetFile(event)">
-                                    <div class="hp-file-display" id="hpFileDisplay">
+                                    <input type="file" id="hpExistingFile" accept=".html,.php,.htm" onchange="hpHandleExistingFile(event)">
+                                    <div class="hp-file-display hp-existing-display" id="hpExistingFileDisplay">
                                         <i class="fas fa-file-code"></i>
-                                        <span id="hpTargetFileName">No file selected (will use current homepage)</span>
+                                        <span id="hpExistingFileName">No file selected (will enhance default homepage)</span>
                                     </div>
                                     <div class="hp-file-buttons">
-                                        <button type="button" class="hp-browse-btn" onclick="document.getElementById('hpTargetFile').click()">
+                                        <button type="button" class="hp-browse-btn" onclick="document.getElementById('hpExistingFile').click()">
                                             <i class="fas fa-folder-open"></i>
                                             <span>Browse</span>
                                         </button>
-                                        <button type="button" class="hp-clear-btn" id="hpClearBtn" onclick="hpClearTargetFile()">
+                                        <button type="button" class="hp-clear-btn" id="hpExistingClearBtn" onclick="hpClearExistingFile()">
                                             <i class="fas fa-times"></i>
                                             <span>Clear</span>
                                         </button>
                                     </div>
                                 </div>
                                 
-                                <div class="hp-info-tip">
-                                    <i class="fas fa-lightbulb"></i>
+                                <div class="hp-info-tip hp-enhance-tip">
+                                    <i class="fas fa-magic"></i>
                                     <div>
-                                        <strong>How it works:</strong>
-                                        <p>The new landing page will include a prominent call-to-action button/link that directs users to your selected target page.</p>
+                                        <strong>Enhancement Mode:</strong>
+                                        <p>AI will modernize and improve the selected landing page while maintaining its core structure and content.</p>
                                     </div>
                                 </div>
                             </div>
@@ -15919,8 +16125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="hp-info-box hp-info-unchecked" id="hpInfoUnchecked">
                                 <i class="fas fa-info-circle"></i>
                                 <div>
-                                    <strong>Default Behavior (Unchecked):</strong>
-                                    <p>Only enhance and improve the existing homepage design without creating a new one.</p>
+                                    <strong>Enhancement Mode (Unchecked):</strong>
+                                    <p>Enhance and improve an existing homepage design without creating a new one.</p>
                                 </div>
                             </div>
                             
@@ -15975,7 +16181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-chevron-down de-tool-arrow" id="documentationArrow"></i>
                     </div>
                     <div class="de-tool-body" id="documentationBody">
-                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Integrate documentation to guide the AI enhancement process</p>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Integrate documentation to guide the AI enhancement process</p>
                         
                         <!-- Include Documentation Checkbox -->
                         <div class="di-checkbox-group">
@@ -28976,7 +29182,7 @@ function stUpdatePreview() {
             // Add info message
             tagsContainer.innerHTML += `
                 <div style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-radius: 8px; backdrop-filter: blur(5px);">
-                    <p style="color: white; font-size: 0.55rem; margin: 0; text-align: center;">
+                    <p style="color: white; font-size: 0.7rem; margin: 0; text-align: center;">
                         <i class="fas fa-magic" style="color: #fbbf24; margin-right: 0.3rem;"></i>
                         This unique combination will create your custom design!
                     </p>
@@ -30824,6 +31030,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Homepage Configuration state
 let hpCreateNew = false;
 let hpTargetFileName = null;
+let hpNewPageName = 'index';
+let hpExistingFileName = null;
 
 // Initialize Homepage Configuration
 function hpInit() {
@@ -30846,12 +31054,16 @@ function hpToggleCreateHomepage(event) {
     const label = checkbox.closest('.hp-checkbox-label');
     label.classList.toggle('checked', checkbox.checked);
     
-    // Show/hide target picker
-    const targetPicker = document.getElementById('hpTargetPicker');
+    // Show/hide new page section (with name input and target picker)
+    const newPageSection = document.getElementById('hpNewPageSection');
+    const existingPageSection = document.getElementById('hpExistingPageSection');
+    
     if (checkbox.checked) {
-        targetPicker.classList.add('show');
+        newPageSection.classList.add('show');
+        existingPageSection.classList.add('hide');
     } else {
-        targetPicker.classList.remove('show');
+        newPageSection.classList.remove('show');
+        existingPageSection.classList.remove('hide');
     }
     
     // Toggle info boxes
@@ -30909,13 +31121,68 @@ function hpClearTargetFile() {
     hpUpdateBadge();
 }
 
+// Save new page name
+function hpSaveNewPageName() {
+    const input = document.getElementById('hpNewPageName');
+    if (input) {
+        hpNewPageName = input.value.trim() || 'index';
+        localStorage.setItem('hpNewPageName', hpNewPageName);
+        hpUpdateBadge();
+    }
+}
+
+// Handle existing file selection
+function hpHandleExistingFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    hpExistingFileName = file.name;
+    
+    // Update display
+    const fileDisplay = document.getElementById('hpExistingFileDisplay');
+    const fileNameSpan = document.getElementById('hpExistingFileName');
+    const clearBtn = document.getElementById('hpExistingClearBtn');
+    
+    fileNameSpan.textContent = file.name;
+    fileDisplay.classList.add('has-file');
+    clearBtn.classList.add('show');
+    
+    hpSaveToStorage();
+    hpUpdateBadge();
+    showNotification(`📄 Existing page selected: ${file.name}`, 'success');
+}
+
+// Clear existing file
+function hpClearExistingFile() {
+    hpExistingFileName = null;
+    
+    const fileInput = document.getElementById('hpExistingFile');
+    const fileDisplay = document.getElementById('hpExistingFileDisplay');
+    const fileNameSpan = document.getElementById('hpExistingFileName');
+    const clearBtn = document.getElementById('hpExistingClearBtn');
+    
+    fileInput.value = '';
+    fileNameSpan.textContent = 'No file selected (will enhance default homepage)';
+    fileDisplay.classList.remove('has-file');
+    clearBtn.classList.remove('show');
+    
+    hpSaveToStorage();
+    hpUpdateBadge();
+}
+
 // Update badge
 function hpUpdateBadge() {
     const badge = document.getElementById('hpBadge');
     if (badge) {
         if (hpCreateNew) {
             badge.style.display = 'inline-flex';
-            badge.textContent = hpTargetFileName ? 'Configured' : 'New Landing';
+            badge.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            const pageName = hpNewPageName || 'index';
+            badge.textContent = hpTargetFileName ? `New: ${pageName}` : `New: ${pageName}`;
+        } else if (hpExistingFileName) {
+            badge.style.display = 'inline-flex';
+            badge.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+            badge.textContent = 'Enhance';
         } else {
             badge.style.display = 'none';
         }
@@ -30932,10 +31199,16 @@ function hpUpdateUI() {
         if (label) label.classList.toggle('checked', hpCreateNew);
     }
     
-    // Target picker visibility
-    const targetPicker = document.getElementById('hpTargetPicker');
-    if (targetPicker) {
-        targetPicker.classList.toggle('show', hpCreateNew);
+    // New page section visibility
+    const newPageSection = document.getElementById('hpNewPageSection');
+    const existingPageSection = document.getElementById('hpExistingPageSection');
+    if (newPageSection) newPageSection.classList.toggle('show', hpCreateNew);
+    if (existingPageSection) existingPageSection.classList.toggle('hide', hpCreateNew);
+    
+    // New page name input
+    const newPageNameInput = document.getElementById('hpNewPageName');
+    if (newPageNameInput) {
+        newPageNameInput.value = hpNewPageName || 'index';
     }
     
     // Info boxes
@@ -30944,13 +31217,24 @@ function hpUpdateUI() {
     if (infoUnchecked) infoUnchecked.classList.toggle('hide', hpCreateNew);
     if (infoChecked) infoChecked.classList.toggle('show', hpCreateNew);
     
-    // File display
+    // Target file display (for new landing)
     if (hpTargetFileName) {
         const fileDisplay = document.getElementById('hpFileDisplay');
         const fileNameSpan = document.getElementById('hpTargetFileName');
         const clearBtn = document.getElementById('hpClearBtn');
         
         if (fileNameSpan) fileNameSpan.textContent = hpTargetFileName;
+        if (fileDisplay) fileDisplay.classList.add('has-file');
+        if (clearBtn) clearBtn.classList.add('show');
+    }
+    
+    // Existing file display (for enhancement)
+    if (hpExistingFileName) {
+        const fileDisplay = document.getElementById('hpExistingFileDisplay');
+        const fileNameSpan = document.getElementById('hpExistingFileName');
+        const clearBtn = document.getElementById('hpExistingClearBtn');
+        
+        if (fileNameSpan) fileNameSpan.textContent = hpExistingFileName;
         if (fileDisplay) fileDisplay.classList.add('has-file');
         if (clearBtn) clearBtn.classList.add('show');
     }
@@ -30973,16 +31257,20 @@ function hpPushToNotes() {
     let promptContent = '';
     
     if (hpCreateNew) {
+        // Creating NEW landing page
+        const pageName = hpNewPageName || 'index';
+        
         promptContent += `\n\n🏠 HOMEPAGE CONFIGURATION\n`;
         promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         promptContent += `• Mode: Create New Landing Homepage\n`;
+        promptContent += `• Landing Page Name: ${pageName}\n`;
         
         if (hpTargetFileName) {
-            promptContent += `• Target Page: ${hpTargetFileName}\n\n`;
-            promptContent += `INSTRUCTIONS: Create a stunning new landing page with a modern design. Include a prominent call-to-action that directs users to "${hpTargetFileName}". The landing page should:\n`;
+            promptContent += `• Target Page (After Landing): ${hpTargetFileName}\n\n`;
+            promptContent += `INSTRUCTIONS: Create a stunning new landing page named "${pageName}" with a modern design. Include a prominent call-to-action that directs users to "${hpTargetFileName}". The landing page should:\n`;
         } else {
-            promptContent += `• Target Page: Current homepage (default)\n\n`;
-            promptContent += `INSTRUCTIONS: Create a stunning new landing page with a modern design. Include a prominent call-to-action that directs users to the main content. The landing page should:\n`;
+            promptContent += `• Target Page: Main content (default)\n\n`;
+            promptContent += `INSTRUCTIONS: Create a stunning new landing page named "${pageName}" with a modern design. Include a prominent call-to-action that directs users to the main content. The landing page should:\n`;
         }
         
         promptContent += `- Have a hero section with compelling headline\n`;
@@ -30991,10 +31279,18 @@ function hpPushToNotes() {
         promptContent += `- Be fully responsive and mobile-friendly\n`;
         promptContent += `- Match the overall site theme\n`;
     } else {
+        // Enhancing EXISTING landing page
         promptContent += `\n\n🏠 HOMEPAGE CONFIGURATION\n`;
         promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        promptContent += `• Mode: Enhance Existing Homepage\n\n`;
-        promptContent += `INSTRUCTIONS: Enhance and improve the existing homepage design without creating a new one. The current homepage will remain as the main entry point with modernized styling, improved UX, and better visual appeal.\n`;
+        promptContent += `• Mode: Enhance Existing Homepage\n`;
+        
+        if (hpExistingFileName) {
+            promptContent += `• Target File: ${hpExistingFileName}\n\n`;
+            promptContent += `INSTRUCTIONS: Enhance and improve the existing landing page "${hpExistingFileName}". Modernize the styling, improve UX, and add better visual appeal while maintaining its core structure and content.\n`;
+        } else {
+            promptContent += `• Target: Default homepage\n\n`;
+            promptContent += `INSTRUCTIONS: Enhance and improve the existing homepage design. Modernize the styling, improve UX, and add better visual appeal while maintaining its core structure and content.\n`;
+        }
     }
     
     // Additional notes
@@ -31053,25 +31349,37 @@ function hpLoadNotesFromStorage() {
 // Save to localStorage
 function hpSaveToStorage() {
     localStorage.setItem('hpCreateNew', hpCreateNew);
+    localStorage.setItem('hpNewPageName', hpNewPageName || 'index');
+    
     if (hpTargetFileName) {
         localStorage.setItem('hpTargetFileName', hpTargetFileName);
     } else {
         localStorage.removeItem('hpTargetFileName');
+    }
+    
+    if (hpExistingFileName) {
+        localStorage.setItem('hpExistingFileName', hpExistingFileName);
+    } else {
+        localStorage.removeItem('hpExistingFileName');
     }
 }
 
 // Load from localStorage
 function hpLoadFromStorage() {
     hpCreateNew = localStorage.getItem('hpCreateNew') === 'true';
+    hpNewPageName = localStorage.getItem('hpNewPageName') || 'index';
     hpTargetFileName = localStorage.getItem('hpTargetFileName') || null;
+    hpExistingFileName = localStorage.getItem('hpExistingFileName') || null;
 }
 
 // Reset all
 function hpResetAll(skipToast = false) {
     hpCreateNew = false;
     hpTargetFileName = null;
+    hpNewPageName = 'index';
+    hpExistingFileName = null;
     
-    // Clear UI
+    // Clear UI - Checkbox
     const checkbox = document.getElementById('hpCreateNewHomepage');
     if (checkbox) {
         checkbox.checked = false;
@@ -31079,9 +31387,18 @@ function hpResetAll(skipToast = false) {
         if (label) label.classList.remove('checked');
     }
     
-    const targetPicker = document.getElementById('hpTargetPicker');
-    if (targetPicker) targetPicker.classList.remove('show');
+    // Clear new page section
+    const newPageSection = document.getElementById('hpNewPageSection');
+    if (newPageSection) newPageSection.classList.remove('show');
     
+    const newPageNameInput = document.getElementById('hpNewPageName');
+    if (newPageNameInput) newPageNameInput.value = 'index';
+    
+    // Clear existing page section
+    const existingPageSection = document.getElementById('hpExistingPageSection');
+    if (existingPageSection) existingPageSection.classList.remove('hide');
+    
+    // Clear target file (for new landing)
     const fileInput = document.getElementById('hpTargetFile');
     if (fileInput) fileInput.value = '';
     
@@ -31094,6 +31411,20 @@ function hpResetAll(skipToast = false) {
     const clearBtn = document.getElementById('hpClearBtn');
     if (clearBtn) clearBtn.classList.remove('show');
     
+    // Clear existing file (for enhancement)
+    const existingFileInput = document.getElementById('hpExistingFile');
+    if (existingFileInput) existingFileInput.value = '';
+    
+    const existingFileDisplay = document.getElementById('hpExistingFileDisplay');
+    if (existingFileDisplay) existingFileDisplay.classList.remove('has-file');
+    
+    const existingFileNameSpan = document.getElementById('hpExistingFileName');
+    if (existingFileNameSpan) existingFileNameSpan.textContent = 'No file selected (will enhance default homepage)';
+    
+    const existingClearBtn = document.getElementById('hpExistingClearBtn');
+    if (existingClearBtn) existingClearBtn.classList.remove('show');
+    
+    // Info boxes
     const infoUnchecked = document.getElementById('hpInfoUnchecked');
     if (infoUnchecked) infoUnchecked.classList.remove('hide');
     
@@ -31109,7 +31440,9 @@ function hpResetAll(skipToast = false) {
     
     // Clear storage
     localStorage.removeItem('hpCreateNew');
+    localStorage.removeItem('hpNewPageName');
     localStorage.removeItem('hpTargetFileName');
+    localStorage.removeItem('hpExistingFileName');
     localStorage.removeItem('hpNotes');
     
     hpUpdateBadge();
