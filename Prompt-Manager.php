@@ -4418,6 +4418,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
         }
         
+        /* Style Notes Textarea */
+        .st-notes-section {
+            margin-top: 0.75rem;
+        }
+        
+        .st-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a78bfa;
+            margin-bottom: 0.4rem;
+        }
+        
+        .st-notes-label i {
+            font-size: 0.6rem;
+        }
+        
+        .st-notes-textarea {
+            width: 100%;
+            min-height: 80px;
+            max-height: 150px;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .st-notes-textarea:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .st-notes-textarea::placeholder {
+            color: rgba(167, 139, 250, 0.4);
+            font-style: italic;
+        }
+        
+        .st-notes-char-count {
+            text-align: right;
+            font-size: 0.55rem;
+            color: rgba(167, 139, 250, 0.5);
+            margin-top: 0.25rem;
+        }
+        
         /* Push Button */
         .st-push-section {
             margin-top: 0.6rem;
@@ -4448,6 +4502,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .st-push-btn i {
             font-size: 0.6rem;
+        }
+        
+        /* Light theme adjustments for style notes */
+        [data-theme="light"] .st-notes-label {
+            color: #6d28d9;
+        }
+        
+        [data-theme="light"] .st-notes-textarea {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(168, 85, 247, 0.15);
+            color: var(--text-primary);
+        }
+        
+        [data-theme="light"] .st-notes-textarea:focus {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .st-notes-textarea::placeholder {
+            color: rgba(109, 40, 217, 0.4);
+        }
+        
+        [data-theme="light"] .st-notes-char-count {
+            color: rgba(109, 40, 217, 0.5);
         }
         
         /* Style Sample Modal */
@@ -12348,9 +12427,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="st-count-badge" id="stCountBadge">0 selected</span>
                         </div>
                         
+                        <!-- Style Notes Textarea -->
+                        <div class="st-notes-section">
+                            <label class="st-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Style Instructions</span>
+                            </label>
+                            <textarea 
+                                id="stNotesTextarea" 
+                                class="st-notes-textarea" 
+                                placeholder="Add custom style instructions, color preferences, or specific design notes that will be included with your selected styles..."
+                                oninput="stUpdateCharCount()"
+                            ></textarea>
+                            <div class="st-notes-char-count" id="stCharCount">0 characters</div>
+                        </div>
+                        
                         <!-- Push to Project Prompts -->
                         <div class="st-push-section">
-                            <button type="button" class="st-push-btn" onclick="stPushToNotes()" title="Push selected styles to Project Prompts">
+                            <button type="button" class="st-push-btn" onclick="stPushToNotes()" title="Push selected styles and notes to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -24789,6 +24883,7 @@ const styleItemStyles = {
 function stInit() {
     stRenderStyles();
     stLoadFromStorage();
+    stLoadNotesFromStorage();
     stUpdateUI();
 }
 
@@ -25020,8 +25115,16 @@ function stResetAll(skipToast = false) {
     stSaveToStorage();
     stClearSearch();
     
+    // Clear the notes textarea
+    const stNotesTextarea = document.getElementById('stNotesTextarea');
+    if (stNotesTextarea) {
+        stNotesTextarea.value = '';
+        stUpdateCharCount();
+    }
+    localStorage.removeItem('st_notes');
+    
     if (!skipToast && typeof showToast === 'function') {
-        showToast('🔄 Style selections cleared', 'info');
+        showToast('🔄 Style selections & notes cleared', 'info');
     }
 }
 
@@ -25219,12 +25322,43 @@ function getStyleCSS(styleId) {
 
 // Push to Project Notes - generates prompt matching index1.php format WITH CSS
 function stPushToNotes() {
-    if (selectedStyles.length === 0) {
-        if (typeof showToast === 'function') showToast('⚠️ No styles selected', 'warning');
+    // Get additional style notes from textarea
+    const stNotesTextarea = document.getElementById('stNotesTextarea');
+    const additionalNotes = stNotesTextarea ? stNotesTextarea.value.trim() : '';
+    
+    // Allow push if either styles are selected OR notes have content
+    if (selectedStyles.length === 0 && !additionalNotes) {
+        if (typeof showToast === 'function') showToast('⚠️ No styles selected and no notes to push', 'warning');
         return;
     }
     
     let promptText = '';
+    
+    // If only notes (no styles selected), just push the notes
+    if (selectedStyles.length === 0 && additionalNotes) {
+        promptText = `## 📝 CUSTOM STYLE INSTRUCTIONS\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        
+        // Push to Project Notes
+        const notesTextarea = document.getElementById('projectNotesTextarea');
+        if (notesTextarea) {
+            if (notesTextarea.value.trim()) {
+                notesTextarea.value = notesTextarea.value.trimEnd() + '\n\n' + promptText;
+            } else {
+                notesTextarea.value = promptText;
+            }
+            
+            if (typeof saveProjectNotesToStorage === 'function') {
+                saveProjectNotesToStorage();
+            }
+            stSaveNotesToStorage();
+            
+            if (typeof showToast === 'function') {
+                showToast('📝 Custom style instructions pushed to Project Prompts', 'success');
+            }
+        }
+        return;
+    }
     const hasAIChoice = selectedStyles.includes('ai-choice');
     const otherStyles = selectedStyles.filter(s => s !== 'ai-choice');
     
@@ -25350,6 +25484,13 @@ function stPushToNotes() {
         promptText += `💡 **Think of this as creating a NEW artistic style by combining the best elements of each selected style!**\n\n`;
     }
     
+    // Add additional notes section if there's content (additionalNotes is already defined at the top)
+    if (additionalNotes) {
+        promptText += `---\n\n### 📝 ADDITIONAL STYLE INSTRUCTIONS:\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        promptText += `---\n\n`;
+    }
+    
     // Push to Project Notes
     const notesTextarea = document.getElementById('projectNotesTextarea');
     if (notesTextarea) {
@@ -25364,12 +25505,51 @@ function stPushToNotes() {
             saveProjectNotesToStorage();
         }
         
+        // Save style notes to localStorage
+        stSaveNotesToStorage();
+        
+        const notesInfo = additionalNotes ? ' + custom notes' : '';
         if (typeof showToast === 'function') {
-            showToast(`🎨 ${selectedStyles.length} style(s) with CSS pushed to Project Prompts`, 'success');
+            showToast(`🎨 ${selectedStyles.length} style(s) with CSS${notesInfo} pushed to Project Prompts`, 'success');
         }
     } else {
         if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
     }
+}
+
+// Update character count for style notes textarea
+function stUpdateCharCount() {
+    const textarea = document.getElementById('stNotesTextarea');
+    const countEl = document.getElementById('stCharCount');
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        stSaveNotesToStorage();
+    }
+}
+
+// Save style notes to localStorage
+function stSaveNotesToStorage() {
+    const textarea = document.getElementById('stNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('st_notes', textarea.value);
+    }
+}
+
+// Load style notes from localStorage
+function stLoadNotesFromStorage() {
+    const saved = localStorage.getItem('st_notes');
+    const textarea = document.getElementById('stNotesTextarea');
+    if (saved && textarea) {
+        textarea.value = saved;
+        stUpdateCharCount();
+    }
+}
+
+// Get style notes (for external access)
+function getStyleNotes() {
+    const textarea = document.getElementById('stNotesTextarea');
+    return textarea ? textarea.value.trim() : '';
 }
 
 // Save to localStorage
