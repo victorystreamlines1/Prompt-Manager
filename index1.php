@@ -13169,8 +13169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <!-- Enhanced Style Types (Merged Container) -->
-                <div id="designStyleSection" class="card card-full">
+                <!-- Enhanced Style Types - MIGRATED TO Prompt-Manager.php -->
+                <!-- This section has been fully migrated to Prompt-Manager.php Design Enhancer panel -->
+                <div id="designStyleSection" class="card card-full" style="display: none !important;">
+                    <!-- HIDDEN: Migrated to Prompt-Manager.php -->
                     <div class="card-header">
                         <div class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                             <i class="fas fa-wand-magic-sparkles"></i>
@@ -17323,7 +17325,7 @@ Examples:
     window.updateActiveSidebarItem = function() {
         const sections = [
             'executionModeSection', 'fileUploadSection', 'themeSelectionSection',
-            'enhancementOptionsSection', 'designStyleSection', 'colorThemeSection',
+            'enhancementOptionsSection', 'colorThemeSection', // designStyleSection removed - migrated to Prompt-Manager.php
             'layoutSection', 'referenceImagesSection', 'excludedFilesSection',
             'homepageCreationSection', 'documentationPageSection',
             'promptOutputSection'
@@ -17450,23 +17452,7 @@ Examples:
             tip: 'Start with "Moderate" for most projects. Use "Dramatic" only if you want a complete visual overhaul of your design.',
             sectionId: 'enhancementOptionsSection'
         },
-        designStyle: {
-            icon: 'fa-wand-magic-sparkles',
-            iconBg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.1))',
-            iconColor: '#ec4899',
-            title: 'Design Style',
-            subtitle: 'Select visual aesthetics',
-            description: 'Choose from a variety of design styles and aesthetics. Select multiple styles for the AI to intelligently blend them into a cohesive design.',
-            features: [
-                'Glassmorphism, Neumorphism, Brutalism',
-                'Cyberpunk, Vaporwave, Matrix styles',
-                'Minimalist, Corporate, Playful themes',
-                'AI can mix multiple selected styles',
-                'Preview each style before selecting'
-            ],
-            tip: 'Let AI Decision be selected along with your preferred styles. The AI will intelligently combine them for a unique, professional result.',
-            sectionId: 'designStyleSection'
-        },
+        // designStyle: REMOVED - Migrated to Prompt-Manager.php Design Enhancer panel
         colorTheme: {
             icon: 'fa-swatchbook',
             iconBg: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1))',
@@ -18226,7 +18212,7 @@ Examples:
         fileUpload: 'fileUploadSection',
         themeSelection: 'themeSelectionSection',
         enhancementOptions: 'enhancementOptionsSection',
-        designStyle: 'designStyleSection',
+        // designStyle: REMOVED - Migrated to Prompt-Manager.php
         colorTheme: 'colorThemeSection',
         layout: 'layoutSection',
         referenceImages: 'referenceImagesSection',
@@ -18244,7 +18230,7 @@ Examples:
         fileUpload: true,
         themeSelection: true,
         enhancementOptions: true,
-        designStyle: true,
+        // designStyle: REMOVED - Migrated to Prompt-Manager.php
         colorTheme: true,
         layout: true,
         referenceImages: true,
@@ -19321,7 +19307,7 @@ Examples:
         
         // Sidebar section names that correspond to the hidden sections
         const sidebarSectionsToDisable = [
-            'designStyle',
+            // 'designStyle', // REMOVED - Migrated to Prompt-Manager.php
             'colorTheme', 
             'layout',
             'referenceImages'
@@ -20768,17 +20754,12 @@ Enhance the design and layout of this website using ONLY CSS and HTML modificati
                 console.log('🛡️ PRESERVE MODE: Skipping all design-related sections in prompt generation');
             }
 
-            // Add enhancement style type section (if designStyle section is enabled AND NOT in preserve mode)
-            if (isSectionEnabled('designStyle') && !isPreserveMode) {
-                console.log('📝 Adding Enhancement Style Type section...');
-                console.log('   Selected Styles Count:', selectedStyles.length);
-                console.log('   Styles Array:', selectedStyles);
-                prompt += `## ✨ ENHANCEMENT STYLE TYPE\n\n`;
-            } else {
-                console.log('⏭️ Enhancement Style Type section DISABLED or PRESERVE MODE - skipping');
-            }
+            // DESIGN STYLE SECTION - MIGRATED TO Prompt-Manager.php
+            // The Enhanced Style Types functionality has been fully migrated to Prompt-Manager.php Design Enhancer panel
+            // Keeping minimal code for backwards compatibility but section is hidden
+            console.log('⏭️ Enhancement Style Type section MIGRATED to Prompt-Manager.php - skipping');
 
-            if (isSectionEnabled('designStyle') && !isPreserveMode) {
+            if (false && isSectionEnabled('designStyle') && !isPreserveMode) { // DISABLED - Migrated
 
                 const styleDescriptions = {
                     'ai-choice': {

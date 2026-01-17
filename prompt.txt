@@ -1,1 +1,1 @@
-Also make sure the all, I don't know how much they are, 55 or 60 items are available in both the index1.php and promptmanager.php. Make sure they're all available and you did not miss anything.
+Now I want you to add a text area. into the selected style enhanced style type into the enhanced style type and the prompt manager dot php add a text area that will be pushed whenever you select the style to be pushed all together with the text area.
