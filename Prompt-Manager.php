@@ -4032,6 +4032,531 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🎨 ENHANCED STYLE TYPES TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        /* Style Types Header Row */
+        .st-header-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        
+        .st-search-box {
+            flex: 1;
+            position: relative;
+        }
+        
+        .st-search-input {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .st-search-input:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+        
+        .st-search-input::placeholder {
+            color: rgba(168, 85, 247, 0.5);
+        }
+        
+        .st-search-clear {
+            position: absolute;
+            right: 0.4rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(168, 85, 247, 0.5);
+            font-size: 0.6rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            transition: all 0.2s ease;
+            display: none;
+        }
+        
+        .st-search-clear.visible {
+            display: block;
+        }
+        
+        .st-search-clear:hover {
+            color: #a78bfa;
+        }
+        
+        .st-reset-btn {
+            padding: 0.5rem 0.7rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+        
+        .st-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        /* Style Preview Box */
+        .st-preview-box {
+            background: linear-gradient(135deg, 
+                rgba(168, 85, 247, 0.08) 0%, 
+                rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 80px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .st-preview-box.has-styles {
+            border-width: 2px;
+        }
+        
+        .st-preview-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .st-preview-icon {
+            font-size: 1.2rem;
+            color: #a78bfa;
+            margin-bottom: 0.3rem;
+            opacity: 0.6;
+        }
+        
+        .st-preview-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 0.2rem 0;
+        }
+        
+        .st-preview-subtitle {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .st-selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+            justify-content: center;
+            padding: 0 0.25rem;
+        }
+        
+        .st-selected-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            font-size: 0.55rem;
+            color: #c4b5fd;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .st-selected-tag i {
+            font-size: 0.5rem;
+        }
+        
+        /* Scroll Controls */
+        .st-scroll-controls {
+            display: flex;
+            gap: 0.3rem;
+            margin-bottom: 0.4rem;
+            justify-content: center;
+        }
+        
+        .st-scroll-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .st-scroll-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        /* Styles Grid Container */
+        .st-styles-container {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.3);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+        
+        .st-styles-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .st-styles-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .st-styles-container::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+        }
+        
+        /* Style Item */
+        .st-style-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.08);
+            position: relative;
+        }
+        
+        .st-style-item:last-child {
+            border-bottom: none;
+        }
+        
+        .st-style-item:hover {
+            background: rgba(168, 85, 247, 0.08);
+        }
+        
+        .st-style-item.selected {
+            background: linear-gradient(135deg, 
+                rgba(168, 85, 247, 0.15) 0%, 
+                rgba(139, 92, 246, 0.1) 100%);
+            border-left: 2px solid #a78bfa;
+        }
+        
+        .st-style-item.hidden {
+            display: none;
+        }
+        
+        .st-style-checkbox {
+            display: none;
+        }
+        
+        .st-style-check {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+        
+        .st-style-item.selected .st-style-check {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            border-color: #a78bfa;
+        }
+        
+        .st-style-check i {
+            font-size: 0.5rem;
+            color: white;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+        
+        .st-style-item.selected .st-style-check i {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .st-style-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .st-style-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0.15rem;
+        }
+        
+        .st-style-name i {
+            font-size: 0.6rem;
+            color: #a78bfa;
+        }
+        
+        .st-style-desc {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .st-style-desc b {
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        .st-view-sample-btn {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 6px;
+            color: #a78bfa;
+            font-size: 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+        }
+        
+        .st-style-item:hover .st-view-sample-btn {
+            opacity: 1;
+        }
+        
+        .st-view-sample-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            transform: scale(1.1);
+        }
+        
+        /* Empty State */
+        .st-empty-state {
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .st-empty-state i {
+            font-size: 1.5rem;
+            opacity: 0.4;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .st-empty-state span {
+            font-size: 0.65rem;
+        }
+        
+        /* Info Box */
+        .st-info-box {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .st-info-text {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .st-info-text i {
+            color: #a78bfa;
+        }
+        
+        .st-count-badge {
+            padding: 0.2rem 0.5rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            font-size: 0.55rem;
+            color: #c4b5fd;
+            font-weight: 600;
+        }
+        
+        /* Push Button */
+        .st-push-section {
+            margin-top: 0.6rem;
+        }
+        
+        .st-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            color: #c4b5fd;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .st-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .st-push-btn i {
+            font-size: 0.6rem;
+        }
+        
+        /* Style Sample Modal */
+        .st-sample-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .st-sample-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .st-sample-modal {
+            background: linear-gradient(145deg, 
+                rgba(30, 41, 59, 0.98) 0%, 
+                rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
+                        0 0 100px rgba(168, 85, 247, 0.15);
+        }
+        
+        .st-sample-overlay.active .st-sample-modal {
+            transform: scale(1);
+        }
+        
+        .st-sample-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        
+        .st-sample-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .st-sample-title i {
+            color: #a78bfa;
+        }
+        
+        .st-sample-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .st-sample-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: rotate(90deg);
+        }
+        
+        .st-sample-body {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+        
+        .st-sample-body h4 {
+            color: var(--text-primary);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 0.85rem;
+        }
+        
+        .st-sample-body ul {
+            margin: 0.5rem 0;
+            padding-left: 1.25rem;
+        }
+        
+        .st-sample-body li {
+            margin: 0.25rem 0;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            🎭 DESIGN ENHANCER CONFIRM MODAL
            ═══════════════════════════════════════════════════════════════════ */
         .de-confirm-overlay {
@@ -11748,6 +12273,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="ci-push-section">
                             <button type="button" class="ci-push-btn" onclick="ciPushToNotes()" title="Push instructions to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🎨 ENHANCED STYLE TYPES TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="styleTypesTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('styleTypes')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span>Enhanced Style Types</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetStyleTypes();" title="Reset style selection">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge st-badge" id="stBadge" style="display: none;">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="styleTypesArrow"></i>
+                    </div>
+                    
+                    <div class="de-tool-body" id="styleTypesBody">
+                        <!-- Search and Reset Row -->
+                        <div class="st-header-row">
+                            <div class="st-search-box">
+                                <input type="text" id="stSearchInput" class="st-search-input" placeholder="🔍 Search styles..." oninput="stSearchStyles(this.value)">
+                                <button type="button" class="st-search-clear" id="stSearchClear" onclick="stClearSearch()">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="st-reset-btn" onclick="stResetAll()">
+                                <i class="fas fa-undo"></i>
+                                <span>Reset</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Preview Box -->
+                        <div class="st-preview-box" id="stPreviewBox">
+                            <div class="st-preview-content" id="stPreviewContent">
+                                <div class="st-preview-icon"><i class="fas fa-palette"></i></div>
+                                <h4 class="st-preview-title">Select styles to see preview</h4>
+                                <p class="st-preview-subtitle">Choose multiple styles to create unique combinations</p>
+                            </div>
+                            <div class="st-selected-tags" id="stSelectedTags"></div>
+                        </div>
+                        
+                        <!-- Scroll Controls -->
+                        <div class="st-scroll-controls">
+                            <button type="button" class="st-scroll-btn" onclick="stScrollToTop()" title="Scroll to top">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button type="button" class="st-scroll-btn" onclick="stScrollToBottom()" title="Scroll to bottom">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Styles Container -->
+                        <div class="st-styles-container" id="stStylesContainer">
+                            <!-- Styles will be rendered here by JavaScript -->
+                        </div>
+                        
+                        <!-- Info Box -->
+                        <div class="st-info-box">
+                            <span class="st-info-text">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="stInfoText">Click to select multiple styles</span>
+                            </span>
+                            <span class="st-count-badge" id="stCountBadge">0 selected</span>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="st-push-section">
+                            <button type="button" class="st-push-btn" onclick="stPushToNotes()" title="Push selected styles to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -22416,6 +23016,21 @@ async function confirmResetCustomInstructions() {
     }
 }
 
+async function confirmResetStyleTypes() {
+    const confirmed = await deConfirm({
+        title: 'Reset Style Types',
+        subtitle: 'Enhanced Style Types Tool',
+        message: 'Are you sure you want to clear all selected styles?',
+        warning: 'Your style selections will be cleared.',
+        confirmText: 'Reset Styles',
+        icon: 'fa-wand-magic-sparkles'
+    });
+    
+    if (confirmed) {
+        stResetAll();
+    }
+}
+
 // Collapse All Tool Sections
 function deCollapseAll() {
     const sections = document.querySelectorAll('.de-tool-section');
@@ -22448,7 +23063,7 @@ async function deResetAll() {
         title: 'Reset All Tools',
         subtitle: 'Design Enhancer',
         message: 'Are you sure you want to reset all Design Enhancer tools to their default state?',
-        warning: 'All your branding settings, page selections, and custom instructions will be cleared.',
+        warning: 'All your branding settings, page selections, custom instructions, and style types will be cleared.',
         confirmText: 'Reset All',
         icon: 'fa-undo'
     });
@@ -22464,6 +23079,11 @@ async function deResetAll() {
     // Reset Custom Instructions (skip individual toast)
     if (typeof resetCustomInstructions === 'function') {
         resetCustomInstructions(true);
+    }
+    
+    // Reset Style Types (skip individual toast)
+    if (typeof stResetAll === 'function') {
+        stResetAll(true);
     }
     
     // Expand all sections
@@ -22936,6 +23556,726 @@ function getCustomInstructions() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     ciLoadFromStorage();
+});
+</script>
+
+<!-- Enhanced Style Types Script -->
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎨 ENHANCED STYLE TYPES - JavaScript
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Style Types Data - All 70+ styles
+const styleTypesData = [
+    { id: 'ai-choice', name: "AI's Choice", icon: 'fa-robot', desc: 'Let AI analyze content and choose the perfect style automatically', special: true },
+    { id: 'modern-sleek', name: 'Modern & Sleek', icon: 'fa-rocket', desc: 'Contemporary design with <b>smooth animations</b>, glassmorphism, and cutting-edge CSS' },
+    { id: 'minimalist', name: 'Minimalist & Clean', icon: 'fa-circle', desc: 'Simple, clean design with plenty of <b>white space</b> and focus on content' },
+    { id: 'bold-creative', name: 'Bold & Creative', icon: 'fa-paint-brush', desc: 'Eye-catching design with <b>vibrant colors</b>, unique layouts, and artistic elements' },
+    { id: 'professional', name: 'Professional & Corporate', icon: 'fa-building', desc: 'Business-focused, <b>trustworthy</b> design with conservative colors and structured layout' },
+    { id: 'elegant', name: 'Elegant & Luxurious', icon: 'fa-gem', desc: 'Sophisticated design with <b>premium feel</b>, refined typography, and subtle animations' },
+    { id: 'tech-futuristic', name: 'Tech & Futuristic', icon: 'fa-microchip', desc: 'High-tech aesthetic with <b>neon accents</b>, geometric shapes, and sci-fi elements' },
+    { id: 'warm-friendly', name: 'Warm & Friendly', icon: 'fa-sun', desc: 'Inviting design with <b>warm colors</b>, rounded corners, and approachable feel' },
+    { id: 'dark-dramatic', name: 'Dark & Dramatic', icon: 'fa-moon', desc: 'Dark mode aesthetic with <b>high contrast</b>, mysterious atmosphere, and bold accents' },
+    { id: 'playful-vibrant', name: 'Playful & Vibrant', icon: 'fa-smile-beam', desc: 'Fun, energetic design with <b>bright colors</b>, playful animations, and cheerful vibe' },
+    { id: 'luminous-aurora', name: 'Luminous Aurora', icon: 'fa-meteor', desc: 'Northern lights inspired gradients, ethereal glow layers, celestial depth and immersive atmosphere' },
+    { id: 'monochrome-noir', name: 'Monochrome Noir', icon: 'fa-film', desc: 'Cinematic black-and-white storytelling with high-contrast typography, spotlight highlights' },
+    { id: 'geometric-harmony', name: 'Geometric Harmony', icon: 'fa-shapes', desc: 'Precise geometric grids, layered vector motifs, crisp modular components' },
+    { id: 'pastel-symphony', name: 'Pastel Symphony', icon: 'fa-music', desc: 'Dreamy candy-colored gradients, subtle grain textures, lyrical typography' },
+    { id: 'desert-mirage', name: 'Desert Mirage', icon: 'fa-sun', desc: 'Sun-baked palettes, flowing dune curves, mirage-inspired overlays' },
+    { id: 'frosted-candy', name: 'Frosted Glass Candy', icon: 'fa-candy-cane', desc: 'Sugar-coated blur effects, translucent candy layers, sweet gradients' },
+    { id: 'steampunk-industrial', name: 'Steampunk Industrial', icon: 'fa-gear', desc: 'Vintage brass gears, copper pipes, riveted metal textures, Victorian-era tech aesthetics' },
+    { id: 'vaporwave-dreams', name: 'Vaporwave Dreams', icon: 'fa-wave-square', desc: '90s internet nostalgia, glitchy aesthetics, retro computer graphics, neon pink-purple palettes' },
+    { id: 'origami-folds', name: 'Origami Folds', icon: 'fa-dove', desc: 'Crisp paper-fold effects, angular geometry, Japanese minimalism, shadow-depth illusions' },
+    { id: 'gothic-renaissance', name: 'Gothic Renaissance', icon: 'fa-chess-rook', desc: 'Medieval cathedral arches, ornate flourishes, old parchment textures, dramatic shadows' },
+    { id: 'victorian-mansion', name: 'Victorian Mansion', icon: 'fa-chess-queen', desc: '19th-century aristocratic elegance, velvet textures, candlelit ambiance, ornate borders' },
+    { id: 'ancient-manuscript', name: 'Ancient Manuscript', icon: 'fa-scroll', desc: 'Aged parchment backgrounds, illuminated script typography, wax seal accents' },
+    { id: 'gradient-flow', name: 'Gradient Flow', icon: 'fa-water', desc: '<b>Smooth gradient</b> transitions, flowing animations, liquid effects' },
+    { id: 'neumorphism', name: 'Neumorphism', icon: 'fa-shapes', desc: 'Soft UI with <b>realistic shadows</b>, 3D depth, and tactile elements' },
+    { id: 'retro-vintage', name: 'Retro Vintage', icon: 'fa-record-vinyl', desc: '<b>70s-90s inspired</b> design, nostalgic colors, vintage typography' },
+    { id: 'brutalist', name: 'Brutalist', icon: 'fa-cube', desc: '<b>RAW</b>, bold design with strong typography and unconventional layouts' },
+    { id: 'nature-organic', name: 'Nature & Organic', icon: 'fa-leaf', desc: '<b>Earthy tones</b>, natural textures, organic shapes and eco-friendly vibe' },
+    { id: 'cyberpunk-neon', name: 'Cyberpunk Neon', icon: 'fa-bolt', desc: '<b>Neon lights</b>, glitch effects, cyberpunk aesthetic, high contrast' },
+    { id: 'artistic-creative', name: 'Artistic & Creative', icon: 'fa-palette', desc: '<b>Artistic layouts</b>, creative use of space, gallery-like presentation' },
+    { id: 'swiss-minimalism', name: 'Swiss Minimalism', icon: 'fa-grip-lines', desc: '<b>Grid-based</b> layout, strong typography, mathematical precision' },
+    { id: 'luxury-premium', name: 'Luxury & Premium', icon: 'fa-crown', desc: '<b>High-end</b> aesthetic, gold accents, exclusive feel, sophistication' },
+    { id: 'handcrafted-artisan', name: 'Handcrafted & Artisan', icon: 'fa-hand-sparkles', desc: '<b>Hand-drawn elements</b>, textures, authentic and personal touch' },
+    { id: 'glassmorphism', name: 'Glassmorphism', icon: 'fa-glass-whiskey', desc: 'Frosted glass effects, <b>transparency</b>, backdrop blur, modern depth' },
+    { id: 'scandi-modern', name: 'Scandi Modern', icon: 'fa-snowflake', desc: 'Scandinavian design, <b>neutral palette</b>, clean lines, cozy minimalism' },
+    { id: 'digital-papercut', name: 'Digital Papercut', icon: 'fa-layer-group', desc: 'Layered paper textures, organic cut-out silhouettes, soft drop-shadows' },
+    { id: 'vintage-blueprint', name: 'Vintage Blueprint', icon: 'fa-drafting-compass', desc: 'Retro architectural line art, blueprint grids, technical annotations' },
+    { id: 'celestial-dreams', name: 'Celestial Dreams', icon: 'fa-star-and-crescent', desc: 'Cosmic gradients, starry overlays, dreamy nebulas, constellation-inspired' },
+    { id: 'kinetic-waves', name: 'Kinetic Waves', icon: 'fa-water', desc: 'Dynamic flowing waveforms, rhythmic motion paths, liquid neon accents' },
+    { id: 'opulent-baroque', name: 'Opulent Baroque', icon: 'fa-feather', desc: 'Ornate baroque flourishes, gilded frames, dramatic serif typography' },
+    { id: 'holographic-spectrum', name: 'Holographic Spectrum', icon: 'fa-compact-disc', desc: 'Iridescent rainbow reflections, prism-shifted gradients, hologram overlays' },
+    { id: 'ink-splash', name: 'Ink Splash Expressionism', icon: 'fa-droplet', desc: 'Dynamic ink splatter accents, calligraphy-inspired headers, brushstroke dividers' },
+    { id: 'bioluminescent-glow', name: 'Bioluminescent Glow', icon: 'fa-fish', desc: 'Deep ocean bio-glow effects, luminescent accents, underwater gradients' },
+    { id: 'liquid-metal', name: 'Liquid Metal Chrome', icon: 'fa-droplet-slash', desc: 'Reflective chrome surfaces, polished metal gradients, sleek metallic highlights' },
+    { id: 'neon-synthwave', name: 'Neon Synthwave', icon: 'fa-compact-disc', desc: 'Retro-futuristic 80s aesthetics, neon outlines, synthwave grids, sunset gradients' },
+    { id: 'quantum-glitch', name: 'Quantum Glitch Reality', icon: 'fa-atom', desc: 'Multiverse data corruption aesthetics, reality-bending glitches, quantum particle effects' },
+    { id: 'cosmic-horror', name: 'Cosmic Horror Lovecraft', icon: 'fa-eye-slash', desc: 'Eldritch void aesthetics, non-Euclidean geometry, tentacle-like organic curves' },
+    { id: 'temporal-paradox', name: 'Temporal Paradox Chrono', icon: 'fa-hourglass-half', desc: 'Time-loop visual recursions, clockwork mechanical overlays, past-future collision effects' },
+    { id: 'psychedelic-mandelbrot', name: 'Psychedelic Mandelbrot', icon: 'fa-infinity', desc: 'Infinite fractal recursions, kaleidoscopic color explosions, sacred geometry patterns' },
+    { id: 'biopunk-organism', name: 'Biopunk Organism', icon: 'fa-dna', desc: 'Living tissue textures, genetic code patterns, bio-engineered aesthetics' },
+    { id: 'holographic-interference', name: 'Holographic Interference', icon: 'fa-record-vinyl', desc: 'Rainbow diffraction patterns, light interference effects, iridescent shimmer overlays' },
+    { id: 'crystalline-tesseract', name: 'Crystalline Tesseract', icon: 'fa-cube', desc: '4D hypercube projections, crystalline facet refractions, prismatic light splitting' },
+    { id: 'void-walker', name: 'Void Walker Abyss', icon: 'fa-ghost', desc: 'Absolute darkness aesthetics, shadow entity silhouettes, negative space dominance' },
+    { id: 'neuron-synapse', name: 'Neuron Synapse Network', icon: 'fa-brain', desc: 'Neural network visualizations, synaptic connection lines, brain wave patterns' },
+    { id: 'alchemical-transmutation', name: 'Alchemical Transmutation', icon: 'fa-flask', desc: 'Ancient alchemical symbols, transmutation circle patterns, mystical formula overlays' },
+    { id: 'neon-arcade', name: 'Neon Arcade Blast', icon: 'fa-gamepad', desc: 'Retro arcade cabinet vibes, neon color explosions, pixel-perfect borders, high-score animations' },
+    { id: 'cyberpunk-racer', name: 'Cyberpunk Racer', icon: 'fa-car-side', desc: 'High-speed motion blur effects, neon racing stripes, futuristic dashboard HUD' },
+    { id: 'rgb-gaming-rig', name: 'RGB Gaming Rig', icon: 'fa-desktop', desc: 'PC master race RGB lighting, rainbow LED strips, mechanical keyboard glow' },
+    { id: 'battle-royale', name: 'Battle Royale Victory', icon: 'fa-trophy', desc: 'Victory Royale golden glow, winner celebration effects, legendary loot shine' },
+    { id: 'esports-arena', name: 'Esports Arena', icon: 'fa-headset', desc: 'Professional tournament stage lighting, team jersey colors, spectator crowd energy' },
+    { id: 'pixel-art-retro', name: 'Pixel Art Retro', icon: 'fa-th', desc: '8-bit pixel perfection, chunky blocky borders, retro console palette' },
+    { id: 'laser-tag-glow', name: 'Laser Tag Glow', icon: 'fa-crosshairs', desc: 'Blacklight arena glow, neon laser beam trails, target lock-on effects' },
+    { id: 'boss-fight-epic', name: 'Boss Fight Epic', icon: 'fa-dragon', desc: 'Legendary boss health bar red, danger zone warnings, epic attack animations' },
+    { id: 'hologram-hud', name: 'Hologram HUD', icon: 'fa-layer-group', desc: 'Sci-fi heads-up display, transparent holographic panels, futuristic UI elements' },
+    { id: 'streamer-overlay', name: 'Streamer Overlay', icon: 'fa-video', desc: 'Twitch purple branding, live stream alerts, subscriber notifications' },
+    { id: 'matrix-hacker', name: 'Matrix Hacker Terminal', icon: 'fa-terminal', desc: 'Green terminal code rain, hacker console aesthetics, binary matrix backgrounds' },
+    { id: 'neon-samurai', name: 'Neon Samurai Warrior', icon: 'fa-user-ninja', desc: 'Cyberpunk Japan aesthetics, katana slash effects, neon kanji typography' },
+    { id: 'glitch-destroyer', name: 'Glitch Art Destroyer', icon: 'fa-signal', desc: 'Digital corruption effects, RGB split glitches, TV static noise' },
+    { id: 'anime-powerup', name: 'Anime Power-Up', icon: 'fa-bolt', desc: 'Super Saiyan aura effects, energy charging animations, manga speed lines' },
+    { id: 'voxel-minecraft', name: 'Voxel Minecraft World', icon: 'fa-cube', desc: 'Blocky cubic aesthetics, voxel grid patterns, crafting table vibes' },
+    { id: 'neon-synthcore', name: 'Neon Wave Synthcore', icon: 'fa-wave-square', desc: 'Synthwave audio visualization, neon waveform patterns, retro-futuristic soundwave effects' },
+    { id: 'space-invaders', name: 'Space Invaders Retro', icon: 'fa-space-shuttle', desc: 'Classic arcade alien sprites, monochrome green CRT display, retro space shooter UI' },
+    { id: 'vr-metaverse', name: 'VR Metaverse Portal', icon: 'fa-vr-cardboard', desc: 'Virtual reality interfaces, 3D space portal effects, metaverse world aesthetics' },
+    { id: 'championship-trophy', name: 'Championship Trophy Gold', icon: 'fa-award', desc: 'Ultimate champion gold shine, tournament winner glory, MVP award aesthetics' }
+];
+
+// Selected styles storage
+let selectedStyles = [];
+
+// Style Colors for visual preview (matching index1.php)
+const styleColors = {
+    'ai-choice': { primary: '#667eea', secondary: '#764ba2', name: "AI's Choice" },
+    'modern-sleek': { primary: '#4f46e5', secondary: '#06b6d4', name: 'Modern & Sleek' },
+    'minimalist': { primary: '#374151', secondary: '#f3f4f6', name: 'Minimalist & Clean' },
+    'bold-creative': { primary: '#ec4899', secondary: '#f59e0b', name: 'Bold & Creative' },
+    'professional': { primary: '#475569', secondary: '#1e293b', name: 'Professional' },
+    'elegant': { primary: '#8b5cf6', secondary: '#a78bfa', name: 'Elegant & Luxurious' },
+    'tech-futuristic': { primary: '#06b6d4', secondary: '#3b82f6', name: 'Tech & Futuristic' },
+    'warm-friendly': { primary: '#f59e0b', secondary: '#ef4444', name: 'Warm & Friendly' },
+    'dark-dramatic': { primary: '#7c3aed', secondary: '#ec4899', name: 'Dark & Dramatic' },
+    'playful-vibrant': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Playful & Vibrant' },
+    'luminous-aurora': { primary: '#06b6d4', secondary: '#8b5cf6', name: 'Luminous Aurora' },
+    'monochrome-noir': { primary: '#111827', secondary: '#f9fafb', name: 'Monochrome Noir' },
+    'geometric-harmony': { primary: '#f59e0b', secondary: '#ec4899', name: 'Geometric Harmony' },
+    'pastel-symphony': { primary: '#fbbf24', secondary: '#a78bfa', name: 'Pastel Symphony' },
+    'desert-mirage': { primary: '#f59e0b', secondary: '#dc2626', name: 'Desert Mirage' },
+    'frosted-candy': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Frosted Glass Candy' },
+    'steampunk-industrial': { primary: '#92400e', secondary: '#78350f', name: 'Steampunk Industrial' },
+    'vaporwave-dreams': { primary: '#ec4899', secondary: '#06b6d4', name: 'Vaporwave Dreams' },
+    'origami-folds': { primary: '#f97316', secondary: '#ef4444', name: 'Origami Folds' },
+    'gothic-renaissance': { primary: '#7c2d12', secondary: '#dc2626', name: 'Gothic Renaissance' },
+    'victorian-mansion': { primary: '#7c2d12', secondary: '#a16207', name: 'Victorian Mansion' },
+    'ancient-manuscript': { primary: '#a16207', secondary: '#78350f', name: 'Ancient Manuscript' },
+    'gradient-flow': { primary: '#667eea', secondary: '#f093fb', name: 'Gradient Flow' },
+    'neumorphism': { primary: '#e2e8f0', secondary: '#cbd5e1', name: 'Neumorphism' },
+    'retro-vintage': { primary: '#b45309', secondary: '#78350f', name: 'Retro Vintage' },
+    'brutalist': { primary: '#000000', secondary: '#fbbf24', name: 'Brutalist' },
+    'nature-organic': { primary: '#22c55e', secondary: '#16a34a', name: 'Nature & Organic' },
+    'cyberpunk-neon': { primary: '#ff00ff', secondary: '#00ffff', name: 'Cyberpunk Neon' },
+    'artistic-creative': { primary: '#8b5cf6', secondary: '#ec4899', name: 'Artistic & Creative' },
+    'swiss-minimalism': { primary: '#dc2626', secondary: '#000000', name: 'Swiss Minimalism' },
+    'luxury-premium': { primary: '#d4af37', secondary: '#1a1a1a', name: 'Luxury & Premium' },
+    'handcrafted-artisan': { primary: '#92400e', secondary: '#fbbf24', name: 'Handcrafted & Artisan' },
+    'glassmorphism': { primary: '#667eea', secondary: '#764ba2', name: 'Glassmorphism' },
+    'scandi-modern': { primary: '#8b9dc3', secondary: '#f8fafc', name: 'Scandi Modern' },
+    'digital-papercut': { primary: '#ec4899', secondary: '#fbbf24', name: 'Digital Papercut' },
+    'vintage-blueprint': { primary: '#1e40af', secondary: '#dbeafe', name: 'Vintage Blueprint' },
+    'celestial-dreams': { primary: '#312e81', secondary: '#6366f1', name: 'Celestial Dreams' },
+    'kinetic-waves': { primary: '#06b6d4', secondary: '#0ea5e9', name: 'Kinetic Waves' },
+    'opulent-baroque': { primary: '#a16207', secondary: '#7c2d12', name: 'Opulent Baroque' },
+    'holographic-spectrum': { primary: '#ec4899', secondary: '#06b6d4', name: 'Holographic Spectrum' },
+    'ink-splash': { primary: '#0f172a', secondary: '#f8fafc', name: 'Ink Splash' },
+    'bioluminescent-glow': { primary: '#06b6d4', secondary: '#10b981', name: 'Bioluminescent Glow' },
+    'liquid-metal': { primary: '#9ca3af', secondary: '#374151', name: 'Liquid Metal Chrome' },
+    'neon-synthwave': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Neon Synthwave' },
+    'quantum-glitch': { primary: '#06b6d4', secondary: '#8b5cf6', name: 'Quantum Glitch' },
+    'cosmic-horror': { primary: '#581c87', secondary: '#000000', name: 'Cosmic Horror' },
+    'temporal-paradox': { primary: '#3b82f6', secondary: '#8b5cf6', name: 'Temporal Paradox' },
+    'psychedelic-mandelbrot': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Psychedelic Mandelbrot' },
+    'biopunk-organism': { primary: '#10b981', secondary: '#14b8a6', name: 'Biopunk Organism' },
+    'holographic-interference': { primary: '#06b6d4', secondary: '#8b5cf6', name: 'Holographic Interference' },
+    'crystalline-tesseract': { primary: '#3b82f6', secondary: '#06b6d4', name: 'Crystalline Tesseract' },
+    'void-walker': { primary: '#000000', secondary: '#581c87', name: 'Void Walker' },
+    'neuron-synapse': { primary: '#06b6d4', secondary: '#3b82f6', name: 'Neuron Synapse' },
+    'alchemical-transmutation': { primary: '#f59e0b', secondary: '#dc2626', name: 'Alchemical Transmutation' },
+    'neon-arcade': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Neon Arcade' },
+    'cyberpunk-racer': { primary: '#06b6d4', secondary: '#ec4899', name: 'Cyberpunk Racer' },
+    'rgb-gaming-rig': { primary: '#ef4444', secondary: '#3b82f6', name: 'RGB Gaming Rig' },
+    'battle-royale': { primary: '#f59e0b', secondary: '#dc2626', name: 'Battle Royale' },
+    'esports-arena': { primary: '#3b82f6', secondary: '#8b5cf6', name: 'Esports Arena' },
+    'pixel-art-retro': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Pixel Art Retro' },
+    'laser-tag-glow': { primary: '#06b6d4', secondary: '#ec4899', name: 'Laser Tag Glow' },
+    'boss-fight-epic': { primary: '#dc2626', secondary: '#000000', name: 'Boss Fight Epic' },
+    'hologram-hud': { primary: '#06b6d4', secondary: '#3b82f6', name: 'Hologram HUD' },
+    'streamer-overlay': { primary: '#8b5cf6', secondary: '#ec4899', name: 'Streamer Overlay' },
+    'matrix-hacker': { primary: '#00ff41', secondary: '#000000', name: 'Matrix Hacker' },
+    'neon-samurai': { primary: '#ec4899', secondary: '#06b6d4', name: 'Neon Samurai' },
+    'glitch-destroyer': { primary: '#ef4444', secondary: '#000000', name: 'Glitch Destroyer' },
+    'anime-powerup': { primary: '#f59e0b', secondary: '#ec4899', name: 'Anime Power-Up' },
+    'voxel-minecraft': { primary: '#10b981', secondary: '#92400e', name: 'Voxel Minecraft' },
+    'neon-synthcore': { primary: '#ec4899', secondary: '#8b5cf6', name: 'Neon Synthcore' },
+    'space-invaders': { primary: '#00ff00', secondary: '#000000', name: 'Space Invaders' },
+    'vr-metaverse': { primary: '#8b5cf6', secondary: '#06b6d4', name: 'VR Metaverse' },
+    'championship-trophy': { primary: '#ffd700', secondary: '#ffa500', name: 'Championship Trophy' }
+};
+
+// Initialize Style Types
+function stInit() {
+    stRenderStyles();
+    stLoadFromStorage();
+    stUpdateUI();
+}
+
+// Render all styles
+function stRenderStyles() {
+    const container = document.getElementById('stStylesContainer');
+    if (!container) return;
+    
+    container.innerHTML = styleTypesData.map(style => `
+        <div class="st-style-item ${selectedStyles.includes(style.id) ? 'selected' : ''}" 
+             data-style="${style.id}" 
+             onclick="stToggleStyle('${style.id}')">
+            <div class="st-style-check">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="st-style-content">
+                <div class="st-style-name">
+                    <i class="fas ${style.icon}"></i>
+                    <span>${style.name}</span>
+                </div>
+                <div class="st-style-desc">${style.desc}</div>
+            </div>
+            <button type="button" class="st-view-sample-btn" onclick="event.stopPropagation(); stShowSample('${style.id}')" title="View Sample">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+// Toggle style selection
+function stToggleStyle(styleId) {
+    const index = selectedStyles.indexOf(styleId);
+    if (index > -1) {
+        selectedStyles.splice(index, 1);
+    } else {
+        selectedStyles.push(styleId);
+    }
+    
+    stUpdateUI();
+    stSaveToStorage();
+}
+
+// Update UI after selection change
+function stUpdateUI() {
+    // Update item classes
+    document.querySelectorAll('.st-style-item').forEach(item => {
+        const styleId = item.getAttribute('data-style');
+        if (selectedStyles.includes(styleId)) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+    
+    // Update preview with gradient
+    stUpdatePreview();
+    
+    // Update count badge
+    const count = selectedStyles.length;
+    const countBadge = document.getElementById('stCountBadge');
+    const badge = document.getElementById('stBadge');
+    const infoText = document.getElementById('stInfoText');
+    
+    if (countBadge) {
+        countBadge.textContent = `${count} selected`;
+    }
+    
+    if (badge) {
+        if (count > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = count;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (infoText) {
+        infoText.textContent = count > 0 
+            ? `${count} style${count > 1 ? 's' : ''} will be applied` 
+            : 'Click to select multiple styles';
+    }
+}
+
+// Update preview box with live gradient visualization
+function stUpdatePreview() {
+    const previewBox = document.getElementById('stPreviewBox');
+    const content = document.getElementById('stPreviewContent');
+    const tagsContainer = document.getElementById('stSelectedTags');
+    
+    if (!previewBox || !content || !tagsContainer) return;
+    
+    if (selectedStyles.length === 0) {
+        // Reset to default state
+        previewBox.style.background = 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%)';
+        previewBox.style.border = '1px solid rgba(168, 85, 247, 0.2)';
+        previewBox.style.boxShadow = 'none';
+        
+        content.innerHTML = `
+            <div class="st-preview-icon"><i class="fas fa-palette"></i></div>
+            <h4 class="st-preview-title">Select styles to see preview</h4>
+            <p class="st-preview-subtitle">Choose multiple styles to create unique combinations</p>
+        `;
+        tagsContainer.innerHTML = '';
+    } else {
+        // Build gradient from selected styles
+        const colors = selectedStyles.map(id => styleColors[id]).filter(Boolean);
+        
+        if (colors.length > 0) {
+            // Create gradient
+            let gradientStops = [];
+            colors.forEach((color, index) => {
+                const position1 = (index / colors.length) * 100;
+                const position2 = ((index + 1) / colors.length) * 100;
+                gradientStops.push(`${color.primary} ${position1}%`);
+                gradientStops.push(`${color.secondary} ${position2}%`);
+            });
+            
+            const gradient = `linear-gradient(135deg, ${gradientStops.join(', ')})`;
+            previewBox.style.background = gradient;
+            previewBox.style.border = `2px solid ${colors[0].primary}`;
+            previewBox.style.boxShadow = `0 0 25px ${colors[0].primary}50`;
+            
+            // Build style tags
+            const styleTags = colors.map(c => 
+                `<span class="st-selected-tag" style="background: linear-gradient(135deg, ${c.primary}, ${c.secondary}); border: none; color: white;">${c.name}</span>`
+            ).join('');
+            
+            content.innerHTML = `
+                <div class="st-preview-icon" style="color: white; filter: drop-shadow(0 0 10px ${colors[0].primary});"><i class="fas fa-layer-group"></i></div>
+                <h4 class="st-preview-title" style="color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Merged Style Preview</h4>
+                <p class="st-preview-subtitle" style="color: rgba(255,255,255,0.9); text-shadow: 0 1px 5px rgba(0,0,0,0.5);">${colors.length} style${colors.length > 1 ? 's' : ''} combined</p>
+            `;
+            
+            tagsContainer.innerHTML = styleTags;
+            
+            // Add info message
+            tagsContainer.innerHTML += `
+                <div style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-radius: 8px; backdrop-filter: blur(5px);">
+                    <p style="color: white; font-size: 0.55rem; margin: 0; text-align: center;">
+                        <i class="fas fa-magic" style="color: #fbbf24; margin-right: 0.3rem;"></i>
+                        This unique combination will create your custom design!
+                    </p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Search styles
+function stSearchStyles(query) {
+    const clearBtn = document.getElementById('stSearchClear');
+    if (clearBtn) {
+        clearBtn.classList.toggle('visible', query.length > 0);
+    }
+    
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    document.querySelectorAll('.st-style-item').forEach(item => {
+        const styleId = item.getAttribute('data-style');
+        const style = styleTypesData.find(s => s.id === styleId);
+        
+        if (!style) return;
+        
+        const matches = style.name.toLowerCase().includes(normalizedQuery) ||
+                       style.desc.toLowerCase().includes(normalizedQuery) ||
+                       styleId.includes(normalizedQuery);
+        
+        item.classList.toggle('hidden', !matches);
+    });
+}
+
+// Clear search
+function stClearSearch() {
+    const input = document.getElementById('stSearchInput');
+    if (input) {
+        input.value = '';
+        stSearchStyles('');
+    }
+}
+
+// Scroll controls
+function stScrollToTop() {
+    const container = document.getElementById('stStylesContainer');
+    if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function stScrollToBottom() {
+    const container = document.getElementById('stStylesContainer');
+    if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
+}
+
+// Reset all selections
+function stResetAll(skipToast = false) {
+    selectedStyles = [];
+    stUpdateUI();
+    stSaveToStorage();
+    stClearSearch();
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Style selections cleared', 'info');
+    }
+}
+
+// Confirm reset (defined in main script section)
+
+// Style Sample HTML Previews (matching index1.php visual demos)
+const styleSamplePreviews = {
+    'ai-choice': `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; text-align: center; color: white; border-radius: 12px;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem;">AI Will Choose The Best Style</h2>
+        <p style="font-size: 0.9rem; opacity: 0.9;">After analyzing your application's content, purpose, and target audience, AI will intelligently select the most suitable design style.</p>
+        <div style="margin-top: 1.25rem; display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+            <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem;">Intelligent</span>
+            <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem;">Adaptive</span>
+            <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem;">Recommended</span>
+        </div>
+    </div>`,
+    'modern-sleek': `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; backdrop-filter: blur(10px);">
+        <div style="background: rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <h2 style="color: white; font-size: 1.5rem; margin-bottom: 0.75rem;">Modern & Sleek Design</h2>
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 0.85rem;">Clean lines, glassmorphism effects, smooth animations</p>
+            <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+                <div style="flex: 1; background: rgba(255, 255, 255, 0.15); padding: 0.75rem; border-radius: 10px; backdrop-filter: blur(10px); color: white; font-size: 0.75rem;">Card 1</div>
+                <div style="flex: 1; background: rgba(255, 255, 255, 0.15); padding: 0.75rem; border-radius: 10px; backdrop-filter: blur(10px); color: white; font-size: 0.75rem;">Card 2</div>
+            </div>
+        </div>
+    </div>`,
+    'minimalist': `<div style="background: #ffffff; padding: 2rem; color: #333;">
+        <h2 style="font-size: 1.75rem; margin-bottom: 1.25rem; font-weight: 300;">Minimalist Design</h2>
+        <p style="font-size: 0.9rem; color: #666; line-height: 1.7; margin-bottom: 1.25rem;">Simple, clean, and focused on content. Plenty of white space for better readability.</p>
+        <div style="height: 2px; width: 60px; background: #333; margin: 1.25rem 0;"></div>
+        <p style="font-size: 0.75rem; color: #999;">Less is more</p>
+    </div>`,
+    'bold-creative': `<div style="background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3); padding: 2rem;">
+        <div style="background: white; padding: 1.5rem; border-radius: 16px; transform: rotate(-1deg); box-shadow: 0 15px 30px rgba(0,0,0,0.3);">
+            <h2 style="color: #ff6b6b; font-size: 1.75rem; margin-bottom: 0.75rem; transform: rotate(1deg);">Bold & Creative!</h2>
+            <p style="color: #333; font-size: 0.9rem;">Vibrant colors, unique layouts, artistic elements</p>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <div style="width: 40px; height: 40px; background: #ff6b6b; border-radius: 50%;"></div>
+                <div style="width: 40px; height: 40px; background: #feca57; border-radius: 8px;"></div>
+                <div style="width: 40px; height: 40px; background: #48dbfb; border-radius: 50%;"></div>
+            </div>
+        </div>
+    </div>`,
+    'professional': `<div style="background: #f8f9fa; padding: 2rem;">
+        <div style="background: white; padding: 1.5rem; border-radius: 6px; border-left: 4px solid #2c3e50; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <h2 style="color: #2c3e50; font-size: 1.5rem; margin-bottom: 0.75rem;">Professional Design</h2>
+            <p style="color: #5a6c7d; line-height: 1.7; font-size: 0.85rem;">Business-focused, trustworthy, and structured layout with conservative color palette.</p>
+            <div style="margin-top: 1rem; padding: 0.75rem; background: #ecf0f1; border-radius: 4px; font-size: 0.8rem;">
+                <strong style="color: #34495e;">Key Features:</strong> <span style="color: #5a6c7d;">Reliability • Structure • Trust</span>
+            </div>
+        </div>
+    </div>`,
+    'cyberpunk-neon': `<div style="background: #0a0e27; padding: 2rem; color: #fff;">
+        <div style="border: 2px solid #ff00ff; border-radius: 8px; padding: 1.5rem; box-shadow: 0 0 20px #ff00ff, inset 0 0 20px rgba(255, 0, 255, 0.1);">
+            <h2 style="color: #00ffff; text-shadow: 0 0 10px #00ffff; font-size: 1.75rem; margin-bottom: 0.75rem;">CYBERPUNK NEON</h2>
+            <p style="color: #ff00ff; font-size: 0.85rem;">High contrast • Neon effects • Glitch aesthetic</p>
+            <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+                <span style="padding: 0.4rem 0.8rem; border: 2px solid #00ffff; color: #00ffff; text-shadow: 0 0 5px #00ffff; font-size: 0.75rem;">NEON</span>
+                <span style="padding: 0.4rem 0.8rem; border: 2px solid #ff00ff; color: #ff00ff; text-shadow: 0 0 5px #ff00ff; font-size: 0.75rem;">GLOW</span>
+            </div>
+        </div>
+    </div>`,
+    'dark-dramatic': `<div style="background: #0f0f23; padding: 2rem; color: white;">
+        <div style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); padding: 1.75rem; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(99, 102, 241, 0.3);">
+            <h2 style="font-size: 1.75rem; margin-bottom: 0.75rem; color: #818cf8;">Dark & Dramatic</h2>
+            <p style="color: #c7d2fe; font-size: 0.85rem; line-height: 1.7;">Dark mode aesthetic with high contrast, mysterious atmosphere, and bold accents</p>
+            <div style="margin-top: 1.25rem; padding: 1rem; background: rgba(0, 0, 0, 0.4); border-left: 3px solid #6366f1; border-radius: 6px;">
+                <strong style="color: #a5b4fc; font-size: 0.8rem;">High Contrast • Mysterious • Bold</strong>
+            </div>
+        </div>
+    </div>`,
+    'luxury-premium': `<div style="background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); padding: 2rem; color: #d4af37;">
+        <div style="border: 2px solid #d4af37; padding: 1.5rem; border-radius: 6px; background: rgba(212, 175, 55, 0.05);">
+            <h2 style="font-family: serif; font-size: 1.75rem; margin-bottom: 0.75rem; color: #d4af37;">Luxury & Premium</h2>
+            <p style="color: #c9c9c9; font-size: 0.9rem; line-height: 1.7;">High-end aesthetic with gold accents, sophisticated typography, and exclusive feel.</p>
+            <div style="margin-top: 1.25rem; text-align: center; padding: 0.75rem; border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37;">
+                <span style="color: #d4af37; font-size: 0.85rem;">✦ EXCLUSIVE ✦ PREMIUM ✦ LUXURY ✦</span>
+            </div>
+        </div>
+    </div>`,
+    'nature-organic': `<div style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); padding: 2rem;">
+        <div style="background: rgba(255, 255, 255, 0.95); padding: 1.5rem; border-radius: 16px;">
+            <h2 style="color: #2d5016; font-size: 1.5rem; margin-bottom: 0.75rem;">🌿 Nature & Organic</h2>
+            <p style="color: #4a7c2c; line-height: 1.7; font-size: 0.85rem;">Earthy tones, natural textures, organic shapes. Eco-friendly and sustainable design.</p>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                <div style="flex: 1; background: #8bc34a; height: 40px; border-radius: 20px 8px;"></div>
+                <div style="flex: 1; background: #4caf50; height: 40px; border-radius: 8px 20px;"></div>
+            </div>
+        </div>
+    </div>`,
+    'matrix-hacker': `<div style="background: #000; padding: 2rem; color: #00ff41; font-family: monospace; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 5px; right: 10px; font-size: 0.6rem; opacity: 0.5;">01101000 01100101 01101100</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.75rem; text-shadow: 0 0 10px #00ff41;">MATRIX HACKER</h2>
+        <p style="font-size: 0.85rem; opacity: 0.9;">Green terminal code rain, hacker console aesthetics</p>
+        <div style="margin-top: 1rem; padding: 0.75rem; border: 1px solid #00ff41; background: rgba(0,255,65,0.1);">
+            <span style="color: #00ff41; font-size: 0.75rem;">&gt; ACCESS GRANTED_</span>
+        </div>
+    </div>`
+};
+
+// Show style sample modal
+function stShowSample(styleId) {
+    const style = styleTypesData.find(s => s.id === styleId);
+    if (!style) return;
+    
+    // Create modal if not exists
+    let overlay = document.getElementById('stSampleOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'st-sample-overlay';
+        overlay.id = 'stSampleOverlay';
+        overlay.innerHTML = `
+            <div class="st-sample-modal" style="max-width: 550px;">
+                <div class="st-sample-header">
+                    <h3 class="st-sample-title" id="stSampleTitle"></h3>
+                    <button type="button" class="st-sample-close" onclick="stCloseSample()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="st-sample-body" id="stSampleBody"></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+    
+    // Populate content
+    const title = document.getElementById('stSampleTitle');
+    const body = document.getElementById('stSampleBody');
+    
+    if (title) {
+        title.innerHTML = `<i class="fas ${style.icon}"></i> ${style.name}`;
+    }
+    
+    if (body) {
+        // Get preview HTML or create generic one
+        const previewHtml = styleSamplePreviews[styleId] || generateGenericPreview(style);
+        const colors = styleColors[styleId] || { primary: '#8b5cf6', secondary: '#a78bfa' };
+        
+        body.innerHTML = `
+            <!-- Visual Preview -->
+            <div style="border-radius: 12px; overflow: hidden; margin-bottom: 1.25rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                ${previewHtml}
+            </div>
+            
+            <!-- Description -->
+            <div style="margin-bottom: 1rem;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">${style.desc.replace(/<[^>]*>/g, '')}</p>
+            </div>
+            
+            <!-- Style Info Cards -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div style="background: linear-gradient(135deg, ${colors.primary}15, ${colors.secondary}10); border: 1px solid ${colors.primary}30; border-radius: 10px; padding: 0.75rem;">
+                    <h4 style="font-size: 0.75rem; color: ${colors.primary}; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;"><i class="fas fa-palette"></i> Colors</h4>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <div style="width: 24px; height: 24px; background: ${colors.primary}; border-radius: 4px;"></div>
+                        <div style="width: 24px; height: 24px; background: ${colors.secondary}; border-radius: 4px;"></div>
+                    </div>
+                </div>
+                <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; padding: 0.75rem;">
+                    <h4 style="font-size: 0.75rem; color: #a78bfa; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.3rem;"><i class="fas fa-magic"></i> Best For</h4>
+                    <p style="font-size: 0.65rem; color: var(--text-secondary); margin: 0;">Modern web apps, portfolios, creative sites</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show modal
+    setTimeout(() => overlay.classList.add('active'), 10);
+}
+
+// Generate generic preview for styles without custom preview
+function generateGenericPreview(style) {
+    const colors = styleColors[style.id] || { primary: '#8b5cf6', secondary: '#a78bfa' };
+    return `<div style="background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%); padding: 2rem; text-align: center; color: white;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;"><i class="fas ${style.icon}"></i></div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${style.name}</h2>
+        <p style="font-size: 0.85rem; opacity: 0.9; max-width: 300px; margin: 0 auto;">${style.desc.replace(/<[^>]*>/g, '').substring(0, 100)}...</p>
+    </div>`;
+}
+
+// Close sample modal
+function stCloseSample() {
+    const overlay = document.getElementById('stSampleOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+// Push to Project Notes - generates prompt matching index1.php format
+function stPushToNotes() {
+    if (selectedStyles.length === 0) {
+        if (typeof showToast === 'function') showToast('⚠️ No styles selected', 'warning');
+        return;
+    }
+    
+    let promptText = '';
+    const hasAIChoice = selectedStyles.includes('ai-choice');
+    const otherStyles = selectedStyles.filter(s => s !== 'ai-choice');
+    
+    if (selectedStyles.length === 1) {
+        // Single style selected
+        const style = styleTypesData.find(s => s.id === selectedStyles[0]);
+        if (style) {
+            const cleanDesc = style.desc.replace(/<[^>]*>/g, '');
+            promptText = `## 🎨 DESIGN STYLE SELECTION\n\n`;
+            promptText += `**Selected Style:** ${style.name}\n\n`;
+            promptText += `${cleanDesc}\n\n`;
+            
+            if (selectedStyles[0] === 'ai-choice') {
+                promptText += `**🤖 AI STYLE DECISION MODE:**\n\n`;
+                promptText += `Since AI is selecting the style, you MUST:\n`;
+                promptText += `1. Read ALL uploaded files completely\n`;
+                promptText += `2. Analyze the application's purpose, audience, and goals\n`;
+                promptText += `3. Identify existing design patterns and brand elements\n`;
+                promptText += `4. Choose the BEST FITTING style based on your analysis\n`;
+                promptText += `5. Explain your reasoning in your response\n\n`;
+            }
+        }
+    } else if (hasAIChoice && otherStyles.length > 0) {
+        // AI Choice + other styles = AI-Powered Artistic Fusion
+        promptText = `## 🎨 DESIGN STYLE SELECTION\n\n`;
+        promptText += `**🤖 AI-POWERED ARTISTIC STYLE FUSION (${selectedStyles.length} styles):**\n\n`;
+        promptText += `⚠️ **CRITICAL: INTELLIGENT CREATIVE MIXING MODE**\n\n`;
+        promptText += `You have been given both **AI Choice** authority AND ${otherStyles.length} specific style(s) to work with.\n`;
+        promptText += `This is your HIGHEST creative intelligence mode - create something extraordinary!\n\n`;
+        
+        promptText += `**📖 MANDATORY FIRST STEP: READ ALL APPLICATION FILES**\n`;
+        promptText += `Before ANY design decisions, you MUST read every uploaded file to understand:\n`;
+        promptText += `- The application's purpose, industry, and target audience\n`;
+        promptText += `- Existing design patterns and brand identity\n`;
+        promptText += `- Content structure and user interaction patterns\n\n`;
+        
+        promptText += `**✨ Your Styles to Artistically Blend:**\n\n`;
+        selectedStyles.forEach((id, index) => {
+            const style = styleTypesData.find(s => s.id === id);
+            if (style) {
+                const cleanDesc = style.desc.replace(/<[^>]*>/g, '');
+                promptText += `**Style ${index + 1}: ${style.name}**\n`;
+                promptText += `${cleanDesc}\n\n`;
+            }
+        });
+        
+        promptText += `**🧠 AI ARTISTIC STYLE FUSION INSTRUCTIONS:**\n`;
+        promptText += `1. **Deep Analysis First** - Read all files and truly understand the application's soul\n`;
+        promptText += `2. **Find the Perfect Fusion** - Don't apply equal percentages; use your intelligence to create the IDEAL blend\n`;
+        promptText += `3. **Create Visual Poetry** - Blend styles in a way that feels intentional, beautiful, and unique\n`;
+        promptText += `4. **Contextual Application** - Apply different style elements where they make the most artistic sense\n`;
+        promptText += `5. **Unified Masterpiece** - The result should feel like ONE unique, cohesive style (a new creation)\n\n`;
+        
+        promptText += `💡 **Think of yourself as an ARTIST creating a NEW style movement - not just mixing existing ones!**\n\n`;
+        
+    } else {
+        // Multiple styles without AI Choice = Equal/Balanced mixing
+        const percentage = Math.round(100 / selectedStyles.length);
+        
+        promptText = `## 🎨 DESIGN STYLE SELECTION\n\n`;
+        promptText += `**⚖️ BALANCED STYLE MIX (${selectedStyles.length} styles @ ~${percentage}% each):**\n\n`;
+        promptText += `⚠️ **IMPORTANT: EQUAL DISTRIBUTION MODE**\n\n`;
+        promptText += `You must combine these ${selectedStyles.length} styles with approximately EQUAL weight.\n`;
+        promptText += `Each style should contribute roughly ${percentage}% to the final design.\n\n`;
+        
+        promptText += `**✨ Styles to Combine Equally:**\n\n`;
+        selectedStyles.forEach((id, index) => {
+            const style = styleTypesData.find(s => s.id === id);
+            if (style) {
+                const cleanDesc = style.desc.replace(/<[^>]*>/g, '');
+                promptText += `**Style ${index + 1} (~${percentage}%): ${style.name}**\n`;
+                promptText += `${cleanDesc}\n\n`;
+            }
+        });
+        
+        promptText += `**📐 EQUAL STYLE MIXING RULES:**\n`;
+        promptText += `1. **Fair Distribution** - Each style has approximately ${percentage}% influence\n`;
+        promptText += `2. **Systematic Blending** - Apply styles evenly across different areas\n`;
+        promptText += `3. **Color Averaging** - Create colors that draw equally from each style palette\n`;
+        promptText += `4. **Pattern Rotation** - Use visual patterns from each style in rotation\n`;
+        promptText += `5. **No Dominance** - No single style should overpower the others\n`;
+        promptText += `6. **Consistency** - Apply this balanced mix throughout the application\n\n`;
+        
+        promptText += `💡 **Think of this as creating a NEW artistic style by combining the best elements of each selected style!**\n\n`;
+    }
+    
+    // Push to Project Notes
+    const notesTextarea = document.getElementById('projectNotesTextarea');
+    if (notesTextarea) {
+        if (notesTextarea.value.trim()) {
+            notesTextarea.value = notesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            notesTextarea.value = promptText;
+        }
+        
+        // Save to localStorage
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        if (typeof showToast === 'function') {
+            showToast(`🎨 ${selectedStyles.length} style(s) pushed to Project Prompts`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Save to localStorage
+function stSaveToStorage() {
+    localStorage.setItem('st_selected_styles', JSON.stringify(selectedStyles));
+}
+
+// Load from localStorage
+function stLoadFromStorage() {
+    const saved = localStorage.getItem('st_selected_styles');
+    if (saved) {
+        try {
+            selectedStyles = JSON.parse(saved);
+        } catch (e) {
+            selectedStyles = [];
+        }
+    }
+}
+
+// Get selected styles (for prompt generation)
+function getSelectedStyles() {
+    return selectedStyles.map(id => {
+        const style = styleTypesData.find(s => s.id === id);
+        return style ? style.name : id;
+    });
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    stInit();
+});
+
+// Close modal on overlay click
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('st-sample-overlay')) {
+        stCloseSample();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        stCloseSample();
+    }
 });
 </script>
 
