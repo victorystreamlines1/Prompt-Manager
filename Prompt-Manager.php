@@ -4032,6 +4032,415 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🎨 DESIGN THEME SELECTION TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        /* Theme Search and Controls */
+        .dt-header-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        
+        .dt-search-box {
+            flex: 1;
+            position: relative;
+        }
+        
+        .dt-search-input {
+            width: 100%;
+            padding: 0.4rem 2rem 0.4rem 0.5rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-search-input:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .dt-search-input::placeholder {
+            color: rgba(102, 126, 234, 0.5);
+        }
+        
+        .dt-search-clear {
+            position: absolute;
+            right: 0.4rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(102, 126, 234, 0.5);
+            font-size: 0.55rem;
+            cursor: pointer;
+            padding: 0.2rem;
+            transition: all 0.2s ease;
+            display: none;
+        }
+        
+        .dt-search-clear.visible {
+            display: block;
+        }
+        
+        .dt-search-clear:hover {
+            color: #667eea;
+        }
+        
+        .dt-reset-btn {
+            padding: 0.4rem 0.6rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            color: #f87171;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+        }
+        
+        .dt-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Theme Grid */
+        .dt-theme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.3rem;
+        }
+        
+        .dt-theme-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .dt-theme-grid::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 2px;
+        }
+        
+        /* Theme Card */
+        .dt-theme-card {
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.8) 0%, rgba(27, 38, 59, 0.6) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.15);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dt-theme-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--theme-gradient, linear-gradient(90deg, #667eea 0%, #764ba2 100%));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .dt-theme-card:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+        
+        .dt-theme-card:hover::before {
+            opacity: 1;
+        }
+        
+        .dt-theme-card.selected {
+            border-color: #00e676;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.08) 0%, rgba(27, 38, 59, 0.8) 100%);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+        }
+        
+        .dt-theme-card.selected::before {
+            opacity: 1;
+            background: linear-gradient(90deg, #00e676 0%, #00bcd4 100%);
+        }
+        
+        .dt-theme-card.hidden {
+            display: none;
+        }
+        
+        /* Theme Preview */
+        .dt-theme-preview {
+            height: 50px;
+            border-radius: 6px;
+            margin-bottom: 0.4rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dt-theme-preview-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 1.2rem;
+        }
+        
+        .dt-theme-preview-minimalist {
+            background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
+        }
+        
+        .dt-theme-preview-vibrant {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+        }
+        
+        .dt-theme-preview-dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        .dt-theme-preview-glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .dt-theme-preview-waves {
+            background: linear-gradient(135deg, #667eea 0%, #00e0d3 50%, #1bffff 100%);
+        }
+        
+        .dt-theme-preview-corporate {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        }
+        
+        .dt-theme-preview-retro {
+            background: linear-gradient(135deg, #d4a574 0%, #b8860b 50%, #8b4513 100%);
+        }
+        
+        .dt-theme-preview-neon {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .dt-theme-preview-sunset {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff1053 100%);
+        }
+        
+        .dt-theme-preview-ocean {
+            background: linear-gradient(135deg, #4dd0e1 0%, #0097a7 100%);
+        }
+        
+        .dt-theme-preview-forest {
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c23 50%, #8bc34a 100%);
+        }
+        
+        .dt-theme-preview-berry {
+            background: linear-gradient(135deg, #c2185b 0%, #880e4f 50%, #ad1457 100%);
+        }
+        
+        .dt-theme-preview-candy {
+            background: linear-gradient(135deg, #ff80ab 0%, #80d8ff 50%, #b9f6ca 100%);
+        }
+        
+        .dt-theme-preview-fire-ice {
+            background: linear-gradient(90deg, #ff3d00 0%, #ff9100 25%, #80deea 75%, #00bcd4 100%);
+        }
+        
+        .dt-theme-preview-royal {
+            background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 50%, #ffd700 100%);
+        }
+        
+        .dt-theme-preview-tropical {
+            background: linear-gradient(135deg, #00c853 0%, #ff6d00 50%, #ff4081 100%);
+        }
+        
+        .dt-theme-preview-aurora {
+            background: linear-gradient(135deg, #0d0221 0%, #7c4dff 50%, #00e676 100%);
+        }
+        
+        .dt-theme-preview-terracotta {
+            background: linear-gradient(135deg, #bf360c 0%, #e65100 50%, #ffab91 100%);
+        }
+        
+        .dt-theme-preview-pastel {
+            background: linear-gradient(135deg, #f8bbd0 0%, #b3e5fc 50%, #e1bee7 100%);
+        }
+        
+        .dt-theme-preview-electric {
+            background: linear-gradient(135deg, #000000 0%, #00e676 50%, #ffeb3b 100%);
+        }
+        
+        .dt-theme-preview-sakura {
+            background: linear-gradient(135deg, #ffb7c5 0%, #fce4ec 50%, #c8e6c9 100%);
+        }
+        
+        .dt-theme-preview-desert {
+            background: linear-gradient(135deg, #ff9800 0%, #bf360c 50%, #ffcc80 100%);
+        }
+        
+        /* Theme Info */
+        .dt-theme-info {
+            text-align: center;
+        }
+        
+        .dt-theme-name {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+        
+        .dt-theme-name i {
+            font-size: 0.55rem;
+        }
+        
+        .dt-theme-desc {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Selected Badge */
+        .dt-selected-badge {
+            position: absolute;
+            top: 0.3rem;
+            right: 0.3rem;
+            background: linear-gradient(135deg, #00e676 0%, #00bcd4 100%);
+            color: white;
+            padding: 0.15rem 0.35rem;
+            border-radius: 10px;
+            font-size: 0.45rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 0.15rem;
+            z-index: 1;
+        }
+        
+        .dt-theme-card.selected .dt-selected-badge {
+            display: inline-flex;
+        }
+        
+        /* Theme Count Info */
+        .dt-count-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding: 0.4rem;
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 6px;
+            font-size: 0.55rem;
+        }
+        
+        .dt-count-text {
+            color: var(--text-secondary);
+        }
+        
+        .dt-count-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        
+        /* Push Section */
+        .dt-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .dt-push-btn {
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+        
+        .dt-push-btn:hover {
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .dt-push-btn i {
+            font-size: 0.55rem;
+        }
+        
+        /* Notes Section */
+        .dt-notes-section {
+            margin-top: 0.5rem;
+        }
+        
+        .dt-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .dt-notes-label i {
+            color: #667eea;
+        }
+        
+        .dt-notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.4rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-notes-textarea:focus {
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .dt-notes-char-count {
+            text-align: right;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            🎨 ENHANCED STYLE TYPES TOOL
            ═══════════════════════════════════════════════════════════════════ */
         
@@ -4502,6 +4911,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .st-push-btn i {
             font-size: 0.6rem;
+        }
+        
+        /* Light Theme - Design Theme Selection */
+        [data-theme="light"] .dt-theme-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+        
+        [data-theme="light"] .dt-theme-card:hover {
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        [data-theme="light"] .dt-search-input,
+        [data-theme="light"] .dt-notes-textarea {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .dt-count-info {
+            background: rgba(102, 126, 234, 0.05);
         }
         
         /* Light theme adjustments for style notes */
@@ -7126,6 +7554,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(255, 193, 7, 0.3);
         }
         
+        /* Notes Section */
+        .uf-notes-section {
+            margin-top: 0.5rem;
+        }
+        
+        .uf-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .uf-notes-label i {
+            color: #7c4dff;
+        }
+        
+        .uf-notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.4rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(124, 77, 255, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .uf-notes-textarea:focus {
+            border-color: rgba(124, 77, 255, 0.5);
+            box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+        }
+        
+        .uf-notes-char-count {
+            text-align: right;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        
         /* Actions */
         .uf-actions {
             display: flex;
@@ -8081,6 +8554,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         [data-theme="light"] .uf-page-select {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .uf-notes-textarea {
             background: rgba(255, 255, 255, 0.9);
         }
         
@@ -15873,6 +16350,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             
+                            <!-- Notes Section -->
+                            <div class="uf-notes-section">
+                                <label class="uf-notes-label">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Project Notes & Instructions</span>
+                                </label>
+                                <textarea 
+                                    id="ufNotesTextarea" 
+                                    class="uf-notes-textarea" 
+                                    placeholder="Add notes about the project files, structure, or specific instructions..."
+                                    oninput="ufUpdateCharCount()"
+                                ></textarea>
+                                <div class="uf-notes-char-count" id="ufCharCount">0 characters</div>
+                            </div>
+                            
                             <!-- Actions -->
                             <div class="uf-actions">
                                 <button class="uf-btn uf-btn-primary" onclick="ufPushToNotes()">
@@ -16312,6 +16804,302 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="st-push-section">
                             <button type="button" class="st-push-btn" onclick="stPushToNotes()" title="Push selected styles and notes to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🎨 DESIGN THEME SELECTION TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="designThemeTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('designTheme')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-palette"></i>
+                            <span>Design Themes</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetDesignTheme();" title="Reset themes">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge dt-badge" id="dtBadge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: none;">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="designThemeArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="designThemeBody">
+                        <p style="font-size: 0.65rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Choose design themes - AI will intelligently mix multiple themes</p>
+                        
+                        <!-- Search and Reset -->
+                        <div class="dt-header-row">
+                            <div class="dt-search-box">
+                                <input type="text" class="dt-search-input" id="dtSearchInput" placeholder="Search themes..." oninput="dtFilterThemes()">
+                                <button type="button" class="dt-search-clear" id="dtSearchClear" onclick="dtClearSearch()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="dt-reset-btn" onclick="dtResetSelection()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
+                        </div>
+                        
+                        <!-- Theme Grid -->
+                        <div class="dt-theme-grid" id="dtThemeGrid">
+                            <!-- AI Decision -->
+                            <div class="dt-theme-card selected" data-theme="ai-decision" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-ai">🤖✨</div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-robot" style="color: #667eea;"></i> AI Decision</div>
+                                    <div class="dt-theme-desc">Let AI choose the perfect theme automatically</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modern Minimalist -->
+                            <div class="dt-theme-card" data-theme="minimalist" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-minimalist"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-circle" style="color: #c3cfe2;"></i> Modern Minimalist</div>
+                                    <div class="dt-theme-desc">Clean, simple design with white space</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Vibrant Colorful -->
+                            <div class="dt-theme-card" data-theme="vibrant" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-vibrant"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-rainbow" style="color: #f5576c;"></i> Vibrant & Colorful</div>
+                                    <div class="dt-theme-desc">Bold colors and energetic gradients</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Dark Elegant -->
+                            <div class="dt-theme-card" data-theme="dark-elegant" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-dark"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-moon" style="color: #64748b;"></i> Dark Elegant</div>
+                                    <div class="dt-theme-desc">Sophisticated dark mode design</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Glass Morphism -->
+                            <div class="dt-theme-card" data-theme="glassmorphism" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-glass"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-gem" style="color: #38ef7d;"></i> Glass Morphism</div>
+                                    <div class="dt-theme-desc">Frosted glass with backdrop blur</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Gradient Waves -->
+                            <div class="dt-theme-card" data-theme="gradient-waves" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-waves"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-water" style="color: #1bffff;"></i> Gradient Waves</div>
+                                    <div class="dt-theme-desc">Flowing gradients with wave effects</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Corporate Professional -->
+                            <div class="dt-theme-card" data-theme="corporate" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-corporate"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-briefcase" style="color: #3b82f6;"></i> Corporate</div>
+                                    <div class="dt-theme-desc">Business-oriented trustworthy design</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Retro Vintage -->
+                            <div class="dt-theme-card" data-theme="retro" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-retro"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-compact-disc" style="color: #d2691e;"></i> Retro Vintage</div>
+                                    <div class="dt-theme-desc">Nostalgic warm colors, classic aesthetics</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Neon Cyberpunk -->
+                            <div class="dt-theme-card" data-theme="neon-cyberpunk" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-neon"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-bolt" style="color: #00ffff;"></i> Neon Cyberpunk</div>
+                                    <div class="dt-theme-desc">Futuristic neon high-tech atmosphere</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sunset Paradise -->
+                            <div class="dt-theme-card" data-theme="sunset-paradise" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-sunset"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-sun" style="color: #ff6b35;"></i> Sunset Paradise</div>
+                                    <div class="dt-theme-desc">Warm sunset orange, pink, purple hues</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Ocean Breeze -->
+                            <div class="dt-theme-card" data-theme="ocean-breeze" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-ocean"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-water" style="color: #4dd0e1;"></i> Ocean Breeze</div>
+                                    <div class="dt-theme-desc">Fresh aqua blues and turquoise</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Forest Nature -->
+                            <div class="dt-theme-card" data-theme="forest-nature" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-forest"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-tree" style="color: #2d5016;"></i> Forest Nature</div>
+                                    <div class="dt-theme-desc">Natural earth tones, deep greens</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Berry Blast -->
+                            <div class="dt-theme-card" data-theme="berry-blast" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-berry"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-heart" style="color: #c2185b;"></i> Berry Blast</div>
+                                    <div class="dt-theme-desc">Rich berry colors, raspberry, violet</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Candy Pop -->
+                            <div class="dt-theme-card" data-theme="candy-pop" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-candy"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-candy-cane" style="color: #ff4db8;"></i> Candy Pop</div>
+                                    <div class="dt-theme-desc">Pastel candy bubblegum colors</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fire & Ice -->
+                            <div class="dt-theme-card" data-theme="fire-ice" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-fire-ice"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-fire-flame-curved" style="color: #ff3d00;"></i> Fire & Ice</div>
+                                    <div class="dt-theme-desc">Contrasting hot reds with cool blues</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Royal Luxury -->
+                            <div class="dt-theme-card" data-theme="royal-luxury" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-royal"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-crown" style="color: #ffd700;"></i> Royal Luxury</div>
+                                    <div class="dt-theme-desc">Opulent gold, royal purple, premium</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tropical Vibes -->
+                            <div class="dt-theme-card" data-theme="tropical-vibes" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-tropical"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-leaf" style="color: #00c853;"></i> Tropical Vibes</div>
+                                    <div class="dt-theme-desc">Lush tropical greens, mango, coral</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Midnight Aurora -->
+                            <div class="dt-theme-card" data-theme="midnight-aurora" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-aurora"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-star" style="color: #7c4dff;"></i> Midnight Aurora</div>
+                                    <div class="dt-theme-desc">Mystical northern lights, celestial</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Earthy Terracotta -->
+                            <div class="dt-theme-card" data-theme="earthy-terracotta" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-terracotta"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-mountain" style="color: #bf360c;"></i> Earthy Terracotta</div>
+                                    <div class="dt-theme-desc">Warm earth tones, clay, burnt orange</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Pastel Dreams -->
+                            <div class="dt-theme-card" data-theme="pastel-dreams" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-pastel"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-cloud" style="color: #f8bbd0;"></i> Pastel Dreams</div>
+                                    <div class="dt-theme-desc">Soft pastel palette, dreamy aesthetic</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Electric Energy -->
+                            <div class="dt-theme-card" data-theme="electric-energy" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-electric"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-bolt-lightning" style="color: #ffeb3b;"></i> Electric Energy</div>
+                                    <div class="dt-theme-desc">High-voltage neon maximum impact</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Cherry Blossom -->
+                            <div class="dt-theme-card" data-theme="cherry-blossom" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-sakura"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-spa" style="color: #ffb7c5;"></i> Cherry Blossom</div>
+                                    <div class="dt-theme-desc">Delicate sakura pink, serene Japanese</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Desert Sunset -->
+                            <div class="dt-theme-card" data-theme="desert-sunset" onclick="dtToggleTheme(this)">
+                                <div class="dt-selected-badge"><i class="fas fa-check"></i> Selected</div>
+                                <div class="dt-theme-preview dt-theme-preview-desert"></div>
+                                <div class="dt-theme-info">
+                                    <div class="dt-theme-name"><i class="fas fa-sun" style="color: #ff9800;"></i> Desert Sunset</div>
+                                    <div class="dt-theme-desc">Warm desert sands, southwestern vibe</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Count Info -->
+                        <div class="dt-count-info">
+                            <span class="dt-count-text">Selected Themes:</span>
+                            <span class="dt-count-badge" id="dtCountBadge">1</span>
+                        </div>
+                        
+                        <!-- Notes Section -->
+                        <div class="dt-notes-section">
+                            <label class="dt-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Theme Instructions</span>
+                            </label>
+                            <textarea 
+                                id="dtNotesTextarea" 
+                                class="dt-notes-textarea" 
+                                placeholder="Add specific theme preferences or mixing instructions..."
+                                oninput="dtUpdateCharCount()"
+                            ></textarea>
+                            <div class="dt-notes-char-count" id="dtCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="dt-push-section">
+                            <button type="button" class="dt-push-btn" onclick="dtPushToNotes()" title="Push selected themes to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -28107,6 +28895,11 @@ async function deResetAll() {
         stResetAll(true);
     }
     
+    // Reset Design Themes (skip individual toast)
+    if (typeof dtResetAll === 'function') {
+        dtResetAll(true);
+    }
+    
     // Reset Execution Mode (skip individual toast)
     if (typeof emResetAll === 'function') {
         emResetAll(true);
@@ -30567,6 +31360,300 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════
+     🎨 DESIGN THEME SELECTION - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Design Theme state
+let dtSelectedThemes = ['ai-decision'];
+
+// Initialize
+function dtInit() {
+    dtLoadFromStorage();
+    dtUpdateUI();
+}
+
+// Toggle theme selection
+function dtToggleTheme(element) {
+    const theme = element.dataset.theme;
+    
+    if (element.classList.contains('selected')) {
+        // Deselect
+        element.classList.remove('selected');
+        dtSelectedThemes = dtSelectedThemes.filter(t => t !== theme);
+    } else {
+        // Select
+        element.classList.add('selected');
+        dtSelectedThemes.push(theme);
+    }
+    
+    dtSaveToStorage();
+    dtUpdateUI();
+}
+
+// Update UI
+function dtUpdateUI() {
+    // Update badge
+    const badge = document.getElementById('dtBadge');
+    const countBadge = document.getElementById('dtCountBadge');
+    
+    if (badge) {
+        if (dtSelectedThemes.length > 0) {
+            badge.style.display = 'inline-flex';
+            badge.textContent = dtSelectedThemes.length;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    if (countBadge) {
+        countBadge.textContent = dtSelectedThemes.length;
+    }
+    
+    // Update card states
+    document.querySelectorAll('.dt-theme-card').forEach(card => {
+        const theme = card.dataset.theme;
+        if (dtSelectedThemes.includes(theme)) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+}
+
+// Filter themes by search
+function dtFilterThemes() {
+    const searchInput = document.getElementById('dtSearchInput');
+    const clearBtn = document.getElementById('dtSearchClear');
+    const query = searchInput.value.toLowerCase().trim();
+    
+    // Show/hide clear button
+    if (clearBtn) {
+        clearBtn.classList.toggle('visible', query.length > 0);
+    }
+    
+    // Filter cards
+    document.querySelectorAll('.dt-theme-card').forEach(card => {
+        const name = card.querySelector('.dt-theme-name').textContent.toLowerCase();
+        const desc = card.querySelector('.dt-theme-desc').textContent.toLowerCase();
+        
+        if (query === '' || name.includes(query) || desc.includes(query)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
+// Clear search
+function dtClearSearch() {
+    const searchInput = document.getElementById('dtSearchInput');
+    const clearBtn = document.getElementById('dtSearchClear');
+    
+    if (searchInput) {
+        searchInput.value = '';
+        dtFilterThemes();
+    }
+    if (clearBtn) {
+        clearBtn.classList.remove('visible');
+    }
+}
+
+// Reset selection
+function dtResetSelection() {
+    // Reset to AI Decision only
+    dtSelectedThemes = ['ai-decision'];
+    
+    // Update cards
+    document.querySelectorAll('.dt-theme-card').forEach(card => {
+        if (card.dataset.theme === 'ai-decision') {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+    
+    dtSaveToStorage();
+    dtUpdateUI();
+    
+    showNotification('🎨 Theme selection reset to AI Decision', 'info');
+}
+
+// Update char count
+function dtUpdateCharCount() {
+    const textarea = document.getElementById('dtNotesTextarea');
+    const counter = document.getElementById('dtCharCount');
+    if (textarea && counter) {
+        counter.textContent = `${textarea.value.length} characters`;
+        dtSaveNotesToStorage();
+    }
+}
+
+// Push to Project Prompts
+function dtPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('dtNotesTextarea')?.value.trim() || '';
+    
+    if (dtSelectedThemes.length === 0 && !notesContent) {
+        showNotification('⚠️ No themes selected or notes to push', 'warning');
+        return;
+    }
+    
+    let promptContent = `\n\n🎨 DESIGN THEME SELECTION\n`;
+    promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    
+    if (dtSelectedThemes.length > 0) {
+        // Theme descriptions
+        const themeDescriptions = {
+            'ai-decision': 'Let AI analyze and choose the perfect theme automatically based on content and purpose',
+            'minimalist': 'Clean, simple design with plenty of white space and focus on content',
+            'vibrant': 'Bold colors, energetic gradients, and eye-catching creative design',
+            'dark-elegant': 'Sophisticated dark mode with subtle contrasts and premium feel',
+            'glassmorphism': 'Frosted glass effect with backdrop blur and modern transparency',
+            'gradient-waves': 'Flowing gradients with animated wave effects for dynamic appearance',
+            'corporate': 'Business-oriented with trustworthy colors and structured layout',
+            'retro': 'Nostalgic design with warm colors and classic aesthetics',
+            'neon-cyberpunk': 'Futuristic neon with cyan, magenta creating high-tech atmosphere',
+            'sunset-paradise': 'Warm sunset colors with orange, pink, purple creating paradise vibe',
+            'ocean-breeze': 'Fresh aqua blues, turquoise, and sea green for calming feel',
+            'forest-nature': 'Natural earth tones with deep greens for organic atmosphere',
+            'berry-blast': 'Rich berry colors with raspberry, violet, fuchsia for vibrant look',
+            'candy-pop': 'Pastel candy colors with bubblegum pink, sky blue, mint green',
+            'fire-ice': 'Contrasting hot reds and oranges with cool icy blues for dramatic impact',
+            'royal-luxury': 'Opulent gold, royal purple, deep blue for premium luxurious experience',
+            'tropical-vibes': 'Lush tropical greens, mango orange, coral pink for exotic energy',
+            'midnight-aurora': 'Mystical northern lights with deep blue, aurora green, celestial pink',
+            'earthy-terracotta': 'Warm earth tones with terracotta clay, burnt orange, sandy beige',
+            'pastel-dreams': 'Soft pastel palette with blush pink, baby blue, lavender for dreamy aesthetic',
+            'electric-energy': 'High-voltage neon yellows, electric greens, hot pinks for maximum energy',
+            'cherry-blossom': 'Delicate sakura pink, white blossoms, soft green for serene Japanese feel',
+            'desert-sunset': 'Warm desert sands, sunset orange, adobe red for southwestern vibe'
+        };
+        
+        promptContent += `**Selected Theme${dtSelectedThemes.length > 1 ? 's' : ''} (${dtSelectedThemes.length}):**\n\n`;
+        
+        dtSelectedThemes.forEach((theme, index) => {
+            const themeName = theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            promptContent += `${index + 1}. **${themeName}**\n`;
+            if (themeDescriptions[theme]) {
+                promptContent += `   → ${themeDescriptions[theme]}\n`;
+            }
+        });
+        
+        if (dtSelectedThemes.length > 1) {
+            promptContent += `\n**IMPORTANT:** Multiple themes selected. AI should intelligently blend these themes, taking the best elements from each to create a cohesive, harmonious design.\n`;
+        }
+    }
+    
+    // Additional notes
+    if (notesContent) {
+        promptContent += `\n**Additional Theme Instructions:**\n${notesContent}\n`;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification(`🎨 ${dtSelectedThemes.length} theme(s) pushed to Project Prompts`, 'success');
+}
+
+// Save to storage
+function dtSaveToStorage() {
+    localStorage.setItem('dtSelectedThemes', JSON.stringify(dtSelectedThemes));
+}
+
+// Load from storage
+function dtLoadFromStorage() {
+    try {
+        const stored = localStorage.getItem('dtSelectedThemes');
+        if (stored) {
+            dtSelectedThemes = JSON.parse(stored);
+        }
+        dtLoadNotesFromStorage();
+    } catch (e) {
+        console.error('Error loading design theme state:', e);
+    }
+}
+
+// Save notes to storage
+function dtSaveNotesToStorage() {
+    const textarea = document.getElementById('dtNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('dtNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function dtLoadNotesFromStorage() {
+    const textarea = document.getElementById('dtNotesTextarea');
+    const stored = localStorage.getItem('dtNotes');
+    if (textarea && stored) {
+        textarea.value = stored;
+        dtUpdateCharCount();
+    }
+}
+
+// Reset all
+function dtResetAll(skipToast = false) {
+    dtSelectedThemes = ['ai-decision'];
+    
+    // Clear notes
+    const notesTextarea = document.getElementById('dtNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        dtUpdateCharCount();
+    }
+    
+    // Clear search
+    dtClearSearch();
+    
+    // Clear storage
+    localStorage.removeItem('dtSelectedThemes');
+    localStorage.removeItem('dtNotes');
+    
+    // Update UI
+    dtUpdateUI();
+    
+    if (!skipToast) {
+        showNotification('🎨 Design themes reset', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetDesignTheme() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Design Themes',
+            subtitle: 'Design Enhancer',
+            message: 'Are you sure you want to reset theme selection to default (AI Decision)?',
+            warning: 'All selected themes and notes will be cleared.',
+            confirmText: 'Reset',
+            icon: 'fa-palette'
+        });
+        if (confirmed) {
+            dtResetAll();
+        }
+    } else {
+        if (confirm('Reset theme selection?')) {
+            dtResetAll();
+        }
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', dtInit);
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
      🚀 EXECUTION MODE TOOL - JavaScript
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
@@ -32623,43 +33710,86 @@ function ufUpdateBadge() {
     }
 }
 
+// Update character count
+function ufUpdateCharCount() {
+    const textarea = document.getElementById('ufNotesTextarea');
+    const counter = document.getElementById('ufCharCount');
+    if (textarea && counter) {
+        counter.textContent = `${textarea.value.length} characters`;
+        ufSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function ufSaveNotesToStorage() {
+    const textarea = document.getElementById('ufNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('ufNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function ufLoadNotesFromStorage() {
+    const textarea = document.getElementById('ufNotesTextarea');
+    const stored = localStorage.getItem('ufNotes');
+    if (textarea && stored) {
+        textarea.value = stored;
+        ufUpdateCharCount();
+    }
+}
+
 // Push to Project Prompts
 function ufPushToNotes() {
     const projectNotesTextarea = document.getElementById('projectNotesTextarea');
     if (!projectNotesTextarea) return;
     
     const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
+    const notesContent = document.getElementById('ufNotesTextarea')?.value.trim() || '';
     
-    if (totalFiles === 0) {
-        showNotification('⚠️ No files to push', 'warning');
+    if (totalFiles === 0 && !notesContent) {
+        showNotification('⚠️ No files or notes to push', 'warning');
         return;
     }
     
     let promptContent = `\n\n📁 PROJECT FILES OVERVIEW\n`;
     promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    promptContent += `**Total Files: ${totalFiles}**\n\n`;
     
-    // List files by category
-    Object.entries(ufCategoryConfig).forEach(([category, config]) => {
-        const files = ufFileStorage[category];
-        if (files.length > 0) {
-            promptContent += `**${config.title} Files (${files.length}):**\n`;
-            files.forEach((file, index) => {
-                promptContent += `${index + 1}. ${file.name}\n`;
-            });
-            promptContent += `\n`;
+    if (totalFiles > 0) {
+        promptContent += `**Total Files: ${totalFiles}**\n\n`;
+        
+        // List files by category
+        Object.entries(ufCategoryConfig).forEach(([category, config]) => {
+            const files = ufFileStorage[category];
+            if (files.length > 0) {
+                promptContent += `**${config.title} Files (${files.length}):**\n`;
+                files.forEach((file, index) => {
+                    promptContent += `${index + 1}. ${file.name}\n`;
+                });
+                promptContent += `\n`;
+            }
+        });
+        
+        // Page detection info
+        if (ufDetectedHomepage) {
+            promptContent += `**🏠 Homepage:** ${ufDetectedHomepage}\n`;
         }
-    });
-    
-    // Page detection info
-    if (ufDetectedHomepage) {
-        promptContent += `**🏠 Homepage:** ${ufDetectedHomepage}\n`;
-    }
-    if (ufDetectedFeatured) {
-        promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
+        if (ufDetectedFeatured) {
+            promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
+        }
+        
+        promptContent += `\n**NOTE:** These files represent the current project structure. Please consider them when making changes.\n`;
     }
     
-    promptContent += `\n**NOTE:** These files represent the current project structure. Please consider them when making changes.\n`;
+    // Add notes content
+    if (notesContent) {
+        if (totalFiles === 0) {
+            promptContent = `\n\n📁 PROJECT NOTES\n`;
+            promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        } else {
+            promptContent += `\n**Additional Project Instructions:**\n`;
+        }
+        promptContent += `${notesContent}\n`;
+    }
     
     // Append to Project Prompts
     const currentContent = projectNotesTextarea.value;
@@ -32701,6 +33831,13 @@ function ufClearAll() {
     document.getElementById('ufFeaturedBadge').textContent = 'Not Set';
     document.getElementById('ufFeaturedBadge').className = 'uf-page-badge not-set';
     
+    // Clear notes
+    const notesTextarea = document.getElementById('ufNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        ufUpdateCharCount();
+    }
+    
     ufDisplayCategories();
     ufUpdateBadge();
     
@@ -32708,6 +33845,7 @@ function ufClearAll() {
     localStorage.removeItem('ufFileStorage');
     localStorage.removeItem('ufDetectedHomepage');
     localStorage.removeItem('ufDetectedFeatured');
+    localStorage.removeItem('ufNotes');
     
     showNotification('🗑️ All files cleared', 'info');
 }
@@ -32789,6 +33927,9 @@ function ufLoadFromStorage() {
                 featuredBadge.className = 'uf-page-badge set';
             }
         }
+        
+        // Load notes
+        ufLoadNotesFromStorage();
     } catch (e) {
         console.error('Error loading file upload state:', e);
     }

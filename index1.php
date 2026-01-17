@@ -12326,72 +12326,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Style Sample Modal - moved outside main-app-wrapper for proper positioning -->
 
-            <!-- Design Theme Selector -->
-            <div id="colorThemeSection" class="card card-full fade-in" style="animation-delay: 0.35s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <i class="fas fa-palette"></i>
-                    </div>
-                    <h2 class="card-title">Design Theme Selection</h2>
-                    <div id="themeCountBadge"
-                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: none; margin-left: auto;">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="themeCountText">0 themes selected</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Choose one or more design themes - AI will intelligently mix multiple
-                        themes when AI Decision is included!</p>
-
-                    <!-- Theme Control Panel -->
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap;">
-                        <button onclick="resetThemeSelection()"
-                            style="padding: 0.7rem 1.2rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);"
-                            onmouseenter="this.style.transform='translateY(-2px)'"
-                            onmouseleave="this.style.transform='translateY(0)'">
-                            <i class="fas fa-undo"></i>
-                            Reset Themes
-                        </button>
-                        <div id="themeMixIndicator"
-                            style="padding: 0.7rem 1.2rem; background: rgba(102, 126, 234, 0.15); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 10px; font-size: 0.9rem; color: var(--text-primary); display: none;">
-                            <i class="fas fa-info-circle" style="color: #667eea;"></i>
-                            <span id="themeMixText">Select themes to mix</span>
-                        </div>
-                    </div>
-
-                    <div class="theme-selector-grid">
-
-                        <!-- AI Decision Theme -->
-                        <label class="theme-option selected" data-theme="ai-decision">
-                            <input type="checkbox" name="design_theme" value="ai-decision" class="theme-checkbox"
-                                checked onchange="updateThemeSelection(this)">
-                            <div class="theme-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="theme-preview">
-                                <div class="theme-preview-content preview-ai">
-                                    <div class="preview-ai-icon">🤖✨</div>
-                                </div>
-                            </div>
-                            <div class="theme-info">
-                                <div class="theme-name">
-                                    <i class="fas fa-robot" style="color: #667eea;"></i>
-                                    AI Decision
-                                </div>
-                                <div class="theme-description">
-                                    Let AI analyze your application and choose the perfect theme automatically based on
-                                    content, purpose, and target audience
-                                </div>
-                                <div class="theme-tags">
-                                    <span class="theme-tag">Intelligent</span>
-                                    <span class="theme-tag">Adaptive</span>
-                                    <span class="theme-tag">Recommended</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Modern Minimalist Theme -->
+                <!-- ================================================================
+                     DESIGN THEME SELECTION - FULLY MIGRATED
+                     This section has been completely migrated to Prompt-Manager.php
+                     All HTML, CSS, and JavaScript functionality now lives in the
+                     Design Enhancer panel of Prompt-Manager.php
+                ================================================================ -->
+                <!-- All theme cards have been removed and migrated to Prompt-Manager.php
                         <label class="theme-option" data-theme="minimalist">
                             <input type="radio" name="design_theme" value="minimalist" class="theme-checkbox"
                                 onchange="updateThemeSelection(this)">
@@ -13065,11 +13006,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span class="theme-tag">Arid</span>
                                 </div>
                             </div>
-                        </label>
-
-                    </div>
-                </div>
-            </div>
+                        END OF MIGRATED DESIGN THEME SELECTION -->
 
             <!-- Layout Selector -->
             <div id="layoutSection" class="card card-full fade-in" style="animation-delay: 0.38s;">
