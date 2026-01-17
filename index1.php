@@ -13515,68 +13515,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  Design Enhancer panel of Prompt-Manager.php
             ================================================================ -->
 
-            <!-- Exclusion Manager -->
-            <div id="excludedFilesSection" class="card card-full fade-in" style="animation-delay: 0.395s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
-                        <i class="fas fa-ban"></i>
-                    </div>
-                    <h2 class="card-title">File Exclusion Manager (Optional)</h2>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Exclude specific pages from theme and/or layout changes</p>
-
-                    <!-- File Picker -->
-                    <div class="exclusion-file-picker" id="exclusionFilePicker">
-                        <input type="file" id="exclusionFileInput" multiple accept=".html,.php,.htm"
-                            style="display: none;">
-                        <div class="exclusion-file-picker-content">
-                            <div class="exclusion-file-picker-icon">
-                                <i class="fas fa-file-circle-xmark"></i>
-                            </div>
-                            <div class="exclusion-file-picker-title">Select Files to Exclude</div>
-                            <div class="exclusion-file-picker-hint">
-                                Click to choose pages that should keep their original design
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Excluded Files List -->
-                    <div class="excluded-files-list" id="excludedFilesList">
-                        <h3
-                            style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; margin-bottom: 1.5rem;">
-                            <i class="fas fa-list-check" style="color: #f59e0b;"></i> Excluded Pages
-                        </h3>
-
-                        <div id="excludedFilesContainer">
-                            <!-- Excluded files will appear here -->
-                        </div>
-
-                        <!-- Warning -->
-                        <div class="exclusion-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div class="exclusion-warning-content">
-                                <strong>Important:</strong>
-                                <p>
-                                    Excluded files will preserve their original design for the selected aspects (Theme
-                                    and/or Layout).
-                                    Only CSS/HTML changes will be prevented - JavaScript and PHP functionality remains
-                                    untouched as always.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Clear All Button -->
-                        <div style="margin-top: 1.5rem;">
-                            <button class="btn btn-danger" onclick="clearAllExclusions()">
-                                <i class="fas fa-trash-alt"></i>
-                                Clear All Exclusions
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 🚫 FILE EXCLUSION MANAGER - FULLY MIGRATED
+                 This section has been completely migrated to Prompt-Manager.php
+                 All HTML, CSS, and JavaScript functionality now lives in the
+                 Design Enhancer panel of Prompt-Manager.php
+                 ═══════════════════════════════════════════════════════════════════ -->
 
             <!-- Logo & Branding Section - Migrated to Prompt-Manager.php -->
 
@@ -13950,7 +13894,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sectionId: 'layoutSection'
         },
         // referenceImages - MIGRATED TO Prompt-Manager.php
-        excludedFiles: {
+        // excludedFiles - MIGRATED TO Prompt-Manager.php
+        /* excludedFiles: {
             icon: 'fa-ban',
             iconBg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.1))',
             iconColor: '#f59e0b',
@@ -13966,7 +13911,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ],
             tip: 'Always exclude sensitive pages like admin panels, payment pages, or any pages with complex functionality you don\'t want changed.',
             sectionId: 'excludedFilesSection'
-        },
+        }, */
         // homepageCreation - MIGRATED TO Prompt-Manager.php
         /* homepageCreation: {
             icon: 'fa-home',
@@ -14648,7 +14593,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         colorTheme: 'colorThemeSection',
         layout: 'layoutSection',
         // referenceImages: 'referenceImagesSection', - MIGRATED TO Prompt-Manager.php
-        excludedFiles: 'excludedFilesSection',
+        // excludedFiles: 'excludedFilesSection', - MIGRATED TO Prompt-Manager.php
         // homepageCreation: 'homepageCreationSection', - MIGRATED TO Prompt-Manager.php
         // documentationPage: 'documentationPageSection', - MIGRATED TO Prompt-Manager.php
         // documentationIntegration: 'documentationIntegrationSection', - MIGRATED TO Prompt-Manager.php
@@ -14666,7 +14611,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         colorTheme: true,
         layout: true,
         referenceImages: false, // MIGRATED TO Prompt-Manager.php
-        excludedFiles: true,
+        excludedFiles: false, // MIGRATED TO Prompt-Manager.php
         homepageCreation: false, // MIGRATED TO Prompt-Manager.php
         documentationPage: false, // MIGRATED TO Prompt-Manager.php
         documentationIntegration: false, // MIGRATED TO Prompt-Manager.php

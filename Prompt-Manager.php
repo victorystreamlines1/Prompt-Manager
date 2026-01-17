@@ -6814,6 +6814,263 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🚫 FILE EXCLUSION MANAGER STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .ex-file-picker {
+            padding: 0.6rem;
+            border: 2px dashed rgba(245, 158, 11, 0.3);
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.03);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .ex-file-picker:hover {
+            border-color: rgba(245, 158, 11, 0.6);
+            background: rgba(245, 158, 11, 0.08);
+        }
+        
+        .ex-file-picker-content {
+            text-align: center;
+        }
+        
+        .ex-file-picker-icon {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.3rem;
+        }
+        
+        .ex-file-picker-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+        
+        .ex-file-picker-hint {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Excluded Files List */
+        .ex-files-list {
+            display: none;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .ex-files-list.show {
+            display: block;
+        }
+        
+        .ex-files-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+        
+        .ex-files-header i {
+            color: #f59e0b;
+        }
+        
+        /* Excluded File Item */
+        .ex-file-item {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            padding: 0.4rem 0.5rem;
+            margin-bottom: 0.3rem;
+            transition: all 0.2s ease;
+        }
+        
+        .ex-file-item:hover {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.05);
+        }
+        
+        .ex-file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .ex-file-name {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+        
+        .ex-file-name > i {
+            color: #ef4444;
+        }
+        
+        .ex-file-name > span:first-of-type {
+            color: var(--text-primary);
+        }
+        
+        .ex-file-remove {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 0.25rem 0.35rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .ex-file-remove:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Exclusion Status Badge */
+        .ex-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 20px;
+            font-size: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .ex-status.both-excluded {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(245, 0, 87, 0.15) 100%);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Warning Box */
+        .ex-warning {
+            margin-top: 0.5rem;
+            padding: 0.4rem;
+            background: linear-gradient(135deg, rgba(255, 214, 0, 0.08) 0%, rgba(255, 109, 0, 0.05) 100%);
+            border-left: 3px solid #f59e0b;
+            border-radius: 4px;
+            display: flex;
+            gap: 0.3rem;
+            align-items: flex-start;
+        }
+        
+        .ex-warning > i {
+            color: #f59e0b;
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+        
+        .ex-warning strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            margin-bottom: 0.15rem;
+        }
+        
+        .ex-warning p {
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+        
+        /* Notes Section */
+        .ex-notes-section {
+            margin-top: 0.5rem;
+        }
+        
+        .ex-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .ex-notes-label i {
+            color: #f59e0b;
+        }
+        
+        .ex-notes-textarea {
+            width: 100%;
+            min-height: 50px;
+            padding: 0.4rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.2s ease;
+        }
+        
+        .ex-notes-textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+        
+        .ex-notes-textarea::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        
+        .ex-char-count {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 0.2rem;
+        }
+        
+        /* Push Section */
+        .ex-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .ex-push-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(239, 68, 68, 0.15) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        
+        .ex-push-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(239, 68, 68, 0.2) 100%);
+            border-color: rgba(245, 158, 11, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .ex-push-btn i {
+            color: #f59e0b;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            📚 DOCUMENTATION INTEGRATION STYLES
            ═══════════════════════════════════════════════════════════════════ */
         .di-checkbox-group {
@@ -7437,6 +7694,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .hp-info-tip {
             background: rgba(251, 191, 36, 0.03);
+        }
+        
+        /* Light Theme - File Exclusion Manager */
+        [data-theme="light"] .ex-file-picker {
+            background: rgba(245, 158, 11, 0.02);
+        }
+        
+        [data-theme="light"] .ex-file-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        
+        [data-theme="light"] .ex-file-item:hover {
+            background: rgba(239, 68, 68, 0.03);
+        }
+        
+        [data-theme="light"] .ex-notes-textarea {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        [data-theme="light"] .ex-warning {
+            background: linear-gradient(135deg, rgba(255, 214, 0, 0.05) 0%, rgba(255, 109, 0, 0.03) 100%);
         }
         
         /* Light Theme - Documentation Integration */
@@ -16158,6 +16437,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="hp-push-section">
                             <button type="button" class="hp-push-btn" onclick="hpPushToNotes()" title="Push homepage settings to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🚫 FILE EXCLUSION MANAGER TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="exclusionTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('exclusion')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-ban"></i>
+                            <span>File Exclusion</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetExclusions();" title="Clear all exclusions">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge ex-badge" id="exBadge" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); display: none;">0 files</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="exclusionArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="exclusionBody">
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Exclude specific pages from theme and/or layout changes</p>
+                        
+                        <!-- File Picker -->
+                        <div class="ex-file-picker" id="exFilePicker">
+                            <input type="file" id="exFileInput" multiple accept=".html,.php,.htm" style="display: none;">
+                            <div class="ex-file-picker-content">
+                                <div class="ex-file-picker-icon">
+                                    <i class="fas fa-file-circle-xmark"></i>
+                                </div>
+                                <div class="ex-file-picker-title">Select Files to Exclude</div>
+                                <div class="ex-file-picker-hint">Click to choose pages that should keep their original design</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Excluded Files List -->
+                        <div class="ex-files-list" id="exFilesList">
+                            <div class="ex-files-header">
+                                <i class="fas fa-list-check"></i>
+                                <span>Excluded Pages</span>
+                            </div>
+                            <div id="exFilesContainer"></div>
+                            
+                            <!-- Warning -->
+                            <div class="ex-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <strong>Important:</strong>
+                                    <p>Excluded files will be COMPLETELY skipped - no HTML, CSS, JavaScript, or any code changes will be made to these files.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="ex-notes-section">
+                            <label class="ex-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Exclusion Instructions</span>
+                            </label>
+                            <textarea 
+                                id="exNotesTextarea" 
+                                class="ex-notes-textarea" 
+                                placeholder="Add specific instructions about file exclusions..."
+                                oninput="exUpdateCharCount()"
+                            ></textarea>
+                            <div class="ex-char-count" id="exCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="ex-push-section">
+                            <button type="button" class="ex-push-btn" onclick="exPushToNotes()" title="Push exclusion settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -27309,6 +27661,11 @@ async function deResetAll() {
         hpResetAll(true);
     }
     
+    // Reset File Exclusion Manager (skip individual toast)
+    if (typeof exResetAll === 'function') {
+        exResetAll(true);
+    }
+    
     // Reset Documentation Integration (skip individual toast)
     if (typeof diResetAll === 'function') {
         diResetAll(true);
@@ -31475,6 +31832,285 @@ async function confirmResetHomepage() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', hpInit);
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🚫 FILE EXCLUSION MANAGER JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// File Exclusion Manager state
+let exExcludedFiles = [];
+
+// Initialize File Exclusion Manager
+function exInit() {
+    exLoadFromStorage();
+    exUpdateUI();
+    
+    // Setup file picker
+    const filePicker = document.getElementById('exFilePicker');
+    const fileInput = document.getElementById('exFileInput');
+    
+    if (filePicker && fileInput) {
+        filePicker.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            exHandleFiles(e.target.files);
+        });
+    }
+}
+
+// Handle file selection
+function exHandleFiles(files) {
+    const htmlPhpFiles = Array.from(files).filter(file =>
+        file.name.endsWith('.html') || file.name.endsWith('.php') || file.name.endsWith('.htm')
+    );
+    
+    if (htmlPhpFiles.length === 0) {
+        showNotification('⚠️ Please select HTML or PHP files only', 'warning');
+        return;
+    }
+    
+    htmlPhpFiles.forEach(file => {
+        // Check if file already excluded
+        const exists = exExcludedFiles.includes(file.name);
+        if (!exists) {
+            exExcludedFiles.push(file.name);
+        }
+    });
+    
+    exUpdateFilesList();
+    exSaveToStorage();
+    exUpdateBadge();
+    showNotification(`✅ ${htmlPhpFiles.length} file(s) added to exclusion list`, 'success');
+}
+
+// Update excluded files list display
+function exUpdateFilesList() {
+    const container = document.getElementById('exFilesContainer');
+    const list = document.getElementById('exFilesList');
+    
+    if (exExcludedFiles.length > 0) {
+        list.classList.add('show');
+        
+        container.innerHTML = exExcludedFiles.map((fileName, index) => {
+            return `
+                <div class="ex-file-item">
+                    <div class="ex-file-header">
+                        <div class="ex-file-name">
+                            <i class="fas fa-file-code"></i>
+                            <span>${fileName}</span>
+                            <span class="ex-status both-excluded"><i class="fas fa-ban"></i> Fully Excluded</span>
+                        </div>
+                        <button class="ex-file-remove" onclick="exRemoveFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        list.classList.remove('show');
+    }
+}
+
+// Remove excluded file
+function exRemoveFile(index) {
+    const fileName = exExcludedFiles[index];
+    exExcludedFiles.splice(index, 1);
+    exUpdateFilesList();
+    exSaveToStorage();
+    exUpdateBadge();
+    showNotification(`🗑️ ${fileName} removed from exclusion list`, 'info');
+}
+
+// Update badge
+function exUpdateBadge() {
+    const badge = document.getElementById('exBadge');
+    if (badge) {
+        if (exExcludedFiles.length > 0) {
+            badge.style.display = 'inline-flex';
+            badge.textContent = `${exExcludedFiles.length} file${exExcludedFiles.length > 1 ? 's' : ''}`;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Update UI from state
+function exUpdateUI() {
+    exUpdateFilesList();
+    exLoadNotesFromStorage();
+    exUpdateBadge();
+}
+
+// Push to Project Prompts
+function exPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('exNotesTextarea')?.value.trim() || '';
+    
+    // Build prompt content
+    let promptContent = '';
+    
+    if (exExcludedFiles.length > 0) {
+        promptContent += `\n\n🚫 EXCLUDED FILES - DO NOT MODIFY\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `**⚠️ CRITICAL: The following files are COMPLETELY EXCLUDED from this request.**\n\n`;
+        promptContent += `**DO NOT touch, modify, edit, or change ANY part of these files:**\n`;
+        promptContent += `- No HTML changes\n`;
+        promptContent += `- No CSS/styling changes\n`;
+        promptContent += `- No JavaScript changes\n`;
+        promptContent += `- No functionality changes\n`;
+        promptContent += `- No structure changes\n\n`;
+        
+        promptContent += `**EXCLUDED FILES (${exExcludedFiles.length}):**\n`;
+        exExcludedFiles.forEach((fileName, index) => {
+            promptContent += `${index + 1}. ⛔ ${fileName}\n`;
+        });
+        
+        promptContent += `\n**IMPORTANT:** These files must remain EXACTLY as they are. Skip them entirely in your modifications.\n`;
+    }
+    
+    // Additional notes
+    if (notesContent) {
+        if (!promptContent) {
+            promptContent += `\n\n🚫 FILE EXCLUSION NOTES\n`;
+            promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        } else {
+            promptContent += `\nAdditional Exclusion Instructions:\n`;
+        }
+        promptContent += `${notesContent}\n`;
+    }
+    
+    if (!promptContent) {
+        showNotification('⚠️ No exclusions or notes to push', 'warning');
+        return;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification('🚫 File exclusions pushed to Project Prompts', 'success');
+}
+
+// Character count
+function exUpdateCharCount() {
+    const textarea = document.getElementById('exNotesTextarea');
+    const charCount = document.getElementById('exCharCount');
+    if (textarea && charCount) {
+        charCount.textContent = `${textarea.value.length} characters`;
+        exSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function exSaveNotesToStorage() {
+    const textarea = document.getElementById('exNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('exNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function exLoadNotesFromStorage() {
+    const savedNotes = localStorage.getItem('exNotes');
+    const textarea = document.getElementById('exNotesTextarea');
+    if (savedNotes && textarea) {
+        textarea.value = savedNotes;
+        exUpdateCharCount();
+    }
+}
+
+// Save to localStorage
+function exSaveToStorage() {
+    try {
+        localStorage.setItem('exExcludedFiles', JSON.stringify(exExcludedFiles));
+    } catch (e) {
+        console.warn('Failed to save exclusions:', e);
+    }
+}
+
+// Load from localStorage
+function exLoadFromStorage() {
+    const saved = localStorage.getItem('exExcludedFiles');
+    if (saved) {
+        try {
+            exExcludedFiles = JSON.parse(saved);
+        } catch (e) {
+            console.warn('Failed to load exclusions:', e);
+            exExcludedFiles = [];
+        }
+    }
+}
+
+// Reset all
+function exResetAll(skipToast = false) {
+    exExcludedFiles = [];
+    
+    // Clear UI
+    exUpdateFilesList();
+    
+    const fileInput = document.getElementById('exFileInput');
+    if (fileInput) fileInput.value = '';
+    
+    // Clear notes
+    const notesTextarea = document.getElementById('exNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        exUpdateCharCount();
+    }
+    
+    // Clear storage
+    localStorage.removeItem('exExcludedFiles');
+    localStorage.removeItem('exNotes');
+    
+    exUpdateBadge();
+    
+    if (!skipToast) {
+        showNotification('🚫 All exclusions cleared', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetExclusions() {
+    if (exExcludedFiles.length === 0) {
+        showNotification('⚠️ No files to clear', 'warning');
+        return;
+    }
+    
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Clear All Exclusions',
+            subtitle: 'Design Enhancer',
+            message: `Are you sure you want to remove all ${exExcludedFiles.length} excluded file(s)?`,
+            warning: 'This action cannot be undone.',
+            confirmText: 'Clear All',
+            icon: 'fa-ban'
+        });
+        if (confirmed) {
+            exResetAll();
+        }
+    } else {
+        if (confirm(`Clear all ${exExcludedFiles.length} exclusions?`)) {
+            exResetAll();
+        }
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', exInit);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════
