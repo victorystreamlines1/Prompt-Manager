@@ -31488,6 +31488,233 @@ function dtUpdateCharCount() {
     }
 }
 
+// Theme CSS definitions
+const dtThemeCSS = {
+    'minimalist': `:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --accent: #007bff;
+  --border: #e9ecef;
+}
+body { background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+.card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; }`,
+
+    'vibrant': `:root {
+  --gradient-1: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-2: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --bg-dark: #1a1a2e;
+  --accent-pink: #f5576c;
+  --accent-blue: #4facfe;
+}
+body { background: var(--bg-dark); }
+.hero { background: var(--gradient-1); }
+.btn-primary { background: var(--gradient-2); border: none; }`,
+
+    'dark-elegant': `:root {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #252525;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent: #c9a227;
+  --border: #333333;
+}
+body { background: var(--bg-primary); color: var(--text-primary); }
+.card { background: var(--bg-card); border: 1px solid var(--border); }`,
+
+    'glassmorphism': `:root {
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --blur: 20px;
+  --text-light: #ffffff;
+}
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}`,
+
+    'gradient-waves': `:root {
+  --wave-1: #667eea;
+  --wave-2: #764ba2;
+  --wave-3: #00e0d3;
+  --wave-4: #1bffff;
+}
+.waves-bg { background: linear-gradient(135deg, var(--wave-1), var(--wave-2), var(--wave-3), var(--wave-4)); }
+.animated-gradient { background-size: 400% 400%; animation: gradient 15s ease infinite; }`,
+
+    'corporate': `:root {
+  --primary: #0052cc;
+  --secondary: #172b4d;
+  --bg-light: #f4f5f7;
+  --text-dark: #091e42;
+  --accent: #00875a;
+  --border: #dfe1e6;
+}
+body { background: var(--bg-light); color: var(--text-dark); font-family: 'Roboto', sans-serif; }
+.btn-primary { background: var(--primary); color: white; }`,
+
+    'retro': `:root {
+  --cream: #f5e6c8;
+  --brown: #8b4513;
+  --orange: #d2691e;
+  --teal: #008080;
+  --burgundy: #722f37;
+}
+body { background: var(--cream); color: var(--brown); font-family: 'Playfair Display', serif; }
+.accent { color: var(--orange); }`,
+
+    'neon-cyberpunk': `:root {
+  --bg-dark: #0a0a0f;
+  --neon-cyan: #00ffff;
+  --neon-magenta: #ff00ff;
+  --neon-yellow: #ffff00;
+  --neon-pink: #ff0080;
+}
+body { background: var(--bg-dark); }
+.neon-text { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan); }
+.neon-border { border: 2px solid var(--neon-magenta); box-shadow: 0 0 15px var(--neon-magenta); }`,
+
+    'sunset-paradise': `:root {
+  --sunset-orange: #ff6b35;
+  --sunset-pink: #f7931e;
+  --sunset-purple: #c471ed;
+  --sunset-red: #ff1053;
+  --golden: #ffd700;
+}
+.sunset-gradient { background: linear-gradient(135deg, var(--sunset-orange), var(--sunset-pink), var(--sunset-purple)); }`,
+
+    'ocean-breeze': `:root {
+  --ocean-light: #e0f7fa;
+  --ocean-medium: #4dd0e1;
+  --ocean-deep: #0097a7;
+  --ocean-dark: #006064;
+  --sand: #fff8e1;
+}
+body { background: linear-gradient(180deg, var(--ocean-light), var(--sand)); }
+.water-effect { background: var(--ocean-medium); }`,
+
+    'forest-nature': `:root {
+  --forest-dark: #1b4332;
+  --forest-medium: #2d6a4f;
+  --forest-light: #40916c;
+  --leaf: #52b788;
+  --earth: #8b6914;
+  --cream: #f5f5dc;
+}
+body { background: var(--cream); color: var(--forest-dark); }
+.nature-accent { background: var(--forest-medium); }`,
+
+    'berry-blast': `:root {
+  --raspberry: #e30b5c;
+  --violet: #8b008b;
+  --fuchsia: #ff00ff;
+  --cherry: #c2185b;
+  --plum: #673147;
+}
+.berry-gradient { background: linear-gradient(135deg, var(--raspberry), var(--violet), var(--fuchsia)); }`,
+
+    'candy-pop': `:root {
+  --bubblegum: #ff80ab;
+  --sky-blue: #80d8ff;
+  --mint: #b9f6ca;
+  --lemon: #fff59d;
+  --lavender: #e1bee7;
+}
+body { background: linear-gradient(135deg, var(--bubblegum), var(--sky-blue), var(--mint)); }`,
+
+    'fire-ice': `:root {
+  --fire-red: #ff3d00;
+  --fire-orange: #ff9100;
+  --ice-blue: #80deea;
+  --ice-cyan: #00bcd4;
+  --white: #ffffff;
+}
+.fire-side { background: linear-gradient(135deg, var(--fire-red), var(--fire-orange)); }
+.ice-side { background: linear-gradient(135deg, var(--ice-blue), var(--ice-cyan)); }`,
+
+    'royal-luxury': `:root {
+  --gold: #ffd700;
+  --royal-purple: #4a148c;
+  --deep-blue: #1a237e;
+  --silver: #c0c0c0;
+  --velvet: #7b1fa2;
+}
+body { background: var(--deep-blue); color: var(--gold); }
+.luxury-accent { background: linear-gradient(135deg, var(--gold), var(--silver)); }`,
+
+    'tropical-vibes': `:root {
+  --palm-green: #00c853;
+  --mango: #ff6d00;
+  --coral: #ff4081;
+  --sunshine: #ffeb3b;
+  --ocean: #00bcd4;
+}
+.tropical-gradient { background: linear-gradient(135deg, var(--palm-green), var(--mango), var(--coral)); }`,
+
+    'midnight-aurora': `:root {
+  --night-sky: #0d0221;
+  --aurora-green: #00e676;
+  --aurora-violet: #7c4dff;
+  --aurora-pink: #e040fb;
+  --star-white: #ffffff;
+}
+body { background: var(--night-sky); }
+.aurora-glow { background: linear-gradient(135deg, var(--aurora-green), var(--aurora-violet), var(--aurora-pink)); }`,
+
+    'earthy-terracotta': `:root {
+  --terracotta: #e07a5f;
+  --clay: #bf360c;
+  --sand: #f4e1c1;
+  --olive: #606c38;
+  --cream: #fefae0;
+}
+body { background: var(--cream); color: var(--clay); }
+.earth-accent { background: var(--terracotta); }`,
+
+    'pastel-dreams': `:root {
+  --blush: #f8bbd0;
+  --baby-blue: #b3e5fc;
+  --lavender: #e1bee7;
+  --mint: #c8e6c9;
+  --peach: #ffccbc;
+}
+body { background: linear-gradient(135deg, var(--blush), var(--baby-blue), var(--lavender)); }`,
+
+    'electric-energy': `:root {
+  --electric-yellow: #ffeb3b;
+  --electric-green: #00e676;
+  --hot-pink: #ff4081;
+  --cyan: #00bcd4;
+  --black: #000000;
+}
+body { background: var(--black); }
+.electric-glow { color: var(--electric-yellow); text-shadow: 0 0 20px var(--electric-yellow); }`,
+
+    'cherry-blossom': `:root {
+  --sakura-pink: #ffb7c5;
+  --blossom-white: #fce4ec;
+  --branch-brown: #795548;
+  --leaf-green: #c8e6c9;
+  --petal-light: #f8bbd0;
+}
+body { background: var(--blossom-white); color: var(--branch-brown); }
+.sakura-accent { color: var(--sakura-pink); }`,
+
+    'desert-sunset': `:root {
+  --desert-sand: #f4a460;
+  --sunset-orange: #ff9800;
+  --adobe-red: #bf360c;
+  --cactus-green: #689f38;
+  --sky-purple: #9c27b0;
+}
+.desert-gradient { background: linear-gradient(180deg, var(--sky-purple), var(--sunset-orange), var(--desert-sand)); }`
+};
+
 // Push to Project Prompts
 function dtPushToNotes() {
     const projectNotesTextarea = document.getElementById('projectNotesTextarea');
@@ -31500,49 +31727,100 @@ function dtPushToNotes() {
         return;
     }
     
+    // Theme descriptions
+    const themeDescriptions = {
+        'ai-decision': 'Let AI analyze and choose the perfect theme automatically based on content and purpose',
+        'minimalist': 'Clean, simple design with plenty of white space and focus on content',
+        'vibrant': 'Bold colors, energetic gradients, and eye-catching creative design',
+        'dark-elegant': 'Sophisticated dark mode with subtle contrasts and premium feel',
+        'glassmorphism': 'Frosted glass effect with backdrop blur and modern transparency',
+        'gradient-waves': 'Flowing gradients with animated wave effects for dynamic appearance',
+        'corporate': 'Business-oriented with trustworthy colors and structured layout',
+        'retro': 'Nostalgic design with warm colors and classic aesthetics',
+        'neon-cyberpunk': 'Futuristic neon with cyan, magenta creating high-tech atmosphere',
+        'sunset-paradise': 'Warm sunset colors with orange, pink, purple creating paradise vibe',
+        'ocean-breeze': 'Fresh aqua blues, turquoise, and sea green for calming feel',
+        'forest-nature': 'Natural earth tones with deep greens for organic atmosphere',
+        'berry-blast': 'Rich berry colors with raspberry, violet, fuchsia for vibrant look',
+        'candy-pop': 'Pastel candy colors with bubblegum pink, sky blue, mint green',
+        'fire-ice': 'Contrasting hot reds and oranges with cool icy blues for dramatic impact',
+        'royal-luxury': 'Opulent gold, royal purple, deep blue for premium luxurious experience',
+        'tropical-vibes': 'Lush tropical greens, mango orange, coral pink for exotic energy',
+        'midnight-aurora': 'Mystical northern lights with deep blue, aurora green, celestial pink',
+        'earthy-terracotta': 'Warm earth tones with terracotta clay, burnt orange, sandy beige',
+        'pastel-dreams': 'Soft pastel palette with blush pink, baby blue, lavender for dreamy aesthetic',
+        'electric-energy': 'High-voltage neon yellows, electric greens, hot pinks for maximum energy',
+        'cherry-blossom': 'Delicate sakura pink, white blossoms, soft green for serene Japanese feel',
+        'desert-sunset': 'Warm desert sands, sunset orange, adobe red for southwestern vibe'
+    };
+    
     let promptContent = `\n\n🎨 DESIGN THEME SELECTION\n`;
     promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     
-    if (dtSelectedThemes.length > 0) {
-        // Theme descriptions
-        const themeDescriptions = {
-            'ai-decision': 'Let AI analyze and choose the perfect theme automatically based on content and purpose',
-            'minimalist': 'Clean, simple design with plenty of white space and focus on content',
-            'vibrant': 'Bold colors, energetic gradients, and eye-catching creative design',
-            'dark-elegant': 'Sophisticated dark mode with subtle contrasts and premium feel',
-            'glassmorphism': 'Frosted glass effect with backdrop blur and modern transparency',
-            'gradient-waves': 'Flowing gradients with animated wave effects for dynamic appearance',
-            'corporate': 'Business-oriented with trustworthy colors and structured layout',
-            'retro': 'Nostalgic design with warm colors and classic aesthetics',
-            'neon-cyberpunk': 'Futuristic neon with cyan, magenta creating high-tech atmosphere',
-            'sunset-paradise': 'Warm sunset colors with orange, pink, purple creating paradise vibe',
-            'ocean-breeze': 'Fresh aqua blues, turquoise, and sea green for calming feel',
-            'forest-nature': 'Natural earth tones with deep greens for organic atmosphere',
-            'berry-blast': 'Rich berry colors with raspberry, violet, fuchsia for vibrant look',
-            'candy-pop': 'Pastel candy colors with bubblegum pink, sky blue, mint green',
-            'fire-ice': 'Contrasting hot reds and oranges with cool icy blues for dramatic impact',
-            'royal-luxury': 'Opulent gold, royal purple, deep blue for premium luxurious experience',
-            'tropical-vibes': 'Lush tropical greens, mango orange, coral pink for exotic energy',
-            'midnight-aurora': 'Mystical northern lights with deep blue, aurora green, celestial pink',
-            'earthy-terracotta': 'Warm earth tones with terracotta clay, burnt orange, sandy beige',
-            'pastel-dreams': 'Soft pastel palette with blush pink, baby blue, lavender for dreamy aesthetic',
-            'electric-energy': 'High-voltage neon yellows, electric greens, hot pinks for maximum energy',
-            'cherry-blossom': 'Delicate sakura pink, white blossoms, soft green for serene Japanese feel',
-            'desert-sunset': 'Warm desert sands, sunset orange, adobe red for southwestern vibe'
-        };
+    const hasAI = dtSelectedThemes.includes('ai-decision');
+    const otherThemes = dtSelectedThemes.filter(t => t !== 'ai-decision');
+    
+    // Case 1: ONLY AI Decision selected
+    if (hasAI && otherThemes.length === 0) {
+        promptContent += `**Mode: AI Creative Freedom**\n\n`;
+        promptContent += `🤖 **AI DECISION - FULL CREATIVE CONTROL**\n`;
+        promptContent += `The AI has complete creative freedom to design the theme from its own imagination.\n\n`;
+        promptContent += `**Instructions for AI:**\n`;
+        promptContent += `- Analyze the website content, purpose, and target audience\n`;
+        promptContent += `- Create a unique, custom theme that best fits the application\n`;
+        promptContent += `- Design original color palettes, typography, and visual elements\n`;
+        promptContent += `- Consider modern design trends while ensuring usability\n`;
+        promptContent += `- Generate complete CSS variables and styling rules\n`;
+    }
+    // Case 2: AI Decision + Other Themes selected
+    else if (hasAI && otherThemes.length > 0) {
+        promptContent += `**Mode: AI Selection from Provided Themes**\n\n`;
+        promptContent += `🤖 **AI DECISION + THEME OPTIONS**\n`;
+        promptContent += `The AI should analyze the uploaded website and SELECT the most appropriate theme(s) from the options below.\n\n`;
+        promptContent += `**Instructions for AI:**\n`;
+        promptContent += `- Review and understand the uploaded website's content and purpose\n`;
+        promptContent += `- Analyze the ${otherThemes.length} theme option(s) provided below\n`;
+        promptContent += `- SELECT the theme that best matches the website's goals and audience\n`;
+        promptContent += `- You may blend elements from multiple themes if appropriate\n`;
+        promptContent += `- Apply the selected theme's CSS variables and styling\n\n`;
         
-        promptContent += `**Selected Theme${dtSelectedThemes.length > 1 ? 's' : ''} (${dtSelectedThemes.length}):**\n\n`;
+        promptContent += `**Available Theme Options (${otherThemes.length}):**\n`;
+        promptContent += `─────────────────────────────────\n\n`;
         
-        dtSelectedThemes.forEach((theme, index) => {
+        otherThemes.forEach((theme, index) => {
             const themeName = theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            promptContent += `${index + 1}. **${themeName}**\n`;
-            if (themeDescriptions[theme]) {
-                promptContent += `   → ${themeDescriptions[theme]}\n`;
+            promptContent += `**${index + 1}. ${themeName}**\n`;
+            promptContent += `📝 ${themeDescriptions[theme] || 'Custom theme'}\n\n`;
+            if (dtThemeCSS[theme]) {
+                promptContent += `\`\`\`css\n/* ${themeName} Theme CSS */\n${dtThemeCSS[theme]}\n\`\`\`\n\n`;
+            }
+        });
+    }
+    // Case 3: Only specific themes selected (no AI)
+    else if (otherThemes.length > 0) {
+        if (otherThemes.length === 1) {
+            promptContent += `**Mode: Single Theme Application**\n\n`;
+            promptContent += `Apply the following theme exactly as specified:\n\n`;
+        } else {
+            promptContent += `**Mode: Multi-Theme Blend**\n\n`;
+            promptContent += `Blend the following ${otherThemes.length} themes intelligently:\n\n`;
+        }
+        
+        otherThemes.forEach((theme, index) => {
+            const themeName = theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            promptContent += `**${index + 1}. ${themeName}**\n`;
+            promptContent += `📝 ${themeDescriptions[theme] || 'Custom theme'}\n\n`;
+            if (dtThemeCSS[theme]) {
+                promptContent += `\`\`\`css\n/* ${themeName} Theme CSS */\n${dtThemeCSS[theme]}\n\`\`\`\n\n`;
             }
         });
         
-        if (dtSelectedThemes.length > 1) {
-            promptContent += `\n**IMPORTANT:** Multiple themes selected. AI should intelligently blend these themes, taking the best elements from each to create a cohesive, harmonious design.\n`;
+        if (otherThemes.length > 1) {
+            promptContent += `**IMPORTANT - Multi-Theme Instructions:**\n`;
+            promptContent += `- Intelligently blend elements from all ${otherThemes.length} selected themes\n`;
+            promptContent += `- Create a cohesive design that incorporates the best aspects of each\n`;
+            promptContent += `- Ensure color harmonization and visual consistency\n`;
+            promptContent += `- The final design should feel unified, not fragmented\n`;
         }
     }
     
@@ -31563,7 +31841,10 @@ function dtPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification(`🎨 ${dtSelectedThemes.length} theme(s) pushed to Project Prompts`, 'success');
+    const modeText = hasAI && otherThemes.length === 0 ? 'AI Creative Mode' : 
+                     hasAI && otherThemes.length > 0 ? `AI Selection (${otherThemes.length} options)` :
+                     `${otherThemes.length} theme(s)`;
+    showNotification(`🎨 ${modeText} pushed to Project Prompts`, 'success');
 }
 
 // Save to storage
