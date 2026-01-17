@@ -1,1 +1,1 @@
-why is project prompt is not drivable anymore it used to be drivable just keep it at the same default height and restore the drigability 
+Still, project prompts container is not draggable, although there is an icon for dragging, but it's not working, it's freezing. 

@@ -7515,19 +7515,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .project-notes-body {
             position: relative;
-            transition: all 0.3s ease;
-            max-height: 200px;
-            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            overflow: visible;
         }
         
         .project-notes-body.collapsed {
-            max-height: 0;
-            padding: 0;
+            max-height: 0 !important;
+            overflow: hidden;
+            opacity: 0;
         }
         
         .project-notes-textarea {
             width: 100%;
-            min-height: 200px;
+            min-height: 150px;
             max-height: 80vh;
             height: 280px;
             padding: 1rem;
@@ -7538,7 +7538,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
             line-height: 1.7;
-            resize: vertical;
+            resize: none; /* Disable native resize, use custom handle */
             outline: none;
             overflow-y: auto;
             box-sizing: border-box;
@@ -7558,20 +7558,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             bottom: 0;
             left: 0;
             right: 0;
-            height: 18px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to top, rgba(251, 191, 36, 0.08) 0%, transparent 100%);
+            background: linear-gradient(to top, rgba(251, 191, 36, 0.12) 0%, transparent 100%);
             cursor: ns-resize;
-            color: rgba(251, 191, 36, 0.4);
-            font-size: 0.55rem;
+            color: rgba(251, 191, 36, 0.5);
+            font-size: 0.7rem;
             transition: all 0.2s ease;
+            z-index: 10;
+            user-select: none;
         }
         
         .project-notes-resize-handle:hover {
-            background: linear-gradient(to top, rgba(251, 191, 36, 0.15) 0%, transparent 100%);
-            color: rgba(251, 191, 36, 0.7);
+            background: linear-gradient(to top, rgba(251, 191, 36, 0.25) 0%, transparent 100%);
+            color: rgba(251, 191, 36, 0.9);
+        }
+        
+        .project-notes-resize-handle:active {
+            background: linear-gradient(to top, rgba(251, 191, 36, 0.35) 0%, transparent 100%);
+            color: #fbbf24;
         }
         
         /* Dashboard Footer with Project Management & Generate Button */
@@ -23244,35 +23251,84 @@ function pushNotesToPrompt() {
 function initNotesResize() {
     const resizeHandle = document.getElementById('notesResizeHandle');
     const textarea = document.getElementById('projectNotesTextarea');
+    const notesBody = document.getElementById('projectNotesBody');
     
-    if (!resizeHandle || !textarea) return;
+    if (!resizeHandle || !textarea) {
+        console.log('Notes resize: elements not found');
+        return;
+    }
     
     let isResizing = false;
-    let startY, startHeight;
+    let startY = 0;
+    let startHeight = 0;
     
-    resizeHandle.addEventListener('mousedown', function(e) {
+    // Get max height from CSS (80vh) or use window height as fallback
+    const getMaxHeight = () => Math.floor(window.innerHeight * 0.8);
+    const minHeight = 150; // Minimum usable height
+    
+    // Mouse events
+    resizeHandle.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+    
+    // Touch events for mobile
+    resizeHandle.addEventListener('touchstart', startResizeTouch, { passive: false });
+    document.addEventListener('touchmove', doResizeTouch, { passive: false });
+    document.addEventListener('touchend', stopResize);
+    
+    function startResize(e) {
+        e.preventDefault();
+        e.stopPropagation();
         isResizing = true;
         startY = e.clientY;
         startHeight = textarea.offsetHeight;
         document.body.style.cursor = 'ns-resize';
         document.body.style.userSelect = 'none';
+        resizeHandle.style.color = '#fbbf24';
+    }
+    
+    function startResizeTouch(e) {
         e.preventDefault();
-    });
+        isResizing = true;
+        startY = e.touches[0].clientY;
+        startHeight = textarea.offsetHeight;
+        resizeHandle.style.color = '#fbbf24';
+    }
     
-    document.addEventListener('mousemove', function(e) {
+    function doResize(e) {
         if (!isResizing) return;
+        e.preventDefault();
         const diff = e.clientY - startY;
-        const newHeight = Math.min(Math.max(startHeight + diff, 40), 300);
+        const newHeight = Math.min(Math.max(startHeight + diff, minHeight), getMaxHeight());
         textarea.style.height = newHeight + 'px';
-    });
+    }
     
-    document.addEventListener('mouseup', function() {
+    function doResizeTouch(e) {
+        if (!isResizing) return;
+        e.preventDefault();
+        const diff = e.touches[0].clientY - startY;
+        const newHeight = Math.min(Math.max(startHeight + diff, minHeight), getMaxHeight());
+        textarea.style.height = newHeight + 'px';
+    }
+    
+    function stopResize() {
         if (isResizing) {
             isResizing = false;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
+            resizeHandle.style.color = '';
+            // Save the height to localStorage
+            localStorage.setItem('projectNotesHeight', textarea.style.height);
         }
-    });
+    }
+    
+    // Restore saved height
+    const savedHeight = localStorage.getItem('projectNotesHeight');
+    if (savedHeight) {
+        textarea.style.height = savedHeight;
+    }
+    
+    console.log('Notes resize initialized');
 }
 
 // Initialize notes on page load
