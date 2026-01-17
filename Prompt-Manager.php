@@ -6549,18 +6549,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.1);
         }
         
-        .di-file-preview {
-            margin-top: 0.4rem;
-            padding: 0.4rem;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 4px;
-            max-height: 100px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.5rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
         
         /* Integration Mode Section */
         .di-mode-section {
@@ -6613,6 +6601,163 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .di-mode-option.checked {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
             border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Create Page Input Section */
+        .di-create-page-input,
+        .di-injection-files {
+            display: none;
+            padding: 0.5rem;
+            margin: 0.3rem 0 0.5rem 1.2rem;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .di-create-page-input.show,
+        .di-injection-files.show {
+            display: block;
+        }
+        
+        .di-input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .di-input-label i {
+            color: #10b981;
+        }
+        
+        .di-page-name-input {
+            width: 100%;
+            padding: 0.4rem 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.55rem;
+            transition: all 0.2s ease;
+        }
+        
+        .di-page-name-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .di-input-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.45rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .di-input-hint i {
+            color: rgba(16, 185, 129, 0.7);
+        }
+        
+        /* Injection Files Picker */
+        .di-injection-files {
+            background: rgba(239, 68, 68, 0.05);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        
+        .di-injection-files .di-input-label i {
+            color: #ef4444;
+        }
+        
+        .di-injection-picker {
+            position: relative;
+        }
+        
+        .di-injection-picker input[type="file"] {
+            display: none;
+        }
+        
+        .di-injection-btn {
+            width: 100%;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border: 1px dashed rgba(239, 68, 68, 0.4);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+        
+        .di-injection-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.6);
+        }
+        
+        .di-injection-btn i {
+            color: #ef4444;
+        }
+        
+        .di-injection-list {
+            margin-top: 0.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .di-injection-list:empty {
+            display: none;
+        }
+        
+        .di-injection-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.3rem 0.4rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 4px;
+            font-size: 0.45rem;
+        }
+        
+        .di-injection-file-name {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-primary);
+        }
+        
+        .di-injection-file-name i {
+            color: #ef4444;
+            font-size: 0.5rem;
+        }
+        
+        .di-injection-file-remove {
+            background: transparent;
+            border: none;
+            color: rgba(239, 68, 68, 0.7);
+            cursor: pointer;
+            padding: 0.15rem;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+        
+        .di-injection-file-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .di-injection-files .di-input-hint i {
+            color: rgba(239, 68, 68, 0.7);
         }
         
         .di-mode-option input[type="radio"] {
@@ -6783,10 +6928,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(255, 255, 255, 0.9);
         }
         
-        [data-theme="light"] .di-file-preview {
-            background: rgba(248, 250, 252, 0.9);
-        }
-        
         [data-theme="light"] .di-mode-option {
             background: rgba(255, 255, 255, 0.8);
             border-color: rgba(0, 0, 0, 0.08);
@@ -6798,6 +6939,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .di-mode-option.checked {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .di-create-page-input {
+            background: rgba(16, 185, 129, 0.03);
+        }
+        
+        [data-theme="light"] .di-page-name-input {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        [data-theme="light"] .di-injection-files {
+            background: rgba(239, 68, 68, 0.03);
+        }
+        
+        [data-theme="light"] .di-injection-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .di-injection-file-item {
+            background: rgba(255, 255, 255, 0.8);
         }
         
         [data-theme="light"] .di-info-tip {
@@ -15324,6 +15486,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span>Upload a documentation file to guide AI in the enhancement</span>
                                 </div>
                             </label>
+                            
+                            <!-- File Upload Section (under Include Documentation) -->
+                            <div class="di-upload-section" id="diUploadSection">
+                                <div class="di-upload-zone" onclick="document.getElementById('diFileInput').click()">
+                                    <input type="file" id="diFileInput" accept=".txt,.md,.doc,.docx,.pdf,.html,.json" onchange="diHandleFile(event)">
+                                    <button type="button" class="di-upload-btn">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Choose Documentation File</span>
+                                    </button>
+                                </div>
+                                
+                                <!-- File Info Display (name only) -->
+                                <div class="di-file-info" id="diFileInfo">
+                                    <div class="di-file-header">
+                                        <div class="di-file-details">
+                                            <div class="di-file-icon">
+                                                <i class="fas fa-file"></i>
+                                            </div>
+                                            <div>
+                                                <div class="di-file-name" id="diFileName"></div>
+                                                <div class="di-file-size" id="diFileSize"></div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="di-file-remove" onclick="diRemoveFile()" title="Remove file">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Integration Mode Section -->
+                                <div class="di-mode-section" id="diModeSection">
+                                    <div class="di-mode-header">
+                                        <i class="fas fa-cogs"></i>
+                                        <span>Documentation Integration Mode</span>
+                                    </div>
+                                    
+                                    <div class="di-mode-options">
+                                        <label class="di-mode-option" data-mode="create">
+                                            <input type="radio" name="di_mode" value="create" onchange="diSelectMode('create')">
+                                            <div class="di-mode-content" onclick="diSelectModeByClick('create')">
+                                                <strong><i class="fas fa-plus-circle create-icon"></i> Create New Pages</strong>
+                                                <span>Create all required pages from scratch (About Us, Contact, etc.)</span>
+                                            </div>
+                                        </label>
+                                        <!-- Page Name Input for Create Mode -->
+                                        <div class="di-create-page-input" id="diCreatePageInput">
+                                            <label class="di-input-label">
+                                                <i class="fas fa-file-alt"></i>
+                                                <span>Page Name</span>
+                                            </label>
+                                            <input type="text" id="diPageName" class="di-page-name-input" value="documentation" placeholder="Enter page name..." oninput="diSavePageName()">
+                                            <div class="di-input-hint">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span>Default: documentation (leave empty to use default)</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <label class="di-mode-option" data-mode="injection">
+                                            <input type="radio" name="di_mode" value="injection" onchange="diSelectMode('injection')">
+                                            <div class="di-mode-content" onclick="diSelectModeByClick('injection')">
+                                                <strong><i class="fas fa-syringe inject-icon"></i> Injection</strong>
+                                                <span>Inject documentation content into existing files</span>
+                                            </div>
+                                        </label>
+                                        <!-- File Picker for Injection Mode -->
+                                        <div class="di-injection-files" id="diInjectionFiles">
+                                            <label class="di-input-label">
+                                                <i class="fas fa-file-code"></i>
+                                                <span>Target Files for Injection</span>
+                                            </label>
+                                            <div class="di-injection-picker">
+                                                <input type="file" id="diInjectionFileInput" multiple accept="*" onchange="diHandleInjectionFiles(event)">
+                                                <button type="button" class="di-injection-btn" onclick="document.getElementById('diInjectionFileInput').click()">
+                                                    <i class="fas fa-folder-open"></i>
+                                                    <span>Select Files to Inject Into</span>
+                                                </button>
+                                            </div>
+                                            <div class="di-injection-list" id="diInjectionList"></div>
+                                            <div class="di-input-hint">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span>Select files where documentation will be injected</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <label class="di-mode-option" data-mode="integration">
+                                            <input type="radio" name="di_mode" value="integration" onchange="diSelectMode('integration')">
+                                            <div class="di-mode-content" onclick="diSelectModeByClick('integration')">
+                                                <strong><i class="fas fa-puzzle-piece merge-icon"></i> Integration (Smart Merge)</strong>
+                                                <span>Integrate missing content AND create missing pages</span>
+                                            </div>
+                                        </label>
+                                        
+                                        <label class="di-mode-option checked" data-mode="ai-decision">
+                                            <input type="radio" name="di_mode" value="ai-decision" checked onchange="diSelectMode('ai-decision')">
+                                            <div class="di-mode-content" onclick="diSelectModeByClick('ai-decision')">
+                                                <strong><i class="fas fa-robot ai-icon"></i> AI Decision (Recommended)</strong>
+                                                <span>Let AI analyze and choose the best approach</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- FormSubmit.co Integration -->
@@ -15351,78 +15615,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="di-email-hint">
                                     <i class="fas fa-info-circle"></i>
                                     <span>Form submissions will be sent to this email</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- File Upload Section -->
-                        <div class="di-upload-section" id="diUploadSection">
-                            <div class="di-upload-zone" onclick="document.getElementById('diFileInput').click()">
-                                <input type="file" id="diFileInput" accept=".txt,.md,.doc,.docx,.pdf,.html,.json" onchange="diHandleFile(event)">
-                                <button type="button" class="di-upload-btn">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <span>Choose Documentation File</span>
-                                </button>
-                            </div>
-                            
-                            <!-- File Info Display -->
-                            <div class="di-file-info" id="diFileInfo">
-                                <div class="di-file-header">
-                                    <div class="di-file-details">
-                                        <div class="di-file-icon">
-                                            <i class="fas fa-file"></i>
-                                        </div>
-                                        <div>
-                                            <div class="di-file-name" id="diFileName"></div>
-                                            <div class="di-file-size" id="diFileSize"></div>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="di-file-remove" onclick="diRemoveFile()" title="Remove file">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div class="di-file-preview" id="diFilePreview"></div>
-                            </div>
-                            
-                            <!-- Integration Mode Section -->
-                            <div class="di-mode-section" id="diModeSection">
-                                <div class="di-mode-header">
-                                    <i class="fas fa-cogs"></i>
-                                    <span>Documentation Integration Mode</span>
-                                </div>
-                                
-                                <div class="di-mode-options">
-                                    <label class="di-mode-option" data-mode="create">
-                                        <input type="radio" name="di_mode" value="create" onchange="diSelectMode('create')">
-                                        <div class="di-mode-content" onclick="diSelectModeByClick('create')">
-                                            <strong><i class="fas fa-plus-circle create-icon"></i> Create New Pages</strong>
-                                            <span>Create all required pages from scratch (About Us, Contact, etc.)</span>
-                                        </div>
-                                    </label>
-                                    
-                                    <label class="di-mode-option" data-mode="injection">
-                                        <input type="radio" name="di_mode" value="injection" onchange="diSelectMode('injection')">
-                                        <div class="di-mode-content" onclick="diSelectModeByClick('injection')">
-                                            <strong><i class="fas fa-syringe inject-icon"></i> Injection</strong>
-                                            <span>Inject documentation content into existing files</span>
-                                        </div>
-                                    </label>
-                                    
-                                    <label class="di-mode-option" data-mode="integration">
-                                        <input type="radio" name="di_mode" value="integration" onchange="diSelectMode('integration')">
-                                        <div class="di-mode-content" onclick="diSelectModeByClick('integration')">
-                                            <strong><i class="fas fa-puzzle-piece merge-icon"></i> Integration (Smart Merge)</strong>
-                                            <span>Integrate missing content AND create missing pages</span>
-                                        </div>
-                                    </label>
-                                    
-                                    <label class="di-mode-option checked" data-mode="ai-decision">
-                                        <input type="radio" name="di_mode" value="ai-decision" checked onchange="diSelectMode('ai-decision')">
-                                        <div class="di-mode-content" onclick="diSelectModeByClick('ai-decision')">
-                                            <strong><i class="fas fa-robot ai-icon"></i> AI Decision (Recommended)</strong>
-                                            <span>Let AI analyze and choose the best approach</span>
-                                        </div>
-                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -30131,6 +30323,8 @@ let diIntegrationMode = 'ai-decision';
 let diEnableDoc = false;
 let diEnableFormSubmit = false;
 let diContactEmail = '';
+let diPageName = 'documentation';
+let diInjectionFiles = [];
 
 // Initialize Documentation Integration
 function diInit() {
@@ -30212,19 +30406,14 @@ function diHandleFile(event) {
     diFileName = file.name;
     const fileSize = formatFileSize(file.size);
     
-    // Display file info
+    // Display file info (name and size only - no content preview)
     document.getElementById('diFileName').textContent = file.name;
     document.getElementById('diFileSize').textContent = fileSize;
     
-    // Read file content
+    // Read file content (stored but not displayed)
     const reader = new FileReader();
     reader.onload = function(e) {
         diFileContent = e.target.result;
-        
-        // Show preview (first 400 characters)
-        const preview = diFileContent.substring(0, 400);
-        document.getElementById('diFilePreview').textContent = preview + 
-            (diFileContent.length > 400 ? '\n\n...(truncated)' : '');
         
         // Show file info display
         document.getElementById('diFileInfo').classList.add('show');
@@ -30261,9 +30450,6 @@ function diRemoveFile() {
     // Hide integration mode section
     document.getElementById('diModeSection').classList.remove('show');
     
-    // Clear preview
-    document.getElementById('diFilePreview').textContent = '';
-    
     diSaveToStorage();
     diUpdateBadge();
 }
@@ -30282,6 +30468,26 @@ function diSelectMode(mode) {
         selectedOption.classList.add('checked');
     }
     
+    // Show/hide page name input for "create" mode
+    const createPageInput = document.getElementById('diCreatePageInput');
+    if (createPageInput) {
+        if (mode === 'create') {
+            createPageInput.classList.add('show');
+        } else {
+            createPageInput.classList.remove('show');
+        }
+    }
+    
+    // Show/hide injection files picker for "injection" mode
+    const injectionFiles = document.getElementById('diInjectionFiles');
+    if (injectionFiles) {
+        if (mode === 'injection') {
+            injectionFiles.classList.add('show');
+        } else {
+            injectionFiles.classList.remove('show');
+        }
+    }
+    
     localStorage.setItem('diIntegrationMode', mode);
 }
 
@@ -30292,6 +30498,73 @@ function diSelectModeByClick(mode) {
         radio.checked = true;
         diSelectMode(mode);
     }
+}
+
+// Save page name for create mode
+function diSavePageName() {
+    const input = document.getElementById('diPageName');
+    if (input) {
+        diPageName = input.value.trim() || 'documentation';
+        localStorage.setItem('diPageName', diPageName);
+    }
+}
+
+// Handle injection files selection
+function diHandleInjectionFiles(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Add new files to the list
+    for (let i = 0; i < files.length; i++) {
+        const fileName = files[i].name;
+        // Avoid duplicates
+        if (!diInjectionFiles.includes(fileName)) {
+            diInjectionFiles.push(fileName);
+        }
+    }
+    
+    // Update display
+    diUpdateInjectionList();
+    
+    // Save to storage
+    localStorage.setItem('diInjectionFiles', JSON.stringify(diInjectionFiles));
+    
+    // Clear input for re-selection
+    event.target.value = '';
+    
+    diUpdateBadge();
+    showNotification(`📂 ${files.length} file(s) selected for injection`, 'success');
+}
+
+// Update injection files list display
+function diUpdateInjectionList() {
+    const listContainer = document.getElementById('diInjectionList');
+    if (!listContainer) return;
+    
+    if (diInjectionFiles.length === 0) {
+        listContainer.innerHTML = '';
+        return;
+    }
+    
+    listContainer.innerHTML = diInjectionFiles.map((fileName, index) => `
+        <div class="di-injection-file-item">
+            <div class="di-injection-file-name">
+                <i class="fas fa-file-code"></i>
+                <span>${fileName}</span>
+            </div>
+            <button type="button" class="di-injection-file-remove" onclick="diRemoveInjectionFile(${index})" title="Remove file">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+// Remove injection file
+function diRemoveInjectionFile(index) {
+    diInjectionFiles.splice(index, 1);
+    diUpdateInjectionList();
+    localStorage.setItem('diInjectionFiles', JSON.stringify(diInjectionFiles));
+    diUpdateBadge();
 }
 
 // Update badge
@@ -30349,19 +30622,24 @@ function diUpdateUI() {
         emailInput.value = diContactEmail;
     }
     
-    // File info display
+    // File info display (name only)
     if (diFileName && diFileContent) {
         document.getElementById('diFileName').textContent = diFileName;
         document.getElementById('diFileInfo').classList.add('show');
         document.getElementById('diModeSection').classList.add('show');
-        
-        const preview = diFileContent.substring(0, 400);
-        document.getElementById('diFilePreview').textContent = preview + 
-            (diFileContent.length > 400 ? '\n\n...(truncated)' : '');
     }
     
     // Mode selection
     diSelectMode(diIntegrationMode);
+    
+    // Page name input
+    const pageNameInput = document.getElementById('diPageName');
+    if (pageNameInput) {
+        pageNameInput.value = diPageName || 'documentation';
+    }
+    
+    // Injection files list
+    diUpdateInjectionList();
     
     // Load notes
     diLoadNotesFromStorage();
@@ -30392,20 +30670,27 @@ function diPushToNotes() {
         promptContent += `\n\n📚 DOCUMENTATION INTEGRATION\n`;
         promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         promptContent += `• File: ${diFileName}\n`;
-        promptContent += `• Mode: ${modeNames[diIntegrationMode] || diIntegrationMode}\n\n`;
+        promptContent += `• Mode: ${modeNames[diIntegrationMode] || diIntegrationMode}\n`;
         
         if (diIntegrationMode === 'create') {
-            promptContent += `INSTRUCTIONS: Create all required pages from scratch based on the documentation content. Treat this as if the application has no existing pages.\n`;
+            // Get page name (default to 'documentation')
+            const pageName = diPageName || 'documentation';
+            promptContent += `• Page Name: ${pageName}\n\n`;
+            promptContent += `INSTRUCTIONS: Create a new page named "${pageName}" based on the documentation file. Build the page from scratch with proper structure, styling, and content.\n`;
         } else if (diIntegrationMode === 'injection') {
-            promptContent += `INSTRUCTIONS: Inject the documentation content into existing files. Create contact page if not available.\n`;
+            // Include injection files list
+            if (diInjectionFiles.length > 0) {
+                promptContent += `• Target Files for Injection:\n`;
+                diInjectionFiles.forEach((file, index) => {
+                    promptContent += `  ${index + 1}. ${file}\n`;
+                });
+            }
+            promptContent += `\nINSTRUCTIONS: Inject the documentation content into the specified target files. Integrate the content naturally within the existing file structure.\n`;
         } else if (diIntegrationMode === 'integration') {
-            promptContent += `INSTRUCTIONS: Integrate missing documentation content into existing pages AND create any missing pages that should exist.\n`;
+            promptContent += `\nINSTRUCTIONS: Integrate missing documentation content into existing pages AND create any missing pages that should exist. Smart merge approach - don't duplicate existing content.\n`;
         } else {
-            promptContent += `INSTRUCTIONS: Analyze the situation and choose the best approach (create, inject, or integrate) automatically based on the existing project structure.\n`;
+            promptContent += `\nINSTRUCTIONS: Analyze the situation and choose the best approach (create, inject, or integrate) automatically based on the existing project structure.\n`;
         }
-        
-        promptContent += `\n📄 DOCUMENTATION CONTENT:\n`;
-        promptContent += `\`\`\`\n${diFileContent}\n\`\`\`\n`;
     }
     
     // FormSubmit Integration
@@ -30509,6 +30794,17 @@ function diLoadFromStorage() {
     diEnableFormSubmit = localStorage.getItem('diEnableFormSubmit') === 'true';
     diContactEmail = localStorage.getItem('diContactEmail') || '';
     diIntegrationMode = localStorage.getItem('diIntegrationMode') || 'ai-decision';
+    diPageName = localStorage.getItem('diPageName') || 'documentation';
+    
+    // Load injection files
+    const savedInjectionFiles = localStorage.getItem('diInjectionFiles');
+    if (savedInjectionFiles) {
+        try {
+            diInjectionFiles = JSON.parse(savedInjectionFiles);
+        } catch (e) {
+            diInjectionFiles = [];
+        }
+    }
     
     const savedContent = localStorage.getItem('diFileContent');
     const savedName = localStorage.getItem('diFileName');
@@ -30527,6 +30823,8 @@ function diResetAll(skipToast = false) {
     diEnableDoc = false;
     diEnableFormSubmit = false;
     diContactEmail = '';
+    diPageName = 'documentation';
+    diInjectionFiles = [];
     
     // Clear UI
     const docCheckbox = document.getElementById('diEnableDoc');
@@ -30546,15 +30844,26 @@ function diResetAll(skipToast = false) {
     const emailInput = document.getElementById('diContactEmail');
     if (emailInput) emailInput.value = '';
     
+    // Reset page name input
+    const pageNameInput = document.getElementById('diPageName');
+    if (pageNameInput) pageNameInput.value = 'documentation';
+    
+    // Clear injection files list
+    const injectionList = document.getElementById('diInjectionList');
+    if (injectionList) injectionList.innerHTML = '';
+    
     document.getElementById('diUploadSection')?.classList.remove('show');
     document.getElementById('diEmailSection')?.classList.remove('show');
     document.getElementById('diFileInfo')?.classList.remove('show');
     document.getElementById('diModeSection')?.classList.remove('show');
+    document.getElementById('diCreatePageInput')?.classList.remove('show');
+    document.getElementById('diInjectionFiles')?.classList.remove('show');
     
     const fileInput = document.getElementById('diFileInput');
     if (fileInput) fileInput.value = '';
     
-    document.getElementById('diFilePreview').textContent = '';
+    const injectionFileInput = document.getElementById('diInjectionFileInput');
+    if (injectionFileInput) injectionFileInput.value = '';
     
     // Reset mode selection
     diSelectMode('ai-decision');
@@ -30574,6 +30883,8 @@ function diResetAll(skipToast = false) {
     localStorage.removeItem('diFileContent');
     localStorage.removeItem('diFileName');
     localStorage.removeItem('diNotes');
+    localStorage.removeItem('diPageName');
+    localStorage.removeItem('diInjectionFiles');
     
     diUpdateBadge();
     
