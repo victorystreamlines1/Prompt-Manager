@@ -4807,6 +4807,297 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(34, 197, 94, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           🎨 DESIGN FOCUS AREAS TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        .df-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .df-checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .df-checkbox-item:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+        
+        .df-checkbox-item.checked {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        
+        .df-checkbox-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin-top: 2px;
+            accent-color: #a855f7;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .df-checkbox-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .df-checkbox-content strong {
+            display: block;
+            font-size: 0.68rem;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+        }
+        
+        .df-checkbox-content p {
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        /* SEO Feature Box */
+        .df-seo-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 10px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .df-seo-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #10b981, #059669, #10b981);
+            animation: dfSeoShimmer 3s infinite;
+        }
+        
+        @keyframes dfSeoShimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .df-seo-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .df-seo-header strong {
+            font-size: 0.7rem;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .df-seo-header strong i {
+            font-size: 0.65rem;
+        }
+        
+        .df-seo-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            font-size: 0.5rem;
+            font-weight: 600;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .df-seo-desc {
+            font-size: 0.58rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+        }
+        
+        .df-seo-desc i {
+            color: #10b981;
+            margin-right: 0.25rem;
+        }
+        
+        .df-seo-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        
+        .df-seo-features span {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.52rem;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+        
+        .df-seo-features span i {
+            font-size: 0.5rem;
+        }
+        
+        /* Design Focus Notes */
+        .df-notes-section {
+            margin-top: 0.75rem;
+        }
+        
+        .df-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 0.4rem;
+        }
+        
+        .df-notes-label i {
+            font-size: 0.6rem;
+        }
+        
+        .df-notes-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 120px;
+            padding: 0.6rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .df-notes-textarea:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .df-notes-textarea::placeholder {
+            color: rgba(168, 85, 247, 0.4);
+            font-style: italic;
+        }
+        
+        .df-char-count {
+            text-align: right;
+            font-size: 0.55rem;
+            color: rgba(168, 85, 247, 0.5);
+            margin-top: 0.25rem;
+        }
+        
+        /* Push Button */
+        .df-push-section {
+            margin-top: 0.6rem;
+        }
+        
+        .df-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 8px;
+            color: #c4b5fd;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .df-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .df-push-btn i {
+            font-size: 0.6rem;
+        }
+        
+        /* Light theme adjustments */
+        [data-theme="light"] .df-checkbox-item {
+            background: rgba(248, 250, 252, 0.6);
+            border-color: rgba(168, 85, 247, 0.1);
+        }
+        
+        [data-theme="light"] .df-checkbox-item:hover {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(168, 85, 247, 0.2);
+        }
+        
+        [data-theme="light"] .df-checkbox-item.checked {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+        
+        [data-theme="light"] .df-seo-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.03) 100%);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+        
+        [data-theme="light"] .df-notes-label {
+            color: #7c3aed;
+        }
+        
+        [data-theme="light"] .df-notes-textarea {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(168, 85, 247, 0.15);
+        }
+        
+        [data-theme="light"] .df-notes-textarea:focus {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        [data-theme="light"] .df-notes-textarea::placeholder {
+            color: rgba(124, 58, 237, 0.4);
+        }
+        
+        [data-theme="light"] .df-char-count {
+            color: rgba(124, 58, 237, 0.5);
+        }
+        
+        [data-theme="light"] .df-push-btn {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-color: rgba(168, 85, 247, 0.2);
+            color: #7c3aed;
+        }
+        
+        [data-theme="light"] .df-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.12) 100%);
+            border-color: rgba(168, 85, 247, 0.35);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -12839,6 +13130,110 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="em-push-section">
                             <button type="button" class="em-push-btn" onclick="emPushToNotes()" title="Push execution mode and notes to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🎨 DESIGN FOCUS AREAS TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="designFocusTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('designFocus')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-palette"></i>
+                            <span>Design Focus Areas</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetDesignFocus();" title="Reset design focus">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge df-badge" id="dfBadge" style="background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);">6/6</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="designFocusArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="designFocusBody">
+                        <p style="font-size: 0.6rem; color: var(--text-secondary); margin: 0 0 0.6rem 0;">Select which design aspects AI should enhance (CSS/HTML only)</p>
+                        
+                        <!-- Checkbox Options -->
+                        <div class="df-checkbox-group">
+                            <label class="df-checkbox-item checked" data-option="layout" onclick="dfToggleOption(this)">
+                                <input type="checkbox" id="df_layout" checked>
+                                <div class="df-checkbox-content">
+                                    <strong>Layout & Structure</strong>
+                                    <p>Grid systems, flexbox, responsive design, spacing</p>
+                                </div>
+                            </label>
+                            <label class="df-checkbox-item checked" data-option="colors" onclick="dfToggleOption(this)">
+                                <input type="checkbox" id="df_colors" checked>
+                                <div class="df-checkbox-content">
+                                    <strong>Colors & Typography</strong>
+                                    <p>Color schemes, fonts, text styling, readability</p>
+                                </div>
+                            </label>
+                            <label class="df-checkbox-item checked" data-option="animations" onclick="dfToggleOption(this)">
+                                <input type="checkbox" id="df_animations" checked>
+                                <div class="df-checkbox-content">
+                                    <strong>Animations & Transitions</strong>
+                                    <p>Smooth transitions, hover effects, micro-interactions</p>
+                                </div>
+                            </label>
+                            <label class="df-checkbox-item checked" data-option="responsive" onclick="dfToggleOption(this)">
+                                <input type="checkbox" id="df_responsive" checked>
+                                <div class="df-checkbox-content">
+                                    <strong>Mobile Responsiveness</strong>
+                                    <p>Media queries, mobile-first design, touch optimization</p>
+                                </div>
+                            </label>
+                            <label class="df-checkbox-item checked" data-option="modern" onclick="dfToggleOption(this)">
+                                <input type="checkbox" id="df_modern" checked>
+                                <div class="df-checkbox-content">
+                                    <strong>Modern CSS Features</strong>
+                                    <p>CSS Grid, variables, backdrop-filter, modern properties</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <!-- SEO Feature Box -->
+                        <div class="df-seo-box">
+                            <label class="df-checkbox-item checked" data-option="seo" onclick="dfToggleOption(this)" style="background: transparent; border: none; padding: 0; margin-bottom: 0.5rem;">
+                                <input type="checkbox" id="df_seo" checked>
+                                <div class="df-checkbox-content">
+                                    <div class="df-seo-header">
+                                        <strong><i class="fas fa-search-dollar"></i> SEO & Marketing Keywords</strong>
+                                        <span class="df-seo-badge">Recommended</span>
+                                    </div>
+                                    <p class="df-seo-desc">
+                                        <i class="fas fa-magic"></i> Auto-generate SEO meta tags, keywords, and descriptions for all pages
+                                    </p>
+                                </div>
+                            </label>
+                            <div class="df-seo-features">
+                                <span><i class="fas fa-tags"></i> Meta Keywords</span>
+                                <span><i class="fas fa-file-alt"></i> Meta Description</span>
+                                <span><i class="fas fa-share-alt"></i> Open Graph Tags</span>
+                                <span><i class="fab fa-twitter"></i> Twitter Cards</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="df-notes-section">
+                            <label class="df-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Design Instructions</span>
+                            </label>
+                            <textarea 
+                                id="dfNotesTextarea" 
+                                class="df-notes-textarea" 
+                                placeholder="Add specific design instructions, color preferences, or style guidelines..."
+                                oninput="dfUpdateCharCount()"
+                            ></textarea>
+                            <div class="df-char-count" id="dfCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="df-push-section">
+                            <button type="button" class="df-push-btn" onclick="dfPushToNotes()" title="Push design focus areas and notes to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -23631,6 +24026,11 @@ async function deResetAll() {
         emResetAll(true);
     }
     
+    // Reset Design Focus (skip individual toast)
+    if (typeof dfResetAll === 'function') {
+        dfResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -26244,6 +26644,271 @@ function getExecutionMode() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     emInit();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🎨 DESIGN FOCUS AREAS TOOL - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Design Focus state
+let dfSelectedOptions = {
+    layout: true,
+    colors: true,
+    animations: true,
+    responsive: true,
+    modern: true,
+    seo: true
+};
+
+// Option descriptions for prompt generation
+const dfOptionDetails = {
+    layout: {
+        name: 'Layout & Structure',
+        desc: 'Grid systems, flexbox, responsive design, spacing'
+    },
+    colors: {
+        name: 'Colors & Typography',
+        desc: 'Color schemes, fonts, text styling, readability'
+    },
+    animations: {
+        name: 'Animations & Transitions',
+        desc: 'Smooth transitions, hover effects, micro-interactions'
+    },
+    responsive: {
+        name: 'Mobile Responsiveness',
+        desc: 'Media queries, mobile-first design, touch optimization'
+    },
+    modern: {
+        name: 'Modern CSS Features',
+        desc: 'CSS Grid, variables, backdrop-filter, modern properties'
+    },
+    seo: {
+        name: 'SEO & Marketing Keywords',
+        desc: 'Auto-generate SEO meta tags, keywords, and descriptions for all pages'
+    }
+};
+
+// Initialize Design Focus
+function dfInit() {
+    dfLoadFromStorage();
+    dfUpdateUI();
+}
+
+// Toggle option
+function dfToggleOption(label) {
+    const option = label.getAttribute('data-option');
+    const checkbox = label.querySelector('input[type="checkbox"]');
+    
+    // Toggle state
+    dfSelectedOptions[option] = !dfSelectedOptions[option];
+    checkbox.checked = dfSelectedOptions[option];
+    
+    // Update visual state
+    if (dfSelectedOptions[option]) {
+        label.classList.add('checked');
+    } else {
+        label.classList.remove('checked');
+    }
+    
+    dfUpdateBadge();
+    dfSaveToStorage();
+}
+
+// Update badge
+function dfUpdateBadge() {
+    const badge = document.getElementById('dfBadge');
+    if (!badge) return;
+    
+    const total = Object.keys(dfSelectedOptions).length;
+    const selected = Object.values(dfSelectedOptions).filter(v => v).length;
+    badge.textContent = `${selected}/${total}`;
+    
+    // Change badge color based on selection
+    if (selected === 0) {
+        badge.style.background = 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
+    } else if (selected === total) {
+        badge.style.background = 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)';
+    } else {
+        badge.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)';
+    }
+}
+
+// Update character count
+function dfUpdateCharCount() {
+    const textarea = document.getElementById('dfNotesTextarea');
+    const countEl = document.getElementById('dfCharCount');
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        dfSaveToStorage();
+    }
+}
+
+// Update UI from state
+function dfUpdateUI() {
+    Object.keys(dfSelectedOptions).forEach(option => {
+        const checkbox = document.getElementById(`df_${option}`);
+        const label = document.querySelector(`.df-checkbox-item[data-option="${option}"]`);
+        
+        if (checkbox) checkbox.checked = dfSelectedOptions[option];
+        if (label) {
+            if (dfSelectedOptions[option]) {
+                label.classList.add('checked');
+            } else {
+                label.classList.remove('checked');
+            }
+        }
+    });
+    
+    dfUpdateBadge();
+    dfUpdateCharCount();
+}
+
+// Push to Project Prompts
+function dfPushToNotes() {
+    const selectedOptions = Object.keys(dfSelectedOptions).filter(k => dfSelectedOptions[k]);
+    const notesTextarea = document.getElementById('dfNotesTextarea');
+    const additionalNotes = notesTextarea ? notesTextarea.value.trim() : '';
+    
+    if (selectedOptions.length === 0 && !additionalNotes) {
+        if (typeof showToast === 'function') showToast('⚠️ No focus areas selected and no notes to push', 'warning');
+        return;
+    }
+    
+    let promptText = `## 🎨 DESIGN FOCUS AREAS\n\n`;
+    promptText += `**Selected Enhancement Areas (CSS/HTML):**\n\n`;
+    
+    if (selectedOptions.length > 0) {
+        selectedOptions.forEach((option, index) => {
+            const details = dfOptionDetails[option];
+            promptText += `${index + 1}. **${details.name}**\n`;
+            promptText += `   - ${details.desc}\n\n`;
+        });
+        
+        // Special SEO section
+        if (dfSelectedOptions.seo) {
+            promptText += `### 🔍 SEO Requirements:\n`;
+            promptText += `- Generate appropriate meta keywords for each page\n`;
+            promptText += `- Create compelling meta descriptions\n`;
+            promptText += `- Add Open Graph tags for social sharing\n`;
+            promptText += `- Include Twitter Card metadata\n\n`;
+        }
+    } else {
+        promptText += `No specific areas selected - AI will use general best practices.\n\n`;
+    }
+    
+    // Add additional notes if present
+    if (additionalNotes) {
+        promptText += `---\n\n### 📝 ADDITIONAL DESIGN INSTRUCTIONS:\n\n`;
+        promptText += `${additionalNotes}\n\n`;
+        promptText += `---\n\n`;
+    }
+    
+    // Push to Project Notes
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (projectNotesTextarea) {
+        if (projectNotesTextarea.value.trim()) {
+            projectNotesTextarea.value = projectNotesTextarea.value.trimEnd() + '\n\n' + promptText;
+        } else {
+            projectNotesTextarea.value = promptText;
+        }
+        
+        if (typeof saveProjectNotesToStorage === 'function') {
+            saveProjectNotesToStorage();
+        }
+        
+        const notesInfo = additionalNotes ? ' + custom notes' : '';
+        if (typeof showToast === 'function') {
+            showToast(`🎨 ${selectedOptions.length} focus area(s)${notesInfo} pushed to Project Prompts`, 'success');
+        }
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
+    }
+}
+
+// Save to localStorage
+function dfSaveToStorage() {
+    const data = {
+        options: dfSelectedOptions,
+        notes: document.getElementById('dfNotesTextarea')?.value || ''
+    };
+    localStorage.setItem('df_data', JSON.stringify(data));
+}
+
+// Load from localStorage
+function dfLoadFromStorage() {
+    const saved = localStorage.getItem('df_data');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            if (data.options) {
+                dfSelectedOptions = { ...dfSelectedOptions, ...data.options };
+            }
+            const textarea = document.getElementById('dfNotesTextarea');
+            if (textarea && data.notes) {
+                textarea.value = data.notes;
+            }
+        } catch (e) {
+            console.error('Error loading design focus data:', e);
+        }
+    }
+}
+
+// Reset design focus
+function dfResetAll(skipToast = false) {
+    dfSelectedOptions = {
+        layout: true,
+        colors: true,
+        animations: true,
+        responsive: true,
+        modern: true,
+        seo: true
+    };
+    
+    const textarea = document.getElementById('dfNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    
+    dfUpdateUI();
+    localStorage.removeItem('df_data');
+    
+    if (!skipToast && typeof showToast === 'function') {
+        showToast('🔄 Design focus areas reset to default', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetDesignFocus() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Design Focus',
+            subtitle: 'Design Enhancer',
+            message: 'Are you sure you want to reset the design focus areas?',
+            warning: 'All options will be re-enabled and notes will be cleared.',
+            confirmText: 'Reset',
+            icon: 'fa-palette'
+        });
+        if (confirmed) {
+            dfResetAll();
+        }
+    } else if (confirm('Reset design focus areas to default?')) {
+        dfResetAll();
+    }
+}
+
+// Get selected options (for external access)
+function getDesignFocusOptions() {
+    return {
+        options: { ...dfSelectedOptions },
+        notes: document.getElementById('dfNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    dfInit();
 });
 </script>
 
