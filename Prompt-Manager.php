@@ -4441,6 +4441,571 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🏗️ PAGE LAYOUT STRUCTURE TOOL
+           ═══════════════════════════════════════════════════════════════════ */
+        
+        /* Layout Header Row */
+        .pl-header-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        
+        .pl-reset-btn {
+            padding: 0.4rem 0.6rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            color: #f87171;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            white-space: nowrap;
+        }
+        
+        .pl-reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .pl-mix-indicator {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            background: rgba(249, 115, 22, 0.12);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 6px;
+            font-size: 0.55rem;
+            color: var(--text-primary);
+            display: none;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .pl-mix-indicator.visible {
+            display: flex;
+        }
+        
+        .pl-mix-indicator i {
+            color: #f97316;
+        }
+        
+        /* Layout Grid */
+        .pl-layout-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.4rem;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 0.3rem;
+        }
+        
+        .pl-layout-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .pl-layout-grid::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.3);
+            border-radius: 2px;
+        }
+        
+        /* Layout Card */
+        .pl-layout-card {
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.8) 0%, rgba(27, 38, 59, 0.6) 100%);
+            border: 2px solid rgba(249, 115, 22, 0.15);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pl-layout-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .pl-layout-card:hover {
+            border-color: rgba(249, 115, 22, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.15);
+        }
+        
+        .pl-layout-card:hover::before {
+            opacity: 1;
+        }
+        
+        .pl-layout-card.selected {
+            border-color: #00e676;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.08) 0%, rgba(27, 38, 59, 0.8) 100%);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+        }
+        
+        .pl-layout-card.selected::before {
+            opacity: 1;
+            background: linear-gradient(90deg, #00e676 0%, #00bcd4 100%);
+        }
+        
+        /* Layout Preview */
+        .pl-layout-preview {
+            height: 70px;
+            border-radius: 6px;
+            margin-bottom: 0.4rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .pl-layout-preview-inner {
+            width: 90%;
+            height: 85%;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .pl-layout-card:hover .pl-layout-preview-inner {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* AI Decision Layout */
+        .pl-preview-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 1.5rem;
+            border: none;
+        }
+        
+        .pl-preview-ai::before {
+            content: '🤖';
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.15;
+        }
+        
+        .pl-preview-ai-icon {
+            font-size: 1.2rem;
+            animation: float 3s ease-in-out infinite;
+            color: white;
+        }
+        
+        /* Single Page Layout */
+        .pl-preview-single {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-single-header {
+            height: 15%;
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+        
+        .pl-single-section {
+            flex: 1;
+            background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+            border-radius: 2px;
+            border: 1px dashed #cbd5e1;
+        }
+        
+        /* Multi-Section Layout */
+        .pl-preview-multi {
+            display: grid;
+            grid-template-rows: 15px 1fr 1fr 15px;
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-multi-header {
+            background: #1e40af;
+            border-radius: 2px;
+        }
+        
+        .pl-multi-section {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 2px;
+            border: 1px solid #93c5fd;
+        }
+        
+        .pl-multi-footer {
+            background: #1e3a8a;
+            border-radius: 2px;
+        }
+        
+        /* Sidebar Layout */
+        .pl-preview-sidebar {
+            display: grid;
+            grid-template-columns: 30% 1fr;
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-sidebar-side {
+            background: linear-gradient(180deg, #7c3aed, #6d28d9);
+            border-radius: 2px;
+        }
+        
+        .pl-sidebar-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .pl-sidebar-block {
+            background: #f3f4f6;
+            border-radius: 2px;
+            flex: 1;
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Grid Masonry Layout */
+        .pl-preview-masonry {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-masonry-item {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 2px;
+        }
+        
+        .pl-masonry-item:nth-child(1) {
+            grid-row: span 2;
+        }
+        
+        .pl-masonry-item:nth-child(3) {
+            grid-row: span 2;
+        }
+        
+        .pl-masonry-item:nth-child(5) {
+            grid-column: span 2;
+        }
+        
+        /* Magazine Layout */
+        .pl-preview-magazine {
+            display: grid;
+            grid-template-areas: "hero hero" "main side" "main side";
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-magazine-hero {
+            grid-area: hero;
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            border-radius: 2px;
+        }
+        
+        .pl-magazine-main {
+            grid-area: main;
+            background: #f8fafc;
+            border-radius: 2px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-magazine-side {
+            grid-area: side;
+            background: linear-gradient(180deg, #fce7f3, #fbcfe8);
+            border-radius: 2px;
+        }
+        
+        /* Dashboard Layout */
+        .pl-preview-dashboard {
+            display: grid;
+            grid-template-areas: "nav nav nav" "card1 card2 card3" "chart chart chart";
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-dash-nav {
+            grid-area: nav;
+            background: #111827;
+            border-radius: 2px;
+        }
+        
+        .pl-dash-card {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 2px;
+        }
+        
+        .pl-dash-card:nth-child(3) {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+        
+        .pl-dash-card:nth-child(4) {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .pl-dash-chart {
+            grid-area: chart;
+            background: #f9fafb;
+            border-radius: 2px;
+            border: 1px dashed #d1d5db;
+        }
+        
+        /* Landing Page Layout */
+        .pl-preview-landing {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .pl-landing-hero {
+            height: 35%;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 2px;
+            position: relative;
+        }
+        
+        .pl-landing-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 15%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .pl-landing-sections {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+        }
+        
+        .pl-landing-section {
+            background: linear-gradient(to bottom, #fed7aa, #fdba74);
+            border-radius: 2px;
+        }
+        
+        /* Layout Info */
+        .pl-layout-info {
+            text-align: center;
+        }
+        
+        .pl-layout-name {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+        
+        .pl-layout-name i {
+            font-size: 0.55rem;
+        }
+        
+        .pl-layout-desc {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .pl-layout-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.15rem;
+            justify-content: center;
+            margin-top: 0.25rem;
+        }
+        
+        .pl-layout-tag {
+            font-size: 0.45rem;
+            padding: 0.1rem 0.3rem;
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.1) 100%);
+            color: #f97316;
+            border-radius: 8px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        
+        /* Selected Badge */
+        .pl-selected-badge {
+            position: absolute;
+            top: 0.3rem;
+            right: 0.3rem;
+            background: linear-gradient(135deg, #00e676 0%, #00bcd4 100%);
+            color: white;
+            padding: 0.15rem 0.35rem;
+            border-radius: 10px;
+            font-size: 0.45rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 0.15rem;
+            z-index: 1;
+        }
+        
+        .pl-layout-card.selected .pl-selected-badge {
+            display: inline-flex;
+        }
+        
+        /* Layout Count Info */
+        .pl-count-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding: 0.4rem;
+            background: rgba(249, 115, 22, 0.08);
+            border-radius: 6px;
+            font-size: 0.55rem;
+        }
+        
+        .pl-count-text {
+            color: var(--text-secondary);
+        }
+        
+        .pl-count-badge {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            padding: 0.15rem 0.4rem;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        
+        /* Notes Section */
+        .pl-notes-section {
+            margin-top: 0.5rem;
+        }
+        
+        .pl-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .pl-notes-label i {
+            color: #f97316;
+        }
+        
+        .pl-notes-textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.4rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            resize: vertical;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .pl-notes-textarea:focus {
+            border-color: rgba(249, 115, 22, 0.5);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        .pl-notes-char-count {
+            text-align: right;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        
+        /* Push Section */
+        .pl-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .pl-push-btn {
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+        
+        .pl-push-btn:hover {
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .pl-push-btn i {
+            font-size: 0.55rem;
+        }
+        
+        /* Light Theme for Page Layout */
+        body.light-theme .pl-layout-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+            border-color: rgba(249, 115, 22, 0.2);
+        }
+        
+        body.light-theme .pl-layout-card.selected {
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.08) 0%, rgba(255, 255, 255, 0.9) 100%);
+        }
+        
+        body.light-theme .pl-notes-textarea {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(249, 115, 22, 0.2);
+            color: #1e293b;
+        }
+        
+        body.light-theme .pl-count-info {
+            background: rgba(249, 115, 22, 0.05);
+        }
+        
+        body.light-theme .pl-mix-indicator {
+            background: rgba(249, 115, 22, 0.08);
+            color: #1e293b;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            🎨 ENHANCED STYLE TYPES TOOL
            ═══════════════════════════════════════════════════════════════════ */
         
@@ -17108,6 +17673,297 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <!-- ═══════════════════════════════════════════════════════════════════
+                     🏗️ PAGE LAYOUT STRUCTURE TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="layoutTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('layout')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-th-large"></i>
+                            <span>Page Layout Structure</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetLayout();" title="Reset layouts">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge pl-badge" id="plBadge" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">1 layout</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="layoutArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="layoutBody">
+                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                            Choose one or more layout structures - AI will intelligently combine multiple layouts when AI Decision is included!
+                        </p>
+                        
+                        <!-- Layout Control Panel -->
+                        <div class="pl-header-row">
+                            <button type="button" class="pl-reset-btn" onclick="plResetAll()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
+                            <div class="pl-mix-indicator" id="plMixIndicator">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="plMixText">Select layouts to mix</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Layout Grid -->
+                        <div class="pl-layout-grid" id="plLayoutGrid">
+                            <!-- AI Decision Layout -->
+                            <div class="pl-layout-card selected" data-layout="ai-decision" onclick="plToggleLayout('ai-decision', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-ai">
+                                        <span class="pl-preview-ai-icon">🏗️✨</span>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-brain" style="color: #667eea;"></i>
+                                        AI Decision
+                                    </div>
+                                    <div class="pl-layout-desc">Let AI analyze your content and automatically choose the best layout structure</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Intelligent</span>
+                                        <span class="pl-layout-tag">Adaptive</span>
+                                        <span class="pl-layout-tag">Recommended</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Single Page Layout -->
+                            <div class="pl-layout-card" data-layout="single-page" onclick="plToggleLayout('single-page', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-single">
+                                        <div class="pl-single-header"></div>
+                                        <div class="pl-single-section"></div>
+                                        <div class="pl-single-section"></div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-scroll" style="color: #3b82f6;"></i>
+                                        Single Page
+                                    </div>
+                                    <div class="pl-layout-desc">One continuous scrolling page with all content in sequential sections</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Simple</span>
+                                        <span class="pl-layout-tag">Storytelling</span>
+                                        <span class="pl-layout-tag">Portfolio</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Multi-Section Layout -->
+                            <div class="pl-layout-card" data-layout="multi-section" onclick="plToggleLayout('multi-section', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-multi">
+                                        <div class="pl-multi-header"></div>
+                                        <div class="pl-multi-section"></div>
+                                        <div class="pl-multi-section"></div>
+                                        <div class="pl-multi-footer"></div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-layer-group" style="color: #1e40af;"></i>
+                                        Multi-Section
+                                    </div>
+                                    <div class="pl-layout-desc">Classic header, multiple content sections, and footer layout</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Traditional</span>
+                                        <span class="pl-layout-tag">Organized</span>
+                                        <span class="pl-layout-tag">Corporate</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sidebar Layout -->
+                            <div class="pl-layout-card" data-layout="sidebar" onclick="plToggleLayout('sidebar', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-sidebar">
+                                        <div class="pl-sidebar-side"></div>
+                                        <div class="pl-sidebar-main">
+                                            <div class="pl-sidebar-block"></div>
+                                            <div class="pl-sidebar-block"></div>
+                                            <div class="pl-sidebar-block"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-columns" style="color: #7c3aed;"></i>
+                                        Sidebar Layout
+                                    </div>
+                                    <div class="pl-layout-desc">Persistent sidebar navigation with main content area</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Navigation</span>
+                                        <span class="pl-layout-tag">Blog</span>
+                                        <span class="pl-layout-tag">Documentation</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Grid Masonry Layout -->
+                            <div class="pl-layout-card" data-layout="masonry" onclick="plToggleLayout('masonry', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-masonry">
+                                        <div class="pl-masonry-item"></div>
+                                        <div class="pl-masonry-item"></div>
+                                        <div class="pl-masonry-item"></div>
+                                        <div class="pl-masonry-item"></div>
+                                        <div class="pl-masonry-item"></div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-th" style="color: #f59e0b;"></i>
+                                        Grid Masonry
+                                    </div>
+                                    <div class="pl-layout-desc">Pinterest-style grid with variable height cards</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Gallery</span>
+                                        <span class="pl-layout-tag">Visual</span>
+                                        <span class="pl-layout-tag">Creative</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Magazine Layout -->
+                            <div class="pl-layout-card" data-layout="magazine" onclick="plToggleLayout('magazine', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-magazine">
+                                        <div class="pl-magazine-hero"></div>
+                                        <div class="pl-magazine-main"></div>
+                                        <div class="pl-magazine-side"></div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-newspaper" style="color: #ec4899;"></i>
+                                        Magazine Style
+                                    </div>
+                                    <div class="pl-layout-desc">Featured hero area with main content and sidebar sections</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Editorial</span>
+                                        <span class="pl-layout-tag">News</span>
+                                        <span class="pl-layout-tag">Content-Rich</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Dashboard Layout -->
+                            <div class="pl-layout-card" data-layout="dashboard" onclick="plToggleLayout('dashboard', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-dashboard">
+                                        <div class="pl-dash-nav"></div>
+                                        <div class="pl-dash-card"></div>
+                                        <div class="pl-dash-card"></div>
+                                        <div class="pl-dash-card"></div>
+                                        <div class="pl-dash-chart"></div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-chart-line" style="color: #10b981;"></i>
+                                        Dashboard
+                                    </div>
+                                    <div class="pl-layout-desc">Data-focused layout with cards, charts, and metrics</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Analytics</span>
+                                        <span class="pl-layout-tag">Admin</span>
+                                        <span class="pl-layout-tag">Data</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Landing Page Layout -->
+                            <div class="pl-layout-card" data-layout="landing" onclick="plToggleLayout('landing', this)">
+                                <div class="pl-selected-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Selected
+                                </div>
+                                <div class="pl-layout-preview">
+                                    <div class="pl-layout-preview-inner pl-preview-landing">
+                                        <div class="pl-landing-hero"></div>
+                                        <div class="pl-landing-sections">
+                                            <div class="pl-landing-section"></div>
+                                            <div class="pl-landing-section"></div>
+                                            <div class="pl-landing-section"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="pl-layout-info">
+                                    <div class="pl-layout-name">
+                                        <i class="fas fa-rocket" style="color: #f97316;"></i>
+                                        Landing Page
+                                    </div>
+                                    <div class="pl-layout-desc">Hero section with feature blocks and clear call-to-action</div>
+                                    <div class="pl-layout-tags">
+                                        <span class="pl-layout-tag">Marketing</span>
+                                        <span class="pl-layout-tag">Conversion</span>
+                                        <span class="pl-layout-tag">Product</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Count Info -->
+                        <div class="pl-count-info">
+                            <span class="pl-count-text" id="plCountText">Select layouts for your design</span>
+                            <span class="pl-count-badge" id="plCountBadge">1</span>
+                        </div>
+                        
+                        <!-- Notes Section -->
+                        <div class="pl-notes-section">
+                            <label class="pl-notes-label">
+                                <i class="fas fa-edit"></i>
+                                Additional Layout Instructions
+                            </label>
+                            <textarea 
+                                id="plNotesTextarea" 
+                                class="pl-notes-textarea" 
+                                placeholder="Add specific layout requirements, structural preferences, or special instructions..."
+                                oninput="plUpdateCharCount()"
+                            ></textarea>
+                            <div class="pl-notes-char-count" id="plCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="pl-push-section">
+                            <button type="button" class="pl-push-btn" onclick="plPushToNotes()" title="Push selected layouts to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
                      🚀 EXECUTION MODE TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
                 <div class="de-tool-section collapsed" id="executionModeTool">
@@ -28900,6 +29756,11 @@ async function deResetAll() {
         dtResetAll(true);
     }
     
+    // Reset Page Layout Structure (skip individual toast)
+    if (typeof plResetAll === 'function') {
+        plResetAll(true);
+    }
+    
     // Reset Execution Mode (skip individual toast)
     if (typeof emResetAll === 'function') {
         emResetAll(true);
@@ -31932,6 +32793,354 @@ async function confirmResetDesignTheme() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', dtInit);
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🏗️ PAGE LAYOUT STRUCTURE TOOL - JavaScript
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Page Layout state
+let plSelectedLayouts = ['ai-decision'];
+
+// Layout descriptions for prompt generation
+const plLayoutDescriptions = {
+    'ai-decision': {
+        name: 'AI Decision',
+        description: 'Let AI analyze your content and automatically choose the best layout structure based on your application\'s needs',
+        css: '/* AI will determine the optimal layout based on content analysis */'
+    },
+    'single-page': {
+        name: 'Single Page',
+        description: 'One continuous scrolling page with all content in sequential sections',
+        css: `/* Single Page Layout */
+.page-container { max-width: 1200px; margin: 0 auto; }
+.section { padding: 4rem 2rem; }
+.hero-section { min-height: 100vh; display: flex; align-items: center; }
+.content-section { border-bottom: 1px solid var(--border-color); }`
+    },
+    'multi-section': {
+        name: 'Multi-Section',
+        description: 'Classic header, multiple content sections, and footer layout',
+        css: `/* Multi-Section Layout */
+.page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+header { position: sticky; top: 0; z-index: 100; }
+main { flex: 1; }
+footer { background: var(--footer-bg); padding: 2rem; }
+.section { padding: 3rem 2rem; }`
+    },
+    'sidebar': {
+        name: 'Sidebar Layout',
+        description: 'Persistent sidebar navigation with main content area',
+        css: `/* Sidebar Layout */
+.app-container { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--sidebar-bg); }
+.main-content { padding: 2rem; overflow-y: auto; }
+@media (max-width: 768px) { .app-container { grid-template-columns: 1fr; } .sidebar { display: none; } }`
+    },
+    'masonry': {
+        name: 'Grid Masonry',
+        description: 'Pinterest-style grid with variable height cards',
+        css: `/* Grid Masonry Layout */
+.masonry-container { columns: 3; column-gap: 1.5rem; padding: 2rem; }
+.masonry-item { break-inside: avoid; margin-bottom: 1.5rem; border-radius: 12px; overflow: hidden; }
+@media (max-width: 1024px) { .masonry-container { columns: 2; } }
+@media (max-width: 640px) { .masonry-container { columns: 1; } }`
+    },
+    'magazine': {
+        name: 'Magazine Style',
+        description: 'Featured hero area with main content and sidebar sections',
+        css: `/* Magazine Style Layout */
+.magazine-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; padding: 2rem; }
+.featured-hero { grid-column: span 2; height: 60vh; border-radius: 16px; overflow: hidden; }
+.main-articles { display: flex; flex-direction: column; gap: 1.5rem; }
+.sidebar-content { position: sticky; top: 2rem; }`
+    },
+    'dashboard': {
+        name: 'Dashboard',
+        description: 'Data-focused layout with cards, charts, and metrics',
+        css: `/* Dashboard Layout */
+.dashboard-container { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; padding: 1.5rem; }
+.dashboard-nav { grid-column: span 12; }
+.metric-card { grid-column: span 3; padding: 1.5rem; border-radius: 12px; background: var(--card-bg); }
+.chart-container { grid-column: span 6; min-height: 300px; }
+@media (max-width: 1024px) { .metric-card { grid-column: span 6; } .chart-container { grid-column: span 12; } }`
+    },
+    'landing': {
+        name: 'Landing Page',
+        description: 'Hero section with feature blocks and clear call-to-action',
+        css: `/* Landing Page Layout */
+.landing-hero { min-height: 80vh; display: flex; align-items: center; justify-content: center; text-align: center; }
+.hero-cta { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 4rem 2rem; }
+.feature-card { text-align: center; padding: 2rem; border-radius: 16px; }`
+    }
+};
+
+// Initialize Page Layout
+function plInit() {
+    plLoadFromStorage();
+    plUpdateUI();
+}
+
+// Toggle layout selection
+function plToggleLayout(layoutValue, cardElement) {
+    const index = plSelectedLayouts.indexOf(layoutValue);
+    
+    if (index > -1) {
+        // Remove from selection
+        plSelectedLayouts.splice(index, 1);
+        cardElement.classList.remove('selected');
+    } else {
+        // Add to selection
+        plSelectedLayouts.push(layoutValue);
+        cardElement.classList.add('selected');
+    }
+    
+    // Update UI
+    plUpdateUI();
+    plSaveToStorage();
+    
+    // Show notification
+    const layoutName = plLayoutDescriptions[layoutValue]?.name || layoutValue;
+    if (index > -1) {
+        showNotification(`Layout removed: ${layoutName}`, 'info');
+    } else {
+        showNotification(`🏗️ Layout added: ${layoutName}`, 'success');
+    }
+}
+
+// Update UI elements
+function plUpdateUI() {
+    // Update badge
+    const badge = document.getElementById('plBadge');
+    if (badge) {
+        badge.textContent = plSelectedLayouts.length > 0 
+            ? `${plSelectedLayouts.length} layout${plSelectedLayouts.length > 1 ? 's' : ''}` 
+            : '0';
+        badge.style.display = plSelectedLayouts.length > 0 ? 'inline-flex' : 'none';
+    }
+    
+    // Update count info
+    const countText = document.getElementById('plCountText');
+    const countBadge = document.getElementById('plCountBadge');
+    if (countText && countBadge) {
+        if (plSelectedLayouts.length > 0) {
+            countText.textContent = `${plSelectedLayouts.length} layout${plSelectedLayouts.length > 1 ? 's' : ''} selected`;
+        } else {
+            countText.textContent = 'Select layouts for your design';
+        }
+        countBadge.textContent = plSelectedLayouts.length;
+    }
+    
+    // Update mix indicator
+    plUpdateMixIndicator();
+    
+    // Update card selections
+    document.querySelectorAll('.pl-layout-card').forEach(card => {
+        const layoutValue = card.getAttribute('data-layout');
+        if (plSelectedLayouts.includes(layoutValue)) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+}
+
+// Update mix indicator
+function plUpdateMixIndicator() {
+    const indicator = document.getElementById('plMixIndicator');
+    const mixText = document.getElementById('plMixText');
+    
+    if (indicator && mixText) {
+        if (plSelectedLayouts.length > 1) {
+            indicator.classList.add('visible');
+            
+            const hasAI = plSelectedLayouts.includes('ai-decision');
+            if (hasAI) {
+                mixText.innerHTML = `<strong style="color: #f97316;">🤖 AI-Powered Structural Fusion:</strong> AI will intelligently combine ${plSelectedLayouts.length} layouts`;
+                indicator.style.borderColor = 'rgba(249, 115, 22, 0.5)';
+                indicator.style.background = 'rgba(249, 115, 22, 0.15)';
+            } else {
+                const percentage = Math.round(100 / plSelectedLayouts.length);
+                mixText.innerHTML = `<strong style="color: #10b981;">⚖️ Balanced Hybrid:</strong> ${plSelectedLayouts.length} layouts @ ~${percentage}% each`;
+                indicator.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                indicator.style.background = 'rgba(16, 185, 129, 0.15)';
+            }
+        } else {
+            indicator.classList.remove('visible');
+        }
+    }
+}
+
+// Push to Project Prompts
+function plPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('plNotesTextarea')?.value.trim() || '';
+    
+    if (plSelectedLayouts.length === 0 && !notesContent) {
+        showNotification('⚠️ No layouts selected or notes to push', 'warning');
+        return;
+    }
+    
+    let promptContent = `\n\n🏗️ PAGE LAYOUT STRUCTURE\n`;
+    promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    
+    if (plSelectedLayouts.length > 0) {
+        const hasAI = plSelectedLayouts.includes('ai-decision');
+        const otherLayouts = plSelectedLayouts.filter(l => l !== 'ai-decision');
+        
+        promptContent += `**Selected Layout${plSelectedLayouts.length > 1 ? 's' : ''} (${plSelectedLayouts.length}):**\n\n`;
+        
+        // Handle AI Decision logic (similar to Design Theme)
+        if (hasAI && otherLayouts.length > 0) {
+            // AI with other layouts - AI selects from the listed layouts
+            promptContent += `**🤖 AI Decision Mode + Specific Layouts:**\n`;
+            promptContent += `The AI should analyze the uploaded content and select the most appropriate layout from the following options, or intelligently combine them:\n\n`;
+            
+            plSelectedLayouts.forEach((layout, index) => {
+                const layoutInfo = plLayoutDescriptions[layout];
+                if (layoutInfo) {
+                    promptContent += `${index + 1}. **${layoutInfo.name}**\n`;
+                    promptContent += `   → ${layoutInfo.description}\n`;
+                    if (layout !== 'ai-decision') {
+                        promptContent += `   CSS Reference:\n\`\`\`css\n${layoutInfo.css}\n\`\`\`\n`;
+                    }
+                }
+            });
+            
+            promptContent += `\n**AI Instruction:** Based on your analysis of the uploaded files, select the most suitable layout from the options above, or create an intelligent hybrid combining their best structural elements.\n`;
+        } else if (hasAI && otherLayouts.length === 0) {
+            // Only AI Decision - AI creates layout from imagination
+            promptContent += `**🤖 Full AI Decision:**\n`;
+            promptContent += `The AI should analyze the uploaded content and determine the optimal page layout structure from its own expertise. Consider:\n`;
+            promptContent += `- Content type and purpose\n`;
+            promptContent += `- User flow and navigation patterns\n`;
+            promptContent += `- Responsive design requirements\n`;
+            promptContent += `- Industry best practices\n`;
+            promptContent += `\nCreate the most suitable layout structure based on your analysis.\n`;
+        } else {
+            // No AI - use selected layouts directly
+            plSelectedLayouts.forEach((layout, index) => {
+                const layoutInfo = plLayoutDescriptions[layout];
+                if (layoutInfo) {
+                    promptContent += `${index + 1}. **${layoutInfo.name}**\n`;
+                    promptContent += `   → ${layoutInfo.description}\n`;
+                    promptContent += `   CSS Reference:\n\`\`\`css\n${layoutInfo.css}\n\`\`\`\n`;
+                }
+            });
+            
+            if (plSelectedLayouts.length > 1) {
+                promptContent += `\n**IMPORTANT:** Multiple layouts selected. Intelligently blend these layouts, taking the best structural elements from each to create a cohesive design.\n`;
+            }
+        }
+    }
+    
+    // Additional notes
+    if (notesContent) {
+        promptContent += `\n**Additional Layout Instructions:**\n${notesContent}\n`;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification(`🏗️ ${plSelectedLayouts.length} layout(s) pushed to Project Prompts`, 'success');
+}
+
+// Update character count
+function plUpdateCharCount() {
+    const textarea = document.getElementById('plNotesTextarea');
+    const charCount = document.getElementById('plCharCount');
+    if (textarea && charCount) {
+        charCount.textContent = `${textarea.value.length} characters`;
+        plSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function plSaveNotesToStorage() {
+    const textarea = document.getElementById('plNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('plNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function plLoadNotesFromStorage() {
+    const saved = localStorage.getItem('plNotes');
+    if (saved) {
+        const textarea = document.getElementById('plNotesTextarea');
+        if (textarea) {
+            textarea.value = saved;
+            plUpdateCharCount();
+        }
+    }
+}
+
+// Save to storage
+function plSaveToStorage() {
+    localStorage.setItem('plSelectedLayouts', JSON.stringify(plSelectedLayouts));
+}
+
+// Load from storage
+function plLoadFromStorage() {
+    const saved = localStorage.getItem('plSelectedLayouts');
+    if (saved) {
+        try {
+            plSelectedLayouts = JSON.parse(saved);
+        } catch (e) {
+            plSelectedLayouts = ['ai-decision'];
+        }
+    }
+    plLoadNotesFromStorage();
+}
+
+// Reset all
+function plResetAll(skipToast = false) {
+    plSelectedLayouts = ['ai-decision'];
+    
+    // Reset textarea
+    const textarea = document.getElementById('plNotesTextarea');
+    if (textarea) {
+        textarea.value = '';
+    }
+    
+    // Update UI
+    plUpdateUI();
+    plUpdateCharCount();
+    plSaveToStorage();
+    localStorage.removeItem('plNotes');
+    
+    if (!skipToast) {
+        showNotification('🔄 Layouts reset to AI Decision', 'info');
+    }
+}
+
+// Confirm reset
+function confirmResetLayout() {
+    if (typeof deConfirm === 'function') {
+        deConfirm('Reset layout selection to AI Decision?', () => {
+            plResetAll();
+        });
+    } else {
+        if (confirm('Reset layout selection?')) {
+            plResetAll();
+        }
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', plInit);
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════

@@ -5198,423 +5198,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /* ============================================
-           LAYOUT SELECTOR STYLES
+           LAYOUT SELECTOR STYLES - MIGRATED TO Prompt-Manager.php
+           All CSS has been moved to Design Enhancer panel in Prompt-Manager.php
            ============================================ */
-
-    /* ══════════════════════════════════════════
-           🏗️ LAYOUT SELECTOR - Aurora Style
-           ══════════════════════════════════════════ */
-    .layout-selector-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: var(--space-lg);
-        margin-top: var(--space-lg);
-    }
-
-    .layout-option {
-        position: relative;
-        cursor: pointer;
-        border-radius: var(--radius-xl);
-        overflow: hidden;
-        transition: all var(--transition-base);
-        border: 3px solid var(--glass-border);
-        background: linear-gradient(135deg,
-                rgba(13, 27, 42, 0.95) 0%,
-                rgba(27, 38, 59, 0.8) 100%);
-    }
-
-    .layout-option::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg,
-                transparent,
-                rgba(124, 77, 255, 0.1),
-                transparent);
-        transition: left var(--transition-slow);
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    .layout-option:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: var(--shadow-aurora);
-        border-color: var(--aurora-violet);
-    }
-
-    .layout-option:hover::after {
-        left: 100%;
-    }
-
-    .layout-option.selected {
-        border-color: var(--aurora-green);
-        box-shadow: var(--glow-green);
-    }
-
-    .layout-option.selected::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 5px;
-        background: linear-gradient(90deg,
-                var(--aurora-green) 0%,
-                var(--aurora-violet) 50%,
-                var(--aurora-green) 100%);
-        background-size: 200% 100%;
-        animation: gradientFlow 2s linear infinite;
-        z-index: 10;
-    }
-
-    .layout-radio,
-    .layout-checkbox {
-        position: absolute;
-        opacity: 0;
-        cursor: pointer;
-    }
-
-    .layout-preview {
-        height: 180px;
-        position: relative;
-        background: linear-gradient(135deg,
-                rgba(5, 10, 21, 0.5) 0%,
-                rgba(13, 27, 42, 0.5) 100%);
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1.5rem;
-        background: var(--surface-light);
-    }
-
-    .layout-preview-content {
-        width: 100%;
-        height: 100%;
-        border-radius: var(--radius-sm);
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.8rem;
-        transition: all var(--transition-base);
-        background: white;
-        border: 2px solid #e2e8f0;
-    }
-
-    .layout-option:hover .layout-preview-content {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .layout-info {
-        padding: 1.25rem;
-        background: var(--surface-light);
-    }
-
-    .layout-name {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .layout-description {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        line-height: 1.5;
-        margin-bottom: 0.75rem;
-    }
-
-    .layout-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-xs);
-    }
-
-    .layout-tag {
-        font-size: var(--text-xs);
-        padding: 0.25rem 0.6rem;
-        background: linear-gradient(135deg,
-                rgba(124, 77, 255, 0.15) 0%,
-                rgba(0, 230, 118, 0.1) 100%);
-        color: var(--aurora-violet);
-        border-radius: var(--radius-full);
-        border: 1px solid rgba(124, 77, 255, 0.2);
-        transition: all var(--transition-fast);
-    }
-
-    .layout-option:hover .layout-tag {
-        background: linear-gradient(135deg,
-                rgba(124, 77, 255, 0.25) 0%,
-                rgba(0, 230, 118, 0.15) 100%);
-        border-color: var(--aurora-violet);
-    }
-
-    .layout-selected-badge {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: linear-gradient(135deg,
-                var(--aurora-green) 0%,
-                var(--aurora-teal) 100%);
-        color: var(--aurora-night);
-        padding: 0.4rem 0.8rem;
-        border-radius: var(--radius-full);
-        font-size: var(--text-xs);
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        opacity: 0;
-        transform: scale(0.8);
-        transition: all var(--transition-base);
-        z-index: 5;
-        box-shadow: var(--glow-green);
-    }
-
-    .layout-option.selected .layout-selected-badge {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    /* Layout Preview Styles */
-
-    /* AI Decision Layout */
-    .preview-layout-ai {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        position: relative;
-    }
-
-    .preview-layout-ai::before {
-        content: '🤖';
-        position: absolute;
-        font-size: 6rem;
-        opacity: 0.15;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    .preview-layout-ai-icon {
-        font-size: 3rem;
-        animation: float 3s ease-in-out infinite;
-        color: white;
-    }
-
-    /* Single Page Layout */
-    .preview-layout-single {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .layout-single-header {
-        height: 20%;
-        background: #3b82f6;
-        border-radius: 4px;
-    }
-
-    .layout-single-section {
-        flex: 1;
-        background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
-        border-radius: 4px;
-        border: 1px dashed #cbd5e1;
-    }
-
-    /* Multi-Section Layout */
-    .preview-layout-multi {
-        display: grid;
-        grid-template-rows: 25px 1fr 1fr 25px;
-        gap: 0.4rem;
-    }
-
-    .layout-multi-header {
-        background: #1e40af;
-        border-radius: 3px;
-    }
-
-    .layout-multi-section {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        border-radius: 3px;
-        border: 1px solid #93c5fd;
-    }
-
-    .layout-multi-footer {
-        background: #1e3a8a;
-        border-radius: 3px;
-    }
-
-    /* Sidebar Layout */
-    .preview-layout-sidebar {
-        display: grid;
-        grid-template-columns: 35% 1fr;
-        gap: 0.4rem;
-    }
-
-    .layout-sidebar-side {
-        background: linear-gradient(180deg, #7c3aed, #6d28d9);
-        border-radius: 4px;
-    }
-
-    .layout-sidebar-main {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-    }
-
-    .layout-sidebar-block {
-        background: #f3f4f6;
-        border-radius: 3px;
-        height: 30%;
-        border: 1px solid #e5e7eb;
-    }
-
-    /* Grid Masonry Layout */
-    .preview-layout-masonry {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(3, 1fr);
-        gap: 0.3rem;
-    }
-
-    .layout-masonry-item {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        border-radius: 4px;
-    }
-
-    .layout-masonry-item:nth-child(1) {
-        grid-row: span 2;
-    }
-
-    .layout-masonry-item:nth-child(3) {
-        grid-row: span 2;
-    }
-
-    .layout-masonry-item:nth-child(5) {
-        grid-column: span 2;
-    }
-
-    /* Magazine Layout */
-    .preview-layout-magazine {
-        display: grid;
-        grid-template-areas:
-            "hero hero"
-            "main side"
-            "main side";
-        gap: 0.4rem;
-    }
-
-    .layout-magazine-hero {
-        grid-area: hero;
-        background: linear-gradient(135deg, #ec4899, #be185d);
-        border-radius: 4px;
-    }
-
-    .layout-magazine-main {
-        grid-area: main;
-        background: #f8fafc;
-        border-radius: 4px;
-        border: 2px solid #e2e8f0;
-    }
-
-    .layout-magazine-side {
-        grid-area: side;
-        background: linear-gradient(180deg, #fce7f3, #fbcfe8);
-        border-radius: 4px;
-    }
-
-    /* Dashboard Layout */
-    .preview-layout-dashboard {
-        display: grid;
-        grid-template-areas:
-            "nav nav nav"
-            "card1 card2 card3"
-            "chart chart chart";
-        gap: 0.3rem;
-    }
-
-    .layout-dash-nav {
-        grid-area: nav;
-        background: #111827;
-        border-radius: 3px;
-    }
-
-    .layout-dash-card {
-        background: linear-gradient(135deg, #10b981, #059669);
-        border-radius: 4px;
-    }
-
-    .layout-dash-card:nth-child(3) {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-
-    .layout-dash-card:nth-child(4) {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .layout-dash-chart {
-        grid-area: chart;
-        background: #f9fafb;
-        border-radius: 4px;
-        border: 2px dashed #d1d5db;
-    }
-
-    /* Landing Page Layout */
-    .preview-layout-landing {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .layout-landing-hero {
-        height: 40%;
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        border-radius: 4px;
-        position: relative;
-    }
-
-    .layout-landing-hero::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40%;
-        height: 20%;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 20px;
-    }
-
-    .layout-landing-sections {
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.3rem;
-    }
-
-    .layout-landing-section {
-        background: linear-gradient(to bottom, #fed7aa, #fdba74);
-        border-radius: 3px;
-    }
-
-    /* Responsive Layout Selector */
-    @media (max-width: 768px) {
-        .layout-selector-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .layout-preview {
-            height: 150px;
-        }
-    }
 
     /* ============================================
            VISUAL REFERENCE UPLOADER STYLES
@@ -13008,302 +12594,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         END OF MIGRATED DESIGN THEME SELECTION -->
 
-            <!-- Layout Selector -->
-            <div id="layoutSection" class="card card-full fade-in" style="animation-delay: 0.38s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
-                        <i class="fas fa-th-large"></i>
-                    </div>
-                    <h2 class="card-title">Page Layout Structure</h2>
-                    <div id="layoutCountBadge"
-                        style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: none; margin-left: auto;">
-                        <i class="fas fa-check-circle"></i>
-                        <span id="layoutCountText">0 layouts selected</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Choose one or more layout structures - AI will intelligently combine
-                        multiple layouts when AI Decision is included!</p>
-
-                    <!-- Layout Control Panel -->
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap;">
-                        <button onclick="resetLayoutSelection()"
-                            style="padding: 0.7rem 1.2rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);"
-                            onmouseenter="this.style.transform='translateY(-2px)'"
-                            onmouseleave="this.style.transform='translateY(0)'">
-                            <i class="fas fa-undo"></i>
-                            Reset Layouts
-                        </button>
-                        <div id="layoutMixIndicator"
-                            style="padding: 0.7rem 1.2rem; background: rgba(249, 115, 22, 0.15); border: 2px solid rgba(249, 115, 22, 0.3); border-radius: 10px; font-size: 0.9rem; color: var(--text-primary); display: none;">
-                            <i class="fas fa-info-circle" style="color: #f97316;"></i>
-                            <span id="layoutMixText">Select layouts to mix</span>
-                        </div>
-                    </div>
-
-                    <div class="layout-selector-grid">
-
-                        <!-- AI Decision Layout -->
-                        <label class="layout-option selected" data-layout="ai-decision">
-                            <input type="checkbox" name="page_layout" value="ai-decision" class="layout-checkbox"
-                                checked onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-ai">
-                                    <div class="preview-layout-ai-icon">🏗️✨</div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-brain" style="color: #667eea;"></i>
-                                    AI Decision
-                                </div>
-                                <div class="layout-description">
-                                    Let AI analyze your content and automatically choose the best layout structure based
-                                    on your application's needs
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Intelligent</span>
-                                    <span class="layout-tag">Adaptive</span>
-                                    <span class="layout-tag">Recommended</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Single Page Layout -->
-                        <label class="layout-option" data-layout="single-page">
-                            <input type="radio" name="page_layout" value="single-page" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-single">
-                                    <div class="layout-single-header"></div>
-                                    <div class="layout-single-section"></div>
-                                    <div class="layout-single-section"></div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-scroll" style="color: #3b82f6;"></i>
-                                    Single Page
-                                </div>
-                                <div class="layout-description">
-                                    One continuous scrolling page with all content in sequential sections
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Simple</span>
-                                    <span class="layout-tag">Storytelling</span>
-                                    <span class="layout-tag">Portfolio</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Multi-Section Layout -->
-                        <label class="layout-option" data-layout="multi-section">
-                            <input type="radio" name="page_layout" value="multi-section" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-multi">
-                                    <div class="layout-multi-header"></div>
-                                    <div class="layout-multi-section"></div>
-                                    <div class="layout-multi-section"></div>
-                                    <div class="layout-multi-footer"></div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-layer-group" style="color: #1e40af;"></i>
-                                    Multi-Section
-                                </div>
-                                <div class="layout-description">
-                                    Classic header, multiple content sections, and footer layout
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Traditional</span>
-                                    <span class="layout-tag">Organized</span>
-                                    <span class="layout-tag">Corporate</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Sidebar Layout -->
-                        <label class="layout-option" data-layout="sidebar">
-                            <input type="radio" name="page_layout" value="sidebar" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-sidebar">
-                                    <div class="layout-sidebar-side"></div>
-                                    <div class="layout-sidebar-main">
-                                        <div class="layout-sidebar-block"></div>
-                                        <div class="layout-sidebar-block"></div>
-                                        <div class="layout-sidebar-block"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-columns" style="color: #7c3aed;"></i>
-                                    Sidebar Layout
-                                </div>
-                                <div class="layout-description">
-                                    Persistent sidebar navigation with main content area
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Navigation</span>
-                                    <span class="layout-tag">Blog</span>
-                                    <span class="layout-tag">Documentation</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Grid Masonry Layout -->
-                        <label class="layout-option" data-layout="masonry">
-                            <input type="radio" name="page_layout" value="masonry" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-masonry">
-                                    <div class="layout-masonry-item"></div>
-                                    <div class="layout-masonry-item"></div>
-                                    <div class="layout-masonry-item"></div>
-                                    <div class="layout-masonry-item"></div>
-                                    <div class="layout-masonry-item"></div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-th" style="color: #f59e0b;"></i>
-                                    Grid Masonry
-                                </div>
-                                <div class="layout-description">
-                                    Pinterest-style grid with variable height cards
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Gallery</span>
-                                    <span class="layout-tag">Visual</span>
-                                    <span class="layout-tag">Creative</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Magazine Layout -->
-                        <label class="layout-option" data-layout="magazine">
-                            <input type="radio" name="page_layout" value="magazine" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-magazine">
-                                    <div class="layout-magazine-hero"></div>
-                                    <div class="layout-magazine-main"></div>
-                                    <div class="layout-magazine-side"></div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-newspaper" style="color: #ec4899;"></i>
-                                    Magazine Style
-                                </div>
-                                <div class="layout-description">
-                                    Featured hero area with main content and sidebar sections
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Editorial</span>
-                                    <span class="layout-tag">News</span>
-                                    <span class="layout-tag">Content-Rich</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Dashboard Layout -->
-                        <label class="layout-option" data-layout="dashboard">
-                            <input type="radio" name="page_layout" value="dashboard" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-dashboard">
-                                    <div class="layout-dash-nav"></div>
-                                    <div class="layout-dash-card"></div>
-                                    <div class="layout-dash-card"></div>
-                                    <div class="layout-dash-card"></div>
-                                    <div class="layout-dash-chart"></div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-chart-line" style="color: #10b981;"></i>
-                                    Dashboard
-                                </div>
-                                <div class="layout-description">
-                                    Data-focused layout with cards, charts, and metrics
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Analytics</span>
-                                    <span class="layout-tag">Admin</span>
-                                    <span class="layout-tag">Data</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Landing Page Layout -->
-                        <label class="layout-option" data-layout="landing">
-                            <input type="radio" name="page_layout" value="landing" class="layout-checkbox"
-                                onchange="updateLayoutSelection(this)">
-                            <div class="layout-selected-badge">
-                                <i class="fas fa-check-circle"></i>
-                                Selected
-                            </div>
-                            <div class="layout-preview">
-                                <div class="layout-preview-content preview-layout-landing">
-                                    <div class="layout-landing-hero"></div>
-                                    <div class="layout-landing-sections">
-                                        <div class="layout-landing-section"></div>
-                                        <div class="layout-landing-section"></div>
-                                        <div class="layout-landing-section"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="layout-info">
-                                <div class="layout-name">
-                                    <i class="fas fa-rocket" style="color: #f97316;"></i>
-                                    Landing Page
-                                </div>
-                                <div class="layout-description">
-                                    Hero section with feature blocks and clear call-to-action
-                                </div>
-                                <div class="layout-tags">
-                                    <span class="layout-tag">Marketing</span>
-                                    <span class="layout-tag">Conversion</span>
-                                    <span class="layout-tag">Product</span>
-                                </div>
-                            </div>
-                        </label>
-
-                    </div>
-                </div>
-            </div>
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 🏗️ PAGE LAYOUT STRUCTURE - FULLY MIGRATED
+                 This section has been completely migrated to Prompt-Manager.php
+                 All HTML, CSS, and JavaScript functionality now lives in the
+                 Design Enhancer panel of Prompt-Manager.php
+                 ═══════════════════════════════════════════════════════════════════ -->
 
             <!-- ================================================================
                  VISUAL DESIGN REFERENCE - FULLY MIGRATED
@@ -13529,7 +12825,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const sections = [
             'executionModeSection', 'fileUploadSection', 'themeSelectionSection',
             'enhancementOptionsSection', 'colorThemeSection', // designStyleSection removed - migrated to Prompt-Manager.php
-            'layoutSection', 'excludedFilesSection', // referenceImagesSection removed - migrated to Prompt-Manager.php
+            // layoutSection removed - migrated to Prompt-Manager.php
+            'excludedFilesSection', // referenceImagesSection removed - migrated to Prompt-Manager.php
             'homepageCreationSection', 'documentationPageSection',
             'promptOutputSection'
         ];
@@ -13673,23 +12970,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             tip: 'Select "AI Decision" to let the AI choose colors that complement your content and brand. You can select multiple for AI to blend.',
             sectionId: 'colorThemeSection'
         },
-        layout: {
-            icon: 'fa-th-large',
-            iconBg: 'linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.1))',
-            iconColor: '#f97316',
-            title: 'Layout Preferences',
-            subtitle: 'Define page structure',
-            description: 'Choose the overall layout structure for your pages. This affects how content is organized and displayed across different screen sizes.',
-            features: [
-                'Single page flowing layout',
-                'Multi-section structured design',
-                'Dashboard-style grid layouts',
-                'Landing page with hero sections',
-                'AI optimizes for your content type'
-            ],
-            tip: 'For marketing sites, use "Landing Page" layout. For web apps, choose "Dashboard". Let AI decide if unsure about the best structure.',
-            sectionId: 'layoutSection'
-        },
+        // layout - MIGRATED TO Prompt-Manager.php
         // referenceImages - MIGRATED TO Prompt-Manager.php
         // excludedFiles - MIGRATED TO Prompt-Manager.php
         /* excludedFiles: {
@@ -14388,7 +13669,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         enhancementOptions: 'enhancementOptionsSection',
         // designStyle: REMOVED - Migrated to Prompt-Manager.php
         colorTheme: 'colorThemeSection',
-        layout: 'layoutSection',
+        // layout: 'layoutSection', - MIGRATED TO Prompt-Manager.php
         // referenceImages: 'referenceImagesSection', - MIGRATED TO Prompt-Manager.php
         // excludedFiles: 'excludedFilesSection', - MIGRATED TO Prompt-Manager.php
         // homepageCreation: 'homepageCreationSection', - MIGRATED TO Prompt-Manager.php
@@ -15474,8 +14755,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Sections to hide when "preserve" mode is selected (not relevant to preserving design)
         const sectionsToHideInPreserveMode = [
             'designStyleSection',        // Enhanced Style Types - not needed, keeping current style
-            'colorThemeSection',         // Design Theme Selection - theme is already in the preserved design
-            'layoutSection'              // Page Layout Structure - layout is preserved from original
+            'colorThemeSection'          // Design Theme Selection - theme is already in the preserved design
+            // 'layoutSection' - MIGRATED TO Prompt-Manager.php
             // 'referenceImagesSection' - MIGRATED TO Prompt-Manager.php
         ];
         
@@ -20516,27 +19797,10 @@ Please provide:
         if (typeof updateThemeCountBadge === 'function') updateThemeCountBadge();
         if (typeof updateThemeMixIndicator === 'function') updateThemeMixIndicator();
 
-        // Reset layout selection (NOW USES CHECKBOXES)
+        // Reset layout selection - MIGRATED TO Prompt-Manager.php
+        // Layout selection UI and functions are now in Design Enhancer panel
         selectedLayouts = ['ai-decision'];
         selectedLayout = 'ai-decision';
-        // Uncheck all layout checkboxes first
-        document.querySelectorAll('input[name="page_layout"]').forEach(cb => {
-            cb.checked = false;
-        });
-        const aiDecisionLayoutCheckbox = document.querySelector('input[name="page_layout"][value="ai-decision"]');
-        if (aiDecisionLayoutCheckbox) {
-            aiDecisionLayoutCheckbox.checked = true;
-            document.querySelectorAll('.layout-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            const aiLayoutOption = aiDecisionLayoutCheckbox.closest('.layout-option');
-            if (aiLayoutOption) {
-                aiLayoutOption.classList.add('selected');
-            }
-        }
-        // Update layout indicators
-        if (typeof updateLayoutCountBadge === 'function') updateLayoutCountBadge();
-        if (typeof updateLayoutMixIndicator === 'function') updateLayoutMixIndicator();
 
         // Reset reference images - MIGRATED TO Prompt-Manager.php
         // Functions and UI moved to Prompt-Manager.php Design Enhancer
@@ -20714,9 +19978,10 @@ Please provide:
     let selectedThemes = ['ai-decision']; // Array of selected themes
     let selectedTheme = 'ai-decision'; // Keep for backward compatibility
 
-    // Page layout state - NOW SUPPORTS MULTI-SELECTION
-    let selectedLayouts = ['ai-decision']; // Array of selected layouts
-    let selectedLayout = 'ai-decision'; // Keep for backward compatibility
+    // Page layout state - MIGRATED TO Prompt-Manager.php
+    // These variables are kept for localStorage compatibility only
+    let selectedLayouts = ['ai-decision']; // MIGRATED - no longer used here
+    let selectedLayout = 'ai-decision'; // MIGRATED - no longer used here
 
     // Visual reference state - MIGRATED TO Prompt-Manager.php
     // Variables kept for backward compatibility but functionality moved to Prompt-Manager.php
@@ -23649,148 +22914,11 @@ Please provide:
         }
     }
 
-    // Update Layout Selection - NOW SUPPORTS MULTI-SELECTION
-    function updateLayoutSelection(checkboxElement) {
-        const value = checkboxElement.value;
-        const isChecked = checkboxElement.checked;
-
-        // Update selectedLayouts array
-        if (isChecked) {
-            if (!selectedLayouts.includes(value)) {
-                selectedLayouts.push(value);
-            }
-        } else {
-            selectedLayouts = selectedLayouts.filter(l => l !== value);
-        }
-
-        // Update UI - add/remove 'selected' class
-        const option = checkboxElement.closest('.layout-option');
-        if (option) {
-            if (isChecked) {
-                option.classList.add('selected');
-            } else {
-                option.classList.remove('selected');
-            }
-        }
-
-        // Keep backward compatibility
-        selectedLayout = selectedLayouts.length > 0 ? selectedLayouts[0] : 'ai-decision';
-
-        // Update badge count
-        updateLayoutCountBadge();
-
-        // Update mix indicator
-        updateLayoutMixIndicator();
-
-        // Save to localStorage
-        localStorage.setItem('selectedLayouts', JSON.stringify(selectedLayouts));
-        localStorage.setItem('selectedLayout', selectedLayout);
-
-        // Show notification
-        const layoutName = option ? option.querySelector('.layout-name').textContent.trim() : value;
-        if (isChecked) {
-            showNotification(`🏗️ Layout added: ${layoutName}`, 'success');
-        } else {
-            showNotification(`Layout removed: ${layoutName}`, 'info');
-        }
-
-        console.log('Layouts selected:', selectedLayouts);
-
-        // Update Read First checkbox based on AI Decision
-        if (typeof updateReadFirstCheckbox === 'function') {
-            updateReadFirstCheckbox();
-        }
-    }
-
-    // Update layout count badge
-    function updateLayoutCountBadge() {
-        const badge = document.getElementById('layoutCountBadge');
-        const countText = document.getElementById('layoutCountText');
-
-        if (badge && countText) {
-            if (selectedLayouts.length > 0) {
-                badge.style.display = 'flex';
-                badge.style.alignItems = 'center';
-                badge.style.gap = '0.4rem';
-                countText.textContent =
-                    `${selectedLayouts.length} layout${selectedLayouts.length > 1 ? 's' : ''} selected`;
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    }
-
-    // Update layout mix indicator
-    function updateLayoutMixIndicator() {
-        const indicator = document.getElementById('layoutMixIndicator');
-        const mixText = document.getElementById('layoutMixText');
-
-        if (indicator && mixText) {
-            if (selectedLayouts.length > 1) {
-                indicator.style.display = 'flex';
-                indicator.style.alignItems = 'center';
-                indicator.style.gap = '0.5rem';
-
-                const hasAI = selectedLayouts.includes('ai-decision');
-                if (hasAI) {
-                    mixText.innerHTML =
-                        `<strong style="color: #f97316;">🤖 AI-Powered Structural Fusion:</strong> AI will intelligently combine ${selectedLayouts.length} layouts`;
-                    indicator.style.borderColor = 'rgba(249, 115, 22, 0.5)';
-                    indicator.style.background = 'rgba(249, 115, 22, 0.15)';
-                } else {
-                    const percentage = Math.round(100 / selectedLayouts.length);
-                    mixText.innerHTML =
-                        `<strong style="color: #10b981;">⚖️ Balanced Hybrid:</strong> ${selectedLayouts.length} layouts @ ~${percentage}% each`;
-                    indicator.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-                    indicator.style.background = 'rgba(16, 185, 129, 0.15)';
-                }
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-    }
-
-    // Reset layout selection
-    function resetLayoutSelection() {
-        // Uncheck all layout checkboxes
-        document.querySelectorAll('input[name="page_layout"]').forEach(cb => {
-            cb.checked = false;
-        });
-
-        // Check only AI Decision
-        const aiDecision = document.querySelector('input[name="page_layout"][value="ai-decision"]');
-        if (aiDecision) {
-            aiDecision.checked = true;
-        }
-
-        // Reset array
-        selectedLayouts = ['ai-decision'];
-        selectedLayout = 'ai-decision';
-
-        // Update all UI elements
-        document.querySelectorAll('.layout-option').forEach(option => {
-            option.classList.remove('selected');
-        });
-        const aiOption = aiDecision ? aiDecision.closest('.layout-option') : null;
-        if (aiOption) {
-            aiOption.classList.add('selected');
-        }
-
-        // Update indicators
-        updateLayoutCountBadge();
-        updateLayoutMixIndicator();
-
-        // Save
-        localStorage.setItem('selectedLayouts', JSON.stringify(selectedLayouts));
-        localStorage.setItem('selectedLayout', selectedLayout);
-
-        showNotification('🔄 Layouts reset to AI Decision', 'info');
-
-        // Update Read First checkbox
-        if (typeof updateReadFirstCheckbox === 'function') {
-            updateReadFirstCheckbox();
-        }
-    }
+    // ================================================================
+    // LAYOUT SELECTION FUNCTIONS - MIGRATED TO Prompt-Manager.php
+    // All functions (updateLayoutSelection, updateLayoutCountBadge, 
+    // updateLayoutMixIndicator, resetLayoutSelection) now live in Prompt-Manager.php
+    // ================================================================
 
     // ================================================================
     // VISUAL REFERENCE UPLOADER FUNCTIONS - MIGRATED TO Prompt-Manager.php
@@ -24161,43 +23289,17 @@ Please provide:
             if (typeof updateThemeMixIndicator === 'function') updateThemeMixIndicator();
         }
 
-        // Load selected layouts (MULTI-SELECTION)
+        // Load selected layouts - MIGRATED TO Prompt-Manager.php
+        // Layout selection UI is now handled in Design Enhancer panel
         const savedLayoutsJson = localStorage.getItem('selectedLayouts');
         if (savedLayoutsJson) {
             try {
                 selectedLayouts = JSON.parse(savedLayoutsJson);
                 selectedLayout = selectedLayouts.length > 0 ? selectedLayouts[0] : 'ai-decision';
             } catch (e) {
-                // Fallback to single layout from old format
-                const savedLayout = localStorage.getItem('selectedLayout');
-                selectedLayouts = savedLayout ? [savedLayout] : ['ai-decision'];
-                selectedLayout = selectedLayouts[0];
+                selectedLayouts = ['ai-decision'];
+                selectedLayout = 'ai-decision';
             }
-
-            // Uncheck all first
-            document.querySelectorAll('input[name="page_layout"]').forEach(cb => {
-                cb.checked = false;
-            });
-            document.querySelectorAll('.layout-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-
-            // Check saved layouts
-            selectedLayouts.forEach(layoutValue => {
-                const layoutCheckbox = document.querySelector(
-                    `input[name="page_layout"][value="${layoutValue}"]`);
-                if (layoutCheckbox) {
-                    layoutCheckbox.checked = true;
-                    const selectedOption = layoutCheckbox.closest('.layout-option');
-                    if (selectedOption) {
-                        selectedOption.classList.add('selected');
-                    }
-                }
-            });
-
-            // Update indicators
-            if (typeof updateLayoutCountBadge === 'function') updateLayoutCountBadge();
-            if (typeof updateLayoutMixIndicator === 'function') updateLayoutMixIndicator();
         }
 
         console.log('Task breakdown settings loaded:', {
@@ -24205,8 +23307,7 @@ Please provide:
             executionMode,
             createNewHomepage,
             targetPageFileName,
-            selectedThemes,
-            selectedLayouts
+            selectedThemes
         });
     }
 
