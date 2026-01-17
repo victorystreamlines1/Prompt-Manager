@@ -5777,6 +5777,542 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(6, 182, 212, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           📷 VISUAL DESIGN REFERENCE STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .vr-upload-zone {
+            border: 2px dashed rgba(236, 72, 153, 0.4);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(236, 72, 153, 0.03);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vr-upload-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(124, 58, 237, 0.08));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .vr-upload-zone:hover {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.08);
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.15);
+        }
+        
+        .vr-upload-zone:hover::before {
+            opacity: 1;
+        }
+        
+        .vr-upload-zone.drag-over {
+            border-color: #ec4899;
+            border-style: solid;
+            background: rgba(236, 72, 153, 0.12);
+        }
+        
+        .vr-upload-zone input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .vr-upload-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .vr-upload-icon {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .vr-upload-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .vr-upload-subtitle {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .vr-upload-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.5rem;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(124, 77, 255, 0.1) 100%);
+            border-radius: 20px;
+            color: #ec4899;
+            font-size: 0.55rem;
+            border: 1px solid rgba(236, 72, 153, 0.2);
+        }
+        
+        /* Gallery Section */
+        .vr-gallery {
+            display: none;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(124, 77, 255, 0.2);
+        }
+        
+        .vr-gallery.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .vr-gallery-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .vr-gallery-header i {
+            color: #ec4899;
+        }
+        
+        .vr-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .vr-image-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.3);
+            aspect-ratio: 4/3;
+        }
+        
+        .vr-image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-color: #ec4899;
+        }
+        
+        .vr-image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .vr-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+            padding: 0.3rem 0.4rem;
+            color: white;
+            font-size: 0.5rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .vr-image-remove {
+            position: absolute;
+            top: 0.2rem;
+            right: 0.2rem;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+            font-size: 0.5rem;
+        }
+        
+        .vr-image-card:hover .vr-image-remove {
+            opacity: 1;
+        }
+        
+        .vr-image-remove:hover {
+            background: #ec4899;
+            transform: scale(1.1);
+        }
+        
+        /* Reference Mode Selector */
+        .vr-mode-selector {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        
+        .vr-mode-selector h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .vr-mode-selector h4 i {
+            color: #ec4899;
+        }
+        
+        .vr-mode-option {
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(13, 27, 42, 0.95) 0%, rgba(27, 38, 59, 0.8) 100%);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .vr-mode-option::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .vr-mode-option:hover {
+            border-color: #ec4899;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(27, 38, 59, 0.9) 100%);
+            transform: translateX(4px);
+        }
+        
+        .vr-mode-option:hover::after {
+            left: 100%;
+        }
+        
+        .vr-mode-option.selected {
+            border-color: #38ef7d;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.08) 0%, rgba(124, 77, 255, 0.05) 100%);
+            box-shadow: 0 0 15px rgba(56, 239, 125, 0.15);
+        }
+        
+        .vr-mode-option.selected::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #38ef7d 0%, #8b5cf6 100%);
+            border-radius: 8px 0 0 8px;
+            z-index: 2;
+        }
+        
+        .vr-mode-radio {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .vr-mode-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .vr-mode-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .vr-mode-option.selected .vr-mode-icon {
+            background: linear-gradient(135deg, #38ef7d, #06b6d4);
+        }
+        
+        .vr-mode-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .vr-mode-option.selected .vr-mode-title::before {
+            content: '✓ ';
+            color: #38ef7d;
+            margin-right: 0.15rem;
+        }
+        
+        .vr-mode-description {
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+            line-height: 1.4;
+            margin-bottom: 0.4rem;
+        }
+        
+        .vr-mode-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .vr-mode-feature {
+            font-size: 0.5rem;
+            padding: 0.15rem 0.4rem;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .vr-mode-feature i {
+            color: #ec4899;
+            font-size: 0.45rem;
+        }
+        
+        .vr-mode-option.selected .vr-mode-feature {
+            background: rgba(56, 239, 125, 0.1);
+            border-color: rgba(56, 239, 125, 0.3);
+        }
+        
+        .vr-mode-option.selected .vr-mode-feature i {
+            color: #38ef7d;
+        }
+        
+        /* Info Box */
+        .vr-info-box {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            display: flex;
+            gap: 0.4rem;
+        }
+        
+        .vr-info-box i {
+            color: #3b82f6;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        
+        .vr-info-box strong {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 0.15rem;
+            font-size: 0.55rem;
+        }
+        
+        .vr-info-box p {
+            color: var(--text-secondary);
+            font-size: 0.5rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+        
+        /* Clear Button */
+        .vr-clear-section {
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .vr-clear-btn {
+            padding: 0.4rem 0.8rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            color: #ef4444;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .vr-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        /* Notes Textarea */
+        .vr-notes-section {
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(124, 77, 255, 0.15);
+        }
+        
+        .vr-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .vr-notes-label i {
+            color: #ec4899;
+        }
+        
+        .vr-notes-textarea {
+            width: 100%;
+            min-height: 50px;
+            padding: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.55rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .vr-notes-textarea:focus {
+            outline: none;
+            border-color: rgba(236, 72, 153, 0.5);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.1);
+        }
+        
+        .vr-notes-textarea::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .vr-char-count {
+            text-align: right;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        
+        /* Push Button */
+        .vr-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .vr-push-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: 6px;
+            color: #ec4899;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        
+        .vr-push-btn:hover {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(236, 72, 153, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .vr-push-btn i {
+            font-size: 0.55rem;
+        }
+        
+        /* Light Theme */
+        [data-theme="light"] .vr-upload-zone {
+            background: rgba(236, 72, 153, 0.03);
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+        
+        [data-theme="light"] .vr-upload-zone:hover {
+            background: rgba(236, 72, 153, 0.06);
+        }
+        
+        [data-theme="light"] .vr-image-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .vr-mode-option {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .vr-mode-option:hover {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.05) 0%, rgba(248, 250, 252, 0.9) 100%);
+        }
+        
+        [data-theme="light"] .vr-mode-option.selected {
+            background: linear-gradient(135deg, rgba(56, 239, 125, 0.05) 0%, rgba(248, 250, 252, 0.9) 100%);
+        }
+        
+        [data-theme="light"] .vr-info-box {
+            background: rgba(59, 130, 246, 0.03);
+        }
+        
+        [data-theme="light"] .vr-notes-textarea {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(236, 72, 153, 0.2);
+        }
+        
+        [data-theme="light"] .vr-push-btn {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-color: rgba(236, 72, 153, 0.2);
+            color: #db2777;
+        }
+        
+        [data-theme="light"] .vr-push-btn:hover {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-color: rgba(236, 72, 153, 0.35);
+        }
+        
         /* Style Sample Modal */
         .st-sample-overlay {
             position: fixed;
@@ -14128,6 +14664,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Push to Project Prompts -->
                         <div class="tb-push-section">
                             <button type="button" class="tb-push-btn" onclick="tbPushToNotes()" title="Push task breakdown settings to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     📷 VISUAL DESIGN REFERENCE TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="visualReferenceTool">
+                    <div class="de-tool-header" onclick="toggleToolSection('visualReference')">
+                        <div class="de-tool-title">
+                            <i class="fas fa-images"></i>
+                            <span>Visual Reference</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetVisualReference();" title="Reset visual references">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="de-tool-badge vr-badge" id="vrBadge" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); display: none;">0 Images</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="visualReferenceArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="visualReferenceBody">
+                        <p style="font-size: 0.55rem; color: var(--text-secondary); margin: 0 0 0.5rem 0;">Upload screenshots or design inspirations for AI reference</p>
+                        
+                        <!-- Upload Zone -->
+                        <div class="vr-upload-zone" id="vrDropZone">
+                            <input type="file" id="vrFileInput" multiple accept="image/*">
+                            <div class="vr-upload-content">
+                                <div class="vr-upload-icon">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                <h3 class="vr-upload-title">Upload Reference Images</h3>
+                                <p class="vr-upload-subtitle">Drag & drop or click to browse</p>
+                                <div class="vr-upload-hint">
+                                    <i class="fas fa-lightbulb"></i>
+                                    Screenshots, mockups, or design inspirations
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gallery Section -->
+                        <div class="vr-gallery" id="vrGallery">
+                            <div class="vr-gallery-header">
+                                <i class="fas fa-images"></i>
+                                <span>Uploaded Reference Images</span>
+                            </div>
+                            <div class="vr-images-grid" id="vrImagesGrid"></div>
+                            
+                            <!-- Mode Selector -->
+                            <div class="vr-mode-selector">
+                                <h4><i class="fas fa-cogs"></i> How should AI use these references?</h4>
+                                
+                                <label class="vr-mode-option selected" data-mode="ai-inspiration" onclick="vrSelectMode('ai-inspiration')">
+                                    <input type="radio" name="vr_mode" value="ai-inspiration" class="vr-mode-radio" checked>
+                                    <div class="vr-mode-header">
+                                        <div class="vr-mode-icon">
+                                            <i class="fas fa-brain"></i>
+                                        </div>
+                                        <div class="vr-mode-title">AI Inspiration Mode</div>
+                                    </div>
+                                    <div class="vr-mode-description">AI will analyze images and intelligently choose design elements, colors, layouts to create a cohesive design.</div>
+                                    <div class="vr-mode-features">
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Intelligent Extraction</span>
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Best Fit Matching</span>
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Creative Adaptation</span>
+                                    </div>
+                                </label>
+                                
+                                <label class="vr-mode-option" data-mode="exact-replication" onclick="vrSelectMode('exact-replication')">
+                                    <input type="radio" name="vr_mode" value="exact-replication" class="vr-mode-radio">
+                                    <div class="vr-mode-header">
+                                        <div class="vr-mode-icon">
+                                            <i class="fas fa-copy"></i>
+                                        </div>
+                                        <div class="vr-mode-title">Exact Replication Mode</div>
+                                    </div>
+                                    <div class="vr-mode-description">AI will replicate the exact design from each image. Image named "contact" → Contact page design.</div>
+                                    <div class="vr-mode-features">
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Pixel-Perfect Match</span>
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Page-to-Image Mapping</span>
+                                        <span class="vr-mode-feature"><i class="fas fa-check"></i> Exact Layout Copy</span>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <!-- Info Box -->
+                            <div class="vr-info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Important Note:</strong>
+                                    <p>When reference images are uploaded, AI will ONLY use design inspiration from these images and will NOT use external design sources.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Clear Button -->
+                            <div class="vr-clear-section">
+                                <button type="button" class="vr-clear-btn" onclick="vrClearAll()">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span>Clear All References</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Textarea -->
+                        <div class="vr-notes-section">
+                            <label class="vr-notes-label">
+                                <i class="fas fa-edit"></i>
+                                <span>Additional Reference Instructions</span>
+                            </label>
+                            <textarea 
+                                id="vrNotesTextarea" 
+                                class="vr-notes-textarea" 
+                                placeholder="Describe specific design elements, colors, or styles you want AI to focus on from the uploaded images..."
+                                oninput="vrUpdateCharCount()"
+                            ></textarea>
+                            <div class="vr-char-count" id="vrCharCount">0 characters</div>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="vr-push-section">
+                            <button type="button" class="vr-push-btn" onclick="vrPushToNotes()" title="Push visual reference settings to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -25075,6 +25733,11 @@ async function deResetAll() {
         tbResetAll(true);
     }
     
+    // Reset Visual Reference (skip individual toast)
+    if (typeof vrResetAll === 'function') {
+        vrResetAll(true);
+    }
+    
     // Expand all sections
     deUncollapseAll();
     
@@ -28398,6 +29061,389 @@ function getTaskBreakdown() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     tbInit();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     📷 VISUAL DESIGN REFERENCE JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Visual Reference state
+let vrImages = [];
+let vrMode = 'ai-inspiration';
+
+// Initialize Visual Reference
+function vrInit() {
+    vrLoadFromStorage();
+    vrSetupDropZone();
+    vrUpdateUI();
+}
+
+// Setup Drop Zone events
+function vrSetupDropZone() {
+    const dropZone = document.getElementById('vrDropZone');
+    const fileInput = document.getElementById('vrFileInput');
+    
+    if (!dropZone || !fileInput) return;
+    
+    // Click to upload
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File selection
+    fileInput.addEventListener('change', (e) => {
+        vrHandleFiles(e.target.files);
+    });
+    
+    // Drag and drop
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        vrHandleFiles(e.dataTransfer.files);
+    });
+}
+
+// Handle dropped/selected files
+function vrHandleFiles(files) {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
+        showNotification('⚠️ Please upload image files only', 'warning');
+        return;
+    }
+    
+    imageFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            vrImages.push({
+                name: file.name,
+                data: e.target.result,
+                size: file.size
+            });
+            
+            vrUpdateGallery();
+            vrSaveToStorage();
+            vrUpdateBadge();
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    showNotification(`✅ ${imageFiles.length} reference image(s) uploaded`, 'success');
+}
+
+// Update gallery display
+function vrUpdateGallery() {
+    const gallery = document.getElementById('vrGallery');
+    const grid = document.getElementById('vrImagesGrid');
+    
+    if (!gallery || !grid) return;
+    
+    if (vrImages.length > 0) {
+        gallery.classList.add('show');
+        
+        grid.innerHTML = vrImages.map((img, index) => `
+            <div class="vr-image-card">
+                <img src="${img.data}" alt="${img.name}" class="vr-image-preview">
+                <div class="vr-image-overlay">${img.name}</div>
+                <button class="vr-image-remove" onclick="vrRemoveImage(${index})" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    } else {
+        gallery.classList.remove('show');
+    }
+}
+
+// Remove single image
+function vrRemoveImage(index) {
+    vrImages.splice(index, 1);
+    vrUpdateGallery();
+    vrSaveToStorage();
+    vrUpdateBadge();
+    showNotification('🗑️ Reference image removed', 'info');
+}
+
+// Clear all images
+function vrClearAll() {
+    if (vrImages.length === 0) {
+        showNotification('⚠️ No reference images to clear', 'warning');
+        return;
+    }
+    
+    deConfirm({
+        title: 'Clear All References',
+        subtitle: 'Visual Design Reference',
+        message: `Are you sure you want to remove all ${vrImages.length} reference images?`,
+        warning: 'This action cannot be undone.',
+        confirmText: 'Clear All',
+        icon: 'fa-trash-alt'
+    }).then(confirmed => {
+        if (confirmed) {
+            vrImages = [];
+            vrUpdateGallery();
+            vrSaveToStorage();
+            vrUpdateBadge();
+            document.getElementById('vrFileInput').value = '';
+            showNotification('✅ All reference images cleared', 'success');
+        }
+    });
+}
+
+// Select mode
+function vrSelectMode(mode) {
+    vrMode = mode;
+    
+    // Update UI
+    document.querySelectorAll('.vr-mode-option').forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+    });
+    
+    const selectedOption = document.querySelector(`.vr-mode-option[data-mode="${mode}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        const radio = selectedOption.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    }
+    
+    // Save
+    localStorage.setItem('vrMode', vrMode);
+    
+    // Notification
+    const modeName = mode === 'ai-inspiration' ? 'AI Inspiration Mode' : 'Exact Replication Mode';
+    showNotification(`🎨 Reference mode: ${modeName}`, 'success');
+}
+
+// Update badge
+function vrUpdateBadge() {
+    const badge = document.getElementById('vrBadge');
+    if (badge) {
+        const count = vrImages.length;
+        badge.textContent = count === 1 ? '1 Image' : `${count} Images`;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// Update UI from state
+function vrUpdateUI() {
+    vrUpdateGallery();
+    vrUpdateBadge();
+    vrLoadNotesFromStorage();
+    
+    // Restore mode selection
+    document.querySelectorAll('.vr-mode-option').forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        if (radio) radio.checked = false;
+    });
+    
+    const selectedOption = document.querySelector(`.vr-mode-option[data-mode="${vrMode}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+        const radio = selectedOption.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+    }
+}
+
+// Push to Project Prompts
+function vrPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    const notesContent = document.getElementById('vrNotesTextarea')?.value.trim() || '';
+    
+    // Build prompt content
+    let promptContent = '';
+    
+    if (vrImages.length > 0) {
+        const modeName = vrMode === 'ai-inspiration' ? 'AI Inspiration Mode' : 'Exact Replication Mode';
+        promptContent += `\n\n📷 VISUAL DESIGN REFERENCE\n`;
+        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        promptContent += `• Reference Mode: ${modeName}\n`;
+        promptContent += `• Uploaded Images: ${vrImages.length}\n`;
+        
+        if (vrMode === 'ai-inspiration') {
+            promptContent += `\nINSTRUCTIONS: Analyze all uploaded reference images and intelligently choose design elements, color schemes, layouts, and styles to create a cohesive design. AI should decide which image inspires which page based on best fit.\n`;
+        } else {
+            promptContent += `\nINSTRUCTIONS: Replicate the exact design from each image to matching pages. Use image naming for page mapping (e.g., "contact.jpg" → Contact page). Create pixel-perfect recreations of layouts, colors, and styling.\n`;
+        }
+        
+        promptContent += `\nImage Files:\n`;
+        vrImages.forEach((img, i) => {
+            promptContent += `  ${i + 1}. ${img.name}\n`;
+        });
+        
+        promptContent += `\n⚠️ IMPORTANT: Use ONLY these uploaded images as design reference. Do NOT use external design sources.\n`;
+    }
+    
+    if (notesContent) {
+        if (vrImages.length === 0) {
+            promptContent += `\n\n📷 VISUAL DESIGN NOTES\n`;
+            promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        } else {
+            promptContent += `\nAdditional Instructions:\n`;
+        }
+        promptContent += `${notesContent}\n`;
+    }
+    
+    if (!promptContent) {
+        showNotification('⚠️ No visual references or notes to push', 'warning');
+        return;
+    }
+    
+    // Append to Project Prompts
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + promptContent;
+    
+    // Trigger auto-resize
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Save
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showNotification('📷 Visual reference pushed to Project Prompts', 'success');
+}
+
+// Character count for notes
+function vrUpdateCharCount() {
+    const textarea = document.getElementById('vrNotesTextarea');
+    const countEl = document.getElementById('vrCharCount');
+    
+    if (textarea && countEl) {
+        const count = textarea.value.length;
+        countEl.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+        vrSaveNotesToStorage();
+    }
+}
+
+// Save notes to storage
+function vrSaveNotesToStorage() {
+    const textarea = document.getElementById('vrNotesTextarea');
+    if (textarea) {
+        localStorage.setItem('vrNotes', textarea.value);
+    }
+}
+
+// Load notes from storage
+function vrLoadNotesFromStorage() {
+    const savedNotes = localStorage.getItem('vrNotes');
+    const textarea = document.getElementById('vrNotesTextarea');
+    
+    if (savedNotes && textarea) {
+        textarea.value = savedNotes;
+        vrUpdateCharCount();
+    }
+}
+
+// Save to localStorage
+function vrSaveToStorage() {
+    try {
+        localStorage.setItem('vrImages', JSON.stringify(vrImages));
+        localStorage.setItem('vrMode', vrMode);
+    } catch (e) {
+        console.warn('Failed to save visual references:', e);
+        if (e.name === 'QuotaExceededError') {
+            showNotification('⚠️ Storage limit reached. Consider using fewer or smaller images.', 'warning');
+        }
+    }
+}
+
+// Load from localStorage
+function vrLoadFromStorage() {
+    const savedImages = localStorage.getItem('vrImages');
+    const savedMode = localStorage.getItem('vrMode');
+    
+    if (savedImages) {
+        try {
+            vrImages = JSON.parse(savedImages);
+        } catch (e) {
+            console.warn('Failed to load visual references:', e);
+        }
+    }
+    
+    if (savedMode) {
+        vrMode = savedMode;
+    }
+}
+
+// Reset all
+function vrResetAll(skipToast = false) {
+    vrImages = [];
+    vrMode = 'ai-inspiration';
+    
+    // Clear UI
+    vrUpdateGallery();
+    vrUpdateBadge();
+    
+    // Clear file input
+    const fileInput = document.getElementById('vrFileInput');
+    if (fileInput) fileInput.value = '';
+    
+    // Reset mode selection
+    vrSelectMode('ai-inspiration');
+    
+    // Clear notes
+    const notesTextarea = document.getElementById('vrNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        vrUpdateCharCount();
+    }
+    
+    // Clear storage
+    localStorage.removeItem('vrImages');
+    localStorage.removeItem('vrMode');
+    localStorage.removeItem('vrNotes');
+    
+    if (!skipToast) {
+        showNotification('📷 Visual references reset', 'info');
+    }
+}
+
+// Confirm reset
+async function confirmResetVisualReference() {
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Reset Visual References',
+            subtitle: 'Design Enhancer',
+            message: 'This will clear all uploaded images, mode selection, and notes.',
+            warning: 'This action cannot be undone.',
+            confirmText: 'Reset',
+            icon: 'fa-images'
+        });
+        if (confirmed) {
+            vrResetAll();
+        }
+    } else if (confirm('Reset visual references to default?')) {
+        vrResetAll();
+    }
+}
+
+// Get visual reference settings (for external access)
+function getVisualReference() {
+    return {
+        images: vrImages,
+        mode: vrMode,
+        notes: document.getElementById('vrNotesTextarea')?.value.trim() || ''
+    };
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    vrInit();
 });
 </script>
 

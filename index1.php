@@ -5660,383 +5660,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* ============================================
            VISUAL REFERENCE UPLOADER STYLES
+           MIGRATED TO Prompt-Manager.php
            ============================================ */
-
-    .visual-reference-zone {
-        border: 3px dashed var(--glass-border);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all var(--transition-base);
-        background: var(--surface-dark);
-        position: relative;
-        overflow: hidden;
-        margin-top: 1.5rem;
-    }
-
-    .visual-reference-zone::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(124, 58, 237, 0.05));
-        opacity: 0;
-        transition: opacity var(--transition-base);
-    }
-
-    .visual-reference-zone:hover {
-        border-color: var(--aurora-pink);
-        background: linear-gradient(135deg,
-                rgba(233, 30, 99, 0.08) 0%,
-                rgba(124, 77, 255, 0.05) 100%);
-        box-shadow: var(--glow-pink);
-    }
-
-    .visual-reference-zone:hover::before {
-        opacity: 1;
-    }
-
-    .visual-reference-zone.drag-over {
-        border-color: var(--aurora-pink);
-        border-style: solid;
-        background: rgba(233, 30, 99, 0.1);
-        animation: pulse 1s ease-in-out infinite;
-    }
-
-    /* Logo Upload Zone CSS - Migrated to Prompt-Manager.php */
-
-    .visual-reference-icon {
-        font-size: 4rem;
-        background: linear-gradient(135deg,
-                var(--aurora-pink) 0%,
-                var(--aurora-violet) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: var(--space-md);
-        animation: float 3s ease-in-out infinite;
-        filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3));
-    }
-
-    .visual-reference-title {
-        font-family: var(--font-display);
-        font-size: var(--text-2xl);
-        font-weight: 700;
-        margin-bottom: var(--space-sm);
-        color: var(--text-primary);
-    }
-
-    .visual-reference-subtitle {
-        color: var(--text-secondary);
-        font-size: var(--text-base);
-        margin-bottom: var(--space-md);
-    }
-
-    .visual-reference-hint {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
-        background: linear-gradient(135deg,
-                rgba(233, 30, 99, 0.15) 0%,
-                rgba(124, 77, 255, 0.1) 100%);
-        border-radius: var(--radius-full);
-        color: var(--aurora-pink);
-        font-size: var(--text-sm);
-        margin-top: var(--space-md);
-        border: 1px solid rgba(233, 30, 99, 0.2);
-    }
-
-    /* ══════════════════════════════════════════
-           🖼️ REFERENCE IMAGES GALLERY - Aurora
-           ══════════════════════════════════════════ */
-    .reference-images-gallery {
-        display: none;
-        margin-top: var(--space-xl);
-        padding-top: var(--space-xl);
-        border-top: 1px solid rgba(124, 77, 255, 0.2);
-    }
-
-    .reference-images-gallery.show {
-        display: block;
-        animation: fadeInUp 0.3s ease;
-    }
-
-    .reference-images-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: var(--space-md);
-        margin-bottom: var(--space-lg);
-    }
-
-    .reference-image-card {
-        position: relative;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        border: 2px solid var(--glass-border);
-        transition: all var(--transition-base);
-        overflow: hidden;
-        background: var(--surface-light);
-        border: 2px solid var(--glass-border);
-        transition: all var(--transition-base);
-        aspect-ratio: 4/3;
-    }
-
-    .reference-image-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
-        border-color: #ec4899;
-    }
-
-    .reference-image-preview {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .reference-image-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-        padding: 0.75rem;
-        color: white;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .reference-image-remove {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: rgba(239, 68, 68, 0.9);
-        color: white;
-        border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all var(--transition-base);
-        opacity: 0;
-    }
-
-    .reference-image-card:hover .reference-image-remove {
-        opacity: 1;
-    }
-
-    .reference-image-remove:hover {
-        background: var(--aurora-pink);
-        transform: scale(1.1);
-        box-shadow: var(--glow-pink);
-    }
-
-    /* ══════════════════════════════════════════
-           🔘 REFERENCE MODE SELECTOR - Aurora
-           ══════════════════════════════════════════ */
-    .reference-mode-selector {
-        margin-top: var(--space-lg);
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-md);
-    }
-
-    .reference-mode-option {
-        position: relative;
-        cursor: pointer;
-        border-radius: var(--radius-xl);
-        border: 3px solid var(--glass-border);
-        padding: var(--space-lg);
-        background: linear-gradient(135deg,
-                rgba(13, 27, 42, 0.95) 0%,
-                rgba(27, 38, 59, 0.8) 100%);
-        transition: all var(--transition-base);
-        overflow: hidden;
-    }
-
-    .reference-mode-option::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg,
-                transparent,
-                rgba(233, 30, 99, 0.1),
-                transparent);
-        transition: left var(--transition-slow);
-    }
-
-    .reference-mode-option:hover {
-        border-color: var(--aurora-pink);
-        background: linear-gradient(135deg,
-                rgba(233, 30, 99, 0.08) 0%,
-                rgba(27, 38, 59, 0.9) 100%);
-        transform: translateX(6px);
-    }
-
-    .reference-mode-option:hover::after {
-        left: 100%;
-    }
-
-    .reference-mode-option.selected {
-        border-color: var(--aurora-green);
-        background: linear-gradient(135deg,
-                rgba(0, 230, 118, 0.08) 0%,
-                rgba(124, 77, 255, 0.05) 100%);
-        box-shadow: var(--glow-green);
-    }
-
-    .reference-mode-option.selected::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(180deg,
-                var(--aurora-green) 0%,
-                var(--aurora-violet) 100%);
-        border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-        z-index: 2;
-    }
-
-    .reference-mode-radio {
-        position: absolute;
-        opacity: 0;
-        cursor: pointer;
-    }
-
-    .reference-mode-header {
-        display: flex;
-        align-items: center;
-        gap: var(--space-md);
-        margin-bottom: var(--space-sm);
-    }
-
-    .reference-mode-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #ec4899, #8b5cf6);
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-    }
-
-    .reference-mode-option.selected .reference-mode-icon {
-        background: var(--gradient-success);
-    }
-
-    .reference-mode-title {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .reference-mode-option.selected .reference-mode-title::before {
-        content: '✓ ';
-        color: #38ef7d;
-        margin-right: 0.25rem;
-    }
-
-    .reference-mode-description {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        margin-bottom: 0.75rem;
-    }
-
-    .reference-mode-features {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .reference-mode-feature {
-        font-size: 0.8rem;
-        padding: 0.35rem 0.75rem;
-        background: rgba(236, 72, 153, 0.1);
-        border: 1px solid rgba(236, 72, 153, 0.2);
-        border-radius: 15px;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .reference-mode-feature i {
-        color: #ec4899;
-        font-size: 0.7rem;
-    }
-
-    .reference-mode-option.selected .reference-mode-feature {
-        background: rgba(56, 239, 125, 0.1);
-        border-color: rgba(56, 239, 125, 0.3);
-    }
-
-    .reference-mode-option.selected .reference-mode-feature i {
-        color: #38ef7d;
-    }
-
-    /* Info Box for Reference */
-    .reference-info-box {
-        margin-top: 1.5rem;
-        padding: 1.25rem;
-        background: rgba(59, 130, 246, 0.05);
-        border-left: 4px solid #3b82f6;
-        border-radius: var(--radius-md);
-        display: flex;
-        gap: 1rem;
-    }
-
-    .reference-info-box i {
-        color: #3b82f6;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .reference-info-box strong {
-        display: block;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .reference-info-box p {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    /* Responsive Visual Reference */
-    @media (max-width: 768px) {
-        .reference-images-grid {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        }
-
-        .visual-reference-zone {
-            padding: 2rem 1.5rem;
-        }
-
-        .reference-mode-option {
-            padding: 1.25rem;
-        }
-    }
 
     /* ============================================
            EXCLUSION MANAGER STYLES
@@ -13925,147 +13550,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Visual Design Reference Uploader -->
-            <div id="referenceImagesSection" class="card card-full fade-in" style="animation-delay: 0.39s;">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);">
-                        <i class="fas fa-images"></i>
-                    </div>
-                    <h2 class="card-title">Visual Design Reference (Optional)</h2>
-                </div>
-                <div class="card-body">
-                    <p class="card-description">Upload screenshots or design inspirations that AI should use as visual
-                        reference</p>
-
-                    <!-- Reference Upload Zone -->
-                    <div class="visual-reference-zone" id="referenceDropZone">
-                        <input type="file" id="referenceImageInput" multiple accept="image/*" style="display: none;">
-                        <div style="position: relative; z-index: 1;">
-                            <div class="visual-reference-icon">
-                                <i class="fas fa-image"></i>
-                            </div>
-                            <h3 class="visual-reference-title">Upload Design Reference Images</h3>
-                            <p class="visual-reference-subtitle">Drag & drop screenshots of designs you like, or click
-                                to browse</p>
-                            <div class="visual-reference-hint">
-                                <i class="fas fa-lightbulb"></i>
-                                Screenshots from other websites, mockups, or design inspirations
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Reference Images Gallery -->
-                    <div class="reference-images-gallery" id="referenceGallery">
-                        <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; margin-bottom: 1rem;">
-                            <i class="fas fa-images" style="color: #ec4899;"></i> Uploaded Reference Images
-                        </h3>
-
-                        <div class="reference-images-grid" id="referenceImagesGrid">
-                            <!-- Reference images will appear here -->
-                        </div>
-
-                        <!-- Reference Application Mode -->
-                        <div class="reference-mode-selector">
-                            <h4
-                                style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--text-primary);">
-                                <i class="fas fa-cogs"></i> How should AI use these references?
-                            </h4>
-
-                            <label class="reference-mode-option selected" data-mode="ai-inspiration">
-                                <input type="radio" name="reference_mode" value="ai-inspiration"
-                                    class="reference-mode-radio" checked onchange="updateReferenceMode(this)">
-                                <div class="reference-mode-header">
-                                    <div class="reference-mode-icon">
-                                        <i class="fas fa-brain"></i>
-                                    </div>
-                                    <div>
-                                        <div class="reference-mode-title">AI Inspiration Mode</div>
-                                    </div>
-                                </div>
-                                <div class="reference-mode-description">
-                                    AI will analyze all uploaded images and intelligently choose design elements, color
-                                    schemes, layouts, and styles from them to create a cohesive design. AI decides which
-                                    image inspires which page based on best fit.
-                                </div>
-                                <div class="reference-mode-features">
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Intelligent Extraction
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Best Fit Matching
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Cohesive Design
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Creative Adaptation
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="reference-mode-option" data-mode="exact-replication">
-                                <input type="radio" name="reference_mode" value="exact-replication"
-                                    class="reference-mode-radio" onchange="updateReferenceMode(this)">
-                                <div class="reference-mode-header">
-                                    <div class="reference-mode-icon">
-                                        <i class="fas fa-copy"></i>
-                                    </div>
-                                    <div>
-                                        <div class="reference-mode-title">Exact Replication Mode</div>
-                                    </div>
-                                </div>
-                                <div class="reference-mode-description">
-                                    AI will replicate the exact design from each image to matching pages. Image named
-                                    "contact" → Contact page design, "products" → Products page design. Pixel-perfect
-                                    recreation of layouts, colors, and styling from the references.
-                                </div>
-                                <div class="reference-mode-features">
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Pixel-Perfect Match
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Page-to-Image Mapping
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Exact Layout Copy
-                                    </div>
-                                    <div class="reference-mode-feature">
-                                        <i class="fas fa-check"></i>
-                                        Precise Recreation
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Info Box -->
-                        <div class="reference-info-box">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>Important Note:</strong>
-                                <p>When reference images are uploaded, AI will ONLY use design inspiration from these
-                                    images and will NOT use any external design sources. Your uploaded images become the
-                                    exclusive visual reference for the entire project.</p>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
-                            <button class="btn btn-danger" onclick="clearReferenceImages()">
-                                <i class="fas fa-trash-alt"></i>
-                                Clear All References
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+            <!-- ================================================================
+                 VISUAL DESIGN REFERENCE - FULLY MIGRATED
+                 This section has been completely migrated to Prompt-Manager.php
+                 All HTML, CSS, and JavaScript functionality now lives in the
+                 Design Enhancer panel of Prompt-Manager.php
+            ================================================================ -->
 
             <!-- Exclusion Manager -->
             <div id="excludedFilesSection" class="card card-full fade-in" style="animation-delay: 0.395s;">
@@ -14772,7 +14262,7 @@ Examples:
         const sections = [
             'executionModeSection', 'fileUploadSection', 'themeSelectionSection',
             'enhancementOptionsSection', 'colorThemeSection', // designStyleSection removed - migrated to Prompt-Manager.php
-            'layoutSection', 'referenceImagesSection', 'excludedFilesSection',
+            'layoutSection', 'excludedFilesSection', // referenceImagesSection removed - migrated to Prompt-Manager.php
             'homepageCreationSection', 'documentationPageSection',
             'promptOutputSection'
         ];
@@ -14933,23 +14423,7 @@ Examples:
             tip: 'For marketing sites, use "Landing Page" layout. For web apps, choose "Dashboard". Let AI decide if unsure about the best structure.',
             sectionId: 'layoutSection'
         },
-        referenceImages: {
-            icon: 'fa-images',
-            iconBg: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(168, 85, 247, 0.1))',
-            iconColor: '#ec4899',
-            title: 'Reference Images',
-            subtitle: 'Upload design inspiration',
-            description: 'Upload screenshots or images of designs you like. The AI will analyze these references and incorporate similar elements into your design.',
-            features: [
-                'Upload multiple reference images',
-                'AI extracts design patterns and styles',
-                'Describe what you like about each image',
-                'Combines references with your selected options',
-                'Great for achieving a specific look'
-            ],
-            tip: 'Upload 2-3 reference images of websites you admire. Add descriptions explaining what you like about each for better AI understanding.',
-            sectionId: 'referenceImagesSection'
-        },
+        // referenceImages - MIGRATED TO Prompt-Manager.php
         excludedFiles: {
             icon: 'fa-ban',
             iconBg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.1))',
@@ -15661,7 +15135,7 @@ Examples:
         // designStyle: REMOVED - Migrated to Prompt-Manager.php
         colorTheme: 'colorThemeSection',
         layout: 'layoutSection',
-        referenceImages: 'referenceImagesSection',
+        // referenceImages: 'referenceImagesSection', - MIGRATED TO Prompt-Manager.php
         excludedFiles: 'excludedFilesSection',
         homepageCreation: 'homepageCreationSection',
         documentationPage: 'documentationPageSection',
@@ -15679,7 +15153,7 @@ Examples:
         // designStyle: REMOVED - Migrated to Prompt-Manager.php
         colorTheme: true,
         layout: true,
-        referenceImages: true,
+        referenceImages: false, // MIGRATED TO Prompt-Manager.php
         excludedFiles: true,
         homepageCreation: true,
         documentationPage: true,
@@ -16747,8 +16221,8 @@ Examples:
         const sectionsToHideInPreserveMode = [
             'designStyleSection',        // Enhanced Style Types - not needed, keeping current style
             'colorThemeSection',         // Design Theme Selection - theme is already in the preserved design
-            'layoutSection',             // Page Layout Structure - layout is preserved from original
-            'referenceImagesSection'     // Visual Design Reference - not changing visual design
+            'layoutSection'              // Page Layout Structure - layout is preserved from original
+            // 'referenceImagesSection' - MIGRATED TO Prompt-Manager.php
         ];
         
         // Sidebar section names that correspond to the hidden sections
@@ -21932,23 +21406,10 @@ Please provide:
         if (typeof updateLayoutCountBadge === 'function') updateLayoutCountBadge();
         if (typeof updateLayoutMixIndicator === 'function') updateLayoutMixIndicator();
 
-        // Reset reference images
+        // Reset reference images - MIGRATED TO Prompt-Manager.php
+        // Functions and UI moved to Prompt-Manager.php Design Enhancer
         referenceImages = [];
         referenceMode = 'ai-inspiration';
-        updateReferenceGallery();
-        const refFileInput = document.getElementById('referenceImageInput');
-        if (refFileInput) refFileInput.value = '';
-        const aiInspirationRadio = document.querySelector('input[name="reference_mode"][value="ai-inspiration"]');
-        if (aiInspirationRadio) {
-            aiInspirationRadio.checked = true;
-            document.querySelectorAll('.reference-mode-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            const aiRefOption = aiInspirationRadio.closest('.reference-mode-option');
-            if (aiRefOption) {
-                aiRefOption.classList.add('selected');
-            }
-        }
 
         // Logo & Branding - Migrated to Prompt-Manager.php
         localStorage.removeItem('logoData');
@@ -22125,7 +21586,8 @@ Please provide:
     let selectedLayouts = ['ai-decision']; // Array of selected layouts
     let selectedLayout = 'ai-decision'; // Keep for backward compatibility
 
-    // Visual reference state
+    // Visual reference state - MIGRATED TO Prompt-Manager.php
+    // Variables kept for backward compatibility but functionality moved to Prompt-Manager.php
     let referenceImages = [];
     let referenceMode = 'ai-inspiration';
 
@@ -25198,181 +24660,12 @@ Please provide:
         }
     }
 
-    // Initialize Reference Image Uploader
-    function initReferenceUploader() {
-        const dropZone = document.getElementById('referenceDropZone');
-        const fileInput = document.getElementById('referenceImageInput');
-
-        // Click to upload
-        dropZone.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        // File selection
-        fileInput.addEventListener('change', (e) => {
-            handleReferenceFiles(e.target.files);
-        });
-
-        // Drag and drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            handleReferenceFiles(e.dataTransfer.files);
-        });
-    }
-
-    // Logo Uploader - Migrated to Prompt-Manager.php
-
-    // Handle Reference Files
-    function handleReferenceFiles(files) {
-        const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-
-        if (imageFiles.length === 0) {
-            showNotification('⚠️ Please upload image files only', 'warning');
-            return;
-        }
-
-        imageFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                referenceImages.push({
-                    name: file.name,
-                    data: e.target.result,
-                    size: file.size
-                });
-
-                updateReferenceGallery();
-                saveReferenceToStorage();
-            };
-            reader.readAsDataURL(file);
-        });
-
-        showNotification(`✅ ${imageFiles.length} reference image(s) uploaded`, 'success');
-    }
-
-    // Update Reference Gallery
-    function updateReferenceGallery() {
-        const gallery = document.getElementById('referenceGallery');
-        const grid = document.getElementById('referenceImagesGrid');
-
-        if (referenceImages.length > 0) {
-            gallery.classList.add('show');
-
-            grid.innerHTML = referenceImages.map((img, index) => `
-                    <div class="reference-image-card">
-                        <img src="${img.data}" alt="${img.name}" class="reference-image-preview">
-                        <div class="reference-image-overlay">${img.name}</div>
-                        <button class="reference-image-remove" onclick="removeReferenceImage(${index})" title="Remove">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `).join('');
-        } else {
-            gallery.classList.remove('show');
-        }
-    }
-
-    // Remove Reference Image
-    function removeReferenceImage(index) {
-        referenceImages.splice(index, 1);
-        updateReferenceGallery();
-        saveReferenceToStorage();
-        showNotification('🗑️ Reference image removed', 'info');
-    }
-
-    // Clear All Reference Images
-    function clearReferenceImages() {
-        if (referenceImages.length === 0) {
-            showNotification('⚠️ No reference images to clear', 'warning');
-            return;
-        }
-
-        if (confirm(`Are you sure you want to remove all ${referenceImages.length} reference images?`)) {
-            referenceImages = [];
-            updateReferenceGallery();
-            saveReferenceToStorage();
-            document.getElementById('referenceImageInput').value = '';
-            showNotification('✅ All reference images cleared', 'success');
-        }
-    }
-
-    // Update Reference Mode
-    function updateReferenceMode(radioElement) {
-        referenceMode = radioElement.value;
-
-        // Remove 'selected' class from all mode options
-        document.querySelectorAll('.reference-mode-option').forEach(option => {
-            option.classList.remove('selected');
-        });
-
-        // Add 'selected' class to the chosen mode
-        const selectedOption = radioElement.closest('.reference-mode-option');
-        if (selectedOption) {
-            selectedOption.classList.add('selected');
-        }
-
-        // Save to localStorage
-        localStorage.setItem('referenceMode', referenceMode);
-
-        // Show notification
-        const modeName = radioElement.value === 'ai-inspiration' ? 'AI Inspiration Mode' : 'Exact Replication Mode';
-        showNotification(`🎨 Reference mode: ${modeName}`, 'success');
-
-        console.log('Reference mode selected:', referenceMode);
-    }
-
-    // Save Reference to LocalStorage
-    function saveReferenceToStorage() {
-        try {
-            localStorage.setItem('referenceImages', JSON.stringify(referenceImages));
-            console.log('Reference images saved to storage:', referenceImages.length);
-        } catch (e) {
-            console.warn('Failed to save reference images:', e);
-            if (e.name === 'QuotaExceededError') {
-                showNotification('⚠️ Storage limit reached. Consider using fewer or smaller images.', 'warning');
-            }
-        }
-    }
-
-    // Load Reference from LocalStorage
-    function loadReferenceFromStorage() {
-        const savedReferences = localStorage.getItem('referenceImages');
-        const savedMode = localStorage.getItem('referenceMode');
-
-        if (savedReferences) {
-            try {
-                referenceImages = JSON.parse(savedReferences);
-                updateReferenceGallery();
-                console.log('Loaded reference images:', referenceImages.length);
-            } catch (e) {
-                console.warn('Failed to load reference images:', e);
-            }
-        }
-
-        if (savedMode) {
-            referenceMode = savedMode;
-            const modeRadio = document.querySelector(`input[name="reference_mode"][value="${savedMode}"]`);
-            if (modeRadio) {
-                modeRadio.checked = true;
-                document.querySelectorAll('.reference-mode-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
-                const selectedOption = modeRadio.closest('.reference-mode-option');
-                if (selectedOption) {
-                    selectedOption.classList.add('selected');
-                }
-            }
-        }
-    }
+    // ================================================================
+    // VISUAL REFERENCE UPLOADER FUNCTIONS - MIGRATED TO Prompt-Manager.php
+    // All functions (initReferenceUploader, handleReferenceFiles, updateReferenceGallery,
+    // removeReferenceImage, clearReferenceImages, updateReferenceMode, 
+    // saveReferenceToStorage, loadReferenceFromStorage) now live in Prompt-Manager.php
+    // ================================================================
 
     // Initialize Exclusion Manager
     function initExclusionManager() {
@@ -25788,8 +25081,8 @@ Please provide:
     // Load task breakdown settings on page load
     setTimeout(() => {
         loadTaskBreakdownSettings();
-        loadReferenceFromStorage();
-        initReferenceUploader();
+        // loadReferenceFromStorage() - Migrated to Prompt-Manager.php
+        // initReferenceUploader() - Migrated to Prompt-Manager.php
         // initLogoUploader() - Migrated to Prompt-Manager.php
         loadExclusionsFromStorage();
         initExclusionManager();
