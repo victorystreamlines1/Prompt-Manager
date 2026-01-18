@@ -499,6 +499,26 @@ if ($pdo) {
             // Column might already exist
         }
         
+        // Create Design Enhancer Tool Order table
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_tool_order (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            tool_order TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
+        // Insert default order if table is empty
+        $checkOrder = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_tool_order");
+        if ($checkOrder->fetchColumn() == 0) {
+            $defaultOrder = json_encode([
+                'fileUploadTool', 'exclusionTool', 'brandingTool', 'pagesCreatorTool',
+                'customInstructionsTool', 'styleTypesTool', 'designThemeTool', 'layoutTool',
+                'executionModeTool', 'designFocusTool', 'enhancementLevelTool', 'taskBreakdownTool',
+                'visualReferenceTool', 'homepageTool', 'documentationTool'
+            ]);
+            $stmt = $pdo->prepare("INSERT INTO reporter_prompt_tool_order (tool_order) VALUES (?)");
+            $stmt->execute([$defaultOrder]);
+        }
+        
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
         
@@ -557,6 +577,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Pass through the API response
             echo $response;
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER TOOL ORDER - Save
+    // ============================================
+    if ($action === 'save_tool_order') {
+        $toolOrder = $_POST['tool_order'] ?? '';
+        
+        if ($pdo && $toolOrder) {
+            try {
+                // Update the single row (or insert if somehow missing)
+                $stmt = $pdo->prepare("UPDATE reporter_prompt_tool_order SET tool_order = ? WHERE id = 1");
+                $stmt->execute([$toolOrder]);
+                
+                if ($stmt->rowCount() == 0) {
+                    // Insert if no row exists
+                    $stmt = $pdo->prepare("INSERT INTO reporter_prompt_tool_order (tool_order) VALUES (?)");
+                    $stmt->execute([$toolOrder]);
+                }
+                
+                echo json_encode(['success' => true, 'message' => 'Tool order saved']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid data or no database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER TOOL ORDER - Load
+    // ============================================
+    if ($action === 'load_tool_order') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT tool_order FROM reporter_prompt_tool_order LIMIT 1");
+                $row = $stmt->fetch();
+                
+                if ($row) {
+                    echo json_encode(['success' => true, 'tool_order' => json_decode($row['tool_order'], true)]);
+                } else {
+                    // Return default order
+                    echo json_encode(['success' => true, 'tool_order' => [
+                        'fileUploadTool', 'exclusionTool', 'brandingTool', 'pagesCreatorTool',
+                        'customInstructionsTool', 'styleTypesTool', 'designThemeTool', 'layoutTool',
+                        'executionModeTool', 'designFocusTool', 'enhancementLevelTool', 'taskBreakdownTool',
+                        'visualReferenceTool', 'homepageTool', 'documentationTool'
+                    ]]);
+                }
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No database connection']);
         }
         exit;
     }
@@ -3338,6 +3415,166 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .de-tool-section:hover {
             border-color: rgba(99, 102, 241, 0.35);
             box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           🎯 DRAG & DROP STYLES FOR TOOL SECTIONS
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-tools-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .de-tool-section[draggable="true"] {
+            cursor: default;
+            user-select: none;
+        }
+        
+        .de-tool-section.dragging {
+            opacity: 0.4;
+            transform: scale(0.97);
+            border: 2px dashed #6366f1 !important;
+            background: rgba(99, 102, 241, 0.1) !important;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3) !important;
+            pointer-events: none;
+        }
+        
+        .de-tool-section.drag-over {
+            border-top: 4px solid #10b981 !important;
+            padding-top: 0.5rem;
+            position: relative;
+        }
+        
+        .de-tool-section.drag-over::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            animation: dropPulse 0.8s ease infinite;
+        }
+        
+        .de-tool-section.drag-over-bottom {
+            border-bottom: 4px solid #10b981 !important;
+            padding-bottom: 0.5rem;
+            position: relative;
+        }
+        
+        .de-tool-section.drag-over-bottom::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            animation: dropPulse 0.8s ease infinite;
+        }
+        
+        @keyframes dropPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .de-drag-handle {
+            width: 24px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            cursor: grab;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            opacity: 0.6;
+            margin-right: 0.35rem;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid transparent;
+        }
+        
+        .de-drag-handle:hover {
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            opacity: 1;
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .de-drag-handle:active {
+            cursor: grabbing;
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.25);
+            transform: scale(0.95);
+        }
+        
+        .de-drag-handle i {
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+        
+        /* Drag indicator line */
+        .de-drop-indicator {
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #10b981 50%, transparent 100%);
+            margin: 0.25rem 0;
+            border-radius: 2px;
+            animation: dropIndicatorPulse 0.8s ease infinite;
+        }
+        
+        @keyframes dropIndicatorPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Saving indicator */
+        .de-saving-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            z-index: 9999;
+            animation: slideInUp 0.3s ease;
+        }
+        
+        .de-saving-indicator i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Light Theme Adjustments for Drag & Drop */
+        body.light-theme .de-tool-section.dragging {
+            background: rgba(99, 102, 241, 0.1) !important;
+        }
+        
+        body.light-theme .de-drag-handle:hover {
+            background: rgba(99, 102, 241, 0.15);
         }
         
         .de-tool-header {
@@ -16844,10 +17081,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <!-- ═══════════════════════════════════════════════════════════════════
+                     🎯 TOOLS CONTAINER (Drag & Drop Sortable)
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tools-container" id="deToolsContainer">
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
                      📁 UNIFIED FILE UPLOAD ZONE TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="fileUploadTool">
+                <div class="de-tool-section collapsed" id="fileUploadTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('fileUpload')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <span>Project Files Upload</span>
@@ -16949,8 +17194,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🚫 FILE EXCLUSION MANAGER TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="exclusionTool">
+                <div class="de-tool-section collapsed" id="exclusionTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('exclusion')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-ban"></i>
                             <span>File Exclusion</span>
@@ -17022,8 +17270,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      👑 BRANDING TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="brandingTool">
+                <div class="de-tool-section collapsed" id="brandingTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('branding')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-crown"></i>
                             <span>Logo & Branding</span>
@@ -17130,8 +17381,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📄 PAGES CREATOR TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="pagesCreatorTool">
+                <div class="de-tool-section collapsed" id="pagesCreatorTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('pagesCreator')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-file-alt"></i>
                             <span>Pages Creator</span>
@@ -17217,8 +17471,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📝 CUSTOM INSTRUCTIONS TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="customInstructionsTool">
+                <div class="de-tool-section collapsed" id="customInstructionsTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('customInstructions')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-pen-fancy"></i>
                             <span>Custom Instructions</span>
@@ -17289,8 +17546,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🎨 ENHANCED STYLE TYPES TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="styleTypesTool">
+                <div class="de-tool-section collapsed" id="styleTypesTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('styleTypes')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-wand-magic-sparkles"></i>
                             <span>Enhanced Style Types</span>
@@ -17379,8 +17639,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🎨 DESIGN THEME SELECTION TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="designThemeTool">
+                <div class="de-tool-section collapsed" id="designThemeTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('designTheme')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-palette"></i>
                             <span>Design Themes</span>
@@ -17675,8 +17938,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🏗️ PAGE LAYOUT STRUCTURE TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="layoutTool">
+                <div class="de-tool-section collapsed" id="layoutTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('layout')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-th-large"></i>
                             <span>Page Layout Structure</span>
@@ -17966,8 +18232,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🚀 EXECUTION MODE TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="executionModeTool">
+                <div class="de-tool-section collapsed" id="executionModeTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('executionMode')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-rocket"></i>
                             <span>Execution Mode</span>
@@ -18048,8 +18317,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🎨 DESIGN FOCUS AREAS TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="designFocusTool">
+                <div class="de-tool-section collapsed" id="designFocusTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('designFocus')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-palette"></i>
                             <span>Design Focus Areas</span>
@@ -18152,8 +18424,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📊 ENHANCEMENT LEVEL TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="enhancementLevelTool">
+                <div class="de-tool-section collapsed" id="enhancementLevelTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('enhancementLevel')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-sliders-h"></i>
                             <span>Enhancement Level</span>
@@ -18227,8 +18502,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📋 TASK BREAKDOWN TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="taskBreakdownTool">
+                <div class="de-tool-section collapsed" id="taskBreakdownTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('taskBreakdown')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-tasks"></i>
                             <span>Task Breakdown</span>
@@ -18358,8 +18636,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📷 VISUAL DESIGN REFERENCE TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="visualReferenceTool">
+                <div class="de-tool-section collapsed" id="visualReferenceTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('visualReference')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-images"></i>
                             <span>Visual Reference</span>
@@ -18480,8 +18761,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      🏠 HOMEPAGE CONFIGURATION TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="homepageTool">
+                <div class="de-tool-section collapsed" id="homepageTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('homepage')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-home"></i>
                             <span>Homepage Configuration</span>
@@ -18640,8 +18924,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- ═══════════════════════════════════════════════════════════════════
                      📚 DOCUMENTATION INTEGRATION TOOL
                      ═══════════════════════════════════════════════════════════════════ -->
-                <div class="de-tool-section collapsed" id="documentationTool">
+                <div class="de-tool-section collapsed" id="documentationTool" draggable="true">
                     <div class="de-tool-header" onclick="toggleToolSection('documentation')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-book"></i>
                             <span>Documentation</span>
@@ -18830,6 +19117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
+                
+                </div><!-- End of de-tools-container -->
                 
                 <!-- More tools can be added here -->
                 <div class="de-tools-placeholder">
@@ -29811,6 +30100,274 @@ async function deResetAll() {
     
     showToast('✨ All tools reset to default!', 'success');
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// 🎯 DRAG & DROP TOOL REORDERING SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+
+let deDraggedTool = null;
+let deDragStartedFromHandle = false;
+
+// Initialize Drag & Drop
+function initToolDragDrop() {
+    const container = document.getElementById('deToolsContainer');
+    if (!container) {
+        console.log('Tools container not found');
+        return;
+    }
+    
+    console.log('Initializing drag and drop...');
+    
+    const tools = container.querySelectorAll('.de-tool-section[draggable="true"]');
+    console.log('Found tools:', tools.length);
+    
+    tools.forEach(tool => {
+        const handle = tool.querySelector('.de-drag-handle');
+        
+        // Track when drag starts from handle
+        if (handle) {
+            handle.addEventListener('mousedown', function(e) {
+                deDragStartedFromHandle = true;
+                e.stopPropagation(); // Prevent header click
+            });
+        }
+        
+        // Reset flag on mouseup anywhere
+        document.addEventListener('mouseup', function() {
+            setTimeout(() => { deDragStartedFromHandle = false; }, 100);
+        });
+        
+        // Drag start
+        tool.addEventListener('dragstart', function(e) {
+            if (!deDragStartedFromHandle) {
+                e.preventDefault();
+                return false;
+            }
+            
+            deDraggedTool = this;
+            
+            // Use setTimeout to add class after drag image is captured
+            setTimeout(() => {
+                this.classList.add('dragging');
+            }, 0);
+            
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.id);
+            
+            console.log('Drag started:', this.id);
+        });
+        
+        // Drag end
+        tool.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            deDraggedTool = null;
+            deDragStartedFromHandle = false;
+            
+            // Remove all drag-over classes
+            container.querySelectorAll('.de-tool-section').forEach(t => {
+                t.classList.remove('drag-over', 'drag-over-bottom');
+            });
+            
+            console.log('Drag ended');
+        });
+        
+        // Drag over - MUST prevent default to allow drop
+        tool.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (!deDraggedTool || this === deDraggedTool) return;
+            
+            e.dataTransfer.dropEffect = 'move';
+            
+            // Determine position
+            const rect = this.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            // Remove classes from all tools first
+            container.querySelectorAll('.de-tool-section').forEach(t => {
+                if (t !== this) {
+                    t.classList.remove('drag-over', 'drag-over-bottom');
+                }
+            });
+            
+            // Add appropriate class
+            this.classList.remove('drag-over', 'drag-over-bottom');
+            if (e.clientY < midY) {
+                this.classList.add('drag-over');
+            } else {
+                this.classList.add('drag-over-bottom');
+            }
+        });
+        
+        // Drag enter
+        tool.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+        });
+        
+        // Drag leave
+        tool.addEventListener('dragleave', function(e) {
+            // Only remove if leaving the element entirely
+            const rect = this.getBoundingClientRect();
+            if (e.clientX < rect.left || e.clientX > rect.right || 
+                e.clientY < rect.top || e.clientY > rect.bottom) {
+                this.classList.remove('drag-over', 'drag-over-bottom');
+            }
+        });
+        
+        // Drop
+        tool.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Drop event on:', this.id);
+            
+            if (!deDraggedTool || this === deDraggedTool) {
+                console.log('Invalid drop - same element or no dragged tool');
+                return;
+            }
+            
+            const rect = this.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            
+            // Determine where to insert
+            if (e.clientY < midY) {
+                container.insertBefore(deDraggedTool, this);
+                console.log('Inserted before:', this.id);
+            } else {
+                container.insertBefore(deDraggedTool, this.nextSibling);
+                console.log('Inserted after:', this.id);
+            }
+            
+            // Remove drag classes
+            this.classList.remove('drag-over', 'drag-over-bottom');
+            
+            // Save new order to database
+            saveToolOrderToDatabase();
+        });
+    });
+    
+    // Also allow drop on container itself (for dropping at the end)
+    container.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+    
+    container.addEventListener('drop', function(e) {
+        // Only handle if drop is on container, not on a tool
+        if (e.target === container && deDraggedTool) {
+            e.preventDefault();
+            container.appendChild(deDraggedTool);
+            saveToolOrderToDatabase();
+        }
+    });
+    
+    // Load order from database on init
+    loadToolOrderFromDatabase();
+    
+    console.log('Drag and drop initialized successfully');
+}
+
+// Save tool order to database
+async function saveToolOrderToDatabase() {
+    const container = document.getElementById('deToolsContainer');
+    if (!container) return;
+    
+    const tools = container.querySelectorAll('.de-tool-section[draggable="true"]');
+    const order = Array.from(tools).map(tool => tool.id);
+    
+    console.log('Saving order:', order);
+    
+    // Show saving indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'de-saving-indicator';
+    indicator.innerHTML = '<i class="fas fa-sync-alt"></i> Saving order...';
+    document.body.appendChild(indicator);
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'save_tool_order');
+        formData.append('tool_order', JSON.stringify(order));
+        
+        const response = await fetch(window.location.href.split('?')[0], {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            indicator.innerHTML = '<i class="fas fa-check"></i> Order saved!';
+            indicator.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            console.log('Order saved successfully');
+        } else {
+            indicator.innerHTML = '<i class="fas fa-times"></i> Save failed';
+            indicator.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            console.error('Save failed:', result.message);
+        }
+    } catch (error) {
+        indicator.innerHTML = '<i class="fas fa-times"></i> Error saving';
+        indicator.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        console.error('Error saving tool order:', error);
+    }
+    
+    // Remove indicator after delay
+    setTimeout(() => {
+        indicator.style.animation = 'slideInUp 0.3s ease reverse';
+        setTimeout(() => indicator.remove(), 300);
+    }, 1500);
+}
+
+// Load tool order from database
+async function loadToolOrderFromDatabase() {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'load_tool_order');
+        
+        const response = await fetch(window.location.href.split('?')[0], {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.tool_order && Array.isArray(result.tool_order)) {
+            console.log('Loaded order from database:', result.tool_order);
+            applyToolOrder(result.tool_order);
+        }
+    } catch (error) {
+        console.error('Error loading tool order:', error);
+    }
+}
+
+// Apply tool order to DOM
+function applyToolOrder(order) {
+    const container = document.getElementById('deToolsContainer');
+    if (!container) return;
+    
+    order.forEach(toolId => {
+        const tool = document.getElementById(toolId);
+        if (tool) {
+            container.appendChild(tool);
+        }
+    });
+    
+    // Append any tools not in the saved order (new tools)
+    const allTools = container.querySelectorAll('.de-tool-section[draggable="true"]');
+    allTools.forEach(tool => {
+        if (!order.includes(tool.id)) {
+            container.appendChild(tool);
+        }
+    });
+    
+    console.log('Order applied to DOM');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to ensure all tools are rendered
+    setTimeout(initToolDragDrop, 300);
+});
 
 // Reset Pages Creator to Default
 function resetPagesCreator(skipToast = false) {
