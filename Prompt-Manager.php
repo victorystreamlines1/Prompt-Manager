@@ -10548,102 +10548,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
         }
 
-        /* Auto-Send Timer */
-        .auto-send-timer {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.6rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .auto-send-timer:hover {
-            border-color: var(--accent-primary);
-        }
-
-        .auto-send-timer.active {
-            border-color: #06b6d4;
-            background: rgba(6, 182, 212, 0.1);
-        }
-
-        .auto-send-timer i {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        .auto-send-timer.active i {
-            color: #06b6d4;
-            animation: spin-timer 2s linear infinite;
-        }
-
-        @keyframes spin-timer {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .timer-input {
-            width: 45px;
-            padding: 0.3rem 0.4rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .timer-input:focus {
-            outline: none;
-            border-color: #06b6d4;
-            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
-        }
-
-        .timer-input::-webkit-inner-spin-button,
-        .timer-input::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .timer-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .auto-send-timer.active .timer-label {
-            color: #06b6d4;
-        }
-
-        .timer-countdown {
-            display: none;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #06b6d4;
-            min-width: 25px;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .auto-send-timer.active .timer-countdown {
-            display: inline-block;
-        }
-
         .folder-path-indicator {
             display: none;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
+            gap: 0.35rem;
+            padding: 0.25rem 0.6rem;
+            background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: var(--success);
-            max-width: 200px;
+            border-radius: 5px;
+            font-size: 0.68rem;
+            color: #10b981;
+            max-width: 180px;
+            flex: 1;
+            min-width: 80px;
         }
 
         .folder-path-indicator.show {
@@ -10652,22 +10569,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .folder-path-indicator i {
             flex-shrink: 0;
+            font-size: 0.65rem;
         }
 
         .folder-path-indicator span {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            flex: 1;
+            font-weight: 500;
         }
 
         .folder-path-indicator.disconnected {
-            background: rgba(245, 158, 11, 0.1);
+            background: rgba(245, 158, 11, 0.15);
             border-color: rgba(245, 158, 11, 0.3);
             color: #f59e0b;
         }
 
         .folder-path-indicator.disconnected i {
             animation: blink 1.5s infinite;
+        }
+        
+        /* Light theme adjustments for folder path */
+        body.light-theme .folder-path-indicator {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+        
+        body.light-theme .folder-path-indicator.disconnected {
+            background: rgba(245, 158, 11, 0.12);
         }
 
         @keyframes blink {
@@ -15053,10 +14983,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .folder-path-indicator {
                 max-width: 150px;
             }
-
-            .auto-send-timer {
-                order: 3;
-            }
         }
 
         /* ========================================== */
@@ -16695,6 +16621,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </button>
                                 </div>
                                 
+                                <!-- Folder Path Indicator (between file picker and actions) -->
+                                <div class="folder-path-indicator" id="folderPathIndicator">
+                                    <i class="fas fa-link"></i>
+                                    <span id="folderPathText">No folder selected</span>
+                                </div>
+                                
                                 <div class="project-notes-actions">
                                     <button type="button" class="notes-btn send-to-file-btn" id="btnSendNotesToFile" onclick="sendNotesToPromptFile()" disabled title="Send to prompt.txt">
                                         <i class="fas fa-paper-plane"></i>
@@ -16860,18 +16792,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-download"></i> Pull
                             </button>
                             
-                            <!-- Auto-Send Timer -->
-                            <div class="auto-send-timer" id="autoSendTimer" title="Auto-send interval (0 = disabled)">
-                                <i class="fas fa-sync-alt"></i>
-                                <input type="number" class="timer-input" id="timerInput" min="0" max="999" value="0" onchange="updateAutoSendTimer()" oninput="updateAutoSendTimer()">
-                                <span class="timer-label">sec</span>
-                                <span class="timer-countdown" id="timerCountdown">0</span>
-                            </div>
                             
-                            <div class="folder-path-indicator" id="folderPathIndicator">
-                                <i class="fas fa-link"></i>
-                                <span id="folderPathText">No folder selected</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -24957,115 +24878,9 @@ in each section carefully and maintain proper connections between components.
             document.getElementById(modalId).classList.add('active');
         }
         
-        // ============================================
-        // AUTO-SEND TIMER SYSTEM
-        // ============================================
-        
-        let autoSendInterval = null;
-        let countdownInterval = null;
-        let countdownValue = 0;
-        
-        // Update auto-send timer based on input
-        function updateAutoSendTimer() {
-            const timerInput = document.getElementById('timerInput');
-            const timerContainer = document.getElementById('autoSendTimer');
-            const btnSend = document.getElementById('btnSendToFile');
-            const countdownEl = document.getElementById('timerCountdown');
-            
-            const seconds = parseInt(timerInput.value) || 0;
-            
-            // Clear existing intervals
-            if (autoSendInterval) {
-                clearInterval(autoSendInterval);
-                autoSendInterval = null;
-            }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            
-            // Reset UI
-            timerContainer.classList.remove('active');
-            btnSend.classList.remove('auto-active');
-            countdownEl.textContent = '0';
-            
-            if (seconds > 0 && promptFileHandle) {
-                // Activate auto-send
-                timerContainer.classList.add('active');
-                btnSend.classList.add('auto-active');
-                countdownValue = seconds;
-                countdownEl.textContent = countdownValue;
-                
-                // Start countdown display
-                countdownInterval = setInterval(() => {
-                    countdownValue--;
-                    if (countdownValue <= 0) {
-                        countdownValue = seconds;
-                    }
-                    countdownEl.textContent = countdownValue;
-                }, 1000);
-                
-                // Start auto-send interval
-                autoSendInterval = setInterval(() => {
-                    if (promptFileHandle) {
-                        sendToPromptFile();
-                        console.log('🔄 Auto-send triggered');
-                    }
-                }, seconds * 1000);
-                
-                showToast(`🔄 Auto-send enabled: every ${seconds} second${seconds > 1 ? 's' : ''}`, 'success');
-            } else if (seconds > 0 && !promptFileHandle) {
-                showToast('⚠️ Please connect a folder first to enable auto-send', 'warning');
-                timerInput.value = 0;
-            } else {
-                // Timer disabled
-                if (timerInput.value !== '0' && timerInput.value !== '') {
-                    // User just set it to 0
-                } else {
-                    // Already at 0, no need for toast
-                }
-            }
-            
-            // Save timer value to localStorage
-            localStorage.setItem('autoSendTimer', seconds.toString());
-        }
-        
-        // Stop auto-send timer
-        function stopAutoSendTimer() {
-            const timerInput = document.getElementById('timerInput');
-            const timerContainer = document.getElementById('autoSendTimer');
-            const btnSend = document.getElementById('btnSendToFile');
-            const countdownEl = document.getElementById('timerCountdown');
-            
-            if (autoSendInterval) {
-                clearInterval(autoSendInterval);
-                autoSendInterval = null;
-            }
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            
-            timerContainer.classList.remove('active');
-            btnSend.classList.remove('auto-active');
-            countdownEl.textContent = '0';
-            timerInput.value = 0;
-            localStorage.setItem('autoSendTimer', '0');
-        }
-        
-        // Initialize auto-send timer from localStorage
-        function initAutoSendTimer() {
-            const savedTimer = localStorage.getItem('autoSendTimer');
-            if (savedTimer && parseInt(savedTimer) > 0) {
-                document.getElementById('timerInput').value = savedTimer;
-                // Don't auto-start, just show the value - user needs to reconnect folder first
-            }
-        }
-        
         // Initialize folder connection on page load
         document.addEventListener('DOMContentLoaded', () => {
             initFolderConnection();
-            initAutoSendTimer();
             initSavedFileNames();
         });
 

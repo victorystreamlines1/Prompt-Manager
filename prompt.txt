@@ -1,6 +1,6 @@
-move this label you'll find it on the header bar menu of prompt editor -----><div class="folder-path-indicator show snipcss-9maTL" id="folderPathIndicator">
-    <i class="fas fa-link"></i>
-    <span id="folderPathText">Prompt-Manager/prompt.txt</span>
+Remove this timer completely from prompt editor. You'll find it in the header of the prompt editor dashboard. I'll give you HTML, just remove it completely. ----><div class="auto-send-timer snipcss-HsWNs" id="autoSendTimer" title="Auto-send interval (0 = disabled)">
+    <i class="fas fa-sync-alt"></i>
+    <input type="number" class="timer-input" id="timerInput" min="0" max="999" value="0" onchange="updateAutoSendTimer()" oninput="updateAutoSendTimer()" fdprocessedid="ore46m">
+    <span class="timer-label">sec</span>
+    <span class="timer-countdown" id="timerCountdown">0</span>
 </div>
-
-and subsequently put it in the project prompts, the container above it. In the development dashboard container, you'll find a project prompts. There is an empty space. Put it in the upper empty space of this container. Put it in a suitable and appropriate place. Thank you. 
