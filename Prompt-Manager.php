@@ -23465,12 +23465,6 @@ in each section carefully and maintain proper connections between components.
                             }
                             updateFolderUI(savedFolderName, true);
                             showToast(`✅ Auto-connected to ${savedFolderName}`, 'success');
-                            
-                            const savedTimer = localStorage.getItem('autoSendTimer');
-                            if (savedTimer && parseInt(savedTimer) > 0) {
-                                document.getElementById('timerInput').value = savedTimer;
-                                updateAutoSendTimer();
-                            }
                         }
                     }
                 } catch (err) {
@@ -23515,13 +23509,6 @@ in each section carefully and maintain proper connections between components.
                 
                 // Update UI
                 updateFolderUI(folderName, true);
-                
-                // Re-enable auto-send timer if it was set
-                const savedTimer = localStorage.getItem('autoSendTimer');
-                if (savedTimer && parseInt(savedTimer) > 0) {
-                    document.getElementById('timerInput').value = savedTimer;
-                    updateAutoSendTimer();
-                }
                 
             } catch (err) {
                 if (err.name === 'AbortError') {
@@ -23585,8 +23572,6 @@ in each section carefully and maintain proper connections between components.
             promptFolderHandle = null;
             promptFileHandle = null;
             localStorage.removeItem('promptFolderName');
-            localStorage.removeItem('autoSendTimer');
-            stopAutoSendTimer();
             updateFolderUI(null, false);
             showToast('📁 Folder selection cleared', 'info');
         }
@@ -23628,8 +23613,6 @@ in each section carefully and maintain proper connections between components.
                     promptFolderHandle = null;
                     promptFileHandle = null;
                     updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
-                    // Stop auto-send timer
-                    stopAutoSendTimer();
                 } else {
                     showToast('❌ Error writing to file: ' + err.message, 'error');
                 }
