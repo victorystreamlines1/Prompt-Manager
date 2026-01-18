@@ -3568,6 +3568,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             to { transform: rotate(360deg); }
         }
         
+        /* Custom Drag Ghost */
+        .de-drag-ghost {
+            position: fixed !important;
+            padding: 10px 16px !important;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+            color: white !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4) !important;
+            z-index: 99999 !important;
+            pointer-events: none !important;
+            white-space: nowrap !important;
+        }
+        
+        .de-drag-ghost i {
+            font-size: 14px;
+        }
+        
         /* Light Theme Adjustments for Drag & Drop */
         body.light-theme .de-tool-section.dragging {
             background: rgba(99, 102, 241, 0.1) !important;
@@ -30146,7 +30168,44 @@ function initToolDragDrop() {
             
             deDraggedTool = this;
             
-            // Use setTimeout to add class after drag image is captured
+            // Create a custom drag image showing only the tool header
+            const toolTitle = this.querySelector('.de-tool-title span');
+            const toolIcon = this.querySelector('.de-tool-title i');
+            
+            // Create minimal ghost element
+            const ghost = document.createElement('div');
+            ghost.className = 'de-drag-ghost';
+            ghost.innerHTML = `
+                <i class="${toolIcon ? toolIcon.className : 'fas fa-grip-vertical'}"></i>
+                <span>${toolTitle ? toolTitle.textContent : 'Tool'}</span>
+            `;
+            ghost.style.cssText = `
+                position: fixed;
+                top: -1000px;
+                left: -1000px;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                color: white;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+                z-index: 99999;
+                pointer-events: none;
+                white-space: nowrap;
+            `;
+            document.body.appendChild(ghost);
+            
+            // Set as drag image
+            e.dataTransfer.setDragImage(ghost, 20, 20);
+            
+            // Remove ghost after a short delay
+            setTimeout(() => ghost.remove(), 50);
+            
+            // Add dragging class after drag image is captured
             setTimeout(() => {
                 this.classList.add('dragging');
             }, 0);
