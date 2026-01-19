@@ -12329,6 +12329,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.7rem;
         }
         
+        .db-dropdown-row .db-conn-check-btn {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+        
         .db-cred-row-compact {
             display: flex;
             gap: 0.35rem;
@@ -12545,6 +12551,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dash-db-btn.manage:hover {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
             transform: rotate(90deg);
+        }
+
+        /* Database Connection Check Button */
+        .db-conn-check-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, rgba(100, 116, 139, 0.2) 0%, rgba(71, 85, 105, 0.15) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .db-conn-check-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%);
+            border-color: rgba(124, 58, 237, 0.4);
+            transform: scale(1.05);
+        }
+
+        .db-conn-check-btn.testing {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%);
+            border-color: rgba(124, 58, 237, 0.4);
+            pointer-events: none;
+        }
+
+        .db-conn-check-btn.testing .db-conn-icon {
+            animation: dbConnSpin 1s linear infinite;
+        }
+
+        @keyframes dbConnSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .db-conn-check-btn.success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            box-shadow: 
+                0 0 12px rgba(34, 197, 94, 0.5),
+                0 0 24px rgba(34, 197, 94, 0.3);
+            animation: dbConnSuccessPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes dbConnSuccessPulse {
+            0%, 100% { 
+                box-shadow: 0 0 12px rgba(34, 197, 94, 0.5), 0 0 24px rgba(34, 197, 94, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 16px rgba(34, 197, 94, 0.6), 0 0 32px rgba(34, 197, 94, 0.4);
+            }
+        }
+
+        .db-conn-check-btn.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+            animation: dbConnErrorShake 0.5s ease-in-out;
+        }
+
+        @keyframes dbConnErrorShake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-2px); }
+            40%, 80% { transform: translateX(2px); }
+        }
+
+        .db-conn-icon {
+            font-style: normal;
+            line-height: 1;
         }
 
         .dash-cred-btn {
@@ -16482,6 +16562,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </select>
                                                 <i class="fas fa-chevron-down"></i>
                                             </div>
+                                            <button type="button" class="db-conn-check-btn" id="dbConnCheckBtn" onclick="testSelectedConnection()" title="Test connection">
+                                                <span class="db-conn-icon">🔌</span>
+                                            </button>
                                             <button type="button" class="dash-db-btn refresh" id="dbRefreshBtn" onclick="refreshDatabaseList()" title="Refresh">
                                                 <i class="fas fa-sync-alt"></i>
                                             </button>
@@ -21173,6 +21256,9 @@ ${item.html_code || ''}
             const localhostCheckbox = document.getElementById('dbLocalhostCheckbox');
             const selectedOption = dropdown.options[dropdown.selectedIndex];
             
+            // Reset connection check button
+            resetDbConnCheckBtn();
+            
             if (dropdown.value && selectedOption.dataset) {
                 selectedDatabaseConnection = {
                     id: dropdown.value,
@@ -21193,8 +21279,58 @@ ${item.html_code || ''}
                 if (localhostCheckbox.checked) {
                     appendCredentialsToEditor('localhost');
                 }
+                
+                // Auto-test connection when selected
+                testSelectedConnection();
             } else {
                 selectedDatabaseConnection = null;
+            }
+        }
+        
+        // Reset connection check button to default state
+        function resetDbConnCheckBtn() {
+            const btn = document.getElementById('dbConnCheckBtn');
+            if (!btn) return;
+            btn.classList.remove('success', 'error', 'testing');
+            btn.querySelector('.db-conn-icon').textContent = '🔌';
+        }
+        
+        // Test the selected database connection
+        async function testSelectedConnection() {
+            const dropdown = document.getElementById('dbDropdown');
+            const btn = document.getElementById('dbConnCheckBtn');
+            
+            if (!dropdown.value || !btn) {
+                return;
+            }
+            
+            const selectedOption = dropdown.options[dropdown.selectedIndex];
+            if (!selectedOption || !selectedOption.dataset) {
+                return;
+            }
+            
+            // Set testing state
+            btn.classList.remove('success', 'error');
+            btn.classList.add('testing');
+            btn.querySelector('.db-conn-icon').textContent = '⏳';
+            
+            try {
+                const response = await fetch('report-prompt-databases.php?test_connection=1&id=' + encodeURIComponent(dropdown.value));
+                const result = await response.json();
+                
+                btn.classList.remove('testing');
+                
+                if (result.success) {
+                    btn.classList.add('success');
+                    btn.querySelector('.db-conn-icon').textContent = '✓';
+                } else {
+                    btn.classList.add('error');
+                    btn.querySelector('.db-conn-icon').textContent = '✗';
+                }
+            } catch (error) {
+                btn.classList.remove('testing');
+                btn.classList.add('error');
+                btn.querySelector('.db-conn-icon').textContent = '✗';
             }
         }
 

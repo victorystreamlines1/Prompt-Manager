@@ -40,6 +40,97 @@ $connectionType = 'localhost'; // Will be updated after connection
 $connectionFallback = false;
 $connectionError = null;
 
+// ========================================
+// TEST CONNECTION API ENDPOINT
+// ========================================
+if (isset($_GET['test_connection']) && isset($_GET['id'])) {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    $testId = $_GET['id'];
+    
+    // First, establish connection to main database to get the record
+    $mainPdo = null;
+    
+    // Try remote connection first (more reliable from anywhere)
+    $cred = $dbCredentials['remote'];
+    try {
+        $mainPdo = new PDO(
+            "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+            $cred['username'],
+            $cred['password'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+        );
+    } catch (PDOException $e) {
+        // Try localhost as fallback
+        $cred = $dbCredentials['localhost'];
+        try {
+            $mainPdo = new PDO(
+                "mysql:host={$cred['host']};port={$cred['port']};dbname={$cred['dbname']};charset=utf8mb4",
+                $cred['username'],
+                $cred['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5]
+            );
+        } catch (PDOException $e2) {
+            echo json_encode(['success' => false, 'error' => 'Cannot connect to main database: ' . $e2->getMessage(), 'id' => $testId]);
+            exit;
+        }
+    }
+    
+    // Get the connection details from database
+    $stmt = $mainPdo->prepare("SELECT * FROM `$tableName` WHERE id = ?");
+    $stmt->execute([$testId]);
+    $conn = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$conn) {
+        echo json_encode(['success' => false, 'error' => 'Connection record not found', 'id' => $testId]);
+        exit;
+    }
+    
+    // Try to connect to the target database
+    $startTime = microtime(true);
+    try {
+        // Handle empty password
+        $password = ($conn['password'] === '' || $conn['password'] === null) ? null : $conn['password'];
+        
+        $testPdo = new PDO(
+            "mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']};charset=utf8mb4",
+            $conn['username'],
+            $password,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
+                PDO::ATTR_TIMEOUT => 5,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]
+        );
+        
+        // Test with a simple query
+        $testPdo->query("SELECT 1");
+        
+        $connectionTime = round((microtime(true) - $startTime) * 1000, 2);
+        
+        echo json_encode([
+            'success' => true, 
+            'id' => $testId,
+            'message' => 'Connection successful',
+            'time' => $connectionTime,
+            'host' => $conn['host'],
+            'dbName' => $conn['dbName']
+        ]);
+    } catch (PDOException $e) {
+        $connectionTime = round((microtime(true) - $startTime) * 1000, 2);
+        echo json_encode([
+            'success' => false, 
+            'id' => $testId,
+            'error' => $e->getMessage(),
+            'time' => $connectionTime,
+            'host' => $conn['host'],
+            'dbName' => $conn['dbName']
+        ]);
+    }
+    exit;
+}
+
 // Check if user manually selected a connection type via AJAX
 if (isset($_GET['switch_db']) && in_array($_GET['switch_db'], ['localhost', 'remote'])) {
     header('Content-Type: application/json');
@@ -1173,6 +1264,128 @@ if (isset($_GET['edit'])) {
             padding-left: 15px;
         }
         
+        /* Connection Test Button */
+        .conn-test-btn {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(100, 116, 139, 0.3) 0%, rgba(71, 85, 105, 0.3) 100%);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: var(--text-secondary);
+        }
+        
+        .conn-test-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.4) 0%, rgba(99, 102, 241, 0.4) 100%);
+            border-color: var(--accent-secondary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+        }
+        
+        .conn-test-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        /* Testing State */
+        .conn-test-btn.testing {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.5) 0%, rgba(99, 102, 241, 0.5) 100%);
+            border-color: var(--accent-secondary);
+            pointer-events: none;
+        }
+        
+        .conn-test-btn.testing .btn-icon {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Success State */
+        .conn-test-btn.success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+            color: white;
+            box-shadow: 
+                0 0 20px rgba(34, 197, 94, 0.5),
+                0 0 40px rgba(34, 197, 94, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            animation: successPulse 2s ease-in-out infinite;
+        }
+        
+        .conn-test-btn.success:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            box-shadow: 
+                0 0 25px rgba(34, 197, 94, 0.6),
+                0 0 50px rgba(34, 197, 94, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes successPulse {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(34, 197, 94, 0.5),
+                    0 0 40px rgba(34, 197, 94, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 25px rgba(34, 197, 94, 0.7),
+                    0 0 50px rgba(34, 197, 94, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
+        }
+        
+        /* Error State */
+        .conn-test-btn.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            color: white;
+            box-shadow: 
+                0 0 20px rgba(239, 68, 68, 0.5),
+                0 0 40px rgba(239, 68, 68, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            animation: errorShake 0.5s ease-in-out;
+        }
+        
+        .conn-test-btn.error:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            box-shadow: 
+                0 0 25px rgba(239, 68, 68, 0.6),
+                0 0 50px rgba(239, 68, 68, 0.4);
+        }
+        
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translateX(3px); }
+        }
+        
+        /* Tooltip hidden */
+        .conn-test-btn .conn-tooltip {
+            display: none;
+        }
+        
+        /* Test All Button */
+        .btn-test-all {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+        }
+        
+        .btn-test-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -1287,6 +1500,7 @@ if (isset($_GET['edit'])) {
                 <?php endif; ?>
             </form>
             <div class="toolbar-buttons">
+                <button type="button" class="btn btn-test-all" onclick="testAllConnections()" title="Test all database connections">🔌 Test All</button>
                 <button type="button" class="btn btn-warning" onclick="exportWithFilePicker()">📤 Export JSON</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('addForm').scrollIntoView({behavior: 'smooth'})">➕ Add New</button>
             </div>
@@ -1391,50 +1605,57 @@ if (isset($_GET['edit'])) {
                 <input type="hidden" name="action" value="mass_delete">
                 <div class="table-wrapper">
                     <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 50px; text-align: center;">
-                                    <label class="checkbox-wrapper" title="Select All">
-                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                </th>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Host</th>
-                                <th>Database</th>
-                                <th>Username</th>
-                                <th>Password</th>
-                                <th>Port</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+<thead>
+                                            <tr>
+                                                <th style="width: 50px; text-align: center;">
+                                                    <label class="checkbox-wrapper" title="Select All">
+                                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </th>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Type</th>
+                                                <th>Host</th>
+                                                <th>Database</th>
+                                                <th>Username</th>
+                                                <th>Password</th>
+                                                <th>Port</th>
+                                                <th>Created</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
                         <tbody>
-                            <?php foreach ($records as $record): ?>
-                            <tr id="row_<?php echo $record['id']; ?>" class="data-row">
-                                <td style="text-align: center;">
-                                    <label class="checkbox-wrapper">
-                                        <input type="checkbox" name="selected_ids[]" value="<?php echo htmlspecialchars($record['id']); ?>" class="row-checkbox" onchange="updateSelection()">
-                                        <span class="checkmark"></span>
-                                    </label>
-                                </td>
-                                <td><?php echo htmlspecialchars(substr($record['id'], -8)); ?></td>
-                                <td class="td-name"><?php echo htmlspecialchars($record['name']); ?></td>
-                                <td><span class="td-type"><?php echo htmlspecialchars($record['type']); ?></span></td>
-                                <td><?php echo htmlspecialchars($record['host']); ?></td>
-                                <td><?php echo htmlspecialchars($record['dbName']); ?></td>
-                                <td><?php echo htmlspecialchars($record['username']); ?></td>
-                                <td class="td-password">••••••••</td>
-                                <td><?php echo htmlspecialchars($record['port']); ?></td>
-                                <td><?php echo date('M j, Y', strtotime($record['createdAt'])); ?></td>
-                                <td class="td-actions">
-                                    <a href="?edit=<?php echo $record['id']; ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
-                                    <a href="?delete=<?php echo $record['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this connection?')">🗑️ Delete</a>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+<?php foreach ($records as $record): ?>
+                                            <tr id="row_<?php echo $record['id']; ?>" class="data-row">
+                                                <td style="text-align: center;">
+                                                    <label class="checkbox-wrapper">
+                                                        <input type="checkbox" name="selected_ids[]" value="<?php echo htmlspecialchars($record['id']); ?>" class="row-checkbox" onchange="updateSelection()">
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </td>
+                                                <td><?php echo htmlspecialchars(substr($record['id'], -8)); ?></td>
+                                                <td class="td-name"><?php echo htmlspecialchars($record['name']); ?></td>
+                                                <td><span class="td-type"><?php echo htmlspecialchars($record['type']); ?></span></td>
+                                                <td><?php echo htmlspecialchars($record['host']); ?></td>
+                                                <td><?php echo htmlspecialchars($record['dbName']); ?></td>
+                                                <td><?php echo htmlspecialchars($record['username']); ?></td>
+                                                <td class="td-password">••••••••</td>
+                                                <td><?php echo htmlspecialchars($record['port']); ?></td>
+                                                <td><?php echo date('M j, Y', strtotime($record['createdAt'])); ?></td>
+                                                <td class="td-actions">
+                                                    <a href="?edit=<?php echo $record['id']; ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
+                                                    <a href="?delete=<?php echo $record['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this connection?')">🗑️ Delete</a>
+                                                    <button type="button" 
+                                                            class="conn-test-btn" 
+                                                            id="testBtn_<?php echo $record['id']; ?>"
+                                                            onclick="testConnection('<?php echo $record['id']; ?>')"
+                                                            title="Test connection">
+                                                        <span class="btn-icon">🔌</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -1945,7 +2166,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize speed monitor
     initSpeedMonitor();
+    
+    // Auto-test all connections on page load
+    autoTestAllConnections();
 });
+
+// Auto-test all connections on page load (silently)
+async function autoTestAllConnections() {
+    const testButtons = document.querySelectorAll('.conn-test-btn');
+    
+    if (testButtons.length === 0) return;
+    
+    // Small delay before starting tests to let page render
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Test connections sequentially with a small delay
+    for (const btn of testButtons) {
+        const id = btn.id.replace('testBtn_', '');
+        await testConnection(id);
+        
+        // Small delay between tests to avoid overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
+}
 
 // ========================================
 // SPEED MONITOR FUNCTIONALITY
@@ -2119,6 +2362,109 @@ function recordOperationSpeed(type, startTime, connection) {
     updateSpeedMonitor();
     
     return operationTime;
+}
+
+// ========================================
+// CONNECTION TEST FUNCTIONALITY
+// ========================================
+
+// Test a single connection
+async function testConnection(id) {
+    const btn = document.getElementById(`testBtn_${id}`);
+    if (!btn) return;
+    
+    // Reset and set testing state
+    btn.classList.remove('success', 'error');
+    btn.classList.add('testing');
+    btn.querySelector('.btn-icon').textContent = '⏳';
+    
+    try {
+        const response = await fetch(`?test_connection=1&id=${encodeURIComponent(id)}`);
+        const result = await response.json();
+        
+        btn.classList.remove('testing');
+        
+        if (result.success) {
+            // Success state
+            btn.classList.add('success');
+            btn.querySelector('.btn-icon').textContent = '✓';
+            
+            // Play success animation
+            btn.style.animation = 'none';
+            btn.offsetHeight; // Trigger reflow
+            btn.style.animation = null;
+            
+        } else {
+            // Error state
+            btn.classList.add('error');
+            btn.querySelector('.btn-icon').textContent = '✗';
+        }
+        
+        return result;
+        
+    } catch (error) {
+        btn.classList.remove('testing');
+        btn.classList.add('error');
+        btn.querySelector('.btn-icon').textContent = '✗';
+        
+        return { success: false, error: error.message, id };
+    }
+}
+
+// Test all connections
+async function testAllConnections() {
+    const testButtons = document.querySelectorAll('.conn-test-btn');
+    
+    if (testButtons.length === 0) {
+        showToast('No connections to test!', 'warning');
+        return;
+    }
+    
+    showToast(`Testing ${testButtons.length} connection(s)...`, 'info', 2000);
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    // Test connections sequentially with a small delay
+    for (const btn of testButtons) {
+        const id = btn.id.replace('testBtn_', '');
+        const result = await testConnection(id);
+        
+        if (result && result.success) {
+            successCount++;
+        } else {
+            failCount++;
+        }
+        
+        // Small delay between tests to avoid overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    // Show summary toast
+    if (failCount === 0) {
+        showToast(`All ${successCount} connection(s) successful! ✓`, 'success', 4000);
+    } else if (successCount === 0) {
+        showToast(`All ${failCount} connection(s) failed! ✗`, 'error', 4000);
+    } else {
+        showToast(`${successCount} successful, ${failCount} failed`, 'warning', 4000);
+    }
+}
+
+// Reset connection test button to default state
+function resetTestButton(id) {
+    const btn = document.getElementById(`testBtn_${id}`);
+    if (!btn) return;
+    
+    btn.classList.remove('success', 'error', 'testing');
+    btn.querySelector('.btn-icon').textContent = '🔌';
+}
+
+// Reset all test buttons
+function resetAllTestButtons() {
+    document.querySelectorAll('.conn-test-btn').forEach(btn => {
+        const id = btn.id.replace('testBtn_', '');
+        resetTestButton(id);
+    });
 }
 </script>
 

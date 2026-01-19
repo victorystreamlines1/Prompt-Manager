@@ -1,6 +1,5 @@
-Remove this timer completely from prompt editor. You'll find it in the header of the prompt editor dashboard. I'll give you HTML, just remove it completely. ----><div class="auto-send-timer snipcss-HsWNs" id="autoSendTimer" title="Auto-send interval (0 = disabled)">
-    <i class="fas fa-sync-alt"></i>
-    <input type="number" class="timer-input" id="timerInput" min="0" max="999" value="0" onchange="updateAutoSendTimer()" oninput="updateAutoSendTimer()" fdprocessedid="ore46m">
-    <span class="timer-label">sec</span>
-    <span class="timer-countdown" id="timerCountdown">0</span>
-</div>
+In the prompt manager, there is a drop-down database list. In the drop-down, I want the exact same check to show whenever I select a connection. Make sure it connects. If it connects, then it should show the same check, but make it compatible with the size of the drop-down and compatible with the theme. The same exact functionality, but for the selected drop-down, and you'll find it under the development dashboard under databases drop-down. 
+
+<!-- FILE:Prompt-Manager.php -->
+[📎 Prompt-Manager.php | Folder: root]
+<!-- /END  FILE:Prompt-Manager.php -->
