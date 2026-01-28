@@ -499,6 +499,13 @@ if ($pdo) {
             // Column might already exist
         }
         
+        // Add language_settings column if it doesn't exist (for storing language selection per project)
+        try {
+            $pdo->exec("ALTER TABLE reporter_prompt_projects ADD COLUMN language_settings TEXT AFTER project_notes");
+        } catch (PDOException $e) {
+            // Column might already exist
+        }
+        
         // Create Design Enhancer Tool Order table
         $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_tool_order (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -920,6 +927,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $frontends = $_POST['frontends'] ?? '[]';
         $projectNotes = $_POST['project_notes'] ?? '';
         $promptContent = $_POST['prompt_content'] ?? '';
+        $languageSettings = $_POST['language_settings'] ?? '{"language":"english","defaultLanguage":"english","multiLanguages":[]}';
         
         if ($name) {
             try {
@@ -931,13 +939,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         name = ?, description = ?, database_id = ?, database_name = ?, 
                         database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
                         include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, 
-                        project_notes = ?, prompt_content = ?
+                        project_notes = ?, prompt_content = ?, language_settings = ?
                         WHERE id = ?");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
                         $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
-                        $projectNotes, $promptContent, $id
+                        $projectNotes, $promptContent, $languageSettings, $id
                     ]);
                     $projectId = $id;
                     $message = 'Project updated successfully!';
@@ -947,13 +955,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
                         (name, description, database_id, database_name, database_host, database_user, 
                          database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, 
-                         project_notes, prompt_content) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         project_notes, prompt_content, language_settings) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
                         $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
-                        $projectNotes, $promptContent
+                        $projectNotes, $promptContent, $languageSettings
                     ]);
                     $projectId = $pdo->lastInsertId();
                     $message = 'Project created successfully!';
@@ -29361,6 +29369,9 @@ function collectDashboardData() {
         // Project notes
         project_notes: getProjectNotes(),
         
+        // Language settings
+        language_settings: JSON.stringify(appLanguageSettings),
+        
         // Items - use dynamicItems object which has all the data including prompts and files
         backends: [],
         pages: [],
@@ -29433,6 +29444,7 @@ function saveProject(projectData) {
     formData.append('pages', JSON.stringify(projectData.pages || []));
     formData.append('frontends', JSON.stringify(projectData.frontends || []));
     formData.append('project_notes', projectData.project_notes || '');
+    formData.append('language_settings', projectData.language_settings || JSON.stringify(appLanguageSettings));
     // Include prompt editor content
     const promptEditor = document.getElementById('promptEditor');
     formData.append('prompt_content', promptEditor ? promptEditor.value : '');
@@ -29645,6 +29657,67 @@ function applyProjectToDashboard(project) {
     // Load project notes/prompts
     if (project.project_notes !== undefined) {
         setProjectNotes(project.project_notes || '');
+    }
+    
+    // Load language settings
+    if (project.language_settings) {
+        try {
+            let langSettings = project.language_settings;
+            if (typeof langSettings === 'string') {
+                langSettings = JSON.parse(langSettings);
+            }
+            
+            // Apply language settings
+            if (langSettings.language) {
+                appLanguageSettings.language = langSettings.language;
+                appLanguageSettings.defaultLanguage = langSettings.defaultLanguage || 'english';
+                appLanguageSettings.multiLanguages = langSettings.multiLanguages || [];
+                
+                // Update UI - remove active class from all options
+                document.querySelectorAll('.lang-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                
+                // Add active class to selected option
+                const selectedOption = document.querySelector(`.lang-option.${appLanguageSettings.language}`);
+                if (selectedOption) {
+                    selectedOption.classList.add('active');
+                }
+                
+                // Show/hide default selector (for 'both')
+                const defaultSelector = document.getElementById('defaultLangSelector');
+                if (appLanguageSettings.language === 'both') {
+                    defaultSelector.classList.add('visible');
+                } else {
+                    defaultSelector.classList.remove('visible');
+                }
+                
+                // Update default language buttons for 'both'
+                document.querySelectorAll('.default-lang-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                const selectedDefaultBtn = document.querySelector(`.default-lang-btn[data-default="${appLanguageSettings.defaultLanguage}"]`);
+                if (selectedDefaultBtn) {
+                    selectedDefaultBtn.classList.add('selected');
+                }
+                
+                // Show/hide multi-language selector
+                const multiSelector = document.getElementById('multiLangSelector');
+                if (appLanguageSettings.language === 'multi') {
+                    multiSelector.classList.add('visible');
+                    updateMultiLangUI();
+                } else {
+                    multiSelector.classList.remove('visible');
+                }
+                
+                // Save to localStorage as well
+                saveLanguageSettings();
+                
+                console.log('📌 Language settings loaded from project:', appLanguageSettings);
+            }
+        } catch (e) {
+            console.warn('Could not parse language settings:', e);
+        }
     }
     
     // NOTE: We do NOT load prompt_content into the main editor automatically
