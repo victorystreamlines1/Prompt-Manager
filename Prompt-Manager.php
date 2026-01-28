@@ -11896,6 +11896,185 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ════════════════════════════════════════════════════════════════
+           LANGUAGE TOGGLE - Application Language Selector
+           ════════════════════════════════════════════════════════════════ */
+        .language-toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.06) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        .language-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #06b6d4;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        
+        .language-toggle-label i {
+            font-size: 0.7rem;
+        }
+        
+        /* Three-way Toggle Switch */
+        .language-toggle-switch {
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 20px;
+            padding: 3px;
+            position: relative;
+            gap: 0;
+        }
+        
+        .lang-option {
+            position: relative;
+            z-index: 2;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .lang-option input {
+            display: none;
+        }
+        
+        .lang-option:hover {
+            color: var(--text-secondary);
+        }
+        
+        .lang-option.active {
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lang-option.active.arabic {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .lang-option.active.english {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+        
+        .lang-option.active.both {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+        }
+        
+        .lang-option .lang-flag {
+            font-size: 0.8rem;
+            line-height: 1;
+        }
+        
+        /* Default Language Selector (shown when Both is selected) */
+        .default-lang-selector {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            margin-left: 0.4rem;
+            padding-left: 0.5rem;
+            border-left: 1px solid rgba(139, 92, 246, 0.3);
+            animation: fadeSlideIn 0.3s ease forwards;
+        }
+        
+        .default-lang-selector.visible {
+            display: flex;
+        }
+        
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .default-lang-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #a78bfa;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        
+        .default-lang-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .default-lang-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        
+        .default-lang-btn:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            color: var(--text-secondary);
+            background: rgba(139, 92, 246, 0.15);
+        }
+        
+        .default-lang-btn.selected {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-color: #8b5cf6;
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+        }
+        
+        .default-lang-btn .btn-flag {
+            font-size: 0.7rem;
+        }
+        
+        /* Responsive adjustment */
+        @media (max-width: 1400px) {
+            .language-toggle-group {
+                padding: 0.3rem 0.5rem;
+            }
+            
+            .language-toggle-label span {
+                display: none;
+            }
+            
+            .lang-option {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.6rem;
+            }
+        }
+        
+        /* ════════════════════════════════════════════════════════════════
            PROJECT MANAGEMENT POPUPS
            ════════════════════════════════════════════════════════════════ */
         
@@ -16771,6 +16950,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Divider -->
                             <div class="footer-divider"></div>
                             
+                            <!-- Language Toggle Section -->
+                            <div class="language-toggle-group" id="languageToggleGroup">
+                                <div class="language-toggle-label">
+                                    <i class="fas fa-language"></i>
+                                    <span>Lang</span>
+                                </div>
+                                <div class="language-toggle-switch">
+                                    <label class="lang-option arabic" onclick="setAppLanguage('arabic')">
+                                        <span class="lang-flag">🇸🇦</span>
+                                        <span>AR</span>
+                                    </label>
+                                    <label class="lang-option english active" onclick="setAppLanguage('english')">
+                                        <span class="lang-flag">🇺🇸</span>
+                                        <span>EN</span>
+                                    </label>
+                                    <label class="lang-option both" onclick="setAppLanguage('both')">
+                                        <span class="lang-flag">🌐</span>
+                                        <span>Both</span>
+                                    </label>
+                                </div>
+                                <div class="default-lang-selector" id="defaultLangSelector">
+                                    <span class="default-lang-label">Default:</span>
+                                    <div class="default-lang-buttons">
+                                        <button type="button" class="default-lang-btn" data-default="arabic" onclick="setDefaultLanguage('arabic')">
+                                            <span class="btn-flag">🇸🇦</span> AR
+                                        </button>
+                                        <button type="button" class="default-lang-btn selected" data-default="english" onclick="setDefaultLanguage('english')">
+                                            <span class="btn-flag">🇺🇸</span> EN
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Divider -->
+                            <div class="footer-divider"></div>
+                            
                             <!-- Generate Section (Right) -->
                             <div class="generate-group">
                                 <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
@@ -20923,6 +21138,267 @@ ${item.html_code || ''}
         // Storage key for dynamic items
         const DYNAMIC_ITEMS_KEY = 'devDashboardDynamicItems';
         
+        // ════════════════════════════════════════════════════════════════
+        // LANGUAGE TOGGLE STATE
+        // ════════════════════════════════════════════════════════════════
+        let appLanguageSettings = {
+            language: 'english', // 'arabic', 'english', 'both'
+            defaultLanguage: 'english' // Used when 'both' is selected
+        };
+        
+        const LANGUAGE_SETTINGS_KEY = 'devDashboardLanguageSettings';
+        
+        // Set application language
+        function setAppLanguage(lang) {
+            appLanguageSettings.language = lang;
+            
+            // Update UI - remove active class from all options
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            // Add active class to selected option
+            const selectedOption = document.querySelector(`.lang-option.${lang}`);
+            if (selectedOption) {
+                selectedOption.classList.add('active');
+            }
+            
+            // Show/hide default language selector
+            const defaultSelector = document.getElementById('defaultLangSelector');
+            if (lang === 'both') {
+                defaultSelector.classList.add('visible');
+            } else {
+                defaultSelector.classList.remove('visible');
+            }
+            
+            // Save settings
+            saveLanguageSettings();
+            
+            // Show toast
+            const langNames = { arabic: 'Arabic 🇸🇦', english: 'English 🇺🇸', both: 'Both Languages 🌐' };
+            showToast(`Language set to: ${langNames[lang]}`, 'success');
+        }
+        
+        // Set default language (when Both is selected)
+        function setDefaultLanguage(lang) {
+            appLanguageSettings.defaultLanguage = lang;
+            
+            // Update UI
+            document.querySelectorAll('.default-lang-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            const selectedBtn = document.querySelector(`.default-lang-btn[data-default="${lang}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('selected');
+            }
+            
+            // Save settings
+            saveLanguageSettings();
+            
+            const langNames = { arabic: 'Arabic 🇸🇦', english: 'English 🇺🇸' };
+            showToast(`Default language: ${langNames[lang]}`, 'info');
+        }
+        
+        // Save language settings
+        function saveLanguageSettings() {
+            try {
+                localStorage.setItem(LANGUAGE_SETTINGS_KEY, JSON.stringify(appLanguageSettings));
+            } catch (e) {
+                console.warn('Could not save language settings:', e);
+            }
+        }
+        
+        // Load language settings
+        function loadLanguageSettings() {
+            try {
+                const saved = localStorage.getItem(LANGUAGE_SETTINGS_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appLanguageSettings = { ...appLanguageSettings, ...parsed };
+                    
+                    // Update UI
+                    document.querySelectorAll('.lang-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    const selectedOption = document.querySelector(`.lang-option.${appLanguageSettings.language}`);
+                    if (selectedOption) {
+                        selectedOption.classList.add('active');
+                    }
+                    
+                    // Show/hide default selector
+                    const defaultSelector = document.getElementById('defaultLangSelector');
+                    if (appLanguageSettings.language === 'both') {
+                        defaultSelector.classList.add('visible');
+                    }
+                    
+                    // Update default language buttons
+                    document.querySelectorAll('.default-lang-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    const selectedDefaultBtn = document.querySelector(`.default-lang-btn[data-default="${appLanguageSettings.defaultLanguage}"]`);
+                    if (selectedDefaultBtn) {
+                        selectedDefaultBtn.classList.add('selected');
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not load language settings:', e);
+            }
+        }
+        
+        // Generate language directive prompt section
+        function generateLanguageDirective() {
+            const lang = appLanguageSettings.language;
+            const defaultLang = appLanguageSettings.defaultLanguage;
+            
+            let directive = '';
+            
+            if (lang === 'arabic') {
+                directive = `
+════════════════════════════════════════════════════════════════════════════════
+🌐 APPLICATION LANGUAGE REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+🇸🇦 ARABIC LANGUAGE APPLICATION
+
+This application must be developed entirely in ARABIC. Please ensure:
+
+• ALL user-facing text, labels, buttons, and messages are in Arabic
+• Use RTL (Right-to-Left) text direction throughout the application
+• Set the HTML lang attribute to "ar" and dir="rtl"
+• All form placeholders, validation messages, and tooltips in Arabic
+• Error messages and success notifications in Arabic
+• Navigation menus and headings in Arabic
+• Use Arabic-appropriate fonts (e.g., 'Cairo', 'Tajawal', 'Almarai', 'IBM Plex Sans Arabic')
+• Format dates, numbers, and currencies according to Arabic locale
+• Consider cultural context for icons and imagery
+• Comments in the code can remain in English for maintainability
+
+CSS Recommendations:
+   direction: rtl;
+   text-align: right;
+   font-family: 'Cairo', 'Tajawal', sans-serif;
+
+HTML Example:
+   <html lang="ar" dir="rtl">
+`;
+            } else if (lang === 'english') {
+                directive = `
+════════════════════════════════════════════════════════════════════════════════
+🌐 APPLICATION LANGUAGE REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+🇺🇸 ENGLISH LANGUAGE APPLICATION
+
+This application must be developed entirely in ENGLISH. Please ensure:
+
+• ALL user-facing text, labels, buttons, and messages are in English
+• Use LTR (Left-to-Right) text direction (default)
+• Set the HTML lang attribute to "en"
+• All form placeholders, validation messages, and tooltips in English
+• Error messages and success notifications in English
+• Navigation menus and headings in English
+• Use standard web-safe or Google Fonts appropriate for English
+• Format dates, numbers, and currencies according to US/International English locale
+
+HTML Example:
+   <html lang="en">
+`;
+            } else if (lang === 'both') {
+                const defaultLangName = defaultLang === 'arabic' ? 'Arabic' : 'English';
+                const defaultLangFlag = defaultLang === 'arabic' ? '🇸🇦' : '🇺🇸';
+                const secondaryLang = defaultLang === 'arabic' ? 'English' : 'Arabic';
+                const secondaryFlag = defaultLang === 'arabic' ? '🇺🇸' : '🇸🇦';
+                const defaultDir = defaultLang === 'arabic' ? 'RTL' : 'LTR';
+                const defaultLangCode = defaultLang === 'arabic' ? 'ar' : 'en';
+                
+                directive = `
+════════════════════════════════════════════════════════════════════════════════
+🌐 APPLICATION LANGUAGE REQUIREMENTS - BILINGUAL
+════════════════════════════════════════════════════════════════════════════════
+
+🌍 BILINGUAL APPLICATION (Arabic & English)
+
+This application must support BOTH Arabic and English languages with full 
+internationalization (i18n) support.
+
+${defaultLangFlag} DEFAULT LANGUAGE: ${defaultLangName.toUpperCase()}
+${secondaryFlag} SECONDARY LANGUAGE: ${secondaryLang}
+
+IMPLEMENTATION REQUIREMENTS:
+
+1. LANGUAGE SWITCHING SYSTEM:
+   • Implement a visible language toggle/selector in the header or navigation
+   • Store user's language preference in localStorage or cookies
+   • Language selection should persist across sessions
+   • The toggle should be easily accessible on all pages
+
+2. TEXT DIRECTION HANDLING:
+   • Arabic: RTL (Right-to-Left) - dir="rtl"
+   • English: LTR (Left-to-Right) - dir="ltr"
+   • Dynamically switch direction based on selected language
+   • Use CSS logical properties (margin-inline-start, padding-inline-end, etc.)
+
+3. FONT REQUIREMENTS:
+   • Arabic: 'Cairo', 'Tajawal', 'Almarai', 'IBM Plex Sans Arabic'
+   • English: Standard system fonts or Google Fonts (e.g., 'Inter', 'Roboto')
+   • Load fonts conditionally based on language selection
+
+4. CONTENT STRUCTURE:
+   • Create translation files/objects for both languages
+   • ALL static text must have both Arabic and English versions:
+     - Navigation labels
+     - Button text
+     - Form labels and placeholders
+     - Validation messages
+     - Error and success messages
+     - Tooltips and help text
+     - Page titles and headings
+
+5. LOCALE-SPECIFIC FORMATTING:
+   • Dates: Use appropriate format for each language
+   • Numbers: Arabic numerals (٠١٢٣) vs Western numerals (0123)
+   • Currency: Format according to locale
+   • Phone numbers: Consider regional formats
+
+6. DEFAULT STATE:
+   • Application should load with ${defaultLangName} as the default
+   • HTML should initialize with lang="${defaultLangCode}" dir="${defaultDir.toLowerCase()}"
+
+EXAMPLE STRUCTURE:
+
+// Translation object example
+const translations = {
+    en: {
+        welcome: "Welcome",
+        login: "Login",
+        logout: "Logout",
+        // ... more translations
+    },
+    ar: {
+        welcome: "مرحباً",
+        login: "تسجيل الدخول",
+        logout: "تسجيل الخروج",
+        // ... more translations
+    }
+};
+
+// CSS for direction handling
+[dir="rtl"] {
+    text-align: right;
+}
+[dir="ltr"] {
+    text-align: left;
+}
+
+💡 TIP: Consider using a i18n library like i18next for complex applications, 
+or implement a simple translation function for smaller projects.
+`;
+            }
+            
+            return directive;
+        }
+        
         // Generate unique ID
         function generateItemId() {
             return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -21244,6 +21720,9 @@ ${item.html_code || ''}
             
             // Load dynamic items
             loadDynamicItems();
+            
+            // Load language settings
+            loadLanguageSettings();
             
             // Initialize auto-save
             initDashboardAutoSave();
@@ -22287,30 +22766,40 @@ ${blockContent}
             const projectPromptsContent = getProjectNotes();
             const hasProjectPrompts = projectPromptsContent.length > 0;
             
-            // If nothing at all is selected/available, still append a space
+            // If nothing at all is selected/available, still add the language directive
             if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts) {
-                // Append just a space and return
-                if (editor) {
-                    editor.value = editor.value + ' ';
-                    updateCounts();
-                }
-                showToast('ℹ️ Nothing to generate - added space', 'info');
-                return;
-            }
-            
-            // EARLY CHECK: If ONLY Project Prompts has content (no dashboard items selected)
-            // Just send the raw project prompts content directly without any formatting
-            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
+                // Add language directive even with no other content
+                const languageDirectiveOnly = generateLanguageDirective();
                 if (editor) {
                     if (editor.value.trim()) {
-                        editor.value = editor.value.trimEnd() + '\n\n' + projectPromptsContent;
+                        editor.value = editor.value.trimEnd() + '\n\n' + languageDirectiveOnly;
                     } else {
-                        editor.value = projectPromptsContent;
+                        editor.value = languageDirectiveOnly;
                     }
                     updateCounts();
                     recordHistoryState(true);
                 }
-                showToast('✨ Project Prompts sent to Editor', 'success');
+                showToast('🌐 Language requirements added to Editor', 'success');
+                saveDashboardSettings();
+                return;
+            }
+            
+            // EARLY CHECK: If ONLY Project Prompts has content (no dashboard items selected)
+            // Include language directive + project prompts
+            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
+                const languageDirectiveOnly = generateLanguageDirective();
+                const combinedContent = languageDirectiveOnly + '\n\n' + projectPromptsContent;
+                
+                if (editor) {
+                    if (editor.value.trim()) {
+                        editor.value = editor.value.trimEnd() + '\n\n' + combinedContent;
+                    } else {
+                        editor.value = combinedContent;
+                    }
+                    updateCounts();
+                    recordHistoryState(true);
+                }
+                showToast('✨ Language + Project Prompts sent to Editor', 'success');
                 saveDashboardSettings();
                 saveDynamicItems();
                 return;
@@ -22323,6 +22812,13 @@ ${blockContent}
             const backendCount = dynamicItems.backend.length;
             const pageCount = dynamicItems.page.length;
             const frontendCount = dynamicItems.frontend.length;
+            
+            // ═══════════════════════════════════════════════════════════════════
+            // LANGUAGE REQUIREMENTS SECTION - FIRST (Always included)
+            // ═══════════════════════════════════════════════════════════════════
+            const languageDirective = generateLanguageDirective();
+            promptSections.push(languageDirective);
+            hasContent = true;
             
             // Header (only added when we have dashboard items)
             promptSections.push(`
