@@ -12074,6 +12074,231 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
+        /* Multi-language option active state */
+        .lang-option.active.multi {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Multi-language Selector Panel */
+        .multi-lang-selector {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 320px;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(245, 158, 11, 0.1);
+            z-index: 1000;
+            animation: multiLangSlideUp 0.3s ease forwards;
+        }
+        
+        .multi-lang-selector.visible {
+            display: block;
+        }
+        
+        @keyframes multiLangSlideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        .multi-lang-selector::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .multi-lang-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .multi-lang-header h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #f59e0b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .multi-lang-header h4 i {
+            font-size: 0.9rem;
+        }
+        
+        .multi-lang-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        
+        .multi-lang-close:hover {
+            color: #f59e0b;
+        }
+        
+        .multi-lang-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .multi-lang-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .multi-lang-grid::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.3);
+            border-radius: 2px;
+        }
+        
+        .multi-lang-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.5rem;
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+        }
+        
+        .multi-lang-item:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .multi-lang-item.selected {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+            border-color: #f59e0b;
+        }
+        
+        .multi-lang-item .item-flag {
+            font-size: 1rem;
+        }
+        
+        .multi-lang-item .item-code {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .multi-lang-item.selected .item-code {
+            color: #f59e0b;
+        }
+        
+        .multi-lang-item .item-check {
+            margin-left: auto;
+            color: #f59e0b;
+            opacity: 0;
+            font-size: 0.7rem;
+        }
+        
+        .multi-lang-item.selected .item-check {
+            opacity: 1;
+        }
+        
+        /* Default language selector for multi-language */
+        .multi-lang-default {
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .multi-lang-default-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #fbbf24;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .multi-lang-default-label i {
+            font-size: 0.7rem;
+        }
+        
+        .multi-lang-default-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        
+        .multi-default-btn {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            background: rgba(245, 158, 11, 0.08);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .multi-default-btn:hover {
+            border-color: rgba(245, 158, 11, 0.5);
+            color: var(--text-secondary);
+            background: rgba(245, 158, 11, 0.12);
+        }
+        
+        .multi-default-btn.selected {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-color: #f59e0b;
+            color: white;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .multi-default-btn .btn-flag {
+            font-size: 0.75rem;
+        }
+        
+        .multi-lang-info {
+            margin-top: 0.5rem;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .multi-lang-info i {
+            color: #f59e0b;
+        }
+        
         /* ════════════════════════════════════════════════════════════════
            PROJECT MANAGEMENT POPUPS
            ════════════════════════════════════════════════════════════════ */
@@ -16969,6 +17194,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span class="lang-flag">🌐</span>
                                         <span>Both</span>
                                     </label>
+                                    <label class="lang-option multi" onclick="setAppLanguage('multi')">
+                                        <span class="lang-flag">🗺️</span>
+                                        <span>Multi</span>
+                                    </label>
                                 </div>
                                 <div class="default-lang-selector" id="defaultLangSelector">
                                     <span class="default-lang-label">Default:</span>
@@ -16979,6 +17208,120 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <button type="button" class="default-lang-btn selected" data-default="english" onclick="setDefaultLanguage('english')">
                                             <span class="btn-flag">🇺🇸</span> EN
                                         </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Multi-language Selector Panel -->
+                                <div class="multi-lang-selector" id="multiLangSelector">
+                                    <div class="multi-lang-header">
+                                        <h4><i class="fas fa-globe"></i> Select Languages</h4>
+                                        <button type="button" class="multi-lang-close" onclick="closeMultiLangSelector()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="multi-lang-grid" id="multiLangGrid">
+                                        <div class="multi-lang-item" data-lang="en" data-name="English" onclick="toggleMultiLang('en')">
+                                            <span class="item-flag">🇺🇸</span>
+                                            <span class="item-code">EN</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="ar" data-name="Arabic" onclick="toggleMultiLang('ar')">
+                                            <span class="item-flag">🇸🇦</span>
+                                            <span class="item-code">AR</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="fr" data-name="French" onclick="toggleMultiLang('fr')">
+                                            <span class="item-flag">🇫🇷</span>
+                                            <span class="item-code">FR</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="es" data-name="Spanish" onclick="toggleMultiLang('es')">
+                                            <span class="item-flag">🇪🇸</span>
+                                            <span class="item-code">ES</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="de" data-name="German" onclick="toggleMultiLang('de')">
+                                            <span class="item-flag">🇩🇪</span>
+                                            <span class="item-code">DE</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="it" data-name="Italian" onclick="toggleMultiLang('it')">
+                                            <span class="item-flag">🇮🇹</span>
+                                            <span class="item-code">IT</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="pt" data-name="Portuguese" onclick="toggleMultiLang('pt')">
+                                            <span class="item-flag">🇵🇹</span>
+                                            <span class="item-code">PT</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="ru" data-name="Russian" onclick="toggleMultiLang('ru')">
+                                            <span class="item-flag">🇷🇺</span>
+                                            <span class="item-code">RU</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="zh" data-name="Chinese" onclick="toggleMultiLang('zh')">
+                                            <span class="item-flag">🇨🇳</span>
+                                            <span class="item-code">ZH</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="ja" data-name="Japanese" onclick="toggleMultiLang('ja')">
+                                            <span class="item-flag">🇯🇵</span>
+                                            <span class="item-code">JA</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="ko" data-name="Korean" onclick="toggleMultiLang('ko')">
+                                            <span class="item-flag">🇰🇷</span>
+                                            <span class="item-code">KO</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="hi" data-name="Hindi" onclick="toggleMultiLang('hi')">
+                                            <span class="item-flag">🇮🇳</span>
+                                            <span class="item-code">HI</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="tr" data-name="Turkish" onclick="toggleMultiLang('tr')">
+                                            <span class="item-flag">🇹🇷</span>
+                                            <span class="item-code">TR</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="nl" data-name="Dutch" onclick="toggleMultiLang('nl')">
+                                            <span class="item-flag">🇳🇱</span>
+                                            <span class="item-code">NL</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="pl" data-name="Polish" onclick="toggleMultiLang('pl')">
+                                            <span class="item-flag">🇵🇱</span>
+                                            <span class="item-code">PL</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="th" data-name="Thai" onclick="toggleMultiLang('th')">
+                                            <span class="item-flag">🇹🇭</span>
+                                            <span class="item-code">TH</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="vi" data-name="Vietnamese" onclick="toggleMultiLang('vi')">
+                                            <span class="item-flag">🇻🇳</span>
+                                            <span class="item-code">VI</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                        <div class="multi-lang-item" data-lang="id" data-name="Indonesian" onclick="toggleMultiLang('id')">
+                                            <span class="item-flag">🇮🇩</span>
+                                            <span class="item-code">ID</span>
+                                            <i class="fas fa-check item-check"></i>
+                                        </div>
+                                    </div>
+                                    <div class="multi-lang-default" id="multiLangDefault" style="display: none;">
+                                        <div class="multi-lang-default-label">
+                                            <i class="fas fa-star"></i> Default Language:
+                                        </div>
+                                        <div class="multi-lang-default-options" id="multiLangDefaultOptions">
+                                            <!-- Options will be populated dynamically -->
+                                        </div>
+                                    </div>
+                                    <div class="multi-lang-info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span id="multiLangCount">0 languages selected</span>
                                     </div>
                                 </div>
                             </div>
@@ -21142,8 +21485,31 @@ ${item.html_code || ''}
         // LANGUAGE TOGGLE STATE
         // ════════════════════════════════════════════════════════════════
         let appLanguageSettings = {
-            language: 'english', // 'arabic', 'english', 'both'
-            defaultLanguage: 'english' // Used when 'both' is selected
+            language: 'english', // 'arabic', 'english', 'both', 'multi'
+            defaultLanguage: 'english', // Used when 'both' or 'multi' is selected
+            multiLanguages: [] // Array of selected language codes for multi-language
+        };
+        
+        // Available languages for multi-language selection
+        const availableLanguages = {
+            en: { name: 'English', flag: '🇺🇸', dir: 'ltr', font: "'Inter', 'Roboto', sans-serif" },
+            ar: { name: 'Arabic', flag: '🇸🇦', dir: 'rtl', font: "'Cairo', 'Tajawal', sans-serif" },
+            fr: { name: 'French', flag: '🇫🇷', dir: 'ltr', font: "'Inter', sans-serif" },
+            es: { name: 'Spanish', flag: '🇪🇸', dir: 'ltr', font: "'Inter', sans-serif" },
+            de: { name: 'German', flag: '🇩🇪', dir: 'ltr', font: "'Inter', sans-serif" },
+            it: { name: 'Italian', flag: '🇮🇹', dir: 'ltr', font: "'Inter', sans-serif" },
+            pt: { name: 'Portuguese', flag: '🇵🇹', dir: 'ltr', font: "'Inter', sans-serif" },
+            ru: { name: 'Russian', flag: '🇷🇺', dir: 'ltr', font: "'Inter', sans-serif" },
+            zh: { name: 'Chinese', flag: '🇨🇳', dir: 'ltr', font: "'Noto Sans SC', sans-serif" },
+            ja: { name: 'Japanese', flag: '🇯🇵', dir: 'ltr', font: "'Noto Sans JP', sans-serif" },
+            ko: { name: 'Korean', flag: '🇰🇷', dir: 'ltr', font: "'Noto Sans KR', sans-serif" },
+            hi: { name: 'Hindi', flag: '🇮🇳', dir: 'ltr', font: "'Noto Sans Devanagari', sans-serif" },
+            tr: { name: 'Turkish', flag: '🇹🇷', dir: 'ltr', font: "'Inter', sans-serif" },
+            nl: { name: 'Dutch', flag: '🇳🇱', dir: 'ltr', font: "'Inter', sans-serif" },
+            pl: { name: 'Polish', flag: '🇵🇱', dir: 'ltr', font: "'Inter', sans-serif" },
+            th: { name: 'Thai', flag: '🇹🇭', dir: 'ltr', font: "'Noto Sans Thai', sans-serif" },
+            vi: { name: 'Vietnamese', flag: '🇻🇳', dir: 'ltr', font: "'Inter', sans-serif" },
+            id: { name: 'Indonesian', flag: '🇮🇩', dir: 'ltr', font: "'Inter', sans-serif" }
         };
         
         const LANGUAGE_SETTINGS_KEY = 'devDashboardLanguageSettings';
@@ -21163,7 +21529,7 @@ ${item.html_code || ''}
                 selectedOption.classList.add('active');
             }
             
-            // Show/hide default language selector
+            // Show/hide default language selector (for 'both')
             const defaultSelector = document.getElementById('defaultLangSelector');
             if (lang === 'both') {
                 defaultSelector.classList.add('visible');
@@ -21171,11 +21537,25 @@ ${item.html_code || ''}
                 defaultSelector.classList.remove('visible');
             }
             
+            // Show/hide multi-language selector
+            const multiSelector = document.getElementById('multiLangSelector');
+            if (lang === 'multi') {
+                multiSelector.classList.add('visible');
+                updateMultiLangUI();
+            } else {
+                multiSelector.classList.remove('visible');
+            }
+            
             // Save settings
             saveLanguageSettings();
             
             // Show toast
-            const langNames = { arabic: 'Arabic 🇸🇦', english: 'English 🇺🇸', both: 'Both Languages 🌐' };
+            const langNames = { 
+                arabic: 'Arabic 🇸🇦', 
+                english: 'English 🇺🇸', 
+                both: 'Both Languages 🌐',
+                multi: 'Multi-Language 🗺️'
+            };
             showToast(`Language set to: ${langNames[lang]}`, 'success');
         }
         
@@ -21200,6 +21580,111 @@ ${item.html_code || ''}
             showToast(`Default language: ${langNames[lang]}`, 'info');
         }
         
+        // Toggle a language in multi-language selection
+        function toggleMultiLang(langCode) {
+            const index = appLanguageSettings.multiLanguages.indexOf(langCode);
+            
+            if (index === -1) {
+                // Add language
+                appLanguageSettings.multiLanguages.push(langCode);
+            } else {
+                // Remove language
+                appLanguageSettings.multiLanguages.splice(index, 1);
+                
+                // If removed language was the default, reset default to first selected or 'en'
+                if (appLanguageSettings.defaultLanguage === langCode) {
+                    appLanguageSettings.defaultLanguage = appLanguageSettings.multiLanguages[0] || 'en';
+                }
+            }
+            
+            // Update UI
+            updateMultiLangUI();
+            
+            // Save settings
+            saveLanguageSettings();
+        }
+        
+        // Update multi-language UI
+        function updateMultiLangUI() {
+            // Update selection state
+            document.querySelectorAll('.multi-lang-item').forEach(item => {
+                const langCode = item.dataset.lang;
+                if (appLanguageSettings.multiLanguages.includes(langCode)) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // Update count
+            const countEl = document.getElementById('multiLangCount');
+            const count = appLanguageSettings.multiLanguages.length;
+            countEl.textContent = `${count} language${count !== 1 ? 's' : ''} selected`;
+            
+            // Update default language options
+            updateMultiLangDefaultOptions();
+        }
+        
+        // Update default language options for multi-language
+        function updateMultiLangDefaultOptions() {
+            const container = document.getElementById('multiLangDefaultOptions');
+            const defaultSection = document.getElementById('multiLangDefault');
+            
+            if (appLanguageSettings.multiLanguages.length < 2) {
+                defaultSection.style.display = 'none';
+                return;
+            }
+            
+            defaultSection.style.display = 'block';
+            container.innerHTML = '';
+            
+            appLanguageSettings.multiLanguages.forEach(langCode => {
+                const langInfo = availableLanguages[langCode];
+                if (!langInfo) return;
+                
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'multi-default-btn' + (appLanguageSettings.defaultLanguage === langCode ? ' selected' : '');
+                btn.dataset.lang = langCode;
+                btn.onclick = () => setMultiDefaultLanguage(langCode);
+                btn.innerHTML = `<span class="btn-flag">${langInfo.flag}</span> ${langCode.toUpperCase()}`;
+                container.appendChild(btn);
+            });
+            
+            // Ensure default is one of the selected languages
+            if (!appLanguageSettings.multiLanguages.includes(appLanguageSettings.defaultLanguage)) {
+                appLanguageSettings.defaultLanguage = appLanguageSettings.multiLanguages[0];
+                saveLanguageSettings();
+            }
+        }
+        
+        // Set default language for multi-language
+        function setMultiDefaultLanguage(langCode) {
+            appLanguageSettings.defaultLanguage = langCode;
+            
+            // Update UI
+            document.querySelectorAll('.multi-default-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            const selectedBtn = document.querySelector(`.multi-default-btn[data-lang="${langCode}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('selected');
+            }
+            
+            // Save settings
+            saveLanguageSettings();
+            
+            const langInfo = availableLanguages[langCode];
+            showToast(`Default language: ${langInfo.name} ${langInfo.flag}`, 'info');
+        }
+        
+        // Close multi-language selector
+        function closeMultiLangSelector() {
+            const multiSelector = document.getElementById('multiLangSelector');
+            multiSelector.classList.remove('visible');
+        }
+        
         // Save language settings
         function saveLanguageSettings() {
             try {
@@ -21217,6 +21702,11 @@ ${item.html_code || ''}
                     const parsed = JSON.parse(saved);
                     appLanguageSettings = { ...appLanguageSettings, ...parsed };
                     
+                    // Ensure multiLanguages is an array
+                    if (!Array.isArray(appLanguageSettings.multiLanguages)) {
+                        appLanguageSettings.multiLanguages = [];
+                    }
+                    
                     // Update UI
                     document.querySelectorAll('.lang-option').forEach(opt => {
                         opt.classList.remove('active');
@@ -21226,10 +21716,17 @@ ${item.html_code || ''}
                         selectedOption.classList.add('active');
                     }
                     
-                    // Show/hide default selector
+                    // Show/hide default selector (for 'both')
                     const defaultSelector = document.getElementById('defaultLangSelector');
                     if (appLanguageSettings.language === 'both') {
                         defaultSelector.classList.add('visible');
+                    }
+                    
+                    // Show/hide multi-language selector
+                    const multiSelector = document.getElementById('multiLangSelector');
+                    if (appLanguageSettings.language === 'multi') {
+                        multiSelector.classList.add('visible');
+                        updateMultiLangUI();
                     }
                     
                     // Update default language buttons
@@ -21394,6 +21891,177 @@ const translations = {
 💡 TIP: Consider using a i18n library like i18next for complex applications, 
 or implement a simple translation function for smaller projects.
 `;
+            } else if (lang === 'multi') {
+                // Multi-language support
+                const selectedLangs = appLanguageSettings.multiLanguages;
+                const defaultLangCode = appLanguageSettings.defaultLanguage;
+                
+                if (selectedLangs.length === 0) {
+                    directive = `
+════════════════════════════════════════════════════════════════════════════════
+🌐 APPLICATION LANGUAGE REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+⚠️ MULTI-LANGUAGE MODE SELECTED BUT NO LANGUAGES CHOSEN
+
+Please select at least one language from the multi-language selector.
+`;
+                } else {
+                    const defaultLangInfo = availableLanguages[defaultLangCode] || availableLanguages['en'];
+                    const langList = selectedLangs.map(code => {
+                        const info = availableLanguages[code];
+                        return info ? `${info.flag} ${info.name} (${code})` : code;
+                    }).join('\n   • ');
+                    
+                    // Check if any RTL language is selected
+                    const hasRTL = selectedLangs.some(code => availableLanguages[code]?.dir === 'rtl');
+                    const rtlLangs = selectedLangs.filter(code => availableLanguages[code]?.dir === 'rtl');
+                    const ltrLangs = selectedLangs.filter(code => availableLanguages[code]?.dir === 'ltr');
+                    
+                    // Build font requirements
+                    const uniqueFonts = [...new Set(selectedLangs.map(code => availableLanguages[code]?.font).filter(Boolean))];
+                    
+                    // Build translation keys example
+                    const translationExample = selectedLangs.slice(0, 3).map(code => {
+                        const info = availableLanguages[code];
+                        const welcomeText = code === 'ar' ? 'مرحباً' : 
+                                          code === 'zh' ? '欢迎' : 
+                                          code === 'ja' ? 'ようこそ' : 
+                                          code === 'ko' ? '환영합니다' :
+                                          code === 'hi' ? 'स्वागत' :
+                                          code === 'ru' ? 'Добро пожаловать' :
+                                          code === 'fr' ? 'Bienvenue' :
+                                          code === 'es' ? 'Bienvenido' :
+                                          code === 'de' ? 'Willkommen' :
+                                          code === 'it' ? 'Benvenuto' :
+                                          code === 'pt' ? 'Bem-vindo' :
+                                          code === 'tr' ? 'Hoş geldiniz' :
+                                          code === 'th' ? 'ยินดีต้อนรับ' :
+                                          code === 'vi' ? 'Chào mừng' :
+                                          'Welcome';
+                        return `    ${code}: {\n        welcome: "${welcomeText}",\n        // ... more ${info?.name || code} translations\n    }`;
+                    }).join(',\n');
+                    
+                    directive = `
+════════════════════════════════════════════════════════════════════════════════
+🌐 APPLICATION LANGUAGE REQUIREMENTS - MULTI-LANGUAGE
+════════════════════════════════════════════════════════════════════════════════
+
+🗺️ MULTI-LANGUAGE APPLICATION (${selectedLangs.length} Languages)
+
+This application must support MULTIPLE languages with full internationalization 
+(i18n) support for the following languages:
+
+SELECTED LANGUAGES:
+   • ${langList}
+
+${defaultLangInfo.flag} DEFAULT LANGUAGE: ${defaultLangInfo.name.toUpperCase()} (${defaultLangCode})
+
+════════════════════════════════════════════════════════════════════════════════
+IMPLEMENTATION REQUIREMENTS:
+════════════════════════════════════════════════════════════════════════════════
+
+1. LANGUAGE SWITCHING SYSTEM:
+   • Implement a language selector/dropdown in the header or navigation
+   • Include all ${selectedLangs.length} supported languages with their flags
+   • Store user's language preference in localStorage or cookies
+   • Language selection should persist across sessions and page refreshes
+   • Consider using URL-based language routing (e.g., /en/, /ar/, /fr/)
+
+2. TEXT DIRECTION HANDLING:${hasRTL ? `
+   ⚠️ IMPORTANT: This application includes RTL (Right-to-Left) languages!
+   
+   RTL Languages: ${rtlLangs.map(c => availableLanguages[c]?.name).join(', ')}
+   LTR Languages: ${ltrLangs.map(c => availableLanguages[c]?.name).join(', ')}
+   
+   • Dynamically set dir="rtl" or dir="ltr" based on selected language
+   • Use CSS logical properties (margin-inline-start, padding-inline-end, etc.)
+   • Mirror layouts for RTL languages (navigation, icons, etc.)
+   • Test thoroughly with RTL languages` : `
+   • All selected languages use LTR (Left-to-Right) direction
+   • Standard CSS properties can be used`}
+
+3. FONT REQUIREMENTS:
+   Load appropriate fonts for each language:
+${uniqueFonts.map(font => `   • ${font}`).join('\n')}
+   
+   Consider loading fonts conditionally based on selected language to optimize 
+   performance.
+
+4. TRANSLATION STRUCTURE:
+   Create comprehensive translation files/objects for ALL ${selectedLangs.length} languages.
+   
+   Required translations include:
+   • Navigation labels and menu items
+   • Button text (Submit, Cancel, Save, Delete, etc.)
+   • Form labels, placeholders, and validation messages
+   • Error messages and success notifications
+   • Tooltips and help text
+   • Page titles, headings, and meta descriptions
+   • Date/time format labels
+   • Empty states and loading messages
+
+   Example translation structure:
+   const translations = {
+${translationExample}
+   };
+
+5. LOCALE-SPECIFIC FORMATTING:
+   Handle locale differences for each language:
+   • Date formats (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, etc.)
+   • Number formats (decimal separator, thousands separator)
+   • Currency symbols and positions
+   • Phone number formats
+   • Address formats
+
+6. DEFAULT STATE:
+   • Application should load with ${defaultLangInfo.name} as the default language
+   • HTML should initialize with lang="${defaultLangCode}" dir="${defaultLangInfo.dir}"
+   • Detect user's browser language and suggest switching if available
+
+7. SEO CONSIDERATIONS:
+   • Use hreflang tags for language alternatives
+   • Implement proper meta tags for each language
+   • Consider separate URLs or subdomains for each language
+
+════════════════════════════════════════════════════════════════════════════════
+RECOMMENDED IMPLEMENTATION:
+════════════════════════════════════════════════════════════════════════════════
+
+// Language configuration
+const supportedLanguages = {
+${selectedLangs.map(code => {
+    const info = availableLanguages[code];
+    return `    '${code}': { name: '${info?.name}', flag: '${info?.flag}', dir: '${info?.dir}' }`;
+}).join(',\n')}
+};
+
+const DEFAULT_LANGUAGE = '${defaultLangCode}';
+
+// Get current language
+function getCurrentLanguage() {
+    return localStorage.getItem('appLanguage') || DEFAULT_LANGUAGE;
+}
+
+// Set language
+function setLanguage(langCode) {
+    if (!supportedLanguages[langCode]) return;
+    
+    localStorage.setItem('appLanguage', langCode);
+    document.documentElement.lang = langCode;
+    document.documentElement.dir = supportedLanguages[langCode].dir;
+    
+    // Reload translations or re-render UI
+    loadTranslations(langCode);
+}
+
+💡 TIPS:
+• Use a robust i18n library like i18next, react-intl, or vue-i18n for complex apps
+• Consider using ICU MessageFormat for pluralization and formatting
+• Test with native speakers for each language
+• Implement fallback languages for missing translations
+`;
+                }
             }
             
             return directive;
