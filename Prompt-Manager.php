@@ -8310,6 +8310,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0.3rem;
         }
         
+        /* Folder List Styles */
+        .uf-folder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .uf-folder-item {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .uf-folder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.4rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .uf-folder-header:hover {
+            background: rgba(245, 158, 11, 0.15);
+        }
+        
+        .uf-folder-icon {
+            color: #f59e0b;
+            font-size: 0.7rem;
+        }
+        
+        .uf-folder-name {
+            flex: 1;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .uf-folder-stats {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            padding: 0.1rem 0.3rem;
+            background: rgba(245, 158, 11, 0.15);
+            border-radius: 4px;
+        }
+        
+        .uf-folder-arrow {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+        
+        .uf-folder-arrow.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .uf-folder-children {
+            padding: 0.3rem;
+            background: rgba(15, 15, 35, 0.3);
+            border-top: 1px solid rgba(245, 158, 11, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        /* Tree Structure */
+        .uf-tree-folder, .uf-tree-file {
+            font-size: 0.55rem;
+            padding: 0.15rem 0;
+        }
+        
+        .uf-tree-folder-header {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            cursor: pointer;
+            padding: 0.15rem 0.25rem;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        
+        .uf-tree-folder-header:hover {
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .uf-tree-folder-header small {
+            color: var(--text-muted);
+            font-size: 0.45rem;
+        }
+        
+        .uf-tree-arrow {
+            font-size: 0.4rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+            width: 10px;
+        }
+        
+        .uf-tree-arrow.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .uf-tree-icon {
+            color: #f59e0b;
+            font-size: 0.5rem;
+        }
+        
+        .uf-tree-children {
+            margin-left: 1rem;
+            padding-left: 0.5rem;
+            border-left: 1px dashed rgba(245, 158, 11, 0.2);
+        }
+        
+        .uf-tree-file {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.15rem 0.25rem;
+            color: var(--text-secondary);
+        }
+        
+        .uf-tree-file i {
+            font-size: 0.5rem;
+        }
+        
+        .uf-icon-html { color: #e34c26; }
+        .uf-icon-css { color: #264de4; }
+        .uf-icon-js { color: #f7df1e; }
+        .uf-icon-php { color: #777bb3; }
+        .uf-icon-py { color: #3776ab; }
+        .uf-icon-json { color: #f59e0b; }
+        .uf-icon-md { color: #083fa1; }
+        .uf-icon-img { color: #00bcd4; }
+        .uf-icon-default { color: var(--text-muted); }
+        
+        .uf-tree-empty {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            padding: 0.25rem;
+            text-align: center;
+            font-style: italic;
+        }
+        
         /* Page Detection */
         .uf-page-detection {
             margin-top: 0.5rem;
@@ -17705,11 +17850,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="uf-drop-icon">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </div>
-                                <div class="uf-drop-title">Drag & Drop Your Project Files</div>
-                                <div class="uf-drop-subtitle">or click to browse files</div>
+                                <div class="uf-drop-title">Drag & Drop Files or Folders</div>
+                                <div class="uf-drop-subtitle">Drop folders to include entire directory structure</div>
                                 <div class="uf-drop-hint">
-                                    <i class="fas fa-info-circle"></i>
-                                    HTML, CSS, JS, PHP, Images & More
+                                    <i class="fas fa-folder"></i> Folders
+                                    <i class="fas fa-file-code" style="margin-left: 0.5rem;"></i> Files
+                                    <i class="fas fa-images" style="margin-left: 0.5rem;"></i> Images
                                 </div>
                             </div>
                         </div>
@@ -36703,6 +36849,7 @@ document.addEventListener('DOMContentLoaded', hpInit);
 
 // Category configuration
 const ufCategoryConfig = {
+    folders: { title: 'Folders', icon: 'fa-folder', gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', extensions: [], isFolder: true },
     html: { title: 'HTML', icon: 'fa-html5', gradient: 'linear-gradient(135deg, #e34c26 0%, #f06529 100%)', extensions: ['html', 'htm'] },
     css: { title: 'CSS', icon: 'fa-css3-alt', gradient: 'linear-gradient(135deg, #264de4 0%, #2965f1 100%)', extensions: ['css', 'scss', 'sass', 'less'] },
     javascript: { title: 'JavaScript', icon: 'fa-js', gradient: 'linear-gradient(135deg, #f7df1e 0%, #f0db4f 100%)', extensions: ['js', 'jsx', 'ts', 'tsx'] },
@@ -36713,7 +36860,7 @@ const ufCategoryConfig = {
 
 // File storage
 let ufFileStorage = {
-    html: [], css: [], javascript: [], php: [], images: [], other: []
+    folders: [], html: [], css: [], javascript: [], php: [], images: [], other: []
 };
 
 // Page detection
@@ -36760,15 +36907,122 @@ function ufSetupDropZone() {
         dropZone.classList.remove('drag-over');
     });
     
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener('drop', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         dropZone.classList.remove('drag-over');
         
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        // Use webkitGetAsEntry to detect folders
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            const items = Array.from(e.dataTransfer.items);
+            const folders = [];
+            const files = [];
+            
+            for (const item of items) {
+                if (item.webkitGetAsEntry) {
+                    const entry = item.webkitGetAsEntry();
+                    if (entry) {
+                        if (entry.isDirectory) {
+                            // It's a folder - read its contents
+                            const folderData = await ufReadFolderEntry(entry);
+                            folders.push(folderData);
+                        } else if (entry.isFile) {
+                            // It's a file
+                            const file = item.getAsFile();
+                            if (file) files.push(file);
+                        }
+                    }
+                } else {
+                    // Fallback for browsers without webkitGetAsEntry
+                    const file = item.getAsFile();
+                    if (file) files.push(file);
+                }
+            }
+            
+            // Process folders
+            if (folders.length > 0) {
+                ufHandleFolders(folders);
+            }
+            
+            // Process files
+            if (files.length > 0) {
+                ufHandleFiles(files);
+            }
+            
+            if (folders.length === 0 && files.length === 0) {
+                showNotification('⚠️ No files or folders detected', 'warning');
+            }
+        } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            // Fallback
             ufHandleFiles(e.dataTransfer.files);
         }
     });
+}
+
+// Read folder entry recursively
+async function ufReadFolderEntry(entry, path = '') {
+    return new Promise((resolve) => {
+        const folderData = {
+            name: entry.name,
+            path: path ? path + '/' + entry.name : entry.name,
+            type: 'folder',
+            children: [],
+            fileCount: 0,
+            folderCount: 0
+        };
+        
+        const reader = entry.createReader();
+        const readAllEntries = async () => {
+            const allEntries = [];
+            const readBatch = () => {
+                reader.readEntries(async (entries) => {
+                    if (entries.length === 0) {
+                        // Process all entries
+                        for (const e of allEntries) {
+                            if (e.isDirectory) {
+                                const subFolder = await ufReadFolderEntry(e, folderData.path);
+                                folderData.children.push(subFolder);
+                                folderData.folderCount += 1 + subFolder.folderCount;
+                                folderData.fileCount += subFolder.fileCount;
+                            } else {
+                                folderData.children.push({ name: e.name, type: 'file', path: folderData.path + '/' + e.name });
+                                folderData.fileCount++;
+                            }
+                        }
+                        resolve(folderData);
+                    } else {
+                        allEntries.push(...entries);
+                        readBatch();
+                    }
+                });
+            };
+            readBatch();
+        };
+        readAllEntries();
+    });
+}
+
+// Handle folders
+function ufHandleFolders(folders) {
+    if (!folders || folders.length === 0) return;
+    
+    folders.forEach(folder => {
+        // Check if folder already exists
+        const exists = ufFileStorage.folders.some(f => f.name === folder.name);
+        if (!exists) {
+            ufFileStorage.folders.push(folder);
+        }
+    });
+    
+    ufDisplayCategories();
+    ufSaveToStorage();
+    ufUpdateBadge();
+    
+    document.getElementById('ufCategories').classList.add('show');
+    
+    const totalFolders = folders.length;
+    const totalFilesInFolders = folders.reduce((sum, f) => sum + f.fileCount, 0);
+    showNotification(`📁 ${totalFolders} folder(s) with ${totalFilesInFolders} files added`, 'success');
 }
 
 // Handle uploaded files
@@ -36819,23 +37073,39 @@ function ufDisplayCategories() {
     grid.innerHTML = '';
     
     Object.entries(ufCategoryConfig).forEach(([category, config]) => {
-        const files = ufFileStorage[category];
-        const hasFiles = files.length > 0;
+        const items = ufFileStorage[category];
+        const hasItems = items.length > 0;
+        const isFolder = config.isFolder;
         
         const categoryBox = document.createElement('div');
-        categoryBox.className = `uf-category-box ${hasFiles ? 'has-files' : ''}`;
+        categoryBox.className = `uf-category-box ${hasItems ? 'has-files' : ''}`;
         
-        categoryBox.innerHTML = `
-            <div class="uf-category-header">
-                <div class="uf-category-icon" style="background: ${config.gradient};">
-                    <i class="fab ${config.icon}"></i>
-                </div>
-                <div class="uf-category-title">${config.title}</div>
-                ${hasFiles ? `<div class="uf-category-count">${files.length}</div>` : ''}
-            </div>
-            ${hasFiles ? `
-                <div class="uf-file-list">
-                    ${files.map((file, index) => `
+        let itemsHtml = '';
+        if (hasItems) {
+            if (isFolder) {
+                // Render folders with tree structure
+                itemsHtml = `<div class="uf-file-list uf-folder-list">
+                    ${items.map((folder, index) => `
+                        <div class="uf-folder-item">
+                            <div class="uf-folder-header" onclick="ufToggleFolderExpand(this)">
+                                <i class="fas fa-folder uf-folder-icon"></i>
+                                <span class="uf-folder-name" title="${folder.name}">${folder.name}</span>
+                                <span class="uf-folder-stats">${folder.fileCount || 0} files, ${folder.folderCount || 0} subfolders</span>
+                                <i class="fas fa-chevron-down uf-folder-arrow"></i>
+                                <button class="uf-file-remove" onclick="event.stopPropagation(); ufRemoveFile('${category}', ${index})" title="Remove folder">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="uf-folder-children" style="display: none;">
+                                ${ufRenderFolderTree(folder.children || [])}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            } else {
+                // Render files
+                itemsHtml = `<div class="uf-file-list">
+                    ${items.map((file, index) => `
                         <div class="uf-file-item">
                             <i class="fas fa-file"></i>
                             <span class="uf-file-name" title="${file.name}">${file.name}</span>
@@ -36845,8 +37115,21 @@ function ufDisplayCategories() {
                             </button>
                         </div>
                     `).join('')}
+                </div>`;
+            }
+        } else {
+            itemsHtml = `<div class="uf-empty-category">No ${isFolder ? 'folders' : 'files'}</div>`;
+        }
+        
+        categoryBox.innerHTML = `
+            <div class="uf-category-header">
+                <div class="uf-category-icon" style="background: ${config.gradient};">
+                    <i class="${isFolder ? 'fas' : 'fab'} ${config.icon}"></i>
                 </div>
-            ` : `<div class="uf-empty-category">No files</div>`}
+                <div class="uf-category-title">${config.title}</div>
+                ${hasItems ? `<div class="uf-category-count">${items.length}</div>` : ''}
+            </div>
+            ${itemsHtml}
         `;
         
         grid.appendChild(categoryBox);
@@ -36871,7 +37154,108 @@ function ufRemoveFile(category, index) {
     ufDisplayCategories();
     ufSaveToStorage();
     ufUpdateBadge();
-    showNotification('File removed', 'info');
+    showNotification('Item removed', 'info');
+}
+
+// Render folder tree recursively
+function ufRenderFolderTree(children, level = 0) {
+    if (!children || children.length === 0) return '<div class="uf-tree-empty">Empty folder</div>';
+    
+    // Sort: folders first, then files
+    const sorted = [...children].sort((a, b) => {
+        if (a.type === b.type) return a.name.localeCompare(b.name);
+        return a.type === 'folder' ? -1 : 1;
+    });
+    
+    return sorted.map(item => {
+        if (item.type === 'folder') {
+            return `
+                <div class="uf-tree-folder">
+                    <div class="uf-tree-folder-header" onclick="ufToggleTreeFolder(this)">
+                        <i class="fas fa-chevron-right uf-tree-arrow"></i>
+                        <i class="fas fa-folder uf-tree-icon"></i>
+                        <span>${item.name}</span>
+                        <small>(${item.fileCount || 0} files)</small>
+                    </div>
+                    <div class="uf-tree-children" style="display: none;">
+                        ${ufRenderFolderTree(item.children || [], level + 1)}
+                    </div>
+                </div>
+            `;
+        } else {
+            const ext = item.name.split('.').pop().toLowerCase();
+            const iconClass = ufGetFileIconClass(ext);
+            return `
+                <div class="uf-tree-file">
+                    <i class="${iconClass}"></i>
+                    <span>${item.name}</span>
+                </div>
+            `;
+        }
+    }).join('');
+}
+
+// Get file icon class by extension
+function ufGetFileIconClass(ext) {
+    const map = {
+        'html': 'fab fa-html5 uf-icon-html',
+        'htm': 'fab fa-html5 uf-icon-html',
+        'css': 'fab fa-css3-alt uf-icon-css',
+        'scss': 'fab fa-sass uf-icon-css',
+        'js': 'fab fa-js uf-icon-js',
+        'jsx': 'fab fa-react uf-icon-js',
+        'ts': 'fab fa-js uf-icon-js',
+        'tsx': 'fab fa-react uf-icon-js',
+        'php': 'fab fa-php uf-icon-php',
+        'py': 'fab fa-python uf-icon-py',
+        'json': 'fas fa-file-code uf-icon-json',
+        'md': 'fab fa-markdown uf-icon-md',
+        'png': 'fas fa-image uf-icon-img',
+        'jpg': 'fas fa-image uf-icon-img',
+        'jpeg': 'fas fa-image uf-icon-img',
+        'gif': 'fas fa-image uf-icon-img',
+        'svg': 'fas fa-image uf-icon-img',
+        'webp': 'fas fa-image uf-icon-img'
+    };
+    return map[ext] || 'fas fa-file uf-icon-default';
+}
+
+// Toggle folder expand in main list
+function ufToggleFolderExpand(header) {
+    const children = header.nextElementSibling;
+    const arrow = header.querySelector('.uf-folder-arrow');
+    const icon = header.querySelector('.uf-folder-icon');
+    
+    if (children.style.display === 'none') {
+        children.style.display = 'block';
+        arrow.classList.add('expanded');
+        icon.classList.remove('fa-folder');
+        icon.classList.add('fa-folder-open');
+    } else {
+        children.style.display = 'none';
+        arrow.classList.remove('expanded');
+        icon.classList.remove('fa-folder-open');
+        icon.classList.add('fa-folder');
+    }
+}
+
+// Toggle subfolder in tree
+function ufToggleTreeFolder(header) {
+    const children = header.nextElementSibling;
+    const arrow = header.querySelector('.uf-tree-arrow');
+    const icon = header.querySelector('.uf-tree-icon');
+    
+    if (children.style.display === 'none') {
+        children.style.display = 'block';
+        arrow.classList.add('expanded');
+        icon.classList.remove('fa-folder');
+        icon.classList.add('fa-folder-open');
+    } else {
+        children.style.display = 'none';
+        arrow.classList.remove('expanded');
+        icon.classList.remove('fa-folder-open');
+        icon.classList.add('fa-folder');
+    }
 }
 
 // Populate page detection dropdowns
