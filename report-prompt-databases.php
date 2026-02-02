@@ -378,6 +378,294 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// ========================================
+// COOL INSERT API ENDPOINT
+// ========================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_insert') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    $rawText = $_POST['raw_text'] ?? '';
+    
+    if (empty(trim($rawText))) {
+        echo json_encode(['success' => false, 'error' => 'No text provided']);
+        exit;
+    }
+    
+    // Parse credentials from raw text
+    $credentials = parseDatabaseCredentials($rawText);
+    
+    if (empty($credentials)) {
+        echo json_encode(['success' => false, 'error' => 'No valid database credentials found in the text']);
+        exit;
+    }
+    
+    $report = [
+        'total_found' => count($credentials),
+        'added' => [],
+        'skipped' => [],
+        'invalid' => []
+    ];
+    
+    foreach ($credentials as $cred) {
+        // Validate required fields
+        if (empty($cred['host']) || empty($cred['dbName']) || empty($cred['username'])) {
+            $report['invalid'][] = [
+                'reason' => 'Missing required fields (host, dbName, or username)',
+                'data' => $cred
+            ];
+            continue;
+        }
+        
+        // Check if already exists (by host + dbName + username combination)
+        $checkStmt = $pdo->prepare("SELECT id, name FROM `$tableName` WHERE host = ? AND dbName = ? AND username = ?");
+        $checkStmt->execute([$cred['host'], $cred['dbName'], $cred['username']]);
+        $existing = $checkStmt->fetch();
+        
+        if ($existing) {
+            $report['skipped'][] = [
+                'reason' => 'Already exists in database',
+                'existing_id' => $existing['id'],
+                'existing_name' => $existing['name'],
+                'data' => $cred
+            ];
+            continue;
+        }
+        
+        // Generate a nice name if not provided
+        $name = generateConnectionName($cred);
+        
+        // Insert the new connection
+        $id = time() . rand(100, 999);
+        $insertStmt = $pdo->prepare("INSERT INTO `$tableName` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+        $insertStmt->execute([
+            $id,
+            $name,
+            $cred['type'] ?? 'shared',
+            $cred['host'],
+            $cred['dbName'],
+            $cred['username'],
+            $cred['password'] ?? '',
+            $cred['port'] ?? '3306'
+        ]);
+        
+        $report['added'][] = [
+            'id' => $id,
+            'name' => $name,
+            'data' => $cred
+        ];
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'report' => $report,
+        'summary' => [
+            'found' => $report['total_found'],
+            'added' => count($report['added']),
+            'skipped' => count($report['skipped']),
+            'invalid' => count($report['invalid'])
+        ]
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+/**
+ * Parse database credentials from raw/cluttered text
+ * Supports various formats from Hostinger and other hosting providers
+ */
+function parseDatabaseCredentials($text) {
+    $credentials = [];
+    
+    // Normalize line endings
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+    
+    // Split by potential separators (double newlines, dashes, equals signs patterns)
+    $blocks = preg_split('/\n{2,}|={3,}|-{3,}|\*{3,}/', $text);
+    
+    // Also try to find credentials in the entire text as one block
+    $blocks[] = $text;
+    
+    foreach ($blocks as $block) {
+        $cred = extractCredentialsFromBlock($block);
+        if ($cred && !empty($cred['host']) && !empty($cred['dbName']) && !empty($cred['username'])) {
+            // Avoid duplicates
+            $key = $cred['host'] . '|' . $cred['dbName'] . '|' . $cred['username'];
+            if (!isset($credentials[$key])) {
+                $credentials[$key] = $cred;
+            }
+        }
+    }
+    
+    // Try alternative parsing: look for patterns throughout the entire text
+    $altCreds = extractCredentialsAlternative($text);
+    foreach ($altCreds as $cred) {
+        if (!empty($cred['host']) && !empty($cred['dbName']) && !empty($cred['username'])) {
+            $key = $cred['host'] . '|' . $cred['dbName'] . '|' . $cred['username'];
+            if (!isset($credentials[$key])) {
+                $credentials[$key] = $cred;
+            }
+        }
+    }
+    
+    return array_values($credentials);
+}
+
+/**
+ * Extract credentials from a text block
+ */
+function extractCredentialsFromBlock($block) {
+    $cred = [
+        'host' => '',
+        'dbName' => '',
+        'username' => '',
+        'password' => '',
+        'port' => '3306',
+        'type' => 'shared'
+    ];
+    
+    // Patterns for various credential formats
+    $patterns = [
+        // Host patterns
+        'host' => [
+            '/(?:host(?:name)?|server|mysql\s*host(?:name)?)\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
+            '/(?:DB_HOST|DATABASE_HOST)\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
+            '/(srv\d+\.hstgr\.io)/i', // Hostinger pattern
+            '/(localhost|127\.0\.0\.1)/i',
+            '/host["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+        ],
+        // Database name patterns
+        'dbName' => [
+            '/(?:database(?:\s*name)?|db(?:name)?|mysql\s*database)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+            '/(?:DB_NAME|DB_DATABASE|DATABASE_NAME)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+            '/dbname["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+            '/(u\d+_[a-zA-Z0-9_]+)/i', // Hostinger pattern
+        ],
+        // Username patterns
+        'username' => [
+            '/(?:user(?:name)?|db\s*user(?:name)?|mysql\s*user(?:name)?)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+            '/(?:DB_USER(?:NAME)?|DATABASE_USER(?:NAME)?)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+            '/username["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+        ],
+        // Password patterns
+        'password' => [
+            '/(?:pass(?:word)?|db\s*pass(?:word)?|mysql\s*pass(?:word)?)\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
+            '/(?:DB_PASS(?:WORD)?|DATABASE_PASS(?:WORD)?)\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
+            '/password["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+        ],
+        // Port patterns
+        'port' => [
+            '/(?:port|db\s*port|mysql\s*port)\s*[:=]\s*["\']?(\d+)["\']?/i',
+            '/(?:DB_PORT|DATABASE_PORT)\s*[:=]\s*["\']?(\d+)["\']?/i',
+        ]
+    ];
+    
+    foreach ($patterns as $field => $fieldPatterns) {
+        foreach ($fieldPatterns as $pattern) {
+            if (preg_match($pattern, $block, $matches)) {
+                $value = trim($matches[1]);
+                if (!empty($value) && empty($cred[$field])) {
+                    $cred[$field] = $value;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Detect hosting type
+    if (stripos($cred['host'], 'hstgr') !== false || stripos($cred['host'], 'hostinger') !== false) {
+        $cred['type'] = 'shared';
+    } elseif ($cred['host'] === 'localhost' || $cred['host'] === '127.0.0.1') {
+        $cred['type'] = 'local';
+    } elseif (stripos($cred['host'], 'aws') !== false || stripos($cred['host'], 'rds') !== false) {
+        $cred['type'] = 'cloud';
+    }
+    
+    return $cred;
+}
+
+/**
+ * Alternative extraction for multiple credentials in one text
+ */
+function extractCredentialsAlternative($text) {
+    $results = [];
+    
+    // Find all Hostinger-style database names (u followed by numbers, underscore, then name)
+    if (preg_match_all('/(u\d+_[a-zA-Z0-9_]+)/', $text, $dbMatches)) {
+        $databases = array_unique($dbMatches[1]);
+        
+        // Find host
+        $host = 'localhost';
+        if (preg_match('/(srv\d+\.hstgr\.io)/i', $text, $hostMatch)) {
+            $host = $hostMatch[1];
+        }
+        
+        // Find passwords (look for strong passwords)
+        $passwords = [];
+        if (preg_match_all('/(?:pass(?:word)?|pwd)\s*[:=]\s*["\']?([^\s\n"\']{6,})["\']?/i', $text, $pwdMatches)) {
+            $passwords = $pwdMatches[1];
+        }
+        
+        foreach ($databases as $idx => $db) {
+            // For Hostinger, username often matches database name or is similar
+            $username = $db;
+            
+            // Check if there's a specific username pattern near this database
+            $pattern = '/' . preg_quote($db, '/') . '[^}]*?user(?:name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)/is';
+            if (preg_match($pattern, $text, $userMatch)) {
+                $username = $userMatch[1];
+            }
+            
+            $results[] = [
+                'host' => $host,
+                'dbName' => $db,
+                'username' => $username,
+                'password' => $passwords[$idx] ?? ($passwords[0] ?? ''),
+                'port' => '3306',
+                'type' => 'shared'
+            ];
+        }
+    }
+    
+    return $results;
+}
+
+/**
+ * Generate a nice connection name from credentials
+ */
+function generateConnectionName($cred) {
+    $dbName = $cred['dbName'] ?? '';
+    
+    // Remove common prefixes like u419999707_
+    $cleanName = preg_replace('/^u\d+_/', '', $dbName);
+    
+    // Convert underscores and dashes to spaces
+    $cleanName = str_replace(['_', '-'], ' ', $cleanName);
+    
+    // Title case
+    $cleanName = ucwords(strtolower($cleanName));
+    
+    // If name is too short, use full dbName
+    if (strlen($cleanName) < 3) {
+        $cleanName = $dbName;
+    }
+    
+    // Add suffix based on host
+    $suffix = '';
+    if (stripos($cred['host'], 'hstgr') !== false) {
+        $suffix = ' (Hostinger)';
+    } elseif ($cred['host'] === 'localhost' || $cred['host'] === '127.0.0.1') {
+        $suffix = ' (Local)';
+    } elseif (!empty($cred['host'])) {
+        // Extract domain hint
+        $hostParts = explode('.', $cred['host']);
+        if (count($hostParts) > 1) {
+            $suffix = ' (' . ucfirst($hostParts[0]) . ')';
+        }
+    }
+    
+    return trim($cleanName . $suffix);
+}
+
 // EXPORT - Returns JSON data for JavaScript to handle with file picker
 if (isset($_GET['export'])) {
     $stmt = $pdo->query("SELECT * FROM `$tableName` ORDER BY createdAt DESC");
@@ -1386,6 +1674,467 @@ if (isset($_GET['edit'])) {
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
         }
         
+        /* ========================================
+           COOL INSERT BUTTON STYLES
+           ======================================== */
+        .btn-cool-insert {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 200% 200%;
+            animation: coolGradient 3s ease infinite;
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            padding: 12px 20px !important;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        @keyframes coolGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .btn-cool-insert:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6), 0 0 30px rgba(240, 147, 251, 0.3);
+        }
+        
+        .btn-cool-insert::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            animation: coolShine 3s infinite;
+        }
+        
+        @keyframes coolShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .cool-icon {
+            font-size: 1.1rem;
+            margin-right: 4px;
+            animation: coolBounce 2s infinite;
+        }
+        
+        @keyframes coolBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+        
+        .cool-sparkle {
+            font-size: 0.9rem;
+            margin-left: 4px;
+            animation: sparkle 1.5s infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.6; transform: scale(1.2) rotate(15deg); }
+        }
+        
+        /* ========================================
+           COOL INSERT MODAL STYLES
+           ======================================== */
+        .cool-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .cool-modal-overlay.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .cool-modal {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(102, 126, 234, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: coolModalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        @keyframes coolModalSlide {
+            from { 
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .cool-modal-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(240, 147, 251, 0.2) 100%);
+            padding: 24px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .cool-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .cool-modal-title-icon {
+            font-size: 2rem;
+            animation: coolBounce 2s infinite;
+        }
+        
+        .cool-modal-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .cool-modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cool-modal-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+        
+        .cool-modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+        
+        .cool-textarea-wrapper {
+            position: relative;
+        }
+        
+        .cool-textarea {
+            width: 100%;
+            min-height: 250px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-textarea:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.6);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15), 0 0 30px rgba(102, 126, 234, 0.1);
+        }
+        
+        .cool-textarea::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        .cool-helper-text {
+            margin-top: 12px;
+            padding: 15px;
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 170, 0.2);
+        }
+        
+        .cool-helper-text h4 {
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .cool-helper-text ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .cool-helper-text li {
+            margin-bottom: 4px;
+        }
+        
+        .cool-modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .cool-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .cool-btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cool-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .cool-btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .cool-btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .cool-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cool-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+        
+        .cool-char-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* ========================================
+           COOL INSERT REPORT STYLES
+           ======================================== */
+        .cool-report {
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .cool-report-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .cool-report-stat {
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-report-stat:hover {
+            transform: translateY(-3px);
+        }
+        
+        .cool-report-stat.found {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(102, 126, 234, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .cool-report-stat.added {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .cool-report-stat.skipped {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .cool-report-stat.invalid {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .cool-report-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        
+        .cool-report-stat.found .cool-report-stat-value { color: #667eea; }
+        .cool-report-stat.added .cool-report-stat-value { color: #22c55e; }
+        .cool-report-stat.skipped .cool-report-stat-value { color: #f59e0b; }
+        .cool-report-stat.invalid .cool-report-stat-value { color: #ef4444; }
+        
+        .cool-report-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .cool-report-details {
+            margin-top: 20px;
+        }
+        
+        .cool-report-section {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cool-report-section-header {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .cool-report-section-header:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .cool-report-section-icon {
+            font-size: 1.2rem;
+        }
+        
+        .cool-report-section-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .cool-report-section-count {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .cool-report-section-body {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .cool-report-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .cool-report-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cool-report-item-name {
+            color: var(--accent-primary);
+            font-weight: 600;
+            min-width: 150px;
+        }
+        
+        .cool-report-item-info {
+            color: var(--text-secondary);
+        }
+        
+        .cool-report-item-reason {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        .cool-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        
+        .cool-loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -1500,6 +2249,11 @@ if (isset($_GET['edit'])) {
                 <?php endif; ?>
             </form>
             <div class="toolbar-buttons">
+                <button type="button" class="btn btn-cool-insert" onclick="openCoolInsert()" title="Smart bulk insert from text">
+                    <span class="cool-icon">❄️</span>
+                    <span class="cool-text">Cool Insert</span>
+                    <span class="cool-sparkle">✨</span>
+                </button>
                 <button type="button" class="btn btn-test-all" onclick="testAllConnections()" title="Test all database connections">🔌 Test All</button>
                 <button type="button" class="btn btn-warning" onclick="exportWithFilePicker()">📤 Export JSON</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('addForm').scrollIntoView({behavior: 'smooth'})">➕ Add New</button>
@@ -1674,6 +2428,87 @@ if (isset($_GET['edit'])) {
 <!-- Export Status Toast -->
 <div id="exportToast" style="position: fixed; top: 20px; right: 20px; padding: 16px 24px; background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); z-index: 10000; display: none; min-width: 300px;">
     <div id="exportToastContent" style="display: flex; align-items: center; gap: 12px; color: var(--text-primary);"></div>
+</div>
+
+<!-- Cool Insert Modal -->
+<div class="cool-modal-overlay" id="coolInsertModal">
+    <div class="cool-modal">
+        <div class="cool-modal-header">
+            <div>
+                <div class="cool-modal-title">
+                    <span class="cool-modal-title-icon">❄️</span>
+                    <span>Cool Insert</span>
+                    <span style="font-size: 1rem;">✨</span>
+                </div>
+                <div class="cool-modal-subtitle">Paste your text with database credentials - we'll extract them smartly!</div>
+            </div>
+            <button class="cool-modal-close" onclick="closeCoolInsert()" title="Close">×</button>
+        </div>
+        
+        <div class="cool-modal-body" id="coolModalBody">
+            <!-- Input View -->
+            <div id="coolInputView">
+                <div class="cool-textarea-wrapper">
+                    <textarea 
+                        class="cool-textarea" 
+                        id="coolTextarea" 
+                        placeholder="Paste your database credentials here...
+
+Example formats supported:
+• MySQL hostname: srv1788.hstgr.io
+• Database name: u419999707_mydb
+• Username: u419999707_user
+• Password: MyP@ssw0rd!
+• Port: 3306
+
+Or PHP config style:
+'host' => 'localhost',
+'dbname' => 'my_database',
+'username' => 'root',
+'password' => 'secret'
+
+Paste any format - we'll figure it out! 🎯"
+                        oninput="updateCharCount()"></textarea>
+                </div>
+                
+                <div class="cool-helper-text">
+                    <h4>💡 Tips for best results:</h4>
+                    <ul>
+                        <li>Paste hosting panel info, config files, or any text containing credentials</li>
+                        <li>Multiple connections can be detected from one paste</li>
+                        <li>Supports Hostinger, cPanel, Laravel, and standard formats</li>
+                        <li>Incomplete credentials will be skipped automatically</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Loading View -->
+            <div id="coolLoadingView" style="display: none;">
+                <div class="cool-loading">
+                    <div class="cool-loading-spinner"></div>
+                    <span>Analyzing and extracting credentials...</span>
+                </div>
+            </div>
+            
+            <!-- Report View -->
+            <div id="coolReportView" style="display: none;">
+                <div class="cool-report" id="coolReportContent">
+                    <!-- Report will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="cool-modal-footer">
+            <span class="cool-char-count" id="coolCharCount">0 characters</span>
+            <div class="cool-modal-actions">
+                <button class="cool-btn cool-btn-secondary" onclick="closeCoolInsert()">Cancel</button>
+                <button class="cool-btn cool-btn-primary" id="coolProcessBtn" onclick="processCoolInsert()">
+                    <span>🚀</span>
+                    <span>Process & Insert</span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -2466,6 +3301,278 @@ function resetAllTestButtons() {
         resetTestButton(id);
     });
 }
+
+// ========================================
+// COOL INSERT FUNCTIONALITY
+// ========================================
+
+// Open Cool Insert Modal
+function openCoolInsert() {
+    const modal = document.getElementById('coolInsertModal');
+    const inputView = document.getElementById('coolInputView');
+    const loadingView = document.getElementById('coolLoadingView');
+    const reportView = document.getElementById('coolReportView');
+    const textarea = document.getElementById('coolTextarea');
+    const processBtn = document.getElementById('coolProcessBtn');
+    
+    // Reset to input view
+    inputView.style.display = 'block';
+    loadingView.style.display = 'none';
+    reportView.style.display = 'none';
+    textarea.value = '';
+    processBtn.innerHTML = '<span>🚀</span><span>Process & Insert</span>';
+    processBtn.onclick = processCoolInsert;
+    processBtn.disabled = false;
+    
+    updateCharCount();
+    
+    // Show modal
+    modal.classList.add('active');
+    
+    // Focus textarea
+    setTimeout(() => textarea.focus(), 100);
+}
+
+// Close Cool Insert Modal
+function closeCoolInsert() {
+    const modal = document.getElementById('coolInsertModal');
+    modal.classList.remove('active');
+}
+
+// Update character count
+function updateCharCount() {
+    const textarea = document.getElementById('coolTextarea');
+    const countEl = document.getElementById('coolCharCount');
+    const count = textarea.value.length;
+    countEl.textContent = `${count.toLocaleString()} characters`;
+}
+
+// Process Cool Insert
+async function processCoolInsert() {
+    const textarea = document.getElementById('coolTextarea');
+    const inputView = document.getElementById('coolInputView');
+    const loadingView = document.getElementById('coolLoadingView');
+    const reportView = document.getElementById('coolReportView');
+    const processBtn = document.getElementById('coolProcessBtn');
+    
+    const rawText = textarea.value.trim();
+    
+    if (!rawText) {
+        showToast('Please paste some text containing database credentials', 'error');
+        return;
+    }
+    
+    // Show loading
+    inputView.style.display = 'none';
+    loadingView.style.display = 'block';
+    processBtn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'cool_insert');
+        formData.append('raw_text', rawText);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        // Hide loading, show report
+        loadingView.style.display = 'none';
+        reportView.style.display = 'block';
+        
+        if (result.success) {
+            displayCoolReport(result);
+        } else {
+            document.getElementById('coolReportContent').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">😕</div>
+                    <h3 style="margin-bottom: 10px;">Oops!</h3>
+                    <p style="color: var(--text-secondary);">${result.error || 'Failed to process credentials'}</p>
+                </div>
+            `;
+        }
+        
+        // Update button to "Done" or "Try Again"
+        processBtn.innerHTML = '<span>✅</span><span>Done - Refresh Page</span>';
+        processBtn.onclick = () => window.location.reload();
+        processBtn.disabled = false;
+        
+    } catch (error) {
+        console.error('Cool Insert error:', error);
+        loadingView.style.display = 'none';
+        reportView.style.display = 'block';
+        
+        document.getElementById('coolReportContent').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                <h3 style="margin-bottom: 10px;">Error</h3>
+                <p style="color: var(--text-secondary);">${error.message}</p>
+            </div>
+        `;
+        
+        processBtn.innerHTML = '<span>🔄</span><span>Try Again</span>';
+        processBtn.onclick = () => {
+            reportView.style.display = 'none';
+            inputView.style.display = 'block';
+            processBtn.innerHTML = '<span>🚀</span><span>Process & Insert</span>';
+            processBtn.onclick = processCoolInsert;
+        };
+        processBtn.disabled = false;
+    }
+}
+
+// Display Cool Report
+function displayCoolReport(result) {
+    const summary = result.summary;
+    const report = result.report;
+    
+    let html = `
+        <div class="cool-report-summary">
+            <div class="cool-report-stat found">
+                <div class="cool-report-stat-value">${summary.found}</div>
+                <div class="cool-report-stat-label">Found</div>
+            </div>
+            <div class="cool-report-stat added">
+                <div class="cool-report-stat-value">${summary.added}</div>
+                <div class="cool-report-stat-label">Added</div>
+            </div>
+            <div class="cool-report-stat skipped">
+                <div class="cool-report-stat-value">${summary.skipped}</div>
+                <div class="cool-report-stat-label">Skipped</div>
+            </div>
+            <div class="cool-report-stat invalid">
+                <div class="cool-report-stat-value">${summary.invalid}</div>
+                <div class="cool-report-stat-label">Invalid</div>
+            </div>
+        </div>
+        
+        <div class="cool-report-details">
+    `;
+    
+    // Added section
+    if (report.added && report.added.length > 0) {
+        html += `
+            <div class="cool-report-section">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)">
+                    <span class="cool-report-section-icon">✅</span>
+                    <span class="cool-report-section-title">Successfully Added</span>
+                    <span class="cool-report-section-count">${report.added.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        report.added.forEach(item => {
+            html += `
+                <div class="cool-report-item">
+                    <span class="cool-report-item-name">${escapeHtml(item.name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Skipped section
+    if (report.skipped && report.skipped.length > 0) {
+        html += `
+            <div class="cool-report-section">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)">
+                    <span class="cool-report-section-icon">⚠️</span>
+                    <span class="cool-report-section-title">Skipped (Already Exists)</span>
+                    <span class="cool-report-section-count">${report.skipped.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        report.skipped.forEach(item => {
+            html += `
+                <div class="cool-report-item">
+                    <span class="cool-report-item-name">${escapeHtml(item.existing_name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}</span>
+                    <span class="cool-report-item-reason">${escapeHtml(item.reason)}</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Invalid section
+    if (report.invalid && report.invalid.length > 0) {
+        html += `
+            <div class="cool-report-section">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)">
+                    <span class="cool-report-section-icon">❌</span>
+                    <span class="cool-report-section-title">Invalid (Incomplete)</span>
+                    <span class="cool-report-section-count">${report.invalid.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        report.invalid.forEach(item => {
+            const info = item.data ? `${item.data.host || '?'} → ${item.data.dbName || '?'}` : 'N/A';
+            html += `
+                <div class="cool-report-item">
+                    <span class="cool-report-item-name" style="color: var(--accent-danger);">Invalid</span>
+                    <span class="cool-report-item-info">${escapeHtml(info)}</span>
+                    <span class="cool-report-item-reason">${escapeHtml(item.reason)}</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    html += `</div>`;
+    
+    // Success message if any added
+    if (summary.added > 0) {
+        html = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉</div>
+                <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Cool Insert Complete!</h3>
+                <p style="color: var(--text-secondary);">${summary.added} new connection(s) added to your database</p>
+            </div>
+        ` + html;
+    } else if (summary.found > 0 && summary.skipped === summary.found) {
+        html = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">👍</div>
+                <h3 style="color: var(--accent-warning); margin-bottom: 5px;">All Good!</h3>
+                <p style="color: var(--text-secondary);">All detected connections already exist in your database</p>
+            </div>
+        ` + html;
+    }
+    
+    document.getElementById('coolReportContent').innerHTML = html;
+}
+
+// Toggle report section
+function toggleReportSection(header) {
+    const body = header.nextElementSibling;
+    const isHidden = body.style.display === 'none';
+    body.style.display = isHidden ? 'block' : 'none';
+}
+
+// Escape HTML helper
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCoolInsert();
+    }
+});
+
+// Close modal on overlay click
+document.getElementById('coolInsertModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCoolInsert();
+    }
+});
 </script>
 
 <style>
