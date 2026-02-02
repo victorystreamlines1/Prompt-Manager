@@ -379,9 +379,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ========================================
-// COOL INSERT API ENDPOINT
+// COOL INSERT API ENDPOINT - PREVIEW MODE
 // ========================================
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_insert') {
+// This endpoint analyzes text and returns preview without inserting
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_insert_preview') {
     header('Content-Type: application/json');
     header('Access-Control-Allow-Origin: *');
     
@@ -402,7 +403,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     $report = [
         'total_found' => count($credentials),
-        'added' => [],
+        'ready_to_add' => [],
         'skipped' => [],
         'invalid' => []
     ];
@@ -435,22 +436,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Generate a nice name if not provided
         $name = generateConnectionName($cred);
         
-        // Insert the new connection
-        $id = time() . rand(100, 999);
-        $insertStmt = $pdo->prepare("INSERT INTO `$tableName` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-        $insertStmt->execute([
-            $id,
-            $name,
-            $cred['type'] ?? 'shared',
-            $cred['host'],
-            $cred['dbName'],
-            $cred['username'],
-            $cred['password'] ?? '',
-            $cred['port'] ?? '3306'
-        ]);
-        
-        $report['added'][] = [
-            'id' => $id,
+        // Add to ready_to_add (but don't insert yet!)
+        $report['ready_to_add'][] = [
             'name' => $name,
             'data' => $cred
         ];
@@ -458,12 +445,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     echo json_encode([
         'success' => true,
+        'mode' => 'preview',
         'report' => $report,
         'summary' => [
             'found' => $report['total_found'],
-            'added' => count($report['added']),
+            'ready_to_add' => count($report['ready_to_add']),
             'skipped' => count($report['skipped']),
             'invalid' => count($report['invalid'])
+        ]
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ========================================
+// COOL INSERT API ENDPOINT - CONFIRM INSERT
+// ========================================
+// This endpoint actually inserts the approved credentials
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_insert_confirm') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    $credentialsJson = $_POST['credentials'] ?? '[]';
+    $credentials = json_decode($credentialsJson, true);
+    
+    if (empty($credentials) || !is_array($credentials)) {
+        echo json_encode(['success' => false, 'error' => 'No credentials to insert']);
+        exit;
+    }
+    
+    $inserted = [];
+    $failed = [];
+    
+    foreach ($credentials as $item) {
+        $cred = $item['data'];
+        $name = $item['name'];
+        
+        try {
+            // Double-check it doesn't exist (safety measure)
+            $checkStmt = $pdo->prepare("SELECT id FROM `$tableName` WHERE host = ? AND dbName = ? AND username = ?");
+            $checkStmt->execute([$cred['host'], $cred['dbName'], $cred['username']]);
+            
+            if ($checkStmt->fetch()) {
+                $failed[] = ['name' => $name, 'reason' => 'Already exists (added while reviewing)'];
+                continue;
+            }
+            
+            // Insert the new connection
+            $id = time() . rand(100, 999);
+            $insertStmt = $pdo->prepare("INSERT INTO `$tableName` (id, name, type, host, dbName, username, password, port, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $insertStmt->execute([
+                $id,
+                $name,
+                $cred['type'] ?? 'shared',
+                $cred['host'],
+                $cred['dbName'],
+                $cred['username'],
+                $cred['password'] ?? '',
+                $cred['port'] ?? '3306'
+            ]);
+            
+            $inserted[] = [
+                'id' => $id,
+                'name' => $name,
+                'host' => $cred['host'],
+                'dbName' => $cred['dbName']
+            ];
+            
+            // Small delay to ensure unique IDs
+            usleep(10000);
+            
+        } catch (Exception $e) {
+            $failed[] = ['name' => $name, 'reason' => $e->getMessage()];
+        }
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'mode' => 'confirmed',
+        'inserted' => $inserted,
+        'failed' => $failed,
+        'summary' => [
+            'inserted' => count($inserted),
+            'failed' => count($failed)
         ]
     ], JSON_PRETTY_PRINT);
     exit;
@@ -2503,8 +2566,8 @@ Paste any format - we'll figure it out! 🎯"
             <div class="cool-modal-actions">
                 <button class="cool-btn cool-btn-secondary" onclick="closeCoolInsert()">Cancel</button>
                 <button class="cool-btn cool-btn-primary" id="coolProcessBtn" onclick="processCoolInsert()">
-                    <span>🚀</span>
-                    <span>Process & Insert</span>
+                    <span>🔍</span>
+                    <span>Analyze & Preview</span>
                 </button>
             </div>
         </div>
@@ -3306,6 +3369,9 @@ function resetAllTestButtons() {
 // COOL INSERT FUNCTIONALITY
 // ========================================
 
+// Store pending credentials for confirmation
+let pendingCredentials = [];
+
 // Open Cool Insert Modal
 function openCoolInsert() {
     const modal = document.getElementById('coolInsertModal');
@@ -3314,15 +3380,23 @@ function openCoolInsert() {
     const reportView = document.getElementById('coolReportView');
     const textarea = document.getElementById('coolTextarea');
     const processBtn = document.getElementById('coolProcessBtn');
+    const footerActions = document.querySelector('.cool-modal-actions');
     
     // Reset to input view
     inputView.style.display = 'block';
     loadingView.style.display = 'none';
     reportView.style.display = 'none';
     textarea.value = '';
-    processBtn.innerHTML = '<span>🚀</span><span>Process & Insert</span>';
-    processBtn.onclick = processCoolInsert;
-    processBtn.disabled = false;
+    pendingCredentials = [];
+    
+    // Reset footer to single button mode
+    footerActions.innerHTML = `
+        <button class="cool-btn cool-btn-secondary" onclick="closeCoolInsert()">Cancel</button>
+        <button class="cool-btn cool-btn-primary" id="coolProcessBtn" onclick="processCoolInsert()">
+            <span>🔍</span>
+            <span>Analyze & Preview</span>
+        </button>
+    `;
     
     updateCharCount();
     
@@ -3337,6 +3411,7 @@ function openCoolInsert() {
 function closeCoolInsert() {
     const modal = document.getElementById('coolInsertModal');
     modal.classList.remove('active');
+    pendingCredentials = [];
 }
 
 // Update character count
@@ -3347,13 +3422,13 @@ function updateCharCount() {
     countEl.textContent = `${count.toLocaleString()} characters`;
 }
 
-// Process Cool Insert
+// Step 1: Analyze and Preview (no insertion yet)
 async function processCoolInsert() {
     const textarea = document.getElementById('coolTextarea');
     const inputView = document.getElementById('coolInputView');
     const loadingView = document.getElementById('coolLoadingView');
     const reportView = document.getElementById('coolReportView');
-    const processBtn = document.getElementById('coolProcessBtn');
+    const footerActions = document.querySelector('.cool-modal-actions');
     
     const rawText = textarea.value.trim();
     
@@ -3365,11 +3440,10 @@ async function processCoolInsert() {
     // Show loading
     inputView.style.display = 'none';
     loadingView.style.display = 'block';
-    processBtn.disabled = true;
     
     try {
         const formData = new FormData();
-        formData.append('action', 'cool_insert');
+        formData.append('action', 'cool_insert_preview');
         formData.append('raw_text', rawText);
         
         const response = await fetch(window.location.href, {
@@ -3384,7 +3458,36 @@ async function processCoolInsert() {
         reportView.style.display = 'block';
         
         if (result.success) {
-            displayCoolReport(result);
+            // Store pending credentials for later confirmation
+            pendingCredentials = result.report.ready_to_add || [];
+            
+            // Display preview report
+            displayPreviewReport(result);
+            
+            // Update footer buttons based on results
+            if (pendingCredentials.length > 0) {
+                footerActions.innerHTML = `
+                    <button class="cool-btn cool-btn-secondary" onclick="cancelCoolInsert()">
+                        <span>❌</span>
+                        <span>Cancel - Don't Add</span>
+                    </button>
+                    <button class="cool-btn cool-btn-primary" onclick="confirmCoolInsert()">
+                        <span>✅</span>
+                        <span>Approve & Add ${pendingCredentials.length} Connection(s)</span>
+                    </button>
+                `;
+            } else {
+                footerActions.innerHTML = `
+                    <button class="cool-btn cool-btn-secondary" onclick="resetCoolInsert()">
+                        <span>🔄</span>
+                        <span>Try Again</span>
+                    </button>
+                    <button class="cool-btn cool-btn-primary" onclick="closeCoolInsert()">
+                        <span>👍</span>
+                        <span>Close</span>
+                    </button>
+                `;
+            }
         } else {
             document.getElementById('coolReportContent').innerHTML = `
                 <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
@@ -3393,12 +3496,18 @@ async function processCoolInsert() {
                     <p style="color: var(--text-secondary);">${result.error || 'Failed to process credentials'}</p>
                 </div>
             `;
+            
+            footerActions.innerHTML = `
+                <button class="cool-btn cool-btn-secondary" onclick="resetCoolInsert()">
+                    <span>🔄</span>
+                    <span>Try Again</span>
+                </button>
+                <button class="cool-btn cool-btn-primary" onclick="closeCoolInsert()">
+                    <span>👍</span>
+                    <span>Close</span>
+                </button>
+            `;
         }
-        
-        // Update button to "Done" or "Try Again"
-        processBtn.innerHTML = '<span>✅</span><span>Done - Refresh Page</span>';
-        processBtn.onclick = () => window.location.reload();
-        processBtn.disabled = false;
         
     } catch (error) {
         console.error('Cool Insert error:', error);
@@ -3413,19 +3522,137 @@ async function processCoolInsert() {
             </div>
         `;
         
-        processBtn.innerHTML = '<span>🔄</span><span>Try Again</span>';
-        processBtn.onclick = () => {
-            reportView.style.display = 'none';
-            inputView.style.display = 'block';
-            processBtn.innerHTML = '<span>🚀</span><span>Process & Insert</span>';
-            processBtn.onclick = processCoolInsert;
-        };
-        processBtn.disabled = false;
+        footerActions.innerHTML = `
+            <button class="cool-btn cool-btn-secondary" onclick="resetCoolInsert()">
+                <span>🔄</span>
+                <span>Try Again</span>
+            </button>
+            <button class="cool-btn cool-btn-primary" onclick="closeCoolInsert()">
+                <span>👍</span>
+                <span>Close</span>
+            </button>
+        `;
     }
 }
 
-// Display Cool Report
-function displayCoolReport(result) {
+// Step 2: Confirm and actually insert
+async function confirmCoolInsert() {
+    if (pendingCredentials.length === 0) {
+        showToast('No credentials to insert', 'error');
+        return;
+    }
+    
+    const loadingView = document.getElementById('coolLoadingView');
+    const reportView = document.getElementById('coolReportView');
+    const footerActions = document.querySelector('.cool-modal-actions');
+    
+    // Show loading
+    reportView.style.display = 'none';
+    loadingView.style.display = 'block';
+    loadingView.innerHTML = `
+        <div class="cool-loading">
+            <div class="cool-loading-spinner"></div>
+            <span>Inserting ${pendingCredentials.length} connection(s)...</span>
+        </div>
+    `;
+    
+    // Disable buttons
+    footerActions.innerHTML = `
+        <button class="cool-btn cool-btn-secondary" disabled>
+            <span>⏳</span>
+            <span>Please wait...</span>
+        </button>
+    `;
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'cool_insert_confirm');
+        formData.append('credentials', JSON.stringify(pendingCredentials));
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        // Hide loading, show final report
+        loadingView.style.display = 'none';
+        reportView.style.display = 'block';
+        
+        if (result.success) {
+            displayFinalReport(result);
+        } else {
+            document.getElementById('coolReportContent').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                    <h3 style="margin-bottom: 10px;">Insert Failed</h3>
+                    <p style="color: var(--text-secondary);">${result.error || 'Failed to insert credentials'}</p>
+                </div>
+            `;
+        }
+        
+        // Update footer
+        footerActions.innerHTML = `
+            <button class="cool-btn cool-btn-primary" onclick="window.location.reload()">
+                <span>✅</span>
+                <span>Done - Refresh Page</span>
+            </button>
+        `;
+        
+        // Clear pending
+        pendingCredentials = [];
+        
+    } catch (error) {
+        console.error('Confirm insert error:', error);
+        loadingView.style.display = 'none';
+        reportView.style.display = 'block';
+        
+        document.getElementById('coolReportContent').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                <h3 style="margin-bottom: 10px;">Error</h3>
+                <p style="color: var(--text-secondary);">${error.message}</p>
+            </div>
+        `;
+        
+        footerActions.innerHTML = `
+            <button class="cool-btn cool-btn-secondary" onclick="resetCoolInsert()">
+                <span>🔄</span>
+                <span>Try Again</span>
+            </button>
+        `;
+    }
+}
+
+// Cancel without inserting
+function cancelCoolInsert() {
+    pendingCredentials = [];
+    showToast('Cancelled - No connections were added', 'info');
+    closeCoolInsert();
+}
+
+// Reset to input view
+function resetCoolInsert() {
+    const inputView = document.getElementById('coolInputView');
+    const reportView = document.getElementById('coolReportView');
+    const footerActions = document.querySelector('.cool-modal-actions');
+    
+    reportView.style.display = 'none';
+    inputView.style.display = 'block';
+    pendingCredentials = [];
+    
+    footerActions.innerHTML = `
+        <button class="cool-btn cool-btn-secondary" onclick="closeCoolInsert()">Cancel</button>
+        <button class="cool-btn cool-btn-primary" id="coolProcessBtn" onclick="processCoolInsert()">
+            <span>🔍</span>
+            <span>Analyze & Preview</span>
+        </button>
+    `;
+}
+
+// Display Preview Report (before confirmation)
+function displayPreviewReport(result) {
     const summary = result.summary;
     const report = result.report;
     
@@ -3436,12 +3663,12 @@ function displayCoolReport(result) {
                 <div class="cool-report-stat-label">Found</div>
             </div>
             <div class="cool-report-stat added">
-                <div class="cool-report-stat-value">${summary.added}</div>
-                <div class="cool-report-stat-label">Added</div>
+                <div class="cool-report-stat-value">${summary.ready_to_add}</div>
+                <div class="cool-report-stat-label">Ready to Add</div>
             </div>
             <div class="cool-report-stat skipped">
                 <div class="cool-report-stat-value">${summary.skipped}</div>
-                <div class="cool-report-stat-label">Skipped</div>
+                <div class="cool-report-stat-label">Already Exists</div>
             </div>
             <div class="cool-report-stat invalid">
                 <div class="cool-report-stat-value">${summary.invalid}</div>
@@ -3452,22 +3679,23 @@ function displayCoolReport(result) {
         <div class="cool-report-details">
     `;
     
-    // Added section
-    if (report.added && report.added.length > 0) {
+    // Ready to Add section (NEW - these will be added after confirmation)
+    if (report.ready_to_add && report.ready_to_add.length > 0) {
         html += `
-            <div class="cool-report-section">
-                <div class="cool-report-section-header" onclick="toggleReportSection(this)">
-                    <span class="cool-report-section-icon">✅</span>
-                    <span class="cool-report-section-title">Successfully Added</span>
-                    <span class="cool-report-section-count">${report.added.length}</span>
+            <div class="cool-report-section" style="border-color: rgba(34, 197, 94, 0.3);">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)" style="background: rgba(34, 197, 94, 0.1);">
+                    <span class="cool-report-section-icon">🆕</span>
+                    <span class="cool-report-section-title" style="color: #22c55e;">Ready to Add (Pending Your Approval)</span>
+                    <span class="cool-report-section-count" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">${report.ready_to_add.length}</span>
                 </div>
                 <div class="cool-report-section-body">
         `;
-        report.added.forEach(item => {
+        report.ready_to_add.forEach(item => {
             html += `
-                <div class="cool-report-item">
-                    <span class="cool-report-item-name">${escapeHtml(item.name)}</span>
+                <div class="cool-report-item" style="background: rgba(34, 197, 94, 0.05);">
+                    <span class="cool-report-item-name" style="color: #22c55e;">${escapeHtml(item.name)}</span>
                     <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}</span>
+                    <span class="cool-report-item-reason" style="color: #22c55e;">✓ Will be added</span>
                 </div>
             `;
         });
@@ -3523,13 +3751,13 @@ function displayCoolReport(result) {
     
     html += `</div>`;
     
-    // Success message if any added
-    if (summary.added > 0) {
+    // Header message based on results
+    if (summary.ready_to_add > 0) {
         html = `
-            <div style="text-align: center; margin-bottom: 25px;">
-                <div style="font-size: 4rem; margin-bottom: 10px;">🎉</div>
-                <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Cool Insert Complete!</h3>
-                <p style="color: var(--text-secondary);">${summary.added} new connection(s) added to your database</p>
+            <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%); border-radius: 16px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+                <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Preview - Review Before Adding</h3>
+                <p style="color: var(--text-secondary);">${summary.ready_to_add} connection(s) ready to add. Review below and click <strong>Approve</strong> to add them.</p>
             </div>
         ` + html;
     } else if (summary.found > 0 && summary.skipped === summary.found) {
@@ -3537,10 +3765,95 @@ function displayCoolReport(result) {
             <div style="text-align: center; margin-bottom: 25px;">
                 <div style="font-size: 4rem; margin-bottom: 10px;">👍</div>
                 <h3 style="color: var(--accent-warning); margin-bottom: 5px;">All Good!</h3>
-                <p style="color: var(--text-secondary);">All detected connections already exist in your database</p>
+                <p style="color: var(--text-secondary);">All ${summary.found} detected connection(s) already exist in your database.</p>
+            </div>
+        ` + html;
+    } else if (summary.found === 0 || (summary.invalid === summary.found)) {
+        html = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">😕</div>
+                <h3 style="color: var(--text-muted); margin-bottom: 5px;">No Valid Credentials Found</h3>
+                <p style="color: var(--text-secondary);">Couldn't extract any valid database credentials from the text.</p>
             </div>
         ` + html;
     }
+    
+    document.getElementById('coolReportContent').innerHTML = html;
+}
+
+// Display Final Report (after confirmation)
+function displayFinalReport(result) {
+    const summary = result.summary;
+    const inserted = result.inserted || [];
+    const failed = result.failed || [];
+    
+    let html = `
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="font-size: 4rem; margin-bottom: 10px;">🎉</div>
+            <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Cool Insert Complete!</h3>
+            <p style="color: var(--text-secondary);">${summary.inserted} connection(s) successfully added to your database</p>
+        </div>
+        
+        <div class="cool-report-summary">
+            <div class="cool-report-stat added">
+                <div class="cool-report-stat-value">${summary.inserted}</div>
+                <div class="cool-report-stat-label">Inserted</div>
+            </div>
+            <div class="cool-report-stat invalid">
+                <div class="cool-report-stat-value">${summary.failed}</div>
+                <div class="cool-report-stat-label">Failed</div>
+            </div>
+        </div>
+        
+        <div class="cool-report-details">
+    `;
+    
+    // Inserted section
+    if (inserted.length > 0) {
+        html += `
+            <div class="cool-report-section" style="border-color: rgba(34, 197, 94, 0.3);">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)" style="background: rgba(34, 197, 94, 0.1);">
+                    <span class="cool-report-section-icon">✅</span>
+                    <span class="cool-report-section-title" style="color: #22c55e;">Successfully Added</span>
+                    <span class="cool-report-section-count" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">${inserted.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        inserted.forEach(item => {
+            html += `
+                <div class="cool-report-item" style="background: rgba(34, 197, 94, 0.05);">
+                    <span class="cool-report-item-name" style="color: #22c55e;">${escapeHtml(item.name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(item.host)} → ${escapeHtml(item.dbName)}</span>
+                    <span class="cool-report-item-reason" style="color: #22c55e;">✓ Added</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Failed section
+    if (failed.length > 0) {
+        html += `
+            <div class="cool-report-section">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)">
+                    <span class="cool-report-section-icon">❌</span>
+                    <span class="cool-report-section-title">Failed</span>
+                    <span class="cool-report-section-count">${failed.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        failed.forEach(item => {
+            html += `
+                <div class="cool-report-item">
+                    <span class="cool-report-item-name" style="color: var(--accent-danger);">${escapeHtml(item.name)}</span>
+                    <span class="cool-report-item-reason">${escapeHtml(item.reason)}</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    html += `</div>`;
     
     document.getElementById('coolReportContent').innerHTML = html;
 }
