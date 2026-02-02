@@ -379,6 +379,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ========================================
+// COOL CLEANUP API ENDPOINT
+// ========================================
+// This endpoint tests all connections and deletes failed ones
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_cleanup_test') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    // Get all connections
+    $stmt = $pdo->query("SELECT * FROM `$tableName` ORDER BY createdAt DESC");
+    $connections = $stmt->fetchAll();
+    
+    if (empty($connections)) {
+        echo json_encode(['success' => false, 'error' => 'No connections to test']);
+        exit;
+    }
+    
+    $results = [
+        'total' => count($connections),
+        'successful' => [],
+        'failed' => []
+    ];
+    
+    foreach ($connections as $conn) {
+        $startTime = microtime(true);
+        $testResult = testDatabaseConnection($conn);
+        $connectionTime = round((microtime(true) - $startTime) * 1000, 2);
+        
+        $connInfo = [
+            'id' => $conn['id'],
+            'name' => $conn['name'],
+            'host' => $conn['host'],
+            'dbName' => $conn['dbName'],
+            'time' => $connectionTime
+        ];
+        
+        if ($testResult['success']) {
+            $connInfo['message'] = 'Connected successfully';
+            $results['successful'][] = $connInfo;
+        } else {
+            $connInfo['error'] = $testResult['error'];
+            $results['failed'][] = $connInfo;
+        }
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'mode' => 'test',
+        'results' => $results,
+        'summary' => [
+            'total' => $results['total'],
+            'successful' => count($results['successful']),
+            'failed' => count($results['failed'])
+        ]
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+// COOL CLEANUP - CONFIRM DELETE
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'cool_cleanup_delete') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    
+    $idsJson = $_POST['ids'] ?? '[]';
+    $ids = json_decode($idsJson, true);
+    
+    if (empty($ids) || !is_array($ids)) {
+        echo json_encode(['success' => false, 'error' => 'No connections to delete']);
+        exit;
+    }
+    
+    $deleted = [];
+    $failed = [];
+    
+    foreach ($ids as $id) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM `$tableName` WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if ($stmt->rowCount() > 0) {
+                $deleted[] = $id;
+            } else {
+                $failed[] = ['id' => $id, 'reason' => 'Not found'];
+            }
+        } catch (Exception $e) {
+            $failed[] = ['id' => $id, 'reason' => $e->getMessage()];
+        }
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'mode' => 'deleted',
+        'deleted' => $deleted,
+        'failed' => $failed,
+        'summary' => [
+            'deleted' => count($deleted),
+            'failed' => count($failed)
+        ]
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+/**
+ * Test a database connection
+ */
+function testDatabaseConnection($conn) {
+    try {
+        $password = ($conn['password'] === '' || $conn['password'] === null) ? null : $conn['password'];
+        
+        $testPdo = new PDO(
+            "mysql:host={$conn['host']};port={$conn['port']};dbname={$conn['dbName']};charset=utf8mb4",
+            $conn['username'],
+            $password,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 5
+            ]
+        );
+        
+        // Test with a simple query
+        $testPdo->query("SELECT 1");
+        
+        return ['success' => true];
+    } catch (PDOException $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
+// ========================================
 // COOL INSERT API ENDPOINT - PREVIEW MODE
 // ========================================
 // This endpoint analyzes text and returns preview without inserting
@@ -388,6 +516,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     $rawText = $_POST['raw_text'] ?? '';
     $globalPassword = $_POST['global_password'] ?? '';
+    $globalHost = $_POST['global_host'] ?? '';
+    $coolAnalyze = isset($_POST['cool_analyze']) && $_POST['cool_analyze'] === 'true';
     
     if (empty(trim($rawText))) {
         echo json_encode(['success' => false, 'error' => 'No text provided']);
@@ -398,7 +528,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $credentials = parseDatabaseCredentials($rawText);
     
     if (empty($credentials)) {
-        echo json_encode(['success' => false, 'error' => 'No valid database credentials found in the text']);
+        // Check if there are any Hostinger-style patterns at all
+        $hasHostingerPattern = preg_match('/(u\d{6,}_[a-zA-Z0-9_]+)/', $rawText);
+        $textLength = strlen($rawText);
+        $lineCount = substr_count($rawText, "\n") + 1;
+        
+        $hint = '';
+        if (!$hasHostingerPattern) {
+            $hint = 'No Hostinger database patterns (u######_name) detected. ';
+            // Check for other patterns
+            if (preg_match('/database|mysql|db_name|username/i', $rawText)) {
+                $hint .= 'Found some database keywords but couldn\'t extract credentials.';
+            } else {
+                $hint .= 'Make sure the text contains database names like u419999707_example';
+            }
+        } else {
+            $hint = 'Found Hostinger patterns but couldn\'t pair database/username. Try pasting a clean copy.';
+        }
+        
+        echo json_encode([
+            'success' => false, 
+            'error' => 'No valid database credentials found in the text',
+            'hint' => $hint,
+            'debug' => [
+                'text_length' => $textLength,
+                'line_count' => $lineCount,
+                'has_hostinger_pattern' => $hasHostingerPattern ? true : false,
+                'sample' => substr($rawText, 0, 200) . '...'
+            ]
+        ]);
         exit;
     }
     
@@ -407,10 +565,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'ready_to_add' => [],
         'skipped' => [],
         'invalid' => [],
-        'global_password_used' => !empty($globalPassword)
+        'failed_connection' => [], // New: connections that failed the analyze test
+        'global_password_used' => !empty($globalPassword),
+        'global_host_used' => !empty($globalHost),
+        'cool_analyze_enabled' => $coolAnalyze
     ];
     
     foreach ($credentials as $cred) {
+        // Apply global host if credential has no host or empty host
+        if (!empty($globalHost) && (empty($cred['host']) || $cred['host'] === '' || $cred['host'] === 'localhost')) {
+            $cred['host'] = $globalHost;
+            $cred['host_source'] = 'global';
+        }
+        
         // Apply global password if credential has no password or empty password
         if (!empty($globalPassword) && (empty($cred['password']) || $cred['password'] === '')) {
             $cred['password'] = $globalPassword;
@@ -443,13 +610,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Generate a nice name if not provided
         $name = generateConnectionName($cred);
         
+        // If Cool Analyze is enabled, test the connection first
+        $connectionTest = null;
+        $connectionTime = 0;
+        
+        if ($coolAnalyze) {
+            $testConn = [
+                'host' => $cred['host'],
+                'port' => $cred['port'] ?? '3306',
+                'dbName' => $cred['dbName'],
+                'username' => $cred['username'],
+                'password' => $cred['password'] ?? ''
+            ];
+            
+            $startTime = microtime(true);
+            $connectionTest = testDatabaseConnection($testConn);
+            $connectionTime = round((microtime(true) - $startTime) * 1000, 2);
+            
+            if (!$connectionTest['success']) {
+                // Connection failed - add to failed list
+                $report['failed_connection'][] = [
+                    'name' => $name,
+                    'data' => $cred,
+                    'error' => $connectionTest['error'],
+                    'time' => $connectionTime
+                ];
+                continue; // Skip this connection
+            }
+        }
+        
         // Add to ready_to_add (but don't insert yet!)
-        // Include password status for display
+        // Include password and host status for display
         $report['ready_to_add'][] = [
             'name' => $name,
             'data' => $cred,
             'has_password' => !empty($cred['password']),
-            'password_source' => (!empty($globalPassword) && $cred['password'] === $globalPassword) ? 'global' : 'detected'
+            'password_source' => (!empty($globalPassword) && $cred['password'] === $globalPassword) ? 'global' : 'detected',
+            'host_source' => isset($cred['host_source']) ? $cred['host_source'] : 'detected',
+            'connection_tested' => $coolAnalyze,
+            'connection_time' => $connectionTime
         ];
     }
     
@@ -458,11 +657,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'mode' => 'preview',
         'report' => $report,
         'global_password' => $globalPassword, // Pass back for confirmation step
+        'global_host' => $globalHost, // Pass back for confirmation step
+        'cool_analyze' => $coolAnalyze,
         'summary' => [
             'found' => $report['total_found'],
             'ready_to_add' => count($report['ready_to_add']),
             'skipped' => count($report['skipped']),
-            'invalid' => count($report['invalid'])
+            'invalid' => count($report['invalid']),
+            'failed_connection' => count($report['failed_connection'])
         ]
     ], JSON_PRETTY_PRINT);
     exit;
@@ -553,6 +755,29 @@ function parseDatabaseCredentials($text) {
     // Normalize line endings
     $text = str_replace(["\r\n", "\r"], "\n", $text);
     
+    // ========================================
+    // PRIORITY 1: Use smart alternative extraction (best for Hostinger panel)
+    // This handles messy/cluttered text by finding all u{numbers}_{name} patterns
+    // ========================================
+    $altCreds = extractCredentialsAlternative($text);
+    foreach ($altCreds as $cred) {
+        // Only require dbName and username - host can come from Global Host
+        if (!empty($cred['dbName']) && !empty($cred['username'])) {
+            $key = $cred['dbName'] . '|' . $cred['username'];
+            if (!isset($credentials[$key])) {
+                $credentials[$key] = $cred;
+            }
+        }
+    }
+    
+    // If we found credentials with alternative method, return them
+    if (!empty($credentials)) {
+        return array_values($credentials);
+    }
+    
+    // ========================================
+    // PRIORITY 2: Try block-based extraction for structured text
+    // ========================================
     // Split by potential separators (double newlines, dashes, equals signs patterns)
     $blocks = preg_split('/\n{2,}|={3,}|-{3,}|\*{3,}/', $text);
     
@@ -561,20 +786,9 @@ function parseDatabaseCredentials($text) {
     
     foreach ($blocks as $block) {
         $cred = extractCredentialsFromBlock($block);
-        if ($cred && !empty($cred['host']) && !empty($cred['dbName']) && !empty($cred['username'])) {
-            // Avoid duplicates
-            $key = $cred['host'] . '|' . $cred['dbName'] . '|' . $cred['username'];
-            if (!isset($credentials[$key])) {
-                $credentials[$key] = $cred;
-            }
-        }
-    }
-    
-    // Try alternative parsing: look for patterns throughout the entire text
-    $altCreds = extractCredentialsAlternative($text);
-    foreach ($altCreds as $cred) {
-        if (!empty($cred['host']) && !empty($cred['dbName']) && !empty($cred['username'])) {
-            $key = $cred['host'] . '|' . $cred['dbName'] . '|' . $cred['username'];
+        // Only require dbName and username - host can come from Global Host
+        if ($cred && !empty($cred['dbName']) && !empty($cred['username'])) {
+            $key = $cred['dbName'] . '|' . $cred['username'];
             if (!isset($credentials[$key])) {
                 $credentials[$key] = $cred;
             }
@@ -586,6 +800,7 @@ function parseDatabaseCredentials($text) {
 
 /**
  * Extract credentials from a text block
+ * Improved to better differentiate between database name and username
  */
 function extractCredentialsFromBlock($block) {
     $cred = [
@@ -597,50 +812,153 @@ function extractCredentialsFromBlock($block) {
         'type' => 'shared'
     ];
     
-    // Patterns for various credential formats
-    $patterns = [
-        // Host patterns
-        'host' => [
-            '/(?:host(?:name)?|server|mysql\s*host(?:name)?)\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
-            '/(?:DB_HOST|DATABASE_HOST)\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
-            '/(srv\d+\.hstgr\.io)/i', // Hostinger pattern
-            '/(localhost|127\.0\.0\.1)/i',
-            '/host["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
-        ],
-        // Database name patterns
-        'dbName' => [
-            '/(?:database(?:\s*name)?|db(?:name)?|mysql\s*database)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
-            '/(?:DB_NAME|DB_DATABASE|DATABASE_NAME)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
-            '/dbname["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
-            '/(u\d+_[a-zA-Z0-9_]+)/i', // Hostinger pattern
-        ],
-        // Username patterns
-        'username' => [
-            '/(?:user(?:name)?|db\s*user(?:name)?|mysql\s*user(?:name)?)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
-            '/(?:DB_USER(?:NAME)?|DATABASE_USER(?:NAME)?)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
-            '/username["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
-        ],
-        // Password patterns
-        'password' => [
-            '/(?:pass(?:word)?|db\s*pass(?:word)?|mysql\s*pass(?:word)?)\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
-            '/(?:DB_PASS(?:WORD)?|DATABASE_PASS(?:WORD)?)\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
-            '/password["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
-        ],
-        // Port patterns
-        'port' => [
-            '/(?:port|db\s*port|mysql\s*port)\s*[:=]\s*["\']?(\d+)["\']?/i',
-            '/(?:DB_PORT|DATABASE_PORT)\s*[:=]\s*["\']?(\d+)["\']?/i',
-        ]
+    // First, try to extract with explicit labels (most reliable)
+    // These patterns look for specific labels that clearly indicate what the value is
+    
+    // Host patterns - explicit labels
+    $hostPatterns = [
+        '/(?:mysql\s*)?host(?:name)?\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
+        '/(?:DB_HOST|DATABASE_HOST|MYSQL_HOST)\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
+        '/server\s*[:=]\s*["\']?([a-zA-Z0-9\.\-_]+)["\']?/i',
+        '/(srv\d+\.hstgr\.io)/i',
+        '/host["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
     ];
     
-    foreach ($patterns as $field => $fieldPatterns) {
-        foreach ($fieldPatterns as $pattern) {
-            if (preg_match($pattern, $block, $matches)) {
-                $value = trim($matches[1]);
-                if (!empty($value) && empty($cred[$field])) {
-                    $cred[$field] = $value;
-                    break;
+    // Database name patterns - explicit labels (MUST have "database" or "db" keyword before the value)
+    $dbNamePatterns = [
+        '/(?:mysql\s*)?database(?:\s*name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+        '/(?:DB_NAME|DB_DATABASE|DATABASE_NAME|MYSQL_DATABASE)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+        '/dbname["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+        '/database["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+    ];
+    
+    // Username patterns - explicit labels (MUST have "user" keyword before the value)
+    $usernamePatterns = [
+        '/(?:mysql\s*)?user(?:name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+        '/(?:DB_USER(?:NAME)?|DATABASE_USER(?:NAME)?|MYSQL_USER(?:NAME)?)\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i',
+        '/username["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+        '/user["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+    ];
+    
+    // Password patterns
+    $passwordPatterns = [
+        '/(?:mysql\s*)?pass(?:word)?\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
+        '/(?:DB_PASS(?:WORD)?|DATABASE_PASS(?:WORD)?|MYSQL_PASS(?:WORD)?)\s*[:=]\s*["\']?([^\s\n"\']+)["\']?/i',
+        '/password["\']?\s*(?:=>|:)\s*["\']([^"\']+)["\']/i',
+    ];
+    
+    // Port patterns
+    $portPatterns = [
+        '/(?:mysql\s*)?port\s*[:=]\s*["\']?(\d+)["\']?/i',
+        '/(?:DB_PORT|DATABASE_PORT|MYSQL_PORT)\s*[:=]\s*["\']?(\d+)["\']?/i',
+    ];
+    
+    // Extract host
+    foreach ($hostPatterns as $pattern) {
+        if (preg_match($pattern, $block, $matches)) {
+            $value = trim($matches[1]);
+            if (!empty($value)) {
+                $cred['host'] = $value;
+                break;
+            }
+        }
+    }
+    
+    // Extract database name - look for labeled entries first
+    foreach ($dbNamePatterns as $pattern) {
+        if (preg_match($pattern, $block, $matches)) {
+            $value = trim($matches[1]);
+            if (!empty($value)) {
+                $cred['dbName'] = $value;
+                break;
+            }
+        }
+    }
+    
+    // Extract username - look for labeled entries first
+    foreach ($usernamePatterns as $pattern) {
+        if (preg_match($pattern, $block, $matches)) {
+            $value = trim($matches[1]);
+            if (!empty($value)) {
+                $cred['username'] = $value;
+                break;
+            }
+        }
+    }
+    
+    // Extract password
+    foreach ($passwordPatterns as $pattern) {
+        if (preg_match($pattern, $block, $matches)) {
+            $value = trim($matches[1]);
+            if (!empty($value)) {
+                $cred['password'] = $value;
+                break;
+            }
+        }
+    }
+    
+    // Extract port
+    foreach ($portPatterns as $pattern) {
+        if (preg_match($pattern, $block, $matches)) {
+            $value = trim($matches[1]);
+            if (!empty($value)) {
+                $cred['port'] = $value;
+                break;
+            }
+        }
+    }
+    
+    // If we couldn't find database/username with explicit labels, try line-by-line parsing
+    // This handles Hostinger-style text where database and username might be on separate lines
+    if (empty($cred['dbName']) || empty($cred['username'])) {
+        $lines = preg_split('/\r?\n/', $block);
+        $foundDbName = false;
+        $foundUsername = false;
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            // Check for database line (usually appears before username)
+            if (!$foundDbName && preg_match('/^(?:mysql\s*)?database/i', $line)) {
+                if (preg_match('/(u\d+_[a-zA-Z0-9_]+|[a-zA-Z][a-zA-Z0-9_]+)/', $line, $m)) {
+                    if (empty($cred['dbName'])) {
+                        $cred['dbName'] = $m[1];
+                        $foundDbName = true;
+                    }
                 }
+            }
+            
+            // Check for username line (usually appears after database)
+            if (!$foundUsername && preg_match('/^(?:mysql\s*)?user/i', $line)) {
+                if (preg_match('/(u\d+_[a-zA-Z0-9_]+|[a-zA-Z][a-zA-Z0-9_]+)/', $line, $m)) {
+                    if (empty($cred['username'])) {
+                        $cred['username'] = $m[1];
+                        $foundUsername = true;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Fallback: If still no dbName or username, use SMART pattern detection
+    // Find ALL Hostinger identifiers in order of appearance and pair them
+    if (empty($cred['dbName']) || empty($cred['username'])) {
+        // Find all Hostinger-style identifiers WITH positions (flexible pattern)
+        if (preg_match_all('/(u\d{6,}_[a-zA-Z0-9_]+)/', $block, $matches, PREG_OFFSET_CAPTURE)) {
+            // Get ALL occurrences in order (don't deduplicate yet)
+            $occurrences = [];
+            foreach ($matches[1] as $match) {
+                $occurrences[] = $match[0]; // value only, already sorted by position
+            }
+            
+            if (count($occurrences) >= 2) {
+                // First occurrence = database, Second occurrence = username
+                if (empty($cred['dbName'])) $cred['dbName'] = $occurrences[0];
+                if (empty($cred['username'])) $cred['username'] = $occurrences[1];
+            } elseif (count($occurrences) == 1) {
+                // Single identifier - use for both (common in Hostinger)
+                if (empty($cred['dbName'])) $cred['dbName'] = $occurrences[0];
+                if (empty($cred['username'])) $cred['username'] = $occurrences[0];
             }
         }
     }
@@ -658,42 +976,174 @@ function extractCredentialsFromBlock($block) {
 }
 
 /**
- * Alternative extraction for multiple credentials in one text
+ * SMART extraction for multiple credentials from ANY messy/cluttered text
+ * 
+ * Strategy:
+ * 1. Find ALL Hostinger-style identifiers (u{numbers}_{name}) in order of appearance
+ * 2. Track each occurrence WITH its position (don't deduplicate yet)
+ * 3. Pair them intelligently: 1st = database, 2nd = username
+ * 4. Handle cases where db = username (same value appears twice consecutively)
+ * 
+ * This works regardless of surrounding clutter/formatting
  */
 function extractCredentialsAlternative($text) {
     $results = [];
     
-    // Find all Hostinger-style database names (u followed by numbers, underscore, then name)
-    if (preg_match_all('/(u\d+_[a-zA-Z0-9_]+)/', $text, $dbMatches)) {
-        $databases = array_unique($dbMatches[1]);
+    // Normalize text - remove extra whitespace, invisible chars, etc.
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+    // Remove zero-width characters and other invisible Unicode
+    $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $text);
+    // Normalize multiple spaces/tabs to single space
+    $text = preg_replace('/[ \t]+/', ' ', $text);
+    
+    // ========================================
+    // STEP 1: Extract auxiliary data (host, passwords)
+    // ========================================
+    
+    $host = '';
+    // Look for Hostinger server pattern
+    if (preg_match('/(srv\d+\.hstgr\.io)/i', $text, $m)) {
+        $host = $m[1];
+    } elseif (preg_match('/host\s*[:=]?\s*["\']?([a-zA-Z0-9][a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,})["\']?/i', $text, $m)) {
+        $host = $m[1];
+    }
+    
+    $passwords = [];
+    if (preg_match_all('/(?:pass(?:word)?|pwd)\s*[:=]\s*["\']?([^\s\n"\']{4,})["\']?/i', $text, $m)) {
+        $passwords = $m[1];
+    }
+    
+    // ========================================
+    // STEP 2: Find ALL Hostinger identifiers with positions
+    // Pattern: u followed by digits, underscore, alphanumeric
+    // Using flexible pattern without strict word boundaries
+    // ========================================
+    
+    // More flexible pattern - doesn't require word boundaries
+    // Matches: u419999707_vOYYB, u419999707_prompt_manager, etc.
+    $pattern = '/(u\d{6,}_[a-zA-Z0-9_]+)/';
+    
+    if (!preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE)) {
+        // No Hostinger identifiers - try labeled extraction
+        return extractCredentialsLabeled($text, $host, $passwords);
+    }
+    
+    // Build list of ALL occurrences (including duplicates) with positions
+    $occurrences = [];
+    foreach ($matches[1] as $match) {
+        $occurrences[] = [
+            'value' => $match[0],
+            'pos' => $match[1]
+        ];
+    }
+    
+    // Already sorted by position from preg_match_all
+    
+    // ========================================
+    // STEP 3: Smart pairing - pair consecutive occurrences
+    // ========================================
+    // Key insight: In Hostinger panel format, identifiers appear in pairs
+    // db_name ... username (with clutter in between like "3 MB", dates, etc.)
+    // If same value appears twice, db = username
+    
+    $i = 0;
+    $total = count($occurrences);
+    
+    while ($i < $total) {
+        $dbName = $occurrences[$i]['value'];
+        $dbPos = $occurrences[$i]['pos'];
+        $username = $dbName; // Default: same as database
         
-        // Find host
-        $host = 'localhost';
-        if (preg_match('/(srv\d+\.hstgr\.io)/i', $text, $hostMatch)) {
-            $host = $hostMatch[1];
-        }
-        
-        // Find passwords (look for strong passwords)
-        $passwords = [];
-        if (preg_match_all('/(?:pass(?:word)?|pwd)\s*[:=]\s*["\']?([^\s\n"\']{6,})["\']?/i', $text, $pwdMatches)) {
-            $passwords = $pwdMatches[1];
-        }
-        
-        foreach ($databases as $idx => $db) {
-            // For Hostinger, username often matches database name or is similar
-            $username = $db;
+        // Look at next occurrence
+        if ($i + 1 < $total) {
+            $nextValue = $occurrences[$i + 1]['value'];
+            $nextPos = $occurrences[$i + 1]['pos'];
             
-            // Check if there's a specific username pattern near this database
-            $pattern = '/' . preg_quote($db, '/') . '[^}]*?user(?:name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)/is';
-            if (preg_match($pattern, $text, $userMatch)) {
-                $username = $userMatch[1];
+            // If they're within reasonable distance, treat as a pair
+            // Distance threshold: 1000 chars (enough for clutter between)
+            $distance = $nextPos - $dbPos;
+            
+            if ($distance > 0 && $distance < 1000) {
+                $username = $nextValue;
+                $i++; // Skip next since we used it as username
+            }
+        }
+        
+        $results[] = [
+            'host' => $host,
+            'dbName' => $dbName,
+            'username' => $username,
+            'password' => '',
+            'port' => '3306',
+            'type' => 'shared'
+        ];
+        
+        $i++;
+    }
+    
+    // ========================================
+    // STEP 4: Remove exact duplicate credentials
+    // ========================================
+    $unique = [];
+    $seen = [];
+    foreach ($results as $r) {
+        $key = $r['dbName'] . '|' . $r['username'];
+        if (!isset($seen[$key])) {
+            $seen[$key] = true;
+            $unique[] = $r;
+        }
+    }
+    $results = $unique;
+    
+    // ========================================
+    // STEP 5: Apply passwords
+    // ========================================
+    foreach ($results as $idx => &$r) {
+        $r['password'] = $passwords[$idx] ?? ($passwords[0] ?? '');
+    }
+    
+    return $results;
+}
+
+/**
+ * Fallback: Extract credentials using labeled format
+ * (Database: xxx, User: yyy, Password: zzz)
+ */
+function extractCredentialsLabeled($text, $host = '', $passwords = []) {
+    $results = [];
+    
+    // Find labeled database entries
+    $dbPattern = '/(?:mysql\s*)?(?:database|db)(?:\s*name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i';
+    
+    if (preg_match_all($dbPattern, $text, $dbMatches, PREG_OFFSET_CAPTURE)) {
+        foreach ($dbMatches[1] as $idx => $match) {
+            $dbName = $match[0];
+            $position = $match[1];
+            
+            // Search area after database name
+            $searchArea = substr($text, $position, 500);
+            $username = $dbName;
+            
+            // Look for username
+            if (preg_match('/(?:mysql\s*)?user(?:name)?\s*[:=]\s*["\']?([a-zA-Z0-9_]+)["\']?/i', $searchArea, $m)) {
+                $username = $m[1];
+            }
+            
+            // Look for password
+            $password = '';
+            if (preg_match('/(?:pass(?:word)?|pwd)\s*[:=]\s*["\']?([^\s\n"\']{4,})["\']?/i', $searchArea, $m)) {
+                $password = $m[1];
+            } elseif (isset($passwords[$idx])) {
+                $password = $passwords[$idx];
+            } elseif (isset($passwords[0])) {
+                $password = $passwords[0];
             }
             
             $results[] = [
                 'host' => $host,
-                'dbName' => $db,
+                'dbName' => $dbName,
                 'username' => $username,
-                'password' => $passwords[$idx] ?? ($passwords[0] ?? ''),
+                'password' => $password,
                 'port' => '3306',
                 'type' => 'shared'
             ];
@@ -1808,7 +2258,7 @@ if (isset($_GET['edit'])) {
             50% { transform: translateY(-2px); }
         }
         
-        .cool-sparkle {
+        .cool-sparkle, .cleanup-sparkle {
             font-size: 0.9rem;
             margin-left: 4px;
             animation: sparkle 1.5s infinite;
@@ -1817,6 +2267,62 @@ if (isset($_GET['edit'])) {
         @keyframes sparkle {
             0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
             50% { opacity: 0.6; transform: scale(1.2) rotate(15deg); }
+        }
+        
+        /* ========================================
+           COOL CLEANUP BUTTON STYLES
+           ======================================== */
+        .btn-cool-cleanup {
+            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+            background-size: 200% 200%;
+            animation: cleanupGradient 3s ease infinite;
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            padding: 12px 20px !important;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        @keyframes cleanupGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .btn-cool-cleanup:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6), 0 0 30px rgba(34, 197, 94, 0.3);
+        }
+        
+        .btn-cool-cleanup::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.1) 50%,
+                transparent 70%
+            );
+            animation: coolShine 3s infinite;
+        }
+        
+        .cleanup-icon {
+            font-size: 1.1rem;
+            margin-right: 4px;
+            animation: cleanupSweep 2s infinite;
+        }
+        
+        @keyframes cleanupSweep {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
         }
         
         /* ========================================
@@ -2210,145 +2716,262 @@ if (isset($_GET['edit'])) {
         }
         
         /* ========================================
-           COOL INSERT PASSWORD FIELD STYLES
+           COOL INSERT GLOBAL SETTINGS STYLES
            ======================================== */
-        .cool-password-section {
+        .cool-globals-section {
             margin-bottom: 20px;
             padding: 20px;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-            border: 2px solid rgba(245, 158, 11, 0.3);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(245, 158, 11, 0.08) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 16px;
             position: relative;
             overflow: hidden;
         }
         
-        .cool-password-section::before {
+        .cool-globals-section::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+            background: linear-gradient(90deg, #667eea, #f59e0b, #667eea);
+            background-size: 200% 200%;
             animation: coolGradient 3s ease infinite;
         }
         
-        .cool-password-header {
+        .cool-globals-header {
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
         
-        .cool-password-icon {
+        .cool-globals-icon {
             font-size: 1.8rem;
             animation: coolBounce 2s infinite;
         }
         
-        .cool-password-label {
+        .cool-globals-title {
             display: block;
             font-size: 1rem;
             font-weight: 600;
-            color: #fbbf24;
+            color: #a5b4fc;
             margin-bottom: 4px;
         }
         
-        .cool-password-hint {
+        .cool-globals-hint {
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
         
-        .cool-password-input-wrapper {
+        .cool-globals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .cool-global-field {
+            position: relative;
+        }
+        
+        .cool-field-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .cool-field-label span {
+            font-size: 1.1rem;
+        }
+        
+        .cool-field-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
         }
         
-        .cool-password-input {
+        .cool-field-input {
             width: 100%;
-            padding: 14px 50px 14px 18px;
+            padding: 12px 80px 12px 16px;
             background: rgba(0, 0, 0, 0.4);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
+            font-size: 0.9rem;
             transition: all 0.3s ease;
         }
         
-        .cool-password-input:focus {
+        .cool-field-input:focus {
             outline: none;
-            border-color: rgba(245, 158, 11, 0.6);
-            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.1);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
         }
         
-        .cool-password-input::placeholder {
+        .cool-field-input::placeholder {
             color: var(--text-muted);
+            font-size: 0.85rem;
         }
         
-        .cool-password-toggle {
+        .cool-field-toggle {
             position: absolute;
-            right: 12px;
+            right: 40px;
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             padding: 5px;
             opacity: 0.7;
             transition: all 0.3s ease;
         }
         
-        .cool-password-toggle:hover {
+        .cool-field-toggle:hover {
             opacity: 1;
             transform: scale(1.1);
         }
         
-        .cool-password-clear {
+        .cool-field-clear {
             position: absolute;
-            right: 45px;
+            right: 10px;
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             padding: 5px;
             opacity: 0.5;
             transition: all 0.3s ease;
         }
         
-        .cool-password-clear:hover {
+        .cool-field-clear:hover {
             opacity: 1;
             transform: scale(1.1);
         }
         
-        .cool-password-remembered {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: #22c55e;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .cool-password-remembered.show {
-            display: flex;
-        }
-        
-        .cool-password-required {
-            color: #ef4444;
-            font-size: 0.8rem;
-            margin-top: 8px;
+        .cool-field-remembered {
             display: none;
             align-items: center;
             gap: 5px;
+            margin-top: 6px;
+            padding: 4px 10px;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #22c55e;
+            width: fit-content;
         }
         
-        .cool-password-required.show {
+        .cool-field-remembered.show {
             display: flex;
+        }
+        
+        /* ========================================
+           COOL ANALYZE CHECKBOX STYLES
+           ======================================== */
+        .cool-analyze-section {
+            margin-bottom: 20px;
+            padding: 15px 18px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-analyze-section:has(input:checked) {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
+        }
+        
+        .cool-analyze-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .cool-analyze-checkbox input {
+            display: none;
+        }
+        
+        .cool-analyze-checkmark {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(34, 197, 94, 0.5);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .cool-analyze-checkbox input:checked + .cool-analyze-checkmark {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #22c55e;
+        }
+        
+        .cool-analyze-checkmark::after {
+            content: '';
+            position: absolute;
+            display: none;
+            left: 7px;
+            top: 3px;
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+        
+        .cool-analyze-checkbox input:checked + .cool-analyze-checkmark::after {
+            display: block;
+        }
+        
+        .cool-analyze-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cool-analyze-icon {
+            font-size: 1.3rem;
+        }
+        
+        .cool-analyze-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #22c55e;
+        }
+        
+        .cool-analyze-badge {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cool-analyze-hint {
+            margin: 10px 0 0 36px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .cool-analyze-checkbox input:not(:checked) ~ .cool-analyze-label .cool-analyze-text {
+            color: var(--text-secondary);
+        }
+        
+        .cool-analyze-checkbox input:not(:checked) ~ .cool-analyze-label .cool-analyze-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
         }
 
         /* Empty State */
@@ -2469,6 +3092,11 @@ if (isset($_GET['edit'])) {
                     <span class="cool-icon">❄️</span>
                     <span class="cool-text">Cool Insert</span>
                     <span class="cool-sparkle">✨</span>
+                </button>
+                <button type="button" class="btn btn-cool-cleanup" onclick="openCoolCleanup()" title="Remove failed connections">
+                    <span class="cleanup-icon">🧹</span>
+                    <span class="cleanup-text">Cool Cleanup</span>
+                    <span class="cleanup-sparkle">✨</span>
                 </button>
                 <button type="button" class="btn btn-test-all" onclick="testAllConnections()" title="Test all database connections">🔌 Test All</button>
                 <button type="button" class="btn btn-warning" onclick="exportWithFilePicker()">📤 Export JSON</button>
@@ -2646,6 +3274,69 @@ if (isset($_GET['edit'])) {
     <div id="exportToastContent" style="display: flex; align-items: center; gap: 12px; color: var(--text-primary);"></div>
 </div>
 
+<!-- Cool Cleanup Modal -->
+<div class="cool-modal-overlay" id="coolCleanupModal">
+    <div class="cool-modal" style="max-width: 700px;">
+        <div class="cool-modal-header" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(34, 197, 94, 0.2) 100%);">
+            <div>
+                <div class="cool-modal-title">
+                    <span class="cool-modal-title-icon">🧹</span>
+                    <span>Cool Cleanup</span>
+                    <span style="font-size: 1rem;">✨</span>
+                </div>
+                <div class="cool-modal-subtitle">Test all connections and remove the ones that fail</div>
+            </div>
+            <button class="cool-modal-close" onclick="closeCoolCleanup()" title="Close">×</button>
+        </div>
+        
+        <div class="cool-modal-body" id="coolCleanupBody">
+            <!-- Initial View -->
+            <div id="cleanupInitialView">
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
+                    <h3 style="color: var(--text-primary); margin-bottom: 10px;">Ready to Clean Up?</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        This will test all database connections and show you which ones are failing.<br>
+                        You can then choose to delete the failed connections.
+                    </p>
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 15px; margin-top: 20px;">
+                        <p style="color: #f59e0b; font-size: 0.9rem;">
+                            ⚠️ <strong>Note:</strong> Deleted connections cannot be recovered. Make sure to export a backup first if needed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testing View -->
+            <div id="cleanupTestingView" style="display: none;">
+                <div style="text-align: center; padding: 40px;">
+                    <div class="cool-loading-spinner" style="width: 50px; height: 50px; margin: 0 auto 20px;"></div>
+                    <h3 style="color: var(--text-primary); margin-bottom: 10px;">Testing Connections...</h3>
+                    <p style="color: var(--text-secondary);" id="cleanupProgress">Testing 0 of 0 connections</p>
+                </div>
+            </div>
+            
+            <!-- Results View -->
+            <div id="cleanupResultsView" style="display: none;">
+                <div id="cleanupResultsContent">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="cool-modal-footer" id="cleanupFooter">
+            <div></div>
+            <div class="cool-modal-actions">
+                <button class="cool-btn cool-btn-secondary" onclick="closeCoolCleanup()">Cancel</button>
+                <button class="cool-btn cool-btn-primary" id="cleanupActionBtn" onclick="startCleanupTest()">
+                    <span>🔍</span>
+                    <span>Start Testing</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Cool Insert Modal -->
 <div class="cool-modal-overlay" id="coolInsertModal">
     <div class="cool-modal">
@@ -2664,32 +3355,79 @@ if (isset($_GET['edit'])) {
         <div class="cool-modal-body" id="coolModalBody">
             <!-- Input View -->
             <div id="coolInputView">
-                <!-- Global Password Field -->
-                <div class="cool-password-section">
-                    <div class="cool-password-header">
-                        <span class="cool-password-icon">🔐</span>
+                <!-- Global Settings Section -->
+                <div class="cool-globals-section">
+                    <div class="cool-globals-header">
+                        <span class="cool-globals-icon">⚙️</span>
                         <div>
-                            <label for="coolGlobalPassword" class="cool-password-label">Global Password (Applied to All)</label>
-                            <span class="cool-password-hint">This password will be used for all connections</span>
+                            <span class="cool-globals-title">Global Settings (Applied to All Connections)</span>
+                            <span class="cool-globals-hint">These values will be used for all connections that don't have them</span>
                         </div>
                     </div>
-                    <div class="cool-password-input-wrapper">
-                        <input 
+                    
+                    <!-- Cool Analyze Checkbox -->
+                    <div class="cool-analyze-section">
+                        <label class="cool-analyze-checkbox">
+                            <input type="checkbox" id="coolAnalyzeCheck" checked>
+                            <span class="cool-analyze-checkmark"></span>
+                            <span class="cool-analyze-label">
+                                <span class="cool-analyze-icon">🔬</span>
+                                <span class="cool-analyze-text">Cool Analyze</span>
+                                <span class="cool-analyze-badge">Recommended</span>
+                            </span>
+                        </label>
+                        <p class="cool-analyze-hint">When enabled, only connections that successfully connect will be added. Failed connections will be skipped.</p>
+                    </div>
+                    
+                    <div class="cool-globals-grid">
+                        <!-- Global Host Field -->
+                        <div class="cool-global-field">
+                            <label for="coolGlobalHost" class="cool-field-label">
+                                <span>🌐</span> Host / Server
+                            </label>
+                            <div class="cool-field-input-wrapper">
+<input 
+                            type="text" 
+                            id="coolGlobalHost" 
+                            class="cool-field-input" 
+                            placeholder="e.g., srv1788.hstgr.io or localhost"
+                            autocomplete="off"
+                            oninput="onHostInput(this.value)"
+                        >
+                                <button type="button" class="cool-field-clear" onclick="clearSavedHost()" title="Clear saved host">
+                                    🗑️
+                                </button>
+                            </div>
+                            <div class="cool-field-remembered" id="coolHostRemembered">
+                                <span>💾</span> Remembered
+                            </div>
+                        </div>
+                        
+                        <!-- Global Password Field -->
+                        <div class="cool-global-field">
+                            <label for="coolGlobalPassword" class="cool-field-label">
+                                <span>🔐</span> Password
+                            </label>
+                            <div class="cool-field-input-wrapper">
+<input 
                             type="password" 
                             id="coolGlobalPassword" 
-                            class="cool-password-input" 
-                            placeholder="Enter password to apply to all connections..."
+                            class="cool-field-input" 
+                            placeholder="Enter password..."
                             autocomplete="new-password"
+                            oninput="onPasswordInput(this.value)"
                         >
-                        <button type="button" class="cool-password-toggle" onclick="togglePasswordVisibility()" title="Show/Hide Password">
-                            <span id="coolPasswordToggleIcon">👁️</span>
-                        </button>
-                        <button type="button" class="cool-password-clear" onclick="clearSavedPassword()" title="Clear saved password">
-                            🗑️
-                        </button>
-                    </div>
-                    <div class="cool-password-remembered" id="coolPasswordRemembered">
-                        <span>💾</span> Password remembered from last use
+                                <button type="button" class="cool-field-toggle" onclick="togglePasswordVisibility()" title="Show/Hide">
+                                    <span id="coolPasswordToggleIcon">👁️</span>
+                                </button>
+                                <button type="button" class="cool-field-clear" onclick="clearSavedPassword()" title="Clear saved password">
+                                    🗑️
+                                </button>
+                            </div>
+                            <div class="cool-field-remembered" id="coolPasswordRemembered">
+                                <span>💾</span> Remembered
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -2743,9 +3481,9 @@ Paste any format - we'll figure it out! 🎯"
             </div>
         </div>
         
-        <div class="cool-modal-footer">
+        <div class="cool-modal-footer" id="coolInsertFooter">
             <span class="cool-char-count" id="coolCharCount">0 characters</span>
-            <div class="cool-modal-actions">
+            <div class="cool-modal-actions" id="coolInsertActions">
                 <button class="cool-btn cool-btn-secondary" onclick="closeCoolInsert()">Cancel</button>
                 <button class="cool-btn cool-btn-primary" id="coolProcessBtn" onclick="processCoolInsert()">
                     <span>🔍</span>
@@ -3555,8 +4293,9 @@ function resetAllTestButtons() {
 let pendingCredentials = [];
 let storedGlobalPassword = '';
 
-// LocalStorage key for remembering password
+// LocalStorage keys for remembering settings
 const COOL_PASSWORD_KEY = 'cool_insert_global_password';
+const COOL_HOST_KEY = 'cool_insert_global_host';
 
 // Open Cool Insert Modal
 function openCoolInsert() {
@@ -3566,7 +4305,7 @@ function openCoolInsert() {
     const reportView = document.getElementById('coolReportView');
     const textarea = document.getElementById('coolTextarea');
     const passwordInput = document.getElementById('coolGlobalPassword');
-    const footerActions = document.querySelector('.cool-modal-actions');
+    const footerActions = document.getElementById('coolInsertActions');
     
     // Reset to input view
     inputView.style.display = 'block';
@@ -3574,16 +4313,24 @@ function openCoolInsert() {
     reportView.style.display = 'none';
     textarea.value = '';
     
-    // Load remembered password from localStorage
+    // Load remembered settings from localStorage
     const savedPassword = localStorage.getItem(COOL_PASSWORD_KEY) || '';
+    const savedHost = localStorage.getItem(COOL_HOST_KEY) || '';
+    const hostInput = document.getElementById('coolGlobalHost');
+    
     passwordInput.value = savedPassword;
     passwordInput.type = 'password';
     document.getElementById('coolPasswordToggleIcon').textContent = '👁️';
+    hostInput.value = savedHost;
+    
+    // Reset Cool Analyze checkbox to checked (default)
+    document.getElementById('coolAnalyzeCheck').checked = true;
+    
     pendingCredentials = [];
     storedGlobalPassword = '';
     
-    // Show indicator if password is remembered
-    updatePasswordRememberedIndicator();
+    // Show indicators if settings are remembered
+    updateRememberedIndicators();
     
     // Reset footer to single button mode
     footerActions.innerHTML = `
@@ -3640,16 +4387,53 @@ function clearSavedPassword() {
     showToast('Saved password cleared', 'success', 2000);
 }
 
-// Update the remembered password indicator
-function updatePasswordRememberedIndicator() {
+// Clear saved host from localStorage
+function clearSavedHost() {
+    localStorage.removeItem(COOL_HOST_KEY);
+    document.getElementById('coolGlobalHost').value = '';
+    document.getElementById('coolHostRemembered').classList.remove('show');
+    showToast('Saved host cleared', 'success', 2000);
+}
+
+// Update all remembered indicators
+function updateRememberedIndicators() {
     const savedPassword = localStorage.getItem(COOL_PASSWORD_KEY);
-    const indicator = document.getElementById('coolPasswordRemembered');
+    const savedHost = localStorage.getItem(COOL_HOST_KEY);
     
-    if (savedPassword && indicator) {
-        indicator.classList.add('show');
-    } else if (indicator) {
-        indicator.classList.remove('show');
+    const pwdIndicator = document.getElementById('coolPasswordRemembered');
+    const hostIndicator = document.getElementById('coolHostRemembered');
+    
+    if (savedPassword && pwdIndicator) {
+        pwdIndicator.classList.add('show');
+    } else if (pwdIndicator) {
+        pwdIndicator.classList.remove('show');
     }
+    
+    if (savedHost && hostIndicator) {
+        hostIndicator.classList.add('show');
+    } else if (hostIndicator) {
+        hostIndicator.classList.remove('show');
+    }
+}
+
+// Auto-save host on input (debounced)
+let hostSaveTimeout = null;
+function onHostInput(value) {
+    clearTimeout(hostSaveTimeout);
+    hostSaveTimeout = setTimeout(() => {
+        localStorage.setItem(COOL_HOST_KEY, value);
+        updateRememberedIndicators();
+    }, 500); // Save after 500ms of no typing
+}
+
+// Auto-save password on input (debounced)
+let passwordSaveTimeout = null;
+function onPasswordInput(value) {
+    clearTimeout(passwordSaveTimeout);
+    passwordSaveTimeout = setTimeout(() => {
+        localStorage.setItem(COOL_PASSWORD_KEY, value);
+        updateRememberedIndicators();
+    }, 500); // Save after 500ms of no typing
 }
 
 // Step 1: Analyze and Preview (no insertion yet)
@@ -3659,30 +4443,41 @@ async function processCoolInsert() {
     const inputView = document.getElementById('coolInputView');
     const loadingView = document.getElementById('coolLoadingView');
     const reportView = document.getElementById('coolReportView');
-    const footerActions = document.querySelector('.cool-modal-actions');
+    const footerActions = document.getElementById('coolInsertActions');
     
     const rawText = textarea.value.trim();
     const globalPassword = passwordInput.value;
+    const globalHost = document.getElementById('coolGlobalHost').value.trim();
+    const coolAnalyze = document.getElementById('coolAnalyzeCheck').checked;
     
     if (!rawText) {
         showToast('Please paste some text containing database credentials', 'error');
         return;
     }
     
-    // Save password to localStorage for future use
-    if (globalPassword) {
-        localStorage.setItem(COOL_PASSWORD_KEY, globalPassword);
-    }
+    // Save settings to localStorage for future use (always save to remember last entry)
+    localStorage.setItem(COOL_PASSWORD_KEY, globalPassword);
+    localStorage.setItem(COOL_HOST_KEY, globalHost);
     
-    // Show loading
+    // Show loading with appropriate message
     inputView.style.display = 'none';
     loadingView.style.display = 'block';
+    
+    // Update loading message based on Cool Analyze
+    const loadingText = loadingView.querySelector('span');
+    if (loadingText) {
+        loadingText.textContent = coolAnalyze 
+            ? 'Analyzing and testing connections...' 
+            : 'Analyzing credentials...';
+    }
     
     try {
         const formData = new FormData();
         formData.append('action', 'cool_insert_preview');
         formData.append('raw_text', rawText);
         formData.append('global_password', globalPassword);
+        formData.append('global_host', globalHost);
+        formData.append('cool_analyze', coolAnalyze.toString());
         
         const response = await fetch(window.location.href, {
             method: 'POST',
@@ -3728,13 +4523,34 @@ async function processCoolInsert() {
                 `;
             }
         } else {
-            document.getElementById('coolReportContent').innerHTML = `
+            let errorHtml = `
                 <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
                     <div style="font-size: 3rem; margin-bottom: 15px;">😕</div>
                     <h3 style="margin-bottom: 10px;">Oops!</h3>
                     <p style="color: var(--text-secondary);">${result.error || 'Failed to process credentials'}</p>
-                </div>
             `;
+            
+            // Show hint if available
+            if (result.hint) {
+                errorHtml += `<p style="color: var(--accent-warning); margin-top: 15px; font-size: 0.9rem;">💡 ${result.hint}</p>`;
+            }
+            
+            // Show debug info if available
+            if (result.debug) {
+                errorHtml += `
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px; text-align: left; font-size: 0.8rem;">
+                        <div style="color: var(--text-muted); margin-bottom: 5px;">📊 Debug Info:</div>
+                        <div style="color: var(--text-secondary);">Text length: ${result.debug.text_length} chars</div>
+                        <div style="color: var(--text-secondary);">Lines: ${result.debug.line_count}</div>
+                        <div style="color: var(--text-secondary);">Hostinger pattern found: ${result.debug.has_hostinger_pattern ? '✅ Yes' : '❌ No'}</div>
+                        <div style="color: var(--text-muted); margin-top: 10px; font-family: monospace; word-break: break-all;">Sample: ${result.debug.sample}</div>
+                    </div>
+                `;
+            }
+            
+            errorHtml += `</div>`;
+            
+            document.getElementById('coolReportContent').innerHTML = errorHtml;
             
             footerActions.innerHTML = `
                 <button class="cool-btn cool-btn-secondary" onclick="resetCoolInsert()">
@@ -3875,7 +4691,7 @@ function cancelCoolInsert() {
 function resetCoolInsert() {
     const inputView = document.getElementById('coolInputView');
     const reportView = document.getElementById('coolReportView');
-    const footerActions = document.querySelector('.cool-modal-actions');
+    const footerActions = document.getElementById('coolInsertActions');
     
     reportView.style.display = 'none';
     inputView.style.display = 'block';
@@ -3894,6 +4710,7 @@ function resetCoolInsert() {
 function displayPreviewReport(result) {
     const summary = result.summary;
     const report = result.report;
+    const coolAnalyzeEnabled = report.cool_analyze_enabled;
     
     let html = `
         <div class="cool-report-summary">
@@ -3903,8 +4720,14 @@ function displayPreviewReport(result) {
             </div>
             <div class="cool-report-stat added">
                 <div class="cool-report-stat-value">${summary.ready_to_add}</div>
-                <div class="cool-report-stat-label">Ready to Add</div>
+                <div class="cool-report-stat-label">${coolAnalyzeEnabled ? '✓ Verified' : 'Ready to Add'}</div>
             </div>
+            ${coolAnalyzeEnabled && summary.failed_connection > 0 ? `
+            <div class="cool-report-stat" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%); border: 1px solid rgba(239, 68, 68, 0.3);">
+                <div class="cool-report-stat-value" style="color: #ef4444;">${summary.failed_connection}</div>
+                <div class="cool-report-stat-label">✗ Failed Test</div>
+            </div>
+            ` : ''}
             <div class="cool-report-stat skipped">
                 <div class="cool-report-stat-value">${summary.skipped}</div>
                 <div class="cool-report-stat-label">Already Exists</div>
@@ -3932,15 +4755,49 @@ function displayPreviewReport(result) {
         report.ready_to_add.forEach(item => {
             const passwordBadge = item.has_password 
                 ? (item.password_source === 'global' 
-                    ? '<span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">🔐 Global Password</span>'
-                    : '<span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">🔑 Has Password</span>')
-                : '<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">⚠️ No Password</span>';
+                    ? '<span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">🔐 Global Pwd</span>'
+                    : '<span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">🔑 Has Pwd</span>')
+                : '<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">⚠️ No Pwd</span>';
+            
+            const hostBadge = item.host_source === 'global'
+                ? '<span style="background: rgba(102, 126, 234, 0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">🌐 Global Host</span>'
+                : '';
+            
+            const testedBadge = item.connection_tested
+                ? `<span style="background: rgba(34, 197, 94, 0.3); color: #22c55e; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">🔬 Verified ${item.connection_time}ms</span>`
+                : '';
             
             html += `
                 <div class="cool-report-item" style="background: rgba(34, 197, 94, 0.05);">
                     <span class="cool-report-item-name" style="color: #22c55e;">${escapeHtml(item.name)}</span>
-                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)} ${passwordBadge}</span>
+                    <span class="cool-report-item-info">
+                        ${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}
+                        <span style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;">${testedBadge} ${hostBadge} ${passwordBadge}</span>
+                    </span>
                     <span class="cool-report-item-reason" style="color: #22c55e;">✓ Will be added</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Failed Connection section (Cool Analyze)
+    if (report.failed_connection && report.failed_connection.length > 0) {
+        html += `
+            <div class="cool-report-section" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)" style="background: rgba(239, 68, 68, 0.1);">
+                    <span class="cool-report-section-icon">🔬❌</span>
+                    <span class="cool-report-section-title" style="color: #ef4444;">Failed Connection Test (Not Added)</span>
+                    <span class="cool-report-section-count" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">${report.failed_connection.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        report.failed_connection.forEach(item => {
+            html += `
+                <div class="cool-report-item" style="background: rgba(239, 68, 68, 0.05);">
+                    <span class="cool-report-item-name" style="color: #ef4444;">${escapeHtml(item.name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}</span>
+                    <span class="cool-report-item-reason" style="color: #ef4444; font-size: 0.75rem;">✗ ${escapeHtml(item.error?.substring(0, 60) || 'Connection failed')}...</span>
                 </div>
             `;
         });
@@ -3997,16 +4854,27 @@ function displayPreviewReport(result) {
     html += `</div>`;
     
     // Header message based on results
-    const globalPwdNote = report.global_password_used 
-        ? '<br><span style="color: #f59e0b;">🔐 Global password will be applied to connections without passwords</span>' 
-        : '';
+    let globalNotes = '';
+    if (coolAnalyzeEnabled) {
+        globalNotes += '<br><span style="color: #22c55e;">🔬 Cool Analyze: Only verified working connections will be added</span>';
+    }
+    if (report.global_host_used) {
+        globalNotes += '<br><span style="color: #a5b4fc;">🌐 Global host applied to connections without hosts</span>';
+    }
+    if (report.global_password_used) {
+        globalNotes += '<br><span style="color: #f59e0b;">🔐 Global password applied to connections without passwords</span>';
+    }
+    
+    const headerIcon = coolAnalyzeEnabled ? '🔬' : '🔍';
+    const headerTitle = coolAnalyzeEnabled ? 'Analyzed & Verified' : 'Preview - Review Before Adding';
+    const verifiedNote = coolAnalyzeEnabled && summary.ready_to_add > 0 ? ' All have been tested and verified working!' : '';
     
     if (summary.ready_to_add > 0) {
         html = `
             <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%); border-radius: 16px; border: 1px solid rgba(34, 197, 94, 0.2);">
-                <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
-                <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Preview - Review Before Adding</h3>
-                <p style="color: var(--text-secondary);">${summary.ready_to_add} connection(s) ready to add. Review below and click <strong>Approve</strong> to add them.${globalPwdNote}</p>
+                <div style="font-size: 3rem; margin-bottom: 10px;">${headerIcon}</div>
+                <h3 style="color: var(--accent-primary); margin-bottom: 5px;">${headerTitle}</h3>
+                <p style="color: var(--text-secondary);">${summary.ready_to_add} connection(s) ready to add.${verifiedNote} Review below and click <strong>Approve</strong> to add them.${globalNotes}</p>
             </div>
         ` + html;
     } else if (summary.found > 0 && summary.skipped === summary.found) {
@@ -4126,6 +4994,7 @@ function escapeHtml(text) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeCoolInsert();
+        closeCoolCleanup();
     }
 });
 
@@ -4135,6 +5004,295 @@ document.getElementById('coolInsertModal')?.addEventListener('click', function(e
         closeCoolInsert();
     }
 });
+
+document.getElementById('coolCleanupModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCoolCleanup();
+    }
+});
+
+// ========================================
+// COOL CLEANUP FUNCTIONALITY
+// ========================================
+
+let failedConnectionIds = [];
+
+// Open Cool Cleanup Modal
+function openCoolCleanup() {
+    const modal = document.getElementById('coolCleanupModal');
+    const initialView = document.getElementById('cleanupInitialView');
+    const testingView = document.getElementById('cleanupTestingView');
+    const resultsView = document.getElementById('cleanupResultsView');
+    const actionBtn = document.getElementById('cleanupActionBtn');
+    
+    // Reset to initial view
+    initialView.style.display = 'block';
+    testingView.style.display = 'none';
+    resultsView.style.display = 'none';
+    failedConnectionIds = [];
+    
+    actionBtn.innerHTML = '<span>🔍</span><span>Start Testing</span>';
+    actionBtn.onclick = startCleanupTest;
+    actionBtn.disabled = false;
+    actionBtn.className = 'cool-btn cool-btn-primary';
+    
+    // Show modal
+    modal.classList.add('active');
+}
+
+// Close Cool Cleanup Modal
+function closeCoolCleanup() {
+    const modal = document.getElementById('coolCleanupModal');
+    modal.classList.remove('active');
+    failedConnectionIds = [];
+}
+
+// Start testing all connections
+async function startCleanupTest() {
+    const initialView = document.getElementById('cleanupInitialView');
+    const testingView = document.getElementById('cleanupTestingView');
+    const resultsView = document.getElementById('cleanupResultsView');
+    const actionBtn = document.getElementById('cleanupActionBtn');
+    const progressEl = document.getElementById('cleanupProgress');
+    
+    // Show testing view
+    initialView.style.display = 'none';
+    testingView.style.display = 'block';
+    actionBtn.disabled = true;
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'cool_cleanup_test');
+        
+        progressEl.textContent = 'Connecting to server...';
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        // Hide testing, show results
+        testingView.style.display = 'none';
+        resultsView.style.display = 'block';
+        
+        if (result.success) {
+            displayCleanupResults(result);
+        } else {
+            document.getElementById('cleanupResultsContent').innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                    <h3 style="margin-bottom: 10px;">Test Failed</h3>
+                    <p style="color: var(--text-secondary);">${result.error || 'Failed to test connections'}</p>
+                </div>
+            `;
+            
+            actionBtn.innerHTML = '<span>🔄</span><span>Try Again</span>';
+            actionBtn.onclick = () => {
+                resultsView.style.display = 'none';
+                initialView.style.display = 'block';
+                actionBtn.innerHTML = '<span>🔍</span><span>Start Testing</span>';
+                actionBtn.onclick = startCleanupTest;
+            };
+            actionBtn.disabled = false;
+        }
+        
+    } catch (error) {
+        console.error('Cleanup test error:', error);
+        testingView.style.display = 'none';
+        resultsView.style.display = 'block';
+        
+        document.getElementById('cleanupResultsContent').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--accent-danger);">
+                <div style="font-size: 3rem; margin-bottom: 15px;">❌</div>
+                <h3 style="margin-bottom: 10px;">Error</h3>
+                <p style="color: var(--text-secondary);">${error.message}</p>
+            </div>
+        `;
+        
+        actionBtn.innerHTML = '<span>🔄</span><span>Try Again</span>';
+        actionBtn.onclick = startCleanupTest;
+        actionBtn.disabled = false;
+    }
+}
+
+// Display cleanup test results
+function displayCleanupResults(result) {
+    const summary = result.summary;
+    const results = result.results;
+    const actionBtn = document.getElementById('cleanupActionBtn');
+    
+    // Store failed IDs for deletion
+    failedConnectionIds = results.failed.map(c => c.id);
+    
+    let html = `
+        <div class="cool-report-summary">
+            <div class="cool-report-stat found">
+                <div class="cool-report-stat-value">${summary.total}</div>
+                <div class="cool-report-stat-label">Total</div>
+            </div>
+            <div class="cool-report-stat added">
+                <div class="cool-report-stat-value">${summary.successful}</div>
+                <div class="cool-report-stat-label">✓ Working</div>
+            </div>
+            <div class="cool-report-stat invalid">
+                <div class="cool-report-stat-value">${summary.failed}</div>
+                <div class="cool-report-stat-label">✗ Failed</div>
+            </div>
+        </div>
+    `;
+    
+    // Header based on results
+    if (summary.failed === 0) {
+        html = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 4rem; margin-bottom: 10px;">🎉</div>
+                <h3 style="color: #22c55e; margin-bottom: 5px;">All Connections Working!</h3>
+                <p style="color: var(--text-secondary);">All ${summary.total} connection(s) are healthy. Nothing to clean up!</p>
+            </div>
+        ` + html;
+        
+        actionBtn.innerHTML = '<span>👍</span><span>Great - Close</span>';
+        actionBtn.onclick = closeCoolCleanup;
+        actionBtn.disabled = false;
+        actionBtn.className = 'cool-btn cool-btn-primary';
+        
+    } else {
+        html = `
+            <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+                <h3 style="color: #ef4444; margin-bottom: 5px;">Found ${summary.failed} Failed Connection(s)</h3>
+                <p style="color: var(--text-secondary);">Review the failed connections below and click <strong>Delete Failed</strong> to remove them.</p>
+            </div>
+        ` + html;
+        
+        actionBtn.innerHTML = `<span>🗑️</span><span>Delete ${summary.failed} Failed Connection(s)</span>`;
+        actionBtn.onclick = confirmCleanupDelete;
+        actionBtn.disabled = false;
+        actionBtn.className = 'cool-btn cool-btn-primary';
+        actionBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+    }
+    
+    html += '<div class="cool-report-details">';
+    
+    // Failed connections section
+    if (results.failed && results.failed.length > 0) {
+        html += `
+            <div class="cool-report-section" style="border-color: rgba(239, 68, 68, 0.3);">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)" style="background: rgba(239, 68, 68, 0.1);">
+                    <span class="cool-report-section-icon">❌</span>
+                    <span class="cool-report-section-title" style="color: #ef4444;">Failed Connections (Will Be Deleted)</span>
+                    <span class="cool-report-section-count" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">${results.failed.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        results.failed.forEach(conn => {
+            html += `
+                <div class="cool-report-item" style="background: rgba(239, 68, 68, 0.05);">
+                    <span class="cool-report-item-name" style="color: #ef4444;">${escapeHtml(conn.name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(conn.host)} → ${escapeHtml(conn.dbName)}</span>
+                    <span class="cool-report-item-reason" style="color: #ef4444; font-size: 0.75rem;">${escapeHtml(conn.error?.substring(0, 50) || 'Connection failed')}...</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    // Successful connections section
+    if (results.successful && results.successful.length > 0) {
+        html += `
+            <div class="cool-report-section" style="border-color: rgba(34, 197, 94, 0.3);">
+                <div class="cool-report-section-header" onclick="toggleReportSection(this)" style="background: rgba(34, 197, 94, 0.1);">
+                    <span class="cool-report-section-icon">✅</span>
+                    <span class="cool-report-section-title" style="color: #22c55e;">Working Connections (Will Be Kept)</span>
+                    <span class="cool-report-section-count" style="background: rgba(34, 197, 94, 0.2); color: #22c55e;">${results.successful.length}</span>
+                </div>
+                <div class="cool-report-section-body">
+        `;
+        results.successful.forEach(conn => {
+            html += `
+                <div class="cool-report-item" style="background: rgba(34, 197, 94, 0.05);">
+                    <span class="cool-report-item-name" style="color: #22c55e;">${escapeHtml(conn.name)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(conn.host)} → ${escapeHtml(conn.dbName)}</span>
+                    <span class="cool-report-item-reason" style="color: #22c55e;">✓ ${conn.time}ms</span>
+                </div>
+            `;
+        });
+        html += `</div></div>`;
+    }
+    
+    html += '</div>';
+    
+    document.getElementById('cleanupResultsContent').innerHTML = html;
+}
+
+// Confirm and delete failed connections
+async function confirmCleanupDelete() {
+    if (failedConnectionIds.length === 0) {
+        showToast('No failed connections to delete', 'error');
+        return;
+    }
+    
+    const actionBtn = document.getElementById('cleanupActionBtn');
+    const resultsView = document.getElementById('cleanupResultsView');
+    
+    // Show loading state
+    actionBtn.disabled = true;
+    actionBtn.innerHTML = '<span>⏳</span><span>Deleting...</span>';
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'cool_cleanup_delete');
+        formData.append('ids', JSON.stringify(failedConnectionIds));
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            document.getElementById('cleanupResultsContent').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+                    <h3 style="color: #22c55e; margin-bottom: 10px;">Cleanup Complete!</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        Successfully deleted <strong>${result.summary.deleted}</strong> failed connection(s).
+                        ${result.summary.failed > 0 ? `<br><span style="color: #f59e0b;">${result.summary.failed} could not be deleted.</span>` : ''}
+                    </p>
+                    <div class="cool-report-summary" style="max-width: 300px; margin: 0 auto;">
+                        <div class="cool-report-stat added">
+                            <div class="cool-report-stat-value">${result.summary.deleted}</div>
+                            <div class="cool-report-stat-label">Deleted</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            actionBtn.innerHTML = '<span>✅</span><span>Done - Refresh Page</span>';
+            actionBtn.onclick = () => window.location.reload();
+            actionBtn.disabled = false;
+            actionBtn.style.background = '';
+            actionBtn.className = 'cool-btn cool-btn-primary';
+            
+        } else {
+            showToast(result.error || 'Failed to delete connections', 'error');
+            actionBtn.innerHTML = '<span>🗑️</span><span>Try Again</span>';
+            actionBtn.onclick = confirmCleanupDelete;
+            actionBtn.disabled = false;
+        }
+        
+    } catch (error) {
+        console.error('Cleanup delete error:', error);
+        showToast('Error: ' + error.message, 'error');
+        actionBtn.innerHTML = '<span>🗑️</span><span>Try Again</span>';
+        actionBtn.onclick = confirmCleanupDelete;
+        actionBtn.disabled = false;
+    }
+}
 </script>
 
 <style>
