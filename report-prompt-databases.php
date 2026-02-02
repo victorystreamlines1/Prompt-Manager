@@ -387,6 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     header('Access-Control-Allow-Origin: *');
     
     $rawText = $_POST['raw_text'] ?? '';
+    $globalPassword = $_POST['global_password'] ?? '';
     
     if (empty(trim($rawText))) {
         echo json_encode(['success' => false, 'error' => 'No text provided']);
@@ -405,10 +406,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'total_found' => count($credentials),
         'ready_to_add' => [],
         'skipped' => [],
-        'invalid' => []
+        'invalid' => [],
+        'global_password_used' => !empty($globalPassword)
     ];
     
     foreach ($credentials as $cred) {
+        // Apply global password if credential has no password or empty password
+        if (!empty($globalPassword) && (empty($cred['password']) || $cred['password'] === '')) {
+            $cred['password'] = $globalPassword;
+        }
+        
         // Validate required fields
         if (empty($cred['host']) || empty($cred['dbName']) || empty($cred['username'])) {
             $report['invalid'][] = [
@@ -437,9 +444,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $name = generateConnectionName($cred);
         
         // Add to ready_to_add (but don't insert yet!)
+        // Include password status for display
         $report['ready_to_add'][] = [
             'name' => $name,
-            'data' => $cred
+            'data' => $cred,
+            'has_password' => !empty($cred['password']),
+            'password_source' => (!empty($globalPassword) && $cred['password'] === $globalPassword) ? 'global' : 'detected'
         ];
     }
     
@@ -447,6 +457,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'success' => true,
         'mode' => 'preview',
         'report' => $report,
+        'global_password' => $globalPassword, // Pass back for confirmation step
         'summary' => [
             'found' => $report['total_found'],
             'ready_to_add' => count($report['ready_to_add']),
@@ -2197,6 +2208,148 @@ if (isset($_GET['edit'])) {
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
+        /* ========================================
+           COOL INSERT PASSWORD FIELD STYLES
+           ======================================== */
+        .cool-password-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cool-password-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+            animation: coolGradient 3s ease infinite;
+        }
+        
+        .cool-password-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .cool-password-icon {
+            font-size: 1.8rem;
+            animation: coolBounce 2s infinite;
+        }
+        
+        .cool-password-label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+        
+        .cool-password-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .cool-password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .cool-password-input {
+            width: 100%;
+            padding: 14px 50px 14px 18px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-password-input:focus {
+            outline: none;
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.1);
+        }
+        
+        .cool-password-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .cool-password-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-password-toggle:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .cool-password-clear {
+            position: absolute;
+            right: 45px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        
+        .cool-password-clear:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .cool-password-remembered {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #22c55e;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .cool-password-remembered.show {
+            display: flex;
+        }
+        
+        .cool-password-required {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .cool-password-required.show {
+            display: flex;
+        }
 
         /* Empty State */
         .empty-state {
@@ -2511,6 +2664,35 @@ if (isset($_GET['edit'])) {
         <div class="cool-modal-body" id="coolModalBody">
             <!-- Input View -->
             <div id="coolInputView">
+                <!-- Global Password Field -->
+                <div class="cool-password-section">
+                    <div class="cool-password-header">
+                        <span class="cool-password-icon">🔐</span>
+                        <div>
+                            <label for="coolGlobalPassword" class="cool-password-label">Global Password (Applied to All)</label>
+                            <span class="cool-password-hint">This password will be used for all connections</span>
+                        </div>
+                    </div>
+                    <div class="cool-password-input-wrapper">
+                        <input 
+                            type="password" 
+                            id="coolGlobalPassword" 
+                            class="cool-password-input" 
+                            placeholder="Enter password to apply to all connections..."
+                            autocomplete="new-password"
+                        >
+                        <button type="button" class="cool-password-toggle" onclick="togglePasswordVisibility()" title="Show/Hide Password">
+                            <span id="coolPasswordToggleIcon">👁️</span>
+                        </button>
+                        <button type="button" class="cool-password-clear" onclick="clearSavedPassword()" title="Clear saved password">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="cool-password-remembered" id="coolPasswordRemembered">
+                        <span>💾</span> Password remembered from last use
+                    </div>
+                </div>
+                
                 <div class="cool-textarea-wrapper">
                     <textarea 
                         class="cool-textarea" 
@@ -3371,6 +3553,10 @@ function resetAllTestButtons() {
 
 // Store pending credentials for confirmation
 let pendingCredentials = [];
+let storedGlobalPassword = '';
+
+// LocalStorage key for remembering password
+const COOL_PASSWORD_KEY = 'cool_insert_global_password';
 
 // Open Cool Insert Modal
 function openCoolInsert() {
@@ -3379,7 +3565,7 @@ function openCoolInsert() {
     const loadingView = document.getElementById('coolLoadingView');
     const reportView = document.getElementById('coolReportView');
     const textarea = document.getElementById('coolTextarea');
-    const processBtn = document.getElementById('coolProcessBtn');
+    const passwordInput = document.getElementById('coolGlobalPassword');
     const footerActions = document.querySelector('.cool-modal-actions');
     
     // Reset to input view
@@ -3387,7 +3573,17 @@ function openCoolInsert() {
     loadingView.style.display = 'none';
     reportView.style.display = 'none';
     textarea.value = '';
+    
+    // Load remembered password from localStorage
+    const savedPassword = localStorage.getItem(COOL_PASSWORD_KEY) || '';
+    passwordInput.value = savedPassword;
+    passwordInput.type = 'password';
+    document.getElementById('coolPasswordToggleIcon').textContent = '👁️';
     pendingCredentials = [];
+    storedGlobalPassword = '';
+    
+    // Show indicator if password is remembered
+    updatePasswordRememberedIndicator();
     
     // Reset footer to single button mode
     footerActions.innerHTML = `
@@ -3422,19 +3618,60 @@ function updateCharCount() {
     countEl.textContent = `${count.toLocaleString()} characters`;
 }
 
+// Toggle password visibility
+function togglePasswordVisibility() {
+    const input = document.getElementById('coolGlobalPassword');
+    const icon = document.getElementById('coolPasswordToggleIcon');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        icon.textContent = '👁️';
+    }
+}
+
+// Clear saved password from localStorage
+function clearSavedPassword() {
+    localStorage.removeItem(COOL_PASSWORD_KEY);
+    document.getElementById('coolGlobalPassword').value = '';
+    document.getElementById('coolPasswordRemembered').classList.remove('show');
+    showToast('Saved password cleared', 'success', 2000);
+}
+
+// Update the remembered password indicator
+function updatePasswordRememberedIndicator() {
+    const savedPassword = localStorage.getItem(COOL_PASSWORD_KEY);
+    const indicator = document.getElementById('coolPasswordRemembered');
+    
+    if (savedPassword && indicator) {
+        indicator.classList.add('show');
+    } else if (indicator) {
+        indicator.classList.remove('show');
+    }
+}
+
 // Step 1: Analyze and Preview (no insertion yet)
 async function processCoolInsert() {
     const textarea = document.getElementById('coolTextarea');
+    const passwordInput = document.getElementById('coolGlobalPassword');
     const inputView = document.getElementById('coolInputView');
     const loadingView = document.getElementById('coolLoadingView');
     const reportView = document.getElementById('coolReportView');
     const footerActions = document.querySelector('.cool-modal-actions');
     
     const rawText = textarea.value.trim();
+    const globalPassword = passwordInput.value;
     
     if (!rawText) {
         showToast('Please paste some text containing database credentials', 'error');
         return;
+    }
+    
+    // Save password to localStorage for future use
+    if (globalPassword) {
+        localStorage.setItem(COOL_PASSWORD_KEY, globalPassword);
     }
     
     // Show loading
@@ -3445,6 +3682,7 @@ async function processCoolInsert() {
         const formData = new FormData();
         formData.append('action', 'cool_insert_preview');
         formData.append('raw_text', rawText);
+        formData.append('global_password', globalPassword);
         
         const response = await fetch(window.location.href, {
             method: 'POST',
@@ -3460,6 +3698,7 @@ async function processCoolInsert() {
         if (result.success) {
             // Store pending credentials for later confirmation
             pendingCredentials = result.report.ready_to_add || [];
+            storedGlobalPassword = result.global_password || '';
             
             // Display preview report
             displayPreviewReport(result);
@@ -3691,10 +3930,16 @@ function displayPreviewReport(result) {
                 <div class="cool-report-section-body">
         `;
         report.ready_to_add.forEach(item => {
+            const passwordBadge = item.has_password 
+                ? (item.password_source === 'global' 
+                    ? '<span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">🔐 Global Password</span>'
+                    : '<span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">🔑 Has Password</span>')
+                : '<span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 8px;">⚠️ No Password</span>';
+            
             html += `
                 <div class="cool-report-item" style="background: rgba(34, 197, 94, 0.05);">
                     <span class="cool-report-item-name" style="color: #22c55e;">${escapeHtml(item.name)}</span>
-                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)}</span>
+                    <span class="cool-report-item-info">${escapeHtml(item.data.host)} → ${escapeHtml(item.data.dbName)} ${passwordBadge}</span>
                     <span class="cool-report-item-reason" style="color: #22c55e;">✓ Will be added</span>
                 </div>
             `;
@@ -3752,12 +3997,16 @@ function displayPreviewReport(result) {
     html += `</div>`;
     
     // Header message based on results
+    const globalPwdNote = report.global_password_used 
+        ? '<br><span style="color: #f59e0b;">🔐 Global password will be applied to connections without passwords</span>' 
+        : '';
+    
     if (summary.ready_to_add > 0) {
         html = `
             <div style="text-align: center; margin-bottom: 25px; padding: 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%); border-radius: 16px; border: 1px solid rgba(34, 197, 94, 0.2);">
                 <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
                 <h3 style="color: var(--accent-primary); margin-bottom: 5px;">Preview - Review Before Adding</h3>
-                <p style="color: var(--text-secondary);">${summary.ready_to_add} connection(s) ready to add. Review below and click <strong>Approve</strong> to add them.</p>
+                <p style="color: var(--text-secondary);">${summary.ready_to_add} connection(s) ready to add. Review below and click <strong>Approve</strong> to add them.${globalPwdNote}</p>
             </div>
         ` + html;
     } else if (summary.found > 0 && summary.skipped === summary.found) {
