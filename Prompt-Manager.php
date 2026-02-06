@@ -18414,26 +18414,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="de-tool-body" id="fileUploadBody">
                         
-                        <!-- 📁 ROOT FOLDER SELECTOR -->
+                        <!-- 📁 PROJECT ROUTES - PHP Folder Browser (multi-select) -->
                         <div class="uf-root-selector" id="ufRootSelector">
-                            <input type="file" id="ufRootInput" webkitdirectory style="display: none;">
                             <div class="uf-root-header">
                                 <div class="uf-root-icon">
                                     <i class="fas fa-folder-tree"></i>
                                 </div>
                                 <div class="uf-root-info">
-                                    <span class="uf-root-title">Project Root</span>
-                                    <span class="uf-root-desc">Select your main project folder</span>
+                                    <span class="uf-root-title">Project Routes</span>
+                                    <span class="uf-root-desc">Select project folders (multi-select)</span>
                                 </div>
                             </div>
                             <div class="uf-root-content">
-                                <div class="uf-root-drop" id="ufRootDrop" onclick="document.getElementById('ufRootInput').click();">
-                                    <i class="fas fa-folder-open"></i>
-                                    <span>Click to Select Root Folder</span>
+                                <div class="uf-root-drop" id="ufRootDrop" onclick="openDeFolderBrowser()">
+                                    <i class="fas fa-folder-plus"></i>
+                                    <span>Click to Pick Folders</span>
                                 </div>
                                 <div class="uf-root-selected" id="ufRootSelected" style="display: none;">
                                     <i class="fas fa-folder"></i>
-                                    <span id="ufRootName">No folder selected</span>
+                                    <span id="ufRootName">No folders selected</span>
                                     <button type="button" class="uf-root-clear" onclick="ufClearRoot()" title="Clear">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -18441,20 +18440,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Hidden File Input -->
+                        <!-- Hidden File Input (files only) -->
                         <input type="file" id="ufFileInput" multiple accept="*" style="display: none;">
                         
-                        <!-- Drop Zone -->
+                        <!-- Drop Zone (Files Only) -->
                         <div class="uf-drop-zone" id="ufDropZone" onclick="document.getElementById('ufFileInput').click();">
                             <div class="uf-drop-content">
                                 <div class="uf-drop-icon">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </div>
-                                <div class="uf-drop-title">Drag & Drop Files or Folders</div>
-                                <div class="uf-drop-subtitle">Drop folders to include entire directory structure</div>
+                                <div class="uf-drop-title">Drag & Drop Files Only</div>
+                                <div class="uf-drop-subtitle">Drop files to include in the project structure</div>
                                 <div class="uf-drop-hint">
-                                    <i class="fas fa-folder"></i> Folders
-                                    <i class="fas fa-file-code" style="margin-left: 0.5rem;"></i> Files
+                                    <i class="fas fa-file-code"></i> Files
                                     <i class="fas fa-images" style="margin-left: 0.5rem;"></i> Images
                                 </div>
                             </div>
@@ -37881,51 +37879,24 @@ function ufInit() {
     ufUpdateBadge();
 }
 
-// Setup root folder selector
+// Setup root folder selector (now uses PHP folder browser — click opens modal)
 function ufSetupRootSelector() {
-    const rootInput = document.getElementById('ufRootInput');
     const rootDrop = document.getElementById('ufRootDrop');
     
-    if (!rootInput || !rootDrop) {
+    if (!rootDrop) {
         console.log('Root selector elements not found');
         return;
     }
     
-    console.log('Setting up root selector...');
+    console.log('Setting up root selector (PHP folder browser mode)...');
     
-    // File input change (folder selection)
-    rootInput.addEventListener('change', (e) => {
-        console.log('Root input changed', e.target.files);
-        if (e.target.files && e.target.files.length > 0) {
-            // Get folder name and build structure from file paths
-            const files = Array.from(e.target.files);
-            const firstFile = files[0];
-            const path = firstFile.webkitRelativePath || firstFile.name;
-            const rootName = path.split('/')[0];
-            
-            // Build structure from file paths (names only, no content)
-            const structure = ufBuildStructureFromFiles(files, rootName);
-            
-            ufRootFolder = {
-                name: rootName,
-                fileCount: structure.fileCount,
-                folderCount: structure.folderCount,
-                children: structure.children
-            };
-            
-            ufUpdateRootDisplay();
-            ufSaveRootToStorage();
-            showNotification(`📁 Root folder set: ${rootName} (${structure.fileCount} files)`, 'success');
-        }
-        e.target.value = '';
-    });
-    
-    // Drag & Drop on root drop area
+    // Click handler is set inline via onclick="openDeFolderBrowser()"
+    // Also support drag & drop of folders onto the root drop area
     rootDrop.addEventListener('dragenter', (e) => { 
         e.preventDefault(); 
         e.stopPropagation();
-        rootDrop.style.borderColor = '#10b981';
-        rootDrop.style.background = 'rgba(16, 185, 129, 0.1)';
+        rootDrop.style.borderColor = '#fbbf24';
+        rootDrop.style.background = 'rgba(251, 191, 36, 0.1)';
     });
     rootDrop.addEventListener('dragover', (e) => { 
         e.preventDefault(); 
@@ -37946,27 +37917,45 @@ function ufSetupRootSelector() {
         
         console.log('Drop on root', e.dataTransfer.items);
         
+        // Accept dropped folders and read their structure
         if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-            const item = e.dataTransfer.items[0]; // Only take first item
-            if (item.webkitGetAsEntry) {
-                const entry = item.webkitGetAsEntry();
-                console.log('Entry:', entry);
-                if (entry && entry.isDirectory) {
-                    showNotification('📁 Reading folder structure...', 'info');
-                    // Read folder structure (names only, no file content)
-                    const folderData = await ufReadFolderStructure(entry);
-                    ufRootFolder = {
-                        name: entry.name,
-                        fileCount: folderData.fileCount,
-                        folderCount: folderData.folderCount,
-                        children: folderData.children
-                    };
-                    ufUpdateRootDisplay();
-                    ufSaveRootToStorage();
-                    showNotification(`📁 Root folder set: ${entry.name} (${folderData.fileCount} files)`, 'success');
-                } else {
-                    showNotification('⚠️ Please drop a folder, not a file', 'warning');
+            const items = Array.from(e.dataTransfer.items);
+            const folders = [];
+            
+            showNotification('📁 Processing folders...', 'info');
+            
+            for (const item of items) {
+                if (item.webkitGetAsEntry) {
+                    const entry = item.webkitGetAsEntry();
+                    if (entry && entry.isDirectory) {
+                        const folderData = await ufReadFolderStructure(entry);
+                        folders.push({
+                            name: entry.name,
+                            type: 'folder',
+                            children: folderData.children || [],
+                            fileCount: folderData.fileCount || 0,
+                            folderCount: folderData.folderCount || 0
+                        });
+                    }
                 }
+            }
+            
+            if (folders.length > 0) {
+                ufHandleFoldersStructure(folders);
+                
+                // Update root display
+                const rootSelectedDiv = document.getElementById('ufRootSelected');
+                const rootNameSpan = document.getElementById('ufRootName');
+                if (rootSelectedDiv && rootNameSpan) {
+                    const folderNames = folders.map(f => f.name).join(', ');
+                    const totalFiles = folders.reduce((sum, f) => sum + (f.fileCount || 0), 0);
+                    rootDrop.style.display = 'none';
+                    rootSelectedDiv.style.display = 'flex';
+                    rootNameSpan.textContent = `${folders.length} folder(s): ${folderNames} (${totalFiles} files)`;
+                }
+                showNotification(`📁 ${folders.length} folder(s) added to Project Structure`, 'success');
+            } else {
+                showNotification('⚠️ No folders detected. Please drop folders, not files.', 'warning');
             }
         }
     });
@@ -37988,12 +37977,19 @@ function ufUpdateRootDisplay() {
     }
 }
 
-// Clear root folder
+// Clear root folder (resets the Project Routes display)
 function ufClearRoot() {
     ufRootFolder = null;
     ufUpdateRootDisplay();
     localStorage.removeItem('ufRootFolder');
-    showNotification('Root folder cleared', 'info');
+    
+    // Also reset the root drop zone display
+    const dropDiv = document.getElementById('ufRootDrop');
+    const selectedDiv = document.getElementById('ufRootSelected');
+    if (dropDiv) dropDiv.style.display = 'flex';
+    if (selectedDiv) selectedDiv.style.display = 'none';
+    
+    showNotification('Project routes cleared', 'info');
 }
 
 // Save root to storage
@@ -38178,34 +38174,28 @@ function ufSetupDropZone() {
         dropZone.style.background = '';
     });
     
-    // Drop
+    // Drop (Files Only — folders are handled via the PHP folder browser)
     dropZone.addEventListener('drop', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         dropZone.style.borderColor = '';
         dropZone.style.background = '';
         
-        console.log('Drop event on main zone', e.dataTransfer.items);
+        console.log('Drop event on main zone (files only)', e.dataTransfer.items);
         
-        // Use webkitGetAsEntry to detect folders
         if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
             const items = Array.from(e.dataTransfer.items);
-            const folders = [];
             const fileInfos = [];
-            
-            showNotification('📁 Processing items...', 'info');
+            let foldersSkipped = 0;
             
             for (const item of items) {
                 if (item.webkitGetAsEntry) {
                     const entry = item.webkitGetAsEntry();
-                    console.log('Entry found:', entry?.name, entry?.isDirectory);
                     if (entry) {
                         if (entry.isDirectory) {
-                            // It's a folder - read structure only (no file content)
-                            const folderData = await ufReadFolderStructure(entry);
-                            folders.push(folderData);
+                            // Skip folders — they should be added via the Project Routes picker
+                            foldersSkipped++;
                         } else if (entry.isFile) {
-                            // It's a file - store name only
                             const file = item.getAsFile();
                             if (file) {
                                 fileInfos.push({
@@ -38217,7 +38207,6 @@ function ufSetupDropZone() {
                         }
                     }
                 } else {
-                    // Fallback
                     const file = item.getAsFile();
                     if (file) {
                         fileInfos.push({
@@ -38229,18 +38218,17 @@ function ufSetupDropZone() {
                 }
             }
             
-            // Process folders
-            if (folders.length > 0) {
-                ufHandleFoldersStructure(folders);
-            }
-            
             // Process files
             if (fileInfos.length > 0) {
                 ufHandleFilesStructure(fileInfos);
             }
             
-            if (folders.length === 0 && fileInfos.length === 0) {
-                showNotification('⚠️ No files or folders detected', 'warning');
+            if (foldersSkipped > 0) {
+                showNotification(`⚠️ ${foldersSkipped} folder(s) skipped — use "Project Routes" to add folders`, 'warning');
+            }
+            
+            if (fileInfos.length === 0 && foldersSkipped === 0) {
+                showNotification('⚠️ No files detected', 'warning');
             }
         }
     });
@@ -39083,10 +39071,16 @@ function ufClearAll() {
     ufDetectedHomepage = '';
     ufDetectedFeatured = '';
     
-    // Clear root folder
+    // Clear root folder / project routes
     ufRootFolder = null;
     ufUpdateRootDisplay();
     localStorage.removeItem('ufRootFolder');
+    
+    // Reset project routes display
+    const ufDropDiv = document.getElementById('ufRootDrop');
+    const ufSelectedDiv = document.getElementById('ufRootSelected');
+    if (ufDropDiv) ufDropDiv.style.display = 'flex';
+    if (ufSelectedDiv) ufSelectedDiv.style.display = 'none';
     
     // Reset UI
     document.getElementById('ufFileInput').value = '';
@@ -40595,13 +40589,24 @@ function toggleTheme() {
     let fbCurrentPath = '';
     let fbParentPath = '';
     let fbSelectedFolders = new Map(); // Map of folderName → folderPath selected in the modal
+    let fbMode = 'prompt'; // 'prompt' = send to prompt editor, 'enhancer' = send to Design Enhancer
 
-    // Open the folder browser modal
+    // Open the folder browser modal (for Prompt Editor — left panel)
     window.openFolderBrowser = function() {
+        fbMode = 'prompt';
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.add('active');
         
-        // Start from the app directory
+        const startPath = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+        fbNavigate(startPath);
+    };
+
+    // Open the folder browser modal (for Design Enhancer — right panel)
+    window.openDeFolderBrowser = function() {
+        fbMode = 'enhancer';
+        const overlay = document.getElementById('folderBrowserOverlay');
+        overlay.classList.add('active');
+        
         const startPath = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
         fbNavigate(startPath);
     };
@@ -40611,6 +40616,7 @@ function toggleTheme() {
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.remove('active');
         fbSelectedFolders = new Map();
+        fbMode = 'prompt';
         fbUpdateSelectedCount();
     };
 
@@ -40724,8 +40730,8 @@ function toggleTheme() {
         document.getElementById('fbAddBtn').disabled = count === 0;
     }
 
-    // Add selected folders to the main app (with full paths for tree generation)
-    window.fbAddSelected = function() {
+    // Add selected folders to the main app (routes based on mode)
+    window.fbAddSelected = async function() {
         if (fbSelectedFolders.size === 0) return;
         
         // Build array of {name, path} objects
@@ -40734,13 +40740,123 @@ function toggleTheme() {
             folderInfos.push({ name, path });
         });
         
-        // Use the existing handleFolders function from the main app
-        if (typeof handleFolders === 'function') {
-            handleFolders(folderInfos);
+        if (fbMode === 'enhancer') {
+            // Design Enhancer mode — fetch tree for each folder, convert to uf format, send to ufHandleFoldersStructure
+            await fbSendToDesignEnhancer(folderInfos);
+        } else {
+            // Prompt Editor mode — use the existing handleFolders function
+            if (typeof handleFolders === 'function') {
+                handleFolders(folderInfos);
+            }
         }
         
         closeFolderBrowser();
     };
+
+    // Send selected folders to Design Enhancer's Project Structure
+    async function fbSendToDesignEnhancer(folderInfos) {
+        const folders = [];
+        
+        for (const info of folderInfos) {
+            try {
+                // Fetch tree from PHP
+                const formData = new FormData();
+                formData.append('action', 'get_folder_tree');
+                formData.append('path', info.path);
+                formData.append('max_depth', '4');
+                
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success && data.tree) {
+                    // Convert PHP tree format to uf format {name, type, children, fileCount, folderCount}
+                    const converted = fbConvertTreeToUfFormat(info.name, data.tree);
+                    folders.push(converted);
+                } else {
+                    // If tree fetch failed, add as empty folder
+                    folders.push({
+                        name: info.name,
+                        type: 'folder',
+                        children: [],
+                        fileCount: 0,
+                        folderCount: 0
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching tree for', info.name, err);
+                folders.push({
+                    name: info.name,
+                    type: 'folder',
+                    children: [],
+                    fileCount: 0,
+                    folderCount: 0
+                });
+            }
+        }
+        
+        // Send to Design Enhancer's ufHandleFoldersStructure
+        if (folders.length > 0 && typeof ufHandleFoldersStructure === 'function') {
+            ufHandleFoldersStructure(folders);
+            
+            // Also update the root display
+            const rootSelectedDiv = document.getElementById('ufRootSelected');
+            const rootDropDiv = document.getElementById('ufRootDrop');
+            const rootNameSpan = document.getElementById('ufRootName');
+            
+            if (rootSelectedDiv && rootDropDiv && rootNameSpan) {
+                const folderNames = folders.map(f => f.name).join(', ');
+                const totalFiles = folders.reduce((sum, f) => sum + (f.fileCount || 0), 0);
+                rootDropDiv.style.display = 'none';
+                rootSelectedDiv.style.display = 'flex';
+                rootNameSpan.textContent = `${folders.length} folder(s): ${folderNames} (${totalFiles} files)`;
+            }
+        }
+    }
+
+    // Convert PHP tree format → uf format (recursive)
+    function fbConvertTreeToUfFormat(name, tree) {
+        let fileCount = 0;
+        let folderCount = 0;
+        
+        function convertChildren(items) {
+            const children = [];
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    folderCount++;
+                    const subChildren = item.children ? convertChildren(item.children) : [];
+                    children.push({
+                        name: item.name,
+                        type: 'folder',
+                        children: subChildren,
+                        fileCount: subChildren.filter(c => c.type === 'file').length,
+                        folderCount: subChildren.filter(c => c.type === 'folder').length
+                    });
+                } else {
+                    fileCount++;
+                    children.push({
+                        name: item.name,
+                        type: 'file',
+                        size: 0,
+                        path: name + '/' + item.name
+                    });
+                }
+            }
+            return children;
+        }
+        
+        const children = convertChildren(tree);
+        
+        return {
+            name: name,
+            type: 'folder',
+            children: children,
+            fileCount: fileCount,
+            folderCount: folderCount
+        };
+    }
 
     // Close on overlay click
     document.getElementById('folderBrowserOverlay').addEventListener('click', function(e) {
