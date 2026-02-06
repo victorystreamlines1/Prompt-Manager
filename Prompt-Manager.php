@@ -1169,6 +1169,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // FOLDER TREE - Get full directory tree for a folder
+    // ============================================
+    if ($action === 'get_folder_tree') {
+        $folderPath = $_POST['path'] ?? '';
+        $maxDepth = intval($_POST['max_depth'] ?? 4); // Limit depth to prevent huge trees
+        
+        if (empty($folderPath)) {
+            echo json_encode(['success' => false, 'message' => 'No path provided']);
+            exit;
+        }
+        
+        $folderPath = realpath($folderPath);
+        
+        if (!$folderPath || !is_dir($folderPath)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+            exit;
+        }
+        
+        // Recursive function to build tree
+        function buildDirectoryTree($path, $depth = 0, $maxDepth = 4) {
+            if ($depth >= $maxDepth) {
+                return ['_truncated' => true];
+            }
+            
+            $tree = [];
+            $items = @scandir($path);
+            
+            if (!$items) return $tree;
+            
+            $dirs = [];
+            $files = [];
+            
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                
+                // Skip hidden files/folders and common ignore patterns
+                if ($item[0] === '.' || $item === 'node_modules' || $item === 'vendor' || $item === '__pycache__') continue;
+                
+                $fullPath = $path . DIRECTORY_SEPARATOR . $item;
+                
+                if (is_dir($fullPath)) {
+                    $dirs[] = $item;
+                } else {
+                    $files[] = $item;
+                }
+            }
+            
+            // Sort alphabetically
+            sort($dirs, SORT_STRING | SORT_FLAG_CASE);
+            sort($files, SORT_STRING | SORT_FLAG_CASE);
+            
+            // Add directories first (with their children)
+            foreach ($dirs as $dir) {
+                $children = buildDirectoryTree($path . DIRECTORY_SEPARATOR . $dir, $depth + 1, $maxDepth);
+                $tree[] = [
+                    'name' => $dir,
+                    'type' => 'folder',
+                    'children' => $children
+                ];
+            }
+            
+            // Then add files
+            foreach ($files as $file) {
+                $tree[] = [
+                    'name' => $file,
+                    'type' => 'file'
+                ];
+            }
+            
+            return $tree;
+        }
+        
+        try {
+            $tree = buildDirectoryTree($folderPath, 0, $maxDepth);
+            $folderName = basename($folderPath);
+            
+            echo json_encode([
+                'success' => true,
+                'folderName' => $folderName,
+                'folderPath' => str_replace('\\', '/', $folderPath),
+                'tree' => $tree
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -27306,24 +27395,26 @@ in each section carefully and maintain proper connections between components.
         // FOLDER HANDLING (Name/Label only, no upload)
         // ============================================
         
-        // Handle folder selection - captures folder names only
-        // Handle folder selection — adds folder names to display list and editor
-        function handleFolders(folderNames) {
-            console.log('📂 handleFolders called with', folderNames.length, 'folders');
+        // Handle folder selection — accepts array of {name, path} objects or plain strings (drag & drop)
+        async function handleFolders(folderInfos) {
+            console.log('📂 handleFolders called with', folderInfos.length, 'folders');
             
-            if (!folderNames || folderNames.length === 0) {
+            if (!folderInfos || folderInfos.length === 0) {
                 console.log('No folders to process');
                 return;
             }
             
-            const editor = document.getElementById('promptEditor');
             const folderDropZone = document.getElementById('folderDropZone');
             let foldersProcessed = 0;
             
             // Show processing state
             folderDropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processing folders...</span>';
             
-            for (const folderName of folderNames) {
+            for (const info of folderInfos) {
+                // Support both {name, path} objects and plain strings (backward compat for drag & drop)
+                const folderName = typeof info === 'string' ? info : info.name;
+                const folderPath = typeof info === 'string' ? '' : (info.path || '');
+                
                 // Skip if already known (already in the display list)
                 if (knownFolders.has(folderName)) {
                     showToast(`📁 ${folderName} is already in the list`, 'info');
@@ -27332,13 +27423,14 @@ in each section carefully and maintain proper connections between components.
                 
                 const marker = `<!-- FOLDER:${folderName} -->`;
                 
-                // Register in knownFolders (persists in display list)
+                // Register in knownFolders (persists in display list) — store path for tree generation
                 knownFolders.set(folderName, {
-                    addedAt: Date.now()
+                    addedAt: Date.now(),
+                    path: folderPath
                 });
                 
-                // Also add to editor (checked by default)
-                addFolderToEditor(folderName, marker);
+                // Also add to editor (checked by default) — async: will fetch tree if path available
+                await addFolderToEditor(folderName, marker, folderPath);
                 
                 foldersProcessed++;
             }
@@ -27349,20 +27441,111 @@ in each section carefully and maintain proper connections between components.
             if (foldersProcessed > 0) {
                 updateCounts();
                 recordHistoryState(true);
-                showToast(`✅ ${foldersProcessed} folder(s) added as references!`, 'success');
+                showToast(`✅ ${foldersProcessed} folder(s) added with directory tree!`, 'success');
                 
                 // Re-render the file list to include folders
                 loadUploadedFiles();
             }
         }
         
-        // Add a folder's reference to the editor (makes it "checked")
-        function addFolderToEditor(folderName, marker) {
+        // Fetch folder tree from PHP server
+        async function fetchFolderTree(folderPath) {
+            if (!folderPath) return null;
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_folder_tree');
+                formData.append('path', folderPath);
+                formData.append('max_depth', '4');
+                
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                return data.success ? data.tree : null;
+            } catch (err) {
+                console.error('Error fetching folder tree:', err);
+                return null;
+            }
+        }
+        
+        // Build a beautiful ASCII tree diagram from the tree data
+        function buildTreeDiagram(folderName, treeData) {
+            if (!treeData || treeData.length === 0) {
+                return `📁 ${folderName}/\n    (empty folder)`;
+            }
+            
+            let lines = [`📁 ${folderName}/`];
+            
+            function renderNode(items, prefix) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    const isLast = (i === items.length - 1);
+                    const connector = isLast ? '└── ' : '├── ';
+                    const childPrefix = isLast ? '    ' : '│   ';
+                    
+                    if (item._truncated) {
+                        lines.push(prefix + connector + '... (more items)');
+                        continue;
+                    }
+                    
+                    if (item.type === 'folder') {
+                        lines.push(prefix + connector + '📂 ' + item.name + '/');
+                        if (item.children && item.children.length > 0) {
+                            renderNode(item.children, prefix + childPrefix);
+                        }
+                    } else {
+                        // File — pick icon based on extension
+                        const ext = item.name.split('.').pop().toLowerCase();
+                        let icon = '📄';
+                        if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                        else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                        else if (['php'].includes(ext)) icon = '🐘';
+                        else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                        else if (['html','htm'].includes(ext)) icon = '🌐';
+                        else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                        else if (['md','txt','log'].includes(ext)) icon = '📝';
+                        else if (['py'].includes(ext)) icon = '🐍';
+                        else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
+                        else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
+                        else if (['env','gitignore','htaccess'].includes(ext) || item.name.startsWith('.')) icon = '⚙️';
+                        
+                        lines.push(prefix + connector + icon + ' ' + item.name);
+                    }
+                }
+            }
+            
+            renderNode(treeData, '');
+            return lines.join('\n');
+        }
+        
+        // Add a folder's reference + tree diagram to the editor (makes it "checked")
+        async function addFolderToEditor(folderName, marker, folderPath) {
             const editor = document.getElementById('promptEditor');
-            const content = `[📁 ${folderName}]`;
             
             if (!marker) {
                 marker = `<!-- FOLDER:${folderName} -->`;
+            }
+            
+            // Try to get the folder path from knownFolders if not provided
+            if (!folderPath && knownFolders.has(folderName)) {
+                folderPath = knownFolders.get(folderName).path || '';
+            }
+            
+            // Fetch tree from PHP if we have a path
+            let content = '';
+            if (folderPath) {
+                const treeData = await fetchFolderTree(folderPath);
+                if (treeData) {
+                    content = buildTreeDiagram(folderName, treeData);
+                } else {
+                    content = `📁 ${folderName}/\n    (could not read directory contents)`;
+                }
+            } else {
+                // No path available (drag & drop) — just show the folder name
+                content = `[📁 ${folderName}]`;
             }
             
             // Append to editor with spacing
@@ -27407,15 +27590,16 @@ in each section carefully and maintain proper connections between components.
         }
         
         // Toggle folder checkbox — adds/removes from editor, folder stays in display list
-        function toggleFolderCheckbox(folderName) {
+        async function toggleFolderCheckbox(folderName) {
             if (editorFolders.has(folderName)) {
                 // Folder is in editor — remove from editor (uncheck)
                 removeFolderFromEditor(folderName);
                 showToast(`📁 ${folderName} removed from editor`, 'info');
             } else {
-                // Folder not in editor — add back to editor (check)
+                // Folder not in editor — add back to editor (check) with tree
                 const marker = `<!-- FOLDER:${folderName} -->`;
-                addFolderToEditor(folderName, marker);
+                const folderPath = knownFolders.has(folderName) ? (knownFolders.get(folderName).path || '') : '';
+                await addFolderToEditor(folderName, marker, folderPath);
                 updateCounts();
                 recordHistoryState(true);
                 showToast(`📁 ${folderName} added to editor`, 'success');
@@ -27702,9 +27886,10 @@ in each section carefully and maintain proper connections between components.
                     const isFolderChecked = editorFolders.has(folderName);
                     
                     if (checked && !isFolderChecked) {
-                        // Add folder to editor (it's already in knownFolders)
+                        // Add folder to editor with tree (it's already in knownFolders)
                         const marker = `<!-- FOLDER:${folderName} -->`;
-                        addFolderToEditor(folderName, marker);
+                        const folderPath = knownFolders.has(folderName) ? (knownFolders.get(folderName).path || '') : '';
+                        await addFolderToEditor(folderName, marker, folderPath);
                         processedCount++;
                     } else if (!checked && isFolderChecked) {
                         removeFolderFromEditor(folderName);
@@ -40409,7 +40594,7 @@ function toggleTheme() {
 (function() {
     let fbCurrentPath = '';
     let fbParentPath = '';
-    let fbSelectedFolders = new Set(); // Set of folder names selected in the modal
+    let fbSelectedFolders = new Map(); // Map of folderName → folderPath selected in the modal
 
     // Open the folder browser modal
     window.openFolderBrowser = function() {
@@ -40425,7 +40610,7 @@ function toggleTheme() {
     window.closeFolderBrowser = function() {
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.remove('active');
-        fbSelectedFolders.clear();
+        fbSelectedFolders = new Map();
         fbUpdateSelectedCount();
     };
 
@@ -40488,7 +40673,7 @@ function toggleTheme() {
             const escapedPath = folder.path.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             
             html += `
-            <div class="fb-folder-item ${isSelected ? 'selected' : ''}" data-name="${folder.name}" onclick="fbToggleFolder('${escapedName}', this)">
+            <div class="fb-folder-item ${isSelected ? 'selected' : ''}" data-name="${folder.name}" data-path="${escapedPath}" onclick="fbToggleFolder('${escapedName}', '${escapedPath}', this)">
                 <div class="fb-folder-checkbox"><i class="fas fa-check"></i></div>
                 <i class="fas fa-folder fb-folder-icon"></i>
                 <span class="fb-folder-name">${folder.name}</span>
@@ -40500,12 +40685,12 @@ function toggleTheme() {
     }
 
     // Toggle folder selection
-    window.fbToggleFolder = function(folderName, element) {
+    window.fbToggleFolder = function(folderName, folderPath, element) {
         if (fbSelectedFolders.has(folderName)) {
             fbSelectedFolders.delete(folderName);
             element.classList.remove('selected');
         } else {
-            fbSelectedFolders.add(folderName);
+            fbSelectedFolders.set(folderName, folderPath);
             element.classList.add('selected');
         }
         fbUpdateSelectedCount();
@@ -40515,7 +40700,8 @@ function toggleTheme() {
     window.fbSelectAll = function() {
         document.querySelectorAll('.fb-folder-item').forEach(item => {
             const name = item.dataset.name;
-            fbSelectedFolders.add(name);
+            const path = item.dataset.path || '';
+            fbSelectedFolders.set(name, path);
             item.classList.add('selected');
         });
         fbUpdateSelectedCount();
@@ -40538,15 +40724,19 @@ function toggleTheme() {
         document.getElementById('fbAddBtn').disabled = count === 0;
     }
 
-    // Add selected folders to the main app
+    // Add selected folders to the main app (with full paths for tree generation)
     window.fbAddSelected = function() {
         if (fbSelectedFolders.size === 0) return;
         
-        const folderNames = Array.from(fbSelectedFolders);
+        // Build array of {name, path} objects
+        const folderInfos = [];
+        fbSelectedFolders.forEach((path, name) => {
+            folderInfos.push({ name, path });
+        });
         
         // Use the existing handleFolders function from the main app
         if (typeof handleFolders === 'function') {
-            handleFolders(folderNames);
+            handleFolders(folderInfos);
         }
         
         closeFolderBrowser();
