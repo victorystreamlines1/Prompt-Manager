@@ -1175,7 +1175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ============================================
     if ($action === 'get_folder_tree') {
         $folderPath = $_POST['path'] ?? '';
-        $maxDepth = intval($_POST['max_depth'] ?? 4); // Limit depth to prevent huge trees
+        $maxDepth = intval($_POST['max_depth'] ?? 0); // 0 = unlimited depth (traverse all levels)
         
         if (empty($folderPath)) {
             echo json_encode(['success' => false, 'message' => 'No path provided']);
@@ -1190,9 +1190,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Recursive function to build tree
-        function buildDirectoryTree($path, $depth = 0, $maxDepth = 4) {
-            if ($depth >= $maxDepth) {
-                return ['_truncated' => true];
+        function buildDirectoryTree($path, $depth = 0, $maxDepth = 0) {
+            // maxDepth = 0 means unlimited; otherwise stop at maxDepth
+            if ($maxDepth > 0 && $depth >= $maxDepth) {
+                return [];
             }
             
             $tree = [];
@@ -27454,7 +27455,7 @@ in each section carefully and maintain proper connections between components.
                 const formData = new FormData();
                 formData.append('action', 'get_folder_tree');
                 formData.append('path', folderPath);
-                formData.append('max_depth', '4');
+                formData.append('max_depth', '0'); // 0 = unlimited depth — traverse all levels
                 
                 const response = await fetch('', {
                     method: 'POST',
@@ -27484,14 +27485,9 @@ in each section carefully and maintain proper connections between components.
                     const connector = isLast ? '└── ' : '├── ';
                     const childPrefix = isLast ? '    ' : '│   ';
                     
-                    if (item._truncated) {
-                        lines.push(prefix + connector + '... (more items)');
-                        continue;
-                    }
-                    
                     if (item.type === 'folder') {
                         lines.push(prefix + connector + '📂 ' + item.name + '/');
-                        if (item.children && item.children.length > 0) {
+                        if (item.children && Array.isArray(item.children) && item.children.length > 0) {
                             renderNode(item.children, prefix + childPrefix);
                         }
                     } else {
