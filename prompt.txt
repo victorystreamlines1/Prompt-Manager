@@ -1,7 +1,1 @@
-<!-- FILE:report-prompt-databases.php -->
-[📎 report-prompt-databases.php | Folder: root]
-<!-- /END  FILE:report-prompt-databases.php -->
-
-
-
-Please take the time to carefully and thoroughly review this particular application in order to gain a comprehensive understanding of its main objectives, core functionality, key features, and the intended goals it aims to achieve. Additionally, make sure to read through all of the related files that are associated with this application, which include JavaScript files, PHP files, CSS files, and HTML files. Once you have completed your thorough and comprehensive review of the application and all of its associated files, please return to provide your findings and insights.
+now I want you to modify the feature in generate functionality button the generate I don't want you to change anything other than the display of the database the database should display according to the selection if the remote button is selected then it will display the remote connection if the local is selected then it should display the local if both are selected it should display both after generation of course and finally if nothing is selected when it generates it shouldn't generate any connection 

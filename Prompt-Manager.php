@@ -23982,6 +23982,14 @@ ${blockContent}
             const dropdown = document.getElementById('dbDropdown');
             const hasDatabaseSelected = dropdown && dropdown.value && dropdown.value !== '';
             
+            // Check which credential checkboxes are selected (used for early checks)
+            const earlyRemoteChecked = document.getElementById('dbCredentialsCheckbox')?.checked || false;
+            const earlyLocalhostChecked = document.getElementById('dbLocalhostCheckbox')?.checked || false;
+            const hasAnyCredentialSelected = earlyRemoteChecked || earlyLocalhostChecked;
+            
+            // Database is only considered "active" if dropdown has value AND at least one credential is checked
+            const hasDatabaseActive = hasDatabaseSelected && hasAnyCredentialSelected;
+            
             // Check if we have any dynamic items or database selected
             const hasBackendItems = dynamicItems.backend.length > 0;
             const hasPageItems = dynamicItems.page.length > 0;
@@ -23992,7 +24000,7 @@ ${blockContent}
             const hasProjectPrompts = projectPromptsContent.length > 0;
             
             // If nothing at all is selected/available, still add the language directive
-            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts) {
+            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts) {
                 // Add language directive even with no other content
                 const languageDirectiveOnly = generateLanguageDirective();
                 if (editor) {
@@ -24011,7 +24019,7 @@ ${blockContent}
             
             // EARLY CHECK: If ONLY Project Prompts has content (no dashboard items selected)
             // Include language directive + project prompts
-            if (!hasDatabaseSelected && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
+            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
                 const languageDirectiveOnly = generateLanguageDirective();
                 const combinedContent = languageDirectiveOnly + '\n\n' + projectPromptsContent;
                 
@@ -24061,8 +24069,12 @@ details about the application components you need to work with.
    • Frontend Components: ${frontendCount}
 `);
 
-            // 1. DATABASE SECTION (if database is selected from dropdown)
-            if (hasDatabaseSelected) {
+            // 1. DATABASE SECTION (if database is selected from dropdown AND at least one credential checkbox is checked)
+            const isRemoteChecked = document.getElementById('dbCredentialsCheckbox')?.checked || false;
+            const isLocalhostChecked = document.getElementById('dbLocalhostCheckbox')?.checked || false;
+            const hasCredentialSelected = isRemoteChecked || isLocalhostChecked;
+            
+            if (hasDatabaseSelected && hasCredentialSelected) {
                 const selectedOption = dropdown.options[dropdown.selectedIndex];
                 
                 if (selectedOption && selectedOption.dataset) {
@@ -24077,16 +24089,33 @@ details about the application components you need to work with.
                         type: selectedOption.dataset.type || 'shared'
                     };
                     
-                    promptSections.push(`
+                    // Build description based on selection
+                    let connDescription = '';
+                    if (isRemoteChecked && isLocalhostChecked) {
+                        connDescription = `Below are the database credentials for this application. Two connection options 
+are provided:
+• REMOTE CONNECTION - For external access from development machines or external servers
+• LOCALHOST CONNECTION - For on-server access when code runs directly on the hosting server`;
+                    } else if (isRemoteChecked) {
+                        connDescription = `Below are the REMOTE database credentials for this application.
+• REMOTE CONNECTION - For external access from development machines or external servers`;
+                    } else {
+                        connDescription = `Below are the LOCALHOST database credentials for this application.
+• LOCALHOST CONNECTION - For on-server access when code runs directly on the hosting server`;
+                    }
+                    
+                    // Start database section
+                    let dbSection = `
 ════════════════════════════════════════════════════════════════════════════════
 📦 DATABASE CONNECTION
 ════════════════════════════════════════════════════════════════════════════════
 
-Below are the database credentials for this application. Two connection options 
-are provided:
-• REMOTE CONNECTION - For external access from development machines or external servers
-• LOCALHOST CONNECTION - For on-server access when code runs directly on the hosting server
-
+${connDescription}
+`;
+                    
+                    // Add LOCALHOST block if selected
+                    if (isLocalhostChecked) {
+                        dbSection += `
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  🖥️ LOCALHOST CONNECTION (On-Server / Internal Access)                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -24100,7 +24129,12 @@ are provided:
 │                                                                             │
 │  💡 Use this when your application runs on the same server as the database │
 └─────────────────────────────────────────────────────────────────────────────┘
-
+`;
+                    }
+                    
+                    // Add REMOTE block if selected
+                    if (isRemoteChecked) {
+                        dbSection += `
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  🌐 REMOTE CONNECTION (External Access)                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -24114,13 +24148,26 @@ are provided:
 │                                                                             │
 │  💡 Use this when connecting from external servers or development machines │
 └─────────────────────────────────────────────────────────────────────────────┘
-
-⚠️ IMPORTANT NOTES:
-   • Use LOCALHOST connection for faster performance when code runs on the same server
-   • Use REMOTE connection when accessing from external environments
+`;
+                    }
+                    
+                    // Add appropriate notes based on selection
+                    dbSection += `
+⚠️ IMPORTANT NOTES:`;
+                    if (isLocalhostChecked) {
+                        dbSection += `
+   • Use LOCALHOST connection for faster performance when code runs on the same server`;
+                    }
+                    if (isRemoteChecked) {
+                        dbSection += `
+   • Use REMOTE connection when accessing from external environments`;
+                    }
+                    dbSection += `
    • Never expose these credentials in client-side code
    • Implement proper error handling for database connections
-`);
+`;
+                    
+                    promptSections.push(dbSection);
                 }
             }
 
@@ -24310,7 +24357,7 @@ ${projectPromptsContent.split('\n').map(line => `│  ${line.substring(0, 73).pa
 ════════════════════════════════════════════════════════════════════════════════
 
 Components included in this prompt:
-${hasDatabaseSelected ? '  ✅ Database Connection (Remote + Localhost)' : '  ⬜ Database Connection'}
+${(hasDatabaseSelected && hasCredentialSelected) ? '  ✅ Database Connection (' + (isRemoteChecked && isLocalhostChecked ? 'Remote + Localhost' : isRemoteChecked ? 'Remote' : 'Localhost') + ')' : '  ⬜ Database Connection'}
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
@@ -24344,7 +24391,7 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Count total items
-            const totalItems = (hasDatabaseSelected ? 1 : 0) + backendCount + pageCount + frontendCount + (hasProjectPrompts ? 1 : 0);
+            const totalItems = ((hasDatabaseSelected && hasCredentialSelected) ? 1 : 0) + backendCount + pageCount + frontendCount + (hasProjectPrompts ? 1 : 0);
             
             // Show success toast
             showToast(`✨ Generated ${totalItems} component${totalItems > 1 ? 's' : ''} → Prompt Editor`, 'success');
