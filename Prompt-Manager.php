@@ -1873,6 +1873,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-primary);
         }
 
+        /* Folder Drop Zone - Distinct Style */
+        .drop-zone-mini.folder-zone {
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .drop-zone-mini.folder-zone i {
+            color: #fbbf24;
+        }
+
+        .drop-zone-mini.folder-zone:hover,
+        .drop-zone-mini.folder-zone.dragover {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.08);
+            border-style: solid;
+        }
+
+        .drop-zone-mini.folder-zone:hover span {
+            color: #fbbf24;
+        }
+
+        .drop-zone-mini.folder-zone.dragover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+        }
+
+        /* Folder Item in Files List */
+        .file-item.folder-item {
+            border-color: rgba(251, 191, 36, 0.25);
+            background: rgba(251, 191, 36, 0.05);
+        }
+
+        .file-item.folder-item:hover {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .file-item.folder-item.checked {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.12);
+        }
+
+        .file-item.folder-item .file-item-icon {
+            color: #fbbf24;
+        }
+
+        .file-item.folder-item.checked .file-item-checkbox .checkbox-box {
+            background: linear-gradient(135deg, #fbbf24, #d97706);
+            border-color: #fbbf24;
+        }
+
         /* Uploaded Files Header */
         .uploaded-files-header {
             display: flex;
@@ -17298,6 +17348,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="hidden" id="fileContentToggle" value="reference">
                 </div>
                 
+                <!-- Folder Picker Zone -->
+                <div class="file-picker-container">
+                    <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;">
+                    <div class="drop-zone-mini folder-zone" id="folderDropZone">
+                        <i class="fas fa-folder-plus"></i>
+                        <span>Pick folders here</span>
+                    </div>
+                </div>
+
                 <!-- Drag & Drop Zone -->
                 <div class="file-picker-container">
                     <input type="file" id="fileInput" multiple style="display: none;">
@@ -17315,7 +17374,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="checkbox-custom"></span>
                             <span class="checkbox-label">Select All</span>
                         </label>
-                        <span class="files-count"><i class="fas fa-paperclip"></i> <span id="filesCount">0</span> file(s)</span>
+                        <span class="files-count"><i class="fas fa-paperclip"></i> <span id="filesCount">0</span> item(s)</span>
                     </div>
                     <button type="button" class="btn-delete-all" onclick="deleteAllFiles()" title="Delete all files">
                         <i class="fas fa-trash-alt"></i> Delete All
@@ -26815,6 +26874,64 @@ in each section carefully and maintain proper connections between components.
                 }
             });
 
+            // Folder Picker - Drop Zone
+            const folderDropZone = document.getElementById('folderDropZone');
+            const folderInput = document.getElementById('folderInput');
+            
+            // Folder zone click - opens folder picker
+            folderDropZone.addEventListener('click', () => folderInput.click());
+            
+            folderDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                folderDropZone.classList.add('dragover');
+            });
+            
+            folderDropZone.addEventListener('dragleave', () => {
+                folderDropZone.classList.remove('dragover');
+            });
+            
+            folderDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                folderDropZone.classList.remove('dragover');
+                
+                // Extract folder names from dropped items
+                const items = e.dataTransfer.items;
+                if (items) {
+                    const folderNames = new Set();
+                    for (let i = 0; i < items.length; i++) {
+                        const entry = items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : null;
+                        if (entry && entry.isDirectory) {
+                            folderNames.add(entry.name);
+                        }
+                    }
+                    if (folderNames.size > 0) {
+                        handleFolders(Array.from(folderNames));
+                    } else {
+                        showToast('⚠️ No folders detected. Please drop folders, not files.', 'warning');
+                    }
+                }
+            });
+            
+            // Folder input change (webkitdirectory gives files inside the folder)
+            folderInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Extract unique top-level folder names from the file paths
+                    const folderNames = new Set();
+                    for (const file of e.target.files) {
+                        // webkitRelativePath is like "FolderName/subdir/file.txt"
+                        const topFolder = file.webkitRelativePath.split('/')[0];
+                        if (topFolder) {
+                            folderNames.add(topFolder);
+                        }
+                    }
+                    if (folderNames.size > 0) {
+                        handleFolders(Array.from(folderNames));
+                    }
+                    folderInput.value = ''; // Reset for next selection
+                }
+            });
+
             // Search saved prompts
             document.getElementById('searchPrompts').addEventListener('input', (e) => {
                 const searchTerm = e.target.value;
@@ -26836,6 +26953,9 @@ in each section carefully and maintain proper connections between components.
 
         // Track files added to editor
         let editorFiles = new Map(); // filename -> {id, content, marker, isReference}
+        
+        // Track folders added (name only, no upload)
+        let editorFolders = new Map(); // foldername -> {marker, addedAt}
         
         // Current file mode: 'content' or 'reference'
         let currentFileMode = 'reference';
@@ -27129,6 +27249,112 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
+        // ============================================
+        // FOLDER HANDLING (Name/Label only, no upload)
+        // ============================================
+        
+        // Handle folder selection - captures folder names only
+        function handleFolders(folderNames) {
+            console.log('📂 handleFolders called with', folderNames.length, 'folders');
+            
+            if (!folderNames || folderNames.length === 0) {
+                console.log('No folders to process');
+                return;
+            }
+            
+            const editor = document.getElementById('promptEditor');
+            const folderDropZone = document.getElementById('folderDropZone');
+            let foldersProcessed = 0;
+            
+            // Show processing state
+            folderDropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processing folders...</span>';
+            
+            for (const folderName of folderNames) {
+                // Skip if already added
+                if (editorFolders.has(folderName)) {
+                    showToast(`📁 ${folderName} is already added`, 'info');
+                    continue;
+                }
+                
+                // Create folder reference content
+                const content = `[📁 ${folderName}]`;
+                const marker = `<!-- FOLDER:${folderName} -->`;
+                
+                // Append to editor with spacing
+                let textToAdd = '';
+                if (editor.value.trim()) {
+                    textToAdd = '\n\n';
+                }
+                textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
+                
+                editor.value += textToAdd;
+                
+                // Track this folder
+                editorFolders.set(folderName, {
+                    marker: marker,
+                    addedAt: Date.now()
+                });
+                
+                foldersProcessed++;
+            }
+            
+            // Restore folder drop zone
+            folderDropZone.innerHTML = '<i class="fas fa-folder-plus"></i><span>Pick folders here</span>';
+            
+            if (foldersProcessed > 0) {
+                updateCounts();
+                recordHistoryState(true);
+                showToast(`✅ ${foldersProcessed} folder(s) added as references!`, 'success');
+                
+                // Re-render the file list to include folders
+                loadUploadedFiles();
+            }
+        }
+        
+        // Remove folder from editor
+        function removeFolderFromEditor(folderName) {
+            const editor = document.getElementById('promptEditor');
+            const folderData = editorFolders.get(folderName);
+            
+            if (folderData) {
+                const startMarker = folderData.marker;
+                const endMarker = startMarker.replace('<!--', '<!-- /END ');
+                
+                const startIdx = editor.value.indexOf(startMarker);
+                if (startIdx !== -1) {
+                    const endIdx = editor.value.indexOf(endMarker);
+                    if (endIdx !== -1) {
+                        const before = editor.value.substring(0, startIdx);
+                        const after = editor.value.substring(endIdx + endMarker.length);
+                        editor.value = (before + after).replace(/\n{3,}/g, '\n\n').trim();
+                    }
+                }
+                
+                editorFolders.delete(folderName);
+                updateCounts();
+                showToast(`📁 ${folderName} removed from editor`, 'info');
+                
+                // Re-render the file list
+                loadUploadedFiles();
+            }
+        }
+        
+        // Toggle folder checkbox in the file list
+        function toggleFolderCheckbox(folderName) {
+            if (editorFolders.has(folderName)) {
+                // Folder is in editor - remove it
+                removeFolderFromEditor(folderName);
+            } else {
+                // Folder not in editor - add it back
+                handleFolders([folderName]);
+            }
+        }
+        
+        // Delete folder (remove from tracking and editor)
+        function deleteFolder(folderName) {
+            removeFolderFromEditor(folderName);
+        }
+
         // Load uploaded files
         async function loadUploadedFiles() {
             try {
@@ -27145,34 +27371,70 @@ in each section carefully and maintain proper connections between components.
                 const header = document.getElementById('uploadedFilesHeader');
                 const countSpan = document.getElementById('filesCount');
                 
-                if (data.success && data.files.length > 0) {
+                const hasFiles = data.success && data.files.length > 0;
+                const hasFolders = editorFolders.size > 0;
+                const totalItems = (hasFiles ? data.files.length : 0) + editorFolders.size;
+                
+                if (hasFiles || hasFolders) {
                     // Show header and update count
                     header.style.display = 'flex';
-                    countSpan.textContent = data.files.length;
+                    countSpan.textContent = totalItems;
                     
-                    container.innerHTML = data.files.map(file => {
-                        const isChecked = editorFiles.has(file.filename);
-                        return `
-                        <div class="file-item ${isChecked ? 'checked' : ''}" data-filename="${escapeHtml(file.filename)}" data-filepath="${escapeHtml(file.filepath)}" data-fileid="${file.id}">
-                            <div class="file-item-checkbox" onclick="toggleFileCheckbox('${escapeHtml(file.filepath)}', '${escapeHtml(file.filename)}', ${file.filesize || 0})">
-                                <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                                <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                    let html = '';
+                    
+                    // 1. Render FOLDERS first (before files)
+                    if (hasFolders) {
+                        editorFolders.forEach((folderData, folderName) => {
+                            const isChecked = editorFolders.has(folderName);
+                            const escapedName = escapeHtml(folderName);
+                            html += `
+                            <div class="file-item folder-item ${isChecked ? 'checked' : ''}" data-foldername="${escapedName}">
+                                <div class="file-item-checkbox" onclick="toggleFolderCheckbox('${escapedName}')">
+                                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                                    <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                                </div>
+                                <i class="fas fa-folder file-item-icon"></i>
+                                <div class="file-info">
+                                    <div class="file-name">${escapedName}</div>
+                                    <div class="file-size">Folder</div>
+                                </div>
+                                <button class="file-delete" onclick="event.stopPropagation(); deleteFolder('${escapedName}')" title="Remove folder">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                            <i class="fas fa-file-alt file-item-icon"></i>
-                            <div class="file-info">
-                                <div class="file-name">${escapeHtml(file.filename)}</div>
-                                <div class="file-size">${formatFileSize(file.filesize)}</div>
+                            `;
+                        });
+                    }
+                    
+                    // 2. Render FILES after folders
+                    if (hasFiles) {
+                        html += data.files.map(file => {
+                            const isChecked = editorFiles.has(file.filename);
+                            return `
+                            <div class="file-item ${isChecked ? 'checked' : ''}" data-filename="${escapeHtml(file.filename)}" data-filepath="${escapeHtml(file.filepath)}" data-fileid="${file.id}">
+                                <div class="file-item-checkbox" onclick="toggleFileCheckbox('${escapeHtml(file.filepath)}', '${escapeHtml(file.filename)}', ${file.filesize || 0})">
+                                    <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                                    <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                                </div>
+                                <i class="fas fa-file-alt file-item-icon"></i>
+                                <div class="file-info">
+                                    <div class="file-name">${escapeHtml(file.filename)}</div>
+                                    <div class="file-size">${formatFileSize(file.filesize)}</div>
+                                </div>
+                                <button class="file-delete" onclick="event.stopPropagation(); deleteFile(${file.id}, '${escapeHtml(file.filename)}')" title="Delete file">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                            <button class="file-delete" onclick="event.stopPropagation(); deleteFile(${file.id}, '${escapeHtml(file.filename)}')" title="Delete file">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `}).join('');
+                            `;
+                        }).join('');
+                    }
+                    
+                    container.innerHTML = html;
                     
                     // Update Select All checkbox state
                     updateSelectAllFilesCheckbox();
                 } else {
-                    // Hide header when no files
+                    // Hide header when no files and no folders
                     header.style.display = 'none';
                     container.innerHTML = '';
                     updateSelectAllFilesCheckbox();
@@ -27342,7 +27604,7 @@ in each section carefully and maintain proper connections between components.
             const fileItems = document.querySelectorAll('.file-item');
             
             if (fileItems.length === 0) {
-                showToast('No files to select', 'info');
+                showToast('No items to select', 'info');
                 return;
             }
             
@@ -27350,76 +27612,94 @@ in each section carefully and maintain proper connections between components.
             const sendFullContent = shouldSendFullContent();
             
             for (const fileItem of fileItems) {
-                const filename = fileItem.dataset.filename;
-                const filepath = fileItem.dataset.filepath;
-                const isCurrentlyChecked = editorFiles.has(filename);
+                // Check if this is a folder item
+                const isFolder = fileItem.classList.contains('folder-item');
                 
-                if (checked && !isCurrentlyChecked) {
-                    // Add file to editor
-                    try {
-                        let content = '';
-                        let isReference = false;
-                        
-                        if (sendFullContent) {
-                            const response = await fetch(filepath);
-                            if (response.ok) {
-                                content = await response.text();
-                            } else {
-                                continue;
-                            }
-                        } else {
-                            // Just create a reference - extract direct parent folder from path
-                            const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
-                            const folder = folderMatch ? folderMatch[1] : 'root';
-                            content = `[📎 ${filename} | Folder: ${folder}]`;
-                            isReference = true;
-                        }
-                        
-                        const marker = `<!-- FILE:${filename} -->`;
-                        const endMarker = `<!-- /END  FILE:${filename} -->`;
-                        const editor = document.getElementById('promptEditor');
-                        
-                        // Add to editor
-                        const currentContent = editor.value;
-                        const newContent = currentContent 
-                            ? currentContent + '\n\n' + marker + '\n' + content + '\n' + endMarker
-                            : marker + '\n' + content + '\n' + endMarker;
-                        editor.value = newContent;
-                        
-                        // Track the file
-                        editorFiles.set(filename, {
-                            id: Date.now(),
-                            content: content,
-                            marker: marker,
-                            isReference: isReference,
-                            addedAt: Date.now()
-                        });
-                        
-                        fileItem.classList.add('checked');
-                        const checkbox = fileItem.querySelector('input[type="checkbox"]');
-                        if (checkbox) checkbox.checked = true;
-                        
+                if (isFolder) {
+                    const folderName = fileItem.dataset.foldername;
+                    const isFolderChecked = editorFolders.has(folderName);
+                    
+                    if (checked && !isFolderChecked) {
+                        handleFolders([folderName]);
                         processedCount++;
-                    } catch (err) {
-                        console.error('Error adding file:', filename, err);
+                    } else if (!checked && isFolderChecked) {
+                        removeFolderFromEditor(folderName);
+                        processedCount++;
                     }
-                } else if (!checked && isCurrentlyChecked) {
-                    // Remove file from editor
-                    removeFileFromEditor(filename);
-                    fileItem.classList.remove('checked');
-                    const checkbox = fileItem.querySelector('input[type="checkbox"]');
-                    if (checkbox) checkbox.checked = false;
-                    processedCount++;
+                } else {
+                    // Regular file item
+                    const filename = fileItem.dataset.filename;
+                    const filepath = fileItem.dataset.filepath;
+                    const isCurrentlyChecked = editorFiles.has(filename);
+                    
+                    if (checked && !isCurrentlyChecked) {
+                        // Add file to editor
+                        try {
+                            let content = '';
+                            let isReference = false;
+                            
+                            if (sendFullContent) {
+                                const response = await fetch(filepath);
+                                if (response.ok) {
+                                    content = await response.text();
+                                } else {
+                                    continue;
+                                }
+                            } else {
+                                // Just create a reference - extract direct parent folder from path
+                                const folderMatch = filepath.match(/\/([^\/]+)\/[^\/]+$/);
+                                const folder = folderMatch ? folderMatch[1] : 'root';
+                                content = `[📎 ${filename} | Folder: ${folder}]`;
+                                isReference = true;
+                            }
+                            
+                            const marker = `<!-- FILE:${filename} -->`;
+                            const endMarker = `<!-- /END  FILE:${filename} -->`;
+                            const editor = document.getElementById('promptEditor');
+                            
+                            // Add to editor
+                            const currentContent = editor.value;
+                            const newContent = currentContent 
+                                ? currentContent + '\n\n' + marker + '\n' + content + '\n' + endMarker
+                                : marker + '\n' + content + '\n' + endMarker;
+                            editor.value = newContent;
+                            
+                            // Track the file
+                            editorFiles.set(filename, {
+                                id: Date.now(),
+                                content: content,
+                                marker: marker,
+                                isReference: isReference,
+                                addedAt: Date.now()
+                            });
+                            
+                            fileItem.classList.add('checked');
+                            const checkbox = fileItem.querySelector('input[type="checkbox"]');
+                            if (checkbox) checkbox.checked = true;
+                            
+                            processedCount++;
+                        } catch (err) {
+                            console.error('Error adding file:', filename, err);
+                        }
+                    } else if (!checked && isCurrentlyChecked) {
+                        // Remove file from editor
+                        removeFileFromEditor(filename);
+                        fileItem.classList.remove('checked');
+                        const checkbox = fileItem.querySelector('input[type="checkbox"]');
+                        if (checkbox) checkbox.checked = false;
+                        processedCount++;
+                    }
                 }
             }
             
             updateCounts();
+            loadUploadedFiles(); // Re-render to update folder states
             
             if (checked) {
                 const modeText = sendFullContent ? 'with full content' : 'as references';
-                showToast(`✅ ${processedCount} file(s) added ${modeText}!`, 'success');
+                showToast(`✅ ${processedCount} item(s) added ${modeText}!`, 'success');
             } else {
-                showToast(`📄 ${processedCount} file(s) removed from editor`, 'info');
+                showToast(`📄 ${processedCount} item(s) removed from editor`, 'info');
             }
         }
         
@@ -27500,23 +27780,31 @@ in each section carefully and maintain proper connections between components.
             const filesCountEl = document.getElementById('filesCount');
             const displayedCount = parseInt(filesCountEl?.textContent || '0');
             const editorCount = editorFiles.size;
-            const totalCount = Math.max(displayedCount, editorCount);
+            const folderCount = editorFolders.size;
+            const totalCount = Math.max(displayedCount, editorCount + folderCount);
             
             if (totalCount === 0) {
-                showToast('No files to delete', 'info');
+                showToast('No files or folders to delete', 'info');
                 return;
             }
             
             showConfirmModal({
-                title: 'Delete All Files?',
-                message: 'This action cannot be undone. All files will be permanently removed.',
-                details: `<span class="file-count">${totalCount}</span> file(s) will be deleted from the list<br>and their content removed from the editor`,
+                title: 'Delete All Files & Folders?',
+                message: 'This action cannot be undone. All files and folders will be permanently removed.',
+                details: `<span class="file-count">${totalCount}</span> item(s) will be deleted from the list<br>and their content removed from the editor`,
                 icon: 'fa-trash-alt',
                 type: 'danger',
                 confirmText: 'Delete All',
                 confirmIcon: 'fa-trash-alt',
                 onConfirm: async () => {
-                    // Remove all files from editor first (instant feedback)
+                    // Remove all folders from editor first
+                    const folderNames = Array.from(editorFolders.keys());
+                    for (const folderName of folderNames) {
+                        removeFolderFromEditor(folderName);
+                    }
+                    editorFolders.clear();
+                    
+                    // Remove all files from editor (instant feedback)
                     const filenames = Array.from(editorFiles.keys());
                     for (const filename of filenames) {
                         removeFileFromEditor(filename);
