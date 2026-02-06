@@ -26955,7 +26955,8 @@ in each section carefully and maintain proper connections between components.
         let editorFiles = new Map(); // filename -> {id, content, marker, isReference}
         
         // Track folders added (name only, no upload)
-        let editorFolders = new Map(); // foldername -> {marker, addedAt}
+        let editorFolders = new Map(); // foldername -> {marker, addedAt} — folders active in editor
+        let knownFolders = new Map(); // foldername -> {addedAt} — all folders in display list (persists)
         
         // Current file mode: 'content' or 'reference'
         let currentFileMode = 'reference';
@@ -27254,6 +27255,7 @@ in each section carefully and maintain proper connections between components.
         // ============================================
         
         // Handle folder selection - captures folder names only
+        // Handle folder selection — adds folder names to display list and editor
         function handleFolders(folderNames) {
             console.log('📂 handleFolders called with', folderNames.length, 'folders');
             
@@ -27270,30 +27272,21 @@ in each section carefully and maintain proper connections between components.
             folderDropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Processing folders...</span>';
             
             for (const folderName of folderNames) {
-                // Skip if already added
-                if (editorFolders.has(folderName)) {
-                    showToast(`📁 ${folderName} is already added`, 'info');
+                // Skip if already known (already in the display list)
+                if (knownFolders.has(folderName)) {
+                    showToast(`📁 ${folderName} is already in the list`, 'info');
                     continue;
                 }
                 
-                // Create folder reference content
-                const content = `[📁 ${folderName}]`;
                 const marker = `<!-- FOLDER:${folderName} -->`;
                 
-                // Append to editor with spacing
-                let textToAdd = '';
-                if (editor.value.trim()) {
-                    textToAdd = '\n\n';
-                }
-                textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
-                
-                editor.value += textToAdd;
-                
-                // Track this folder
-                editorFolders.set(folderName, {
-                    marker: marker,
+                // Register in knownFolders (persists in display list)
+                knownFolders.set(folderName, {
                     addedAt: Date.now()
                 });
+                
+                // Also add to editor (checked by default)
+                addFolderToEditor(folderName, marker);
                 
                 foldersProcessed++;
             }
@@ -27311,7 +27304,32 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Remove folder from editor
+        // Add a folder's reference to the editor (makes it "checked")
+        function addFolderToEditor(folderName, marker) {
+            const editor = document.getElementById('promptEditor');
+            const content = `[📁 ${folderName}]`;
+            
+            if (!marker) {
+                marker = `<!-- FOLDER:${folderName} -->`;
+            }
+            
+            // Append to editor with spacing
+            let textToAdd = '';
+            if (editor.value.trim()) {
+                textToAdd = '\n\n';
+            }
+            textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
+            
+            editor.value += textToAdd;
+            
+            // Track in editorFolders (active in editor)
+            editorFolders.set(folderName, {
+                marker: marker,
+                addedAt: Date.now()
+            });
+        }
+        
+        // Remove folder content from editor only (folder stays in display list)
         function removeFolderFromEditor(folderName) {
             const editor = document.getElementById('promptEditor');
             const folderData = editorFolders.get(folderName);
@@ -27330,29 +27348,41 @@ in each section carefully and maintain proper connections between components.
                     }
                 }
                 
+                // Remove from editorFolders only — folder stays in knownFolders (display list)
                 editorFolders.delete(folderName);
                 updateCounts();
-                showToast(`📁 ${folderName} removed from editor`, 'info');
-                
-                // Re-render the file list
-                loadUploadedFiles();
             }
         }
         
-        // Toggle folder checkbox in the file list
+        // Toggle folder checkbox — adds/removes from editor, folder stays in display list
         function toggleFolderCheckbox(folderName) {
             if (editorFolders.has(folderName)) {
-                // Folder is in editor - remove it
+                // Folder is in editor — remove from editor (uncheck)
                 removeFolderFromEditor(folderName);
+                showToast(`📁 ${folderName} removed from editor`, 'info');
             } else {
-                // Folder not in editor - add it back
-                handleFolders([folderName]);
+                // Folder not in editor — add back to editor (check)
+                const marker = `<!-- FOLDER:${folderName} -->`;
+                addFolderToEditor(folderName, marker);
+                updateCounts();
+                recordHistoryState(true);
+                showToast(`📁 ${folderName} added to editor`, 'success');
             }
+            // Re-render display to update checkbox state
+            loadUploadedFiles();
         }
         
-        // Delete folder (remove from tracking and editor)
+        // Delete folder completely (remove from display list AND editor)
         function deleteFolder(folderName) {
-            removeFolderFromEditor(folderName);
+            // Remove from editor if active
+            if (editorFolders.has(folderName)) {
+                removeFolderFromEditor(folderName);
+            }
+            // Remove from display list
+            knownFolders.delete(folderName);
+            showToast(`📁 ${folderName} deleted`, 'info');
+            // Re-render
+            loadUploadedFiles();
         }
 
         // Load uploaded files
@@ -27372,8 +27402,8 @@ in each section carefully and maintain proper connections between components.
                 const countSpan = document.getElementById('filesCount');
                 
                 const hasFiles = data.success && data.files.length > 0;
-                const hasFolders = editorFolders.size > 0;
-                const totalItems = (hasFiles ? data.files.length : 0) + editorFolders.size;
+                const hasFolders = knownFolders.size > 0;
+                const totalItems = (hasFiles ? data.files.length : 0) + knownFolders.size;
                 
                 if (hasFiles || hasFolders) {
                     // Show header and update count
@@ -27382,9 +27412,9 @@ in each section carefully and maintain proper connections between components.
                     
                     let html = '';
                     
-                    // 1. Render FOLDERS first (before files)
+                    // 1. Render FOLDERS first (before files) — from knownFolders (persisted list)
                     if (hasFolders) {
-                        editorFolders.forEach((folderData, folderName) => {
+                        knownFolders.forEach((folderData, folderName) => {
                             const isChecked = editorFolders.has(folderName);
                             const escapedName = escapeHtml(folderName);
                             html += `
@@ -27620,7 +27650,9 @@ in each section carefully and maintain proper connections between components.
                     const isFolderChecked = editorFolders.has(folderName);
                     
                     if (checked && !isFolderChecked) {
-                        handleFolders([folderName]);
+                        // Add folder to editor (it's already in knownFolders)
+                        const marker = `<!-- FOLDER:${folderName} -->`;
+                        addFolderToEditor(folderName, marker);
                         processedCount++;
                     } else if (!checked && isFolderChecked) {
                         removeFolderFromEditor(folderName);
@@ -27780,7 +27812,7 @@ in each section carefully and maintain proper connections between components.
             const filesCountEl = document.getElementById('filesCount');
             const displayedCount = parseInt(filesCountEl?.textContent || '0');
             const editorCount = editorFiles.size;
-            const folderCount = editorFolders.size;
+            const folderCount = knownFolders.size;
             const totalCount = Math.max(displayedCount, editorCount + folderCount);
             
             if (totalCount === 0) {
@@ -27803,6 +27835,7 @@ in each section carefully and maintain proper connections between components.
                         removeFolderFromEditor(folderName);
                     }
                     editorFolders.clear();
+                    knownFolders.clear();
                     
                     // Remove all files from editor (instant feedback)
                     const filenames = Array.from(editorFiles.keys());
