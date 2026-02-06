@@ -22252,49 +22252,43 @@ ${item.html_code || ''}
         }
         
         // Load language settings
+        // Always defaults to English on page load/refresh
         function loadLanguageSettings() {
             try {
-                const saved = localStorage.getItem(LANGUAGE_SETTINGS_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    appLanguageSettings = { ...appLanguageSettings, ...parsed };
-                    
-                    // Ensure multiLanguages is an array
-                    if (!Array.isArray(appLanguageSettings.multiLanguages)) {
-                        appLanguageSettings.multiLanguages = [];
-                    }
-                    
-                    // Update UI
-                    document.querySelectorAll('.lang-option').forEach(opt => {
-                        opt.classList.remove('active');
-                    });
-                    const selectedOption = document.querySelector(`.lang-option.${appLanguageSettings.language}`);
-                    if (selectedOption) {
-                        selectedOption.classList.add('active');
-                    }
-                    
-                    // Show/hide default selector (for 'both')
-                    const defaultSelector = document.getElementById('defaultLangSelector');
-                    if (appLanguageSettings.language === 'both') {
-                        defaultSelector.classList.add('visible');
-                    }
-                    
-                    // Show/hide multi-language selector
-                    const multiSelector = document.getElementById('multiLangSelector');
-                    if (appLanguageSettings.language === 'multi') {
-                        multiSelector.classList.add('visible');
-                        updateMultiLangUI();
-                    }
-                    
-                    // Update default language buttons
-                    document.querySelectorAll('.default-lang-btn').forEach(btn => {
-                        btn.classList.remove('selected');
-                    });
-                    const selectedDefaultBtn = document.querySelector(`.default-lang-btn[data-default="${appLanguageSettings.defaultLanguage}"]`);
-                    if (selectedDefaultBtn) {
-                        selectedDefaultBtn.classList.add('selected');
-                    }
+                // Always force English as the default language on every page load
+                appLanguageSettings = {
+                    language: 'english',
+                    defaultLanguage: 'english',
+                    multiLanguages: []
+                };
+                
+                // Update UI to reflect English selection
+                document.querySelectorAll('.lang-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                const selectedOption = document.querySelector('.lang-option.english');
+                if (selectedOption) {
+                    selectedOption.classList.add('active');
                 }
+                
+                // Hide default selector and multi-language selector
+                const defaultSelector = document.getElementById('defaultLangSelector');
+                if (defaultSelector) defaultSelector.classList.remove('visible');
+                
+                const multiSelector = document.getElementById('multiLangSelector');
+                if (multiSelector) multiSelector.classList.remove('visible');
+                
+                // Update default language buttons
+                document.querySelectorAll('.default-lang-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                const selectedDefaultBtn = document.querySelector('.default-lang-btn[data-default="english"]');
+                if (selectedDefaultBtn) {
+                    selectedDefaultBtn.classList.add('selected');
+                }
+                
+                // Save the English default to localStorage
+                saveLanguageSettings();
             } catch (e) {
                 console.warn('Could not load language settings:', e);
             }
