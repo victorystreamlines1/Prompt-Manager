@@ -1101,6 +1101,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // FOLDER BROWSER - List directories at a path (PHP server-side)
+    // ============================================
+    if ($action === 'list_folders') {
+        $basePath = $_POST['path'] ?? '';
+        
+        // Default to common base paths if empty
+        if (empty($basePath)) {
+            $basePath = dirname(__FILE__); // Default to app directory
+        }
+        
+        // Security: normalize and validate path
+        $basePath = realpath($basePath);
+        
+        if (!$basePath || !is_dir($basePath)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+            exit;
+        }
+        
+        $folders = [];
+        $files_in_dir = [];
+        
+        try {
+            $items = scandir($basePath);
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                
+                $fullPath = $basePath . DIRECTORY_SEPARATOR . $item;
+                
+                if (is_dir($fullPath)) {
+                    $folders[] = [
+                        'name' => $item,
+                        'path' => str_replace('\\', '/', $fullPath),
+                        'hasSubdirs' => false // Will be checked lazily
+                    ];
+                }
+            }
+            
+            // Sort folders alphabetically
+            usort($folders, function($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
+            
+            // Check which folders have subdirectories (for expand arrows)
+            foreach ($folders as &$folder) {
+                $subItems = @scandir($folder['path']);
+                if ($subItems) {
+                    foreach ($subItems as $sub) {
+                        if ($sub !== '.' && $sub !== '..' && is_dir($folder['path'] . DIRECTORY_SEPARATOR . $sub)) {
+                            $folder['hasSubdirs'] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'folders' => $folders,
+                'currentPath' => str_replace('\\', '/', $basePath),
+                'parentPath' => str_replace('\\', '/', dirname($basePath))
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -17348,9 +17416,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="hidden" id="fileContentToggle" value="reference">
                 </div>
                 
-                <!-- Folder Picker Zone -->
+                <!-- Folder Picker Zone (PHP-powered multi-folder browser) -->
                 <div class="file-picker-container">
-                    <input type="file" id="folderInput" webkitdirectory directory multiple style="display: none;">
                     <div class="drop-zone-mini folder-zone" id="folderDropZone">
                         <i class="fas fa-folder-plus"></i>
                         <span>Pick folders here</span>
@@ -26874,13 +26941,17 @@ in each section carefully and maintain proper connections between components.
                 }
             });
 
-            // Folder Picker - Drop Zone
+            // Folder Picker - Drop Zone (opens PHP-powered folder browser)
             const folderDropZone = document.getElementById('folderDropZone');
-            const folderInput = document.getElementById('folderInput');
             
-            // Folder zone click - opens folder picker
-            folderDropZone.addEventListener('click', () => folderInput.click());
+            // Folder zone click - opens PHP folder browser modal (multi-select)
+            folderDropZone.addEventListener('click', () => {
+                if (typeof openFolderBrowser === 'function') {
+                    openFolderBrowser();
+                }
+            });
             
+            // Also support drag & drop of folders onto the zone
             folderDropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 folderDropZone.classList.add('dragover');
@@ -26910,25 +26981,6 @@ in each section carefully and maintain proper connections between components.
                     } else {
                         showToast('⚠️ No folders detected. Please drop folders, not files.', 'warning');
                     }
-                }
-            });
-            
-            // Folder input change (webkitdirectory gives files inside the folder)
-            folderInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    // Extract unique top-level folder names from the file paths
-                    const folderNames = new Set();
-                    for (const file of e.target.files) {
-                        // webkitRelativePath is like "FolderName/subdir/file.txt"
-                        const topFolder = file.webkitRelativePath.split('/')[0];
-                        if (topFolder) {
-                            folderNames.add(topFolder);
-                        }
-                    }
-                    if (folderNames.size > 0) {
-                        handleFolders(Array.from(folderNames));
-                    }
-                    folderInput.value = ''; // Reset for next selection
                 }
             });
 
@@ -39947,6 +39999,572 @@ function toggleTheme() {
             icon.classList.add('fa-moon');
         }
     }
+})();
+</script>
+
+<!-- ============================================ -->
+<!-- FOLDER BROWSER MODAL (PHP-Powered)          -->
+<!-- ============================================ -->
+<div class="folder-browser-overlay" id="folderBrowserOverlay">
+    <div class="folder-browser-modal">
+        <div class="folder-browser-header">
+            <h3><i class="fas fa-folder-tree"></i> Select Folders</h3>
+            <button type="button" class="folder-browser-close" onclick="closeFolderBrowser()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="folder-browser-path-bar">
+            <button type="button" class="fb-nav-btn" onclick="fbGoUp()" title="Go to parent folder">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            <input type="text" id="fbPathInput" class="fb-path-input" placeholder="Enter path..." onkeydown="if(event.key==='Enter'){fbNavigate(this.value); event.preventDefault();}">
+            <button type="button" class="fb-nav-btn" onclick="fbNavigate(document.getElementById('fbPathInput').value)" title="Go">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+        <div class="folder-browser-toolbar">
+            <button type="button" class="fb-tool-btn" onclick="fbSelectAll()"><i class="fas fa-check-double"></i> Select All</button>
+            <button type="button" class="fb-tool-btn" onclick="fbDeselectAll()"><i class="fas fa-times"></i> Deselect All</button>
+            <span class="fb-selected-count" id="fbSelectedCount">0 selected</span>
+        </div>
+        <div class="folder-browser-list" id="fbFolderList">
+            <div class="fb-loading"><i class="fas fa-spinner fa-spin"></i> Loading folders...</div>
+        </div>
+        <div class="folder-browser-footer">
+            <button type="button" class="fb-cancel-btn" onclick="closeFolderBrowser()">Cancel</button>
+            <button type="button" class="fb-add-btn" id="fbAddBtn" onclick="fbAddSelected()">
+                <i class="fas fa-folder-plus"></i> Add Selected (<span id="fbAddCount">0</span>)
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Folder Browser Modal */
+    .folder-browser-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .folder-browser-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .folder-browser-modal {
+        background: var(--bg-card, #15151f);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 16px;
+        width: 90%;
+        max-width: 580px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: scale(0.9) translateY(20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(251, 191, 36, 0.1);
+    }
+
+    .folder-browser-overlay.active .folder-browser-modal {
+        transform: scale(1) translateY(0);
+    }
+
+    .folder-browser-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05));
+    }
+
+    .folder-browser-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fbbf24;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .folder-browser-close {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .folder-browser-close:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    /* Path Bar */
+    .folder-browser-path-bar {
+        display: flex;
+        gap: 0.4rem;
+        padding: 0.75rem 1.25rem;
+        border-bottom: 1px solid var(--border-color, #2a2a3a);
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .fb-nav-btn {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        border-radius: 8px;
+        background: rgba(251, 191, 36, 0.1);
+        color: #fbbf24;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+    }
+
+    .fb-nav-btn:hover {
+        background: rgba(251, 191, 36, 0.25);
+        border-color: #fbbf24;
+    }
+
+    .fb-path-input {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-tertiary, #1a1a25);
+        border: 1px solid var(--border-color, #2a2a3a);
+        border-radius: 8px;
+        color: var(--text-primary, #f0f0f5);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        outline: none;
+        transition: all 0.2s;
+        min-width: 0;
+    }
+
+    .fb-path-input:focus {
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
+    }
+
+    /* Toolbar */
+    .folder-browser-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.25rem;
+        border-bottom: 1px solid var(--border-color, #2a2a3a);
+    }
+
+    .fb-tool-btn {
+        padding: 0.35rem 0.7rem;
+        background: var(--bg-tertiary, #1a1a25);
+        border: 1px solid var(--border-color, #2a2a3a);
+        border-radius: 6px;
+        color: var(--text-muted, #606070);
+        font-family: inherit;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .fb-tool-btn:hover {
+        border-color: #fbbf24;
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.1);
+    }
+
+    .fb-selected-count {
+        margin-left: auto;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.15);
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+    }
+
+    /* Folder List */
+    .folder-browser-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem;
+        min-height: 250px;
+        max-height: 400px;
+    }
+
+    .folder-browser-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .folder-browser-list::-webkit-scrollbar-thumb {
+        background: #fbbf24;
+        border-radius: 3px;
+    }
+
+    .fb-loading {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted, #606070);
+    }
+
+    .fb-loading i {
+        color: #fbbf24;
+        margin-right: 0.5rem;
+    }
+
+    .fb-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted, #606070);
+    }
+
+    .fb-empty i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        opacity: 0.5;
+    }
+
+    /* Folder Item */
+    .fb-folder-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        margin-bottom: 0.3rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .fb-folder-item:hover {
+        background: rgba(251, 191, 36, 0.08);
+        border-color: rgba(251, 191, 36, 0.2);
+    }
+
+    .fb-folder-item.selected {
+        background: rgba(251, 191, 36, 0.12);
+        border-color: rgba(251, 191, 36, 0.4);
+    }
+
+    .fb-folder-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border-color, #2a2a3a);
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        background: var(--bg-tertiary, #1a1a25);
+    }
+
+    .fb-folder-checkbox i {
+        font-size: 0.65rem;
+        color: white;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.2s;
+    }
+
+    .fb-folder-item.selected .fb-folder-checkbox {
+        background: linear-gradient(135deg, #fbbf24, #d97706);
+        border-color: #fbbf24;
+    }
+
+    .fb-folder-item.selected .fb-folder-checkbox i {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .fb-folder-icon {
+        color: #fbbf24;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .fb-folder-name {
+        flex: 1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-primary, #f0f0f5);
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .fb-folder-enter {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 6px;
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--accent-primary, #6366f1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+        font-size: 0.7rem;
+    }
+
+    .fb-folder-enter:hover {
+        background: var(--accent-primary, #6366f1);
+        color: white;
+    }
+
+    /* Footer */
+    .folder-browser-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border-color, #2a2a3a);
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    .fb-cancel-btn {
+        padding: 0.6rem 1.2rem;
+        background: var(--bg-tertiary, #1a1a25);
+        border: 1px solid var(--border-color, #2a2a3a);
+        border-radius: 10px;
+        color: var(--text-secondary, #a0a0b0);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .fb-cancel-btn:hover {
+        border-color: var(--text-muted, #606070);
+        color: var(--text-primary, #f0f0f5);
+    }
+
+    .fb-add-btn {
+        padding: 0.6rem 1.5rem;
+        background: linear-gradient(135deg, #fbbf24, #d97706);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .fb-add-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+    }
+
+    .fb-add-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+</style>
+
+<script>
+// ============================================
+// FOLDER BROWSER - PHP-Powered Multi-Select
+// ============================================
+(function() {
+    let fbCurrentPath = '';
+    let fbParentPath = '';
+    let fbSelectedFolders = new Set(); // Set of folder names selected in the modal
+
+    // Open the folder browser modal
+    window.openFolderBrowser = function() {
+        const overlay = document.getElementById('folderBrowserOverlay');
+        overlay.classList.add('active');
+        
+        // Start from the app directory
+        const startPath = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+        fbNavigate(startPath);
+    };
+
+    // Close the folder browser modal
+    window.closeFolderBrowser = function() {
+        const overlay = document.getElementById('folderBrowserOverlay');
+        overlay.classList.remove('active');
+        fbSelectedFolders.clear();
+        fbUpdateSelectedCount();
+    };
+
+    // Navigate to a path
+    window.fbNavigate = async function(path) {
+        if (!path) return;
+        
+        const listContainer = document.getElementById('fbFolderList');
+        const pathInput = document.getElementById('fbPathInput');
+        
+        listContainer.innerHTML = '<div class="fb-loading"><i class="fas fa-spinner fa-spin"></i> Loading folders...</div>';
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'list_folders');
+            formData.append('path', path);
+            
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                fbCurrentPath = data.currentPath;
+                fbParentPath = data.parentPath;
+                pathInput.value = data.currentPath;
+                
+                fbRenderFolders(data.folders);
+            } else {
+                listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-exclamation-triangle"></i><p>' + (data.message || 'Cannot access this directory') + '</p></div>';
+            }
+        } catch (err) {
+            listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-exclamation-triangle"></i><p>Error loading folders</p></div>';
+            console.error('Folder browser error:', err);
+        }
+    };
+
+    // Go up one directory
+    window.fbGoUp = function() {
+        if (fbParentPath && fbParentPath !== fbCurrentPath) {
+            fbNavigate(fbParentPath);
+        }
+    };
+
+    // Render folder list
+    function fbRenderFolders(folders) {
+        const listContainer = document.getElementById('fbFolderList');
+        
+        if (folders.length === 0) {
+            listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-folder-open"></i><p>No subfolders found</p></div>';
+            return;
+        }
+        
+        let html = '';
+        for (const folder of folders) {
+            const isSelected = fbSelectedFolders.has(folder.name);
+            const escapedName = folder.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const escapedPath = folder.path.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            html += `
+            <div class="fb-folder-item ${isSelected ? 'selected' : ''}" data-name="${folder.name}" onclick="fbToggleFolder('${escapedName}', this)">
+                <div class="fb-folder-checkbox"><i class="fas fa-check"></i></div>
+                <i class="fas fa-folder fb-folder-icon"></i>
+                <span class="fb-folder-name">${folder.name}</span>
+                ${folder.hasSubdirs ? `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbNavigate('${escapedPath}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>` : ''}
+            </div>`;
+        }
+        
+        listContainer.innerHTML = html;
+    }
+
+    // Toggle folder selection
+    window.fbToggleFolder = function(folderName, element) {
+        if (fbSelectedFolders.has(folderName)) {
+            fbSelectedFolders.delete(folderName);
+            element.classList.remove('selected');
+        } else {
+            fbSelectedFolders.add(folderName);
+            element.classList.add('selected');
+        }
+        fbUpdateSelectedCount();
+    };
+
+    // Select all visible folders
+    window.fbSelectAll = function() {
+        document.querySelectorAll('.fb-folder-item').forEach(item => {
+            const name = item.dataset.name;
+            fbSelectedFolders.add(name);
+            item.classList.add('selected');
+        });
+        fbUpdateSelectedCount();
+    };
+
+    // Deselect all
+    window.fbDeselectAll = function() {
+        fbSelectedFolders.clear();
+        document.querySelectorAll('.fb-folder-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        fbUpdateSelectedCount();
+    };
+
+    // Update selected count display
+    function fbUpdateSelectedCount() {
+        const count = fbSelectedFolders.size;
+        document.getElementById('fbSelectedCount').textContent = count + ' selected';
+        document.getElementById('fbAddCount').textContent = count;
+        document.getElementById('fbAddBtn').disabled = count === 0;
+    }
+
+    // Add selected folders to the main app
+    window.fbAddSelected = function() {
+        if (fbSelectedFolders.size === 0) return;
+        
+        const folderNames = Array.from(fbSelectedFolders);
+        
+        // Use the existing handleFolders function from the main app
+        if (typeof handleFolders === 'function') {
+            handleFolders(folderNames);
+        }
+        
+        closeFolderBrowser();
+    };
+
+    // Close on overlay click
+    document.getElementById('folderBrowserOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeFolderBrowser();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('folderBrowserOverlay').classList.contains('active')) {
+            closeFolderBrowser();
+        }
+    });
 })();
 </script>
 
