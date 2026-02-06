@@ -40759,7 +40759,7 @@ function toggleTheme() {
                 const formData = new FormData();
                 formData.append('action', 'get_folder_tree');
                 formData.append('path', info.path);
-                formData.append('max_depth', '4');
+                formData.append('max_depth', '0'); // 0 = unlimited depth — traverse all levels
                 
                 const response = await fetch('', {
                     method: 'POST',
