@@ -38998,46 +38998,85 @@ function ufPushToNotes() {
     const projectNotesTextarea = document.getElementById('projectNotesTextarea');
     if (!projectNotesTextarea) return;
     
-    const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
+    // Count totals
+    const totalFolders = ufFileStorage.folders.length;
+    const totalStandaloneFiles = Object.entries(ufFileStorage).reduce((sum, [cat, arr]) => cat !== 'folders' ? sum + arr.length : sum, 0);
+    const totalFolderFiles = ufFileStorage.folders.reduce((sum, f) => sum + (f.fileCount || 0), 0);
+    const totalItems = totalFolders + totalStandaloneFiles;
     const notesContent = document.getElementById('ufNotesTextarea')?.value.trim() || '';
     
-    if (totalFiles === 0 && !notesContent) {
-        showNotification('⚠️ No files or notes to push', 'warning');
+    if (totalItems === 0 && !notesContent) {
+        showNotification('⚠️ No files, folders, or notes to push', 'warning');
         return;
     }
     
     let promptContent = `\n\n📁 PROJECT FILES OVERVIEW\n`;
     promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     
-    if (totalFiles > 0) {
-        promptContent += `**Total Files: ${totalFiles}**\n\n`;
+    // Summary line
+    const summaryParts = [];
+    if (totalFolders > 0) summaryParts.push(`${totalFolders} folder(s) with ${totalFolderFiles} files`);
+    if (totalStandaloneFiles > 0) summaryParts.push(`${totalStandaloneFiles} standalone file(s)`);
+    if (summaryParts.length > 0) {
+        promptContent += `**${summaryParts.join(' + ')}**\n\n`;
+    }
+    
+    // ═══════════════════════════════════════════
+    // FOLDERS — Full tree diagram (all levels)
+    // ═══════════════════════════════════════════
+    if (totalFolders > 0) {
+        promptContent += `📂 PROJECT ROUTES (FOLDER STRUCTURE)\n`;
+        promptContent += `────────────────────────────────────\n\n`;
         
-        // List files by category
+        ufFileStorage.folders.forEach(folder => {
+            promptContent += ufBuildFolderTreeText(folder.name, folder.children || []);
+            promptContent += `\n\n`;
+        });
+    }
+    
+    // ═══════════════════════════════════════════
+    // STANDALONE FILES — Listed by category
+    // ═══════════════════════════════════════════
+    if (totalStandaloneFiles > 0) {
+        promptContent += `📄 STANDALONE FILES\n`;
+        promptContent += `────────────────────────────────────\n\n`;
+        
         Object.entries(ufCategoryConfig).forEach(([category, config]) => {
             const files = ufFileStorage[category];
-            if (files.length > 0) {
+            if (files && files.length > 0) {
                 promptContent += `**${config.title} Files (${files.length}):**\n`;
                 files.forEach((file, index) => {
-                    promptContent += `${index + 1}. ${file.name}\n`;
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    let icon = '📄';
+                    if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                    else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                    else if (['php'].includes(ext)) icon = '🐘';
+                    else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                    else if (['html','htm'].includes(ext)) icon = '🌐';
+                    else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                    else if (['md','txt','log'].includes(ext)) icon = '📝';
+                    promptContent += `  ${icon} ${file.name}\n`;
                 });
                 promptContent += `\n`;
             }
         });
-        
-        // Page detection info
-        if (ufDetectedHomepage) {
-            promptContent += `**🏠 Homepage:** ${ufDetectedHomepage}\n`;
-        }
-        if (ufDetectedFeatured) {
-            promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
-        }
-        
-        promptContent += `\n**NOTE:** These files represent the current project structure. Please consider them when making changes.\n`;
+    }
+    
+    // Page detection info
+    if (ufDetectedHomepage) {
+        promptContent += `**🏠 Homepage:** ${ufDetectedHomepage}\n`;
+    }
+    if (ufDetectedFeatured) {
+        promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
+    }
+    
+    if (totalItems > 0) {
+        promptContent += `\n**NOTE:** These files and folders represent the current project structure. Please consider them when making changes.\n`;
     }
     
     // Add notes content
     if (notesContent) {
-        if (totalFiles === 0) {
+        if (totalItems === 0) {
             promptContent = `\n\n📁 PROJECT NOTES\n`;
             promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         } else {
@@ -39058,7 +39097,60 @@ function ufPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('📁 Project files pushed to Project Prompts', 'success');
+    showNotification('📁 Project structure pushed to Project Prompts', 'success');
+}
+
+// Build a full ASCII tree diagram for a folder and ALL its descendants (unlimited depth)
+function ufBuildFolderTreeText(folderName, children) {
+    let lines = [`📁 ${folderName}/`];
+    
+    function renderNode(items, prefix) {
+        if (!items || !Array.isArray(items) || items.length === 0) return;
+        
+        // Sort: folders first, then files
+        const sorted = [...items].sort((a, b) => {
+            const aIsFolder = a.type === 'folder' || a.children;
+            const bIsFolder = b.type === 'folder' || b.children;
+            if (aIsFolder === bIsFolder) return (a.name || '').localeCompare(b.name || '');
+            return aIsFolder ? -1 : 1;
+        });
+        
+        for (let i = 0; i < sorted.length; i++) {
+            const item = sorted[i];
+            const isLast = (i === sorted.length - 1);
+            const connector = isLast ? '└── ' : '├── ';
+            const childPrefix = isLast ? '    ' : '│   ';
+            
+            const isFolder = item.type === 'folder' || item.children;
+            
+            if (isFolder) {
+                lines.push(prefix + connector + '📂 ' + item.name + '/');
+                if (item.children && Array.isArray(item.children) && item.children.length > 0) {
+                    renderNode(item.children, prefix + childPrefix);
+                }
+            } else {
+                // File — pick icon based on extension
+                const ext = (item.name || '').split('.').pop().toLowerCase();
+                let icon = '📄';
+                if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                else if (['php'].includes(ext)) icon = '🐘';
+                else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                else if (['html','htm'].includes(ext)) icon = '🌐';
+                else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                else if (['md','txt','log'].includes(ext)) icon = '📝';
+                else if (['py'].includes(ext)) icon = '🐍';
+                else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
+                else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
+                else if (['env','gitignore','htaccess'].includes(ext) || (item.name || '').startsWith('.')) icon = '⚙️';
+                
+                lines.push(prefix + connector + icon + ' ' + item.name);
+            }
+        }
+    }
+    
+    renderNode(children, '');
+    return lines.join('\n');
 }
 
 // Clear all files
