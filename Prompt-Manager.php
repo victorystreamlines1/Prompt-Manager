@@ -520,11 +520,22 @@ if ($pdo) {
                 'fileUploadTool', 'exclusionTool', 'brandingTool', 'pagesCreatorTool',
                 'customInstructionsTool', 'styleTypesTool', 'designThemeTool', 'layoutTool',
                 'executionModeTool', 'designFocusTool', 'enhancementLevelTool', 'taskBreakdownTool',
-                'visualReferenceTool', 'homepageTool', 'documentationTool'
+                'visualReferenceTool', 'homepageTool', 'documentationTool', 'designTemplateTool'
             ]);
             $stmt = $pdo->prepare("INSERT INTO reporter_prompt_tool_order (tool_order) VALUES (?)");
             $stmt->execute([$defaultOrder]);
         }
+        
+        // Create Design Templates table (for Design Enhancer panel)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_design_templates (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            content TEXT NOT NULL,
+            sort_order INT DEFAULT 0,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
         
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
@@ -633,7 +644,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'fileUploadTool', 'exclusionTool', 'brandingTool', 'pagesCreatorTool',
                         'customInstructionsTool', 'styleTypesTool', 'designThemeTool', 'layoutTool',
                         'executionModeTool', 'designFocusTool', 'enhancementLevelTool', 'taskBreakdownTool',
-                        'visualReferenceTool', 'homepageTool', 'documentationTool'
+                        'visualReferenceTool', 'homepageTool', 'documentationTool', 'designTemplateTool'
                     ]]);
                 }
             } catch (PDOException $e) {
@@ -840,6 +851,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'message' => 'Template deleted successfully!',
                     'operationTime' => $operationTime,
                     'operationType' => 'DELETE_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID is required']);
+        }
+        exit;
+    }
+    
+    // ============ DESIGN TEMPLATES CRUD (Design Enhancer Panel) ============
+    
+    // Get all design templates
+    if ($action === 'get_design_templates') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT * FROM reporter_prompt_design_templates WHERE is_active = 1 ORDER BY sort_order ASC, id ASC");
+                $templates = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'templates' => $templates]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Database not connected']);
+        }
+        exit;
+    }
+    
+    // Add new design template
+    if ($action === 'add_design_template') {
+        $name = $_POST['name'] ?? '';
+        $content = $_POST['content'] ?? '';
+        
+        if ($pdo && $name && $content) {
+            try {
+                $startTime = microtime(true);
+                $stmt = $pdo->query("SELECT MAX(sort_order) as max_order FROM reporter_prompt_design_templates");
+                $maxOrder = $stmt->fetch()['max_order'] ?? 0;
+                
+                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_design_templates (name, content, sort_order) VALUES (?, ?, ?)");
+                $stmt->execute([$name, $content, $maxOrder + 1]);
+                $id = $pdo->lastInsertId();
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'id' => $id, 
+                    'message' => 'Design template added!',
+                    'template' => ['id' => $id, 'name' => $name, 'content' => $content],
+                    'operationTime' => $operationTime,
+                    'operationType' => 'ADD_DESIGN_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Name and content are required']);
+        }
+        exit;
+    }
+    
+    // Update design template
+    if ($action === 'update_design_template') {
+        $id = $_POST['id'] ?? '';
+        $name = $_POST['name'] ?? '';
+        $content = $_POST['content'] ?? '';
+        
+        if ($pdo && $id && $name && $content) {
+            try {
+                $startTime = microtime(true);
+                $stmt = $pdo->prepare("UPDATE reporter_prompt_design_templates SET name = ?, content = ? WHERE id = ?");
+                $stmt->execute([$name, $content, $id]);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Design template updated!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'UPDATE_DESIGN_TEMPLATE',
+                    'connectionType' => $connectionType
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID, name and content are required']);
+        }
+        exit;
+    }
+    
+    // Delete design template
+    if ($action === 'delete_design_template') {
+        $id = $_POST['id'] ?? '';
+        
+        if ($pdo && $id) {
+            try {
+                $startTime = microtime(true);
+                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_design_templates WHERE id = ?");
+                $stmt->execute([$id]);
+                $operationTime = round((microtime(true) - $startTime) * 1000, 2);
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Design template deleted!',
+                    'operationTime' => $operationTime,
+                    'operationType' => 'DELETE_DESIGN_TEMPLATE',
                     'connectionType' => $connectionType
                 ]);
             } catch (Exception $e) {
@@ -10340,6 +10457,676 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .di-push-btn:hover {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           🎨 DESIGN TEMPLATE TOOL STYLES
+           ═══════════════════════════════════════════════════════════════════ */
+        .dt-search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-search-box:focus-within {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.15);
+        }
+        
+        .dt-search-box i {
+            color: var(--text-muted);
+            font-size: 0.6rem;
+        }
+        
+        .dt-search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 0.65rem;
+            font-family: inherit;
+        }
+        
+        .dt-search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .dt-search-clear {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.15rem;
+            font-size: 0.55rem;
+            transition: color 0.2s;
+        }
+        
+        .dt-search-clear:hover {
+            color: #ef4444;
+        }
+        
+        .dt-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dt-select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+        
+        .dt-select-all input[type="checkbox"] {
+            display: none;
+        }
+        
+        .dt-checkbox-custom {
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid rgba(168, 85, 247, 0.4);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .dt-select-all input:checked + .dt-checkbox-custom {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border-color: #a855f7;
+        }
+        
+        .dt-select-all input:checked + .dt-checkbox-custom::after {
+            content: '✓';
+            color: white;
+            font-size: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .dt-checkbox-label {
+            font-size: 0.6rem;
+        }
+        
+        .dt-counter {
+            font-size: 0.55rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            background: rgba(100, 100, 100, 0.15);
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-loading {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+        }
+        
+        .dt-loading i {
+            margin-right: 0.3rem;
+            color: #a855f7;
+        }
+        
+        .dt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            max-height: 280px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+        
+        .dt-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .dt-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .dt-list::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 4px;
+        }
+        
+        .dt-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.45rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dt-item:hover {
+            background: rgba(168, 85, 247, 0.08);
+            border-color: rgba(168, 85, 247, 0.2);
+            transform: translateX(2px);
+        }
+        
+        .dt-item.checked {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border-color: rgba(168, 85, 247, 0.35);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.1);
+        }
+        
+        .dt-item-checkbox {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .dt-item-checkbox input {
+            display: none;
+        }
+        
+        .dt-item-checkbox .checkbox-box {
+            display: none;
+        }
+        
+        .dt-item.checked .dt-item-checkbox {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border-color: #a855f7;
+        }
+        
+        .dt-item.checked .dt-item-checkbox .checkbox-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.5rem;
+        }
+        
+        .dt-item-content {
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+        
+        .dt-item-name {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        
+        .dt-item-name .highlight {
+            background: rgba(168, 85, 247, 0.3);
+            color: #e9d5ff;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        .dt-item-preview {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        
+        .dt-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .dt-item:hover .dt-item-actions {
+            opacity: 1;
+        }
+        
+        .dt-action-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.5rem;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+        
+        .dt-action-icon:hover {
+            transform: scale(1.15);
+        }
+        
+        .dt-action-icon.copy:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        
+        .dt-action-icon.pull:hover {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+        
+        .dt-action-icon.edit:hover {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+        
+        .dt-action-icon.delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .dt-no-results,
+        .dt-empty {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-muted);
+        }
+        
+        .dt-no-results i,
+        .dt-empty i {
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            display: block;
+            opacity: 0.4;
+            color: #a855f7;
+        }
+        
+        .dt-no-results p,
+        .dt-empty p {
+            font-size: 0.6rem;
+            margin: 0;
+        }
+        
+        .dt-empty-btn {
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.7rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(124, 58, 237, 0.15) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            color: #c084fc;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-empty-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(124, 58, 237, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .dt-push-section {
+            margin-top: 0.5rem;
+        }
+        
+        .dt-push-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.75rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 6px;
+            color: #c084fc;
+            font-size: 0.62rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(124, 58, 237, 0.15) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        /* Design Template Modal */
+        .dt-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .dt-modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .dt-modal {
+            background: var(--bg-primary, #0f172a);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 85, 247, 0.1);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        
+        .dt-modal-overlay.active .dt-modal {
+            transform: translateY(0) scale(1);
+        }
+        
+        .dt-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.2rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        
+        .dt-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .dt-modal-title i {
+            color: #a855f7;
+        }
+        
+        .dt-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-modal-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .dt-modal-body {
+            padding: 1rem 1.2rem;
+            overflow-y: auto;
+            max-height: 55vh;
+        }
+        
+        .dt-modal-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+        }
+        
+        .dt-modal-input {
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-family: inherit;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-modal-input:focus {
+            outline: none;
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+        }
+        
+        .dt-modal-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 0.6rem 0.7rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.5;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .dt-modal-textarea:focus {
+            outline: none;
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+        }
+        
+        .dt-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            padding: 0.75rem 1.2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .dt-modal-btn {
+            padding: 0.45rem 1rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .dt-modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dt-modal-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .dt-modal-btn.save {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: white;
+        }
+        
+        .dt-modal-btn.save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+        
+        /* Design Template Preview Modal */
+        .dt-preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .dt-preview-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .dt-preview-modal {
+            background: var(--bg-primary, #0f172a);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(168, 85, 247, 0.1);
+            transform: translateY(20px) scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        
+        .dt-preview-overlay.active .dt-preview-modal {
+            transform: translateY(0) scale(1);
+        }
+        
+        .dt-preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(124, 58, 237, 0.08) 100%);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+        
+        .dt-preview-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .dt-preview-actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .dt-preview-action-btn {
+            padding: 0.3rem 0.6rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-preview-action-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+        
+        .dt-preview-content {
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 55vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        
+        /* Light Theme - Design Template */
+        [data-theme="light"] .dt-search-box {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-theme="light"] .dt-item {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        
+        [data-theme="light"] .dt-item:hover {
+            background: rgba(168, 85, 247, 0.06);
+        }
+        
+        [data-theme="light"] .dt-item.checked {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .dt-item-name .highlight {
+            background: rgba(168, 85, 247, 0.2);
+            color: #6b21a8;
+        }
+        
+        [data-theme="light"] .dt-modal {
+            background: #ffffff;
+            border-color: rgba(168, 85, 247, 0.2);
+        }
+        
+        [data-theme="light"] .dt-modal-input,
+        [data-theme="light"] .dt-modal-textarea {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(168, 85, 247, 0.15);
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dt-preview-modal {
+            background: #ffffff;
+        }
+        
+        [data-theme="light"] .dt-push-btn {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+            color: #7c3aed;
+        }
+        
+        [data-theme="light"] .dt-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
         }
         
         /* Style Sample Modal */
@@ -20617,6 +21404,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     🎨 DESIGN TEMPLATE TOOL
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-tool-section collapsed" id="designTemplateTool" draggable="true">
+                    <div class="de-tool-header" onclick="toggleToolSection('designTemplate')">
+                        <div class="de-drag-handle" title="Drag to reorder">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-title">
+                            <i class="fas fa-palette"></i>
+                            <span>Design Templates</span>
+                        </div>
+                        <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); dtOpenAddModal();" title="Add new design template">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <div class="de-tool-badge dt-badge" id="dtBadge" style="display: none;">0</div>
+                        <i class="fas fa-chevron-down de-tool-arrow" id="designTemplateArrow"></i>
+                    </div>
+                    <div class="de-tool-body" id="designTemplateBody">
+                        <!-- Search -->
+                        <div class="dt-search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="dtSearchInput" placeholder="Search design templates..." oninput="dtFilterTemplates()">
+                            <button type="button" class="dt-search-clear" id="dtSearchClear" onclick="dtClearSearch()" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Actions Row -->
+                        <div class="dt-actions-row">
+                            <label class="dt-select-all" title="Select/Deselect All">
+                                <input type="checkbox" id="dtSelectAllCheckbox" onchange="dtToggleAll(this.checked)">
+                                <span class="dt-checkbox-custom"></span>
+                                <span class="dt-checkbox-label">Select All</span>
+                            </label>
+                            <span class="dt-counter" id="dtCounter">0/0</span>
+                        </div>
+                        
+                        <!-- Loading -->
+                        <div class="dt-loading" id="dtLoading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading templates...</span>
+                        </div>
+                        
+                        <!-- Template List -->
+                        <div class="dt-list" id="dtList"></div>
+                        
+                        <!-- No Results -->
+                        <div class="dt-no-results" id="dtNoResults" style="display: none;">
+                            <i class="fas fa-search"></i>
+                            <p>No design templates found</p>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="dt-empty" id="dtEmpty" style="display: none;">
+                            <i class="fas fa-palette"></i>
+                            <p>No design templates yet</p>
+                            <button type="button" class="dt-empty-btn" onclick="dtOpenAddModal()">
+                                <i class="fas fa-plus"></i> Add First Template
+                            </button>
+                        </div>
+                        
+                        <!-- Push to Project Prompts -->
+                        <div class="dt-push-section">
+                            <button type="button" class="dt-push-btn" onclick="dtPushToNotes()" title="Push selected design templates to Project Prompts">
+                                <i class="fas fa-arrow-down"></i>
+                                <span>Push to Project Prompts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 </div><!-- End of de-tools-container -->
                 
                 <!-- More tools can be added here -->
@@ -21088,6 +21947,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-plus"></i> Use Template
                 </button>
             </div>
+        </div>
+    </div>
+    
+    <!-- Design Template Add/Edit Modal -->
+    <div class="dt-modal-overlay" id="dtModal">
+        <div class="dt-modal">
+            <div class="dt-modal-header">
+                <div class="dt-modal-title" id="dtModalTitle">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add New Design Template</span>
+                </div>
+                <button type="button" class="dt-modal-close" onclick="dtCloseModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dt-modal-body">
+                <label class="dt-modal-label" for="dtNameInput">
+                    <i class="fas fa-tag"></i> Template Name
+                </label>
+                <input type="text" class="dt-modal-input" id="dtNameInput" placeholder="Enter design template name...">
+                
+                <label class="dt-modal-label" for="dtContentInput">
+                    <i class="fas fa-align-left"></i> Template Content
+                </label>
+                <textarea class="dt-modal-textarea" id="dtContentInput" placeholder="Enter your design template content here..."></textarea>
+                
+                <input type="hidden" id="dtEditId" value="">
+            </div>
+            <div class="dt-modal-footer">
+                <button type="button" class="dt-modal-btn cancel" onclick="dtCloseModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="dt-modal-btn save" onclick="dtSaveTemplate()">
+                    <i class="fas fa-save"></i> <span id="dtSaveText">Add Template</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Design Template Preview Modal -->
+    <div class="dt-preview-overlay" id="dtPreviewModal">
+        <div class="dt-preview-modal">
+            <div class="dt-preview-header">
+                <div class="dt-preview-name" id="dtPreviewName"></div>
+                <div class="dt-preview-actions">
+                    <button type="button" class="dt-preview-action-btn" onclick="dtCopyPreviewContent()" title="Copy">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button type="button" class="dt-preview-action-btn" onclick="dtPullPreviewContent()" title="Pull from Editor">
+                        <i class="fas fa-arrow-down"></i> Pull
+                    </button>
+                    <button type="button" class="dt-preview-action-btn" id="dtPreviewEditBtn" title="Edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button type="button" class="dt-preview-action-btn" id="dtPreviewUseBtn" title="Use Template">
+                        <i class="fas fa-plus"></i> Use
+                    </button>
+                    <button type="button" class="dt-preview-action-btn" onclick="dtClosePreview()" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="dt-preview-content" id="dtPreviewContent"></div>
         </div>
     </div>
     
@@ -41469,6 +42391,675 @@ function getDocumentation() {
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
     diInit();
+});
+</script>
+
+<!-- Design Template Tool Script -->
+<script>
+// ============ DESIGN TEMPLATE TOOL ============
+let designTemplates = [];
+let activeDesignTemplates = new Set();
+
+// Load design templates from database
+async function dtLoadTemplates() {
+    const loading = document.getElementById('dtLoading');
+    const dtList = document.getElementById('dtList');
+    
+    if (loading) loading.style.display = 'block';
+    if (dtList) dtList.innerHTML = '';
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'get_design_templates');
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            designTemplates = data.templates.map(t => ({
+                id: parseInt(t.id),
+                name: t.name,
+                content: t.content
+            }));
+            dtRenderList();
+        } else {
+            showToast('Failed to load design templates: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading design templates:', error);
+        showToast('Error loading design templates', 'error');
+    } finally {
+        if (loading) loading.style.display = 'none';
+    }
+}
+
+// Render design template list
+function dtRenderList(searchTerm = '') {
+    const dtList = document.getElementById('dtList');
+    const dtEmpty = document.getElementById('dtEmpty');
+    const dtNoResults = document.getElementById('dtNoResults');
+    
+    if (!dtList) return;
+    
+    dtList.innerHTML = '';
+    
+    if (designTemplates.length === 0) {
+        if (dtEmpty) dtEmpty.style.display = 'block';
+        if (dtNoResults) dtNoResults.style.display = 'none';
+        dtUpdateCounter();
+        return;
+    }
+    
+    if (dtEmpty) dtEmpty.style.display = 'none';
+    
+    const filtered = searchTerm 
+        ? designTemplates.filter(t => t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.content.toLowerCase().includes(searchTerm.toLowerCase()))
+        : designTemplates;
+    
+    if (filtered.length === 0) {
+        if (dtNoResults) dtNoResults.style.display = 'block';
+        return;
+    }
+    
+    if (dtNoResults) dtNoResults.style.display = 'none';
+    
+    filtered.forEach(template => {
+        const isChecked = activeDesignTemplates.has(template.id);
+        const preview = template.content.substring(0, 60).replace(/\n/g, ' ');
+        
+        let displayName = template.name;
+        if (searchTerm) {
+            displayName = dtHighlightText(template.name, searchTerm);
+        }
+        
+        const item = document.createElement('div');
+        item.className = `dt-item${isChecked ? ' checked' : ''}`;
+        item.setAttribute('data-id', template.id);
+        item.innerHTML = `
+            <div class="dt-item-checkbox" onclick="dtToggleTemplate(${template.id})">
+                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                <span class="checkbox-box"><i class="fas fa-check"></i></span>
+            </div>
+            <div class="dt-item-content" onclick="dtOpenPreview(${template.id})">
+                <div class="dt-item-name">${displayName}</div>
+                <div class="dt-item-preview">${dtEscapeHtml(preview)}...</div>
+            </div>
+            <div class="dt-item-actions">
+                <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${template.id})" title="Copy">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button type="button" class="dt-action-icon pull" onclick="event.stopPropagation(); dtPullToTemplate(${template.id})" title="Pull from Editor">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                <button type="button" class="dt-action-icon edit" onclick="event.stopPropagation(); dtOpenEditModal(${template.id})" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="dt-action-icon delete" onclick="event.stopPropagation(); dtConfirmDelete(${template.id})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        dtList.appendChild(item);
+    });
+    
+    dtUpdateCounter();
+}
+
+// Toggle a design template (add/remove from editor)
+function dtToggleTemplate(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    const dtItem = document.querySelector(`.dt-item[data-id="${id}"]`);
+    const editor = document.getElementById('promptEditor');
+    
+    if (activeDesignTemplates.has(id)) {
+        activeDesignTemplates.delete(id);
+        if (dtItem) {
+            dtItem.classList.remove('checked');
+            const checkbox = dtItem.querySelector('input[type="checkbox"]');
+            if (checkbox) checkbox.checked = false;
+        }
+        dtRebuildEditor();
+        showToast(`${template.name} removed`, 'info');
+    } else {
+        activeDesignTemplates.add(id);
+        if (dtItem) {
+            dtItem.classList.add('checked');
+            const checkbox = dtItem.querySelector('input[type="checkbox"]');
+            if (checkbox) checkbox.checked = true;
+        }
+        
+        // Append to editor
+        if (editor) {
+            if (editor.value.trim()) {
+                editor.value += '\n\n' + template.content;
+            } else {
+                editor.value = template.content;
+            }
+        }
+        
+        showToast(`${template.name} added`, 'success');
+    }
+    
+    if (typeof updateCounts === 'function') updateCounts();
+    dtUpdateCounter();
+    dtUpdateSelectAll();
+    dtUpdateBadge();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+}
+
+// Rebuild editor content after removing a template
+function dtRebuildEditor() {
+    const editor = document.getElementById('promptEditor');
+    if (!editor) return;
+    
+    let content = '';
+    
+    // Rebuild from active prompt templates (if they exist)
+    if (typeof activePrompts !== 'undefined' && typeof promptTemplates !== 'undefined') {
+        activePrompts.forEach(id => {
+            const pt = promptTemplates.find(t => t.id === id);
+            if (pt) {
+                content += (content ? '\n\n' : '') + pt.content;
+            }
+        });
+    }
+    
+    // Rebuild from active design templates
+    activeDesignTemplates.forEach(id => {
+        const dt = designTemplates.find(t => t.id === id);
+        if (dt) {
+            content += (content ? '\n\n' : '') + dt.content;
+        }
+    });
+    
+    editor.value = content;
+}
+
+// Toggle all design templates
+function dtToggleAll(checked) {
+    if (checked) {
+        dtSelectAll();
+    } else {
+        dtDeselectAll();
+    }
+}
+
+// Select all
+function dtSelectAll() {
+    const editor = document.getElementById('promptEditor');
+    
+    designTemplates.forEach(template => {
+        if (!activeDesignTemplates.has(template.id)) {
+            activeDesignTemplates.add(template.id);
+            
+            if (editor) {
+                if (editor.value.trim()) {
+                    editor.value += '\n\n' + template.content;
+                } else {
+                    editor.value = template.content;
+                }
+            }
+        }
+    });
+    
+    // Update all items UI
+    document.querySelectorAll('.dt-item').forEach(item => {
+        item.classList.add('checked');
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = true;
+    });
+    
+    if (typeof updateCounts === 'function') updateCounts();
+    dtUpdateCounter();
+    dtUpdateSelectAll();
+    dtUpdateBadge();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+    showToast(`All design templates selected (${designTemplates.length})`, 'success');
+}
+
+// Deselect all
+function dtDeselectAll() {
+    activeDesignTemplates.clear();
+    
+    document.querySelectorAll('.dt-item').forEach(item => {
+        item.classList.remove('checked');
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = false;
+    });
+    
+    dtRebuildEditor();
+    
+    if (typeof updateCounts === 'function') updateCounts();
+    dtUpdateCounter();
+    dtUpdateSelectAll();
+    dtUpdateBadge();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+    showToast('All design templates deselected', 'info');
+}
+
+// Update select all checkbox state
+function dtUpdateSelectAll() {
+    const selectAllCheckbox = document.getElementById('dtSelectAllCheckbox');
+    if (!selectAllCheckbox) return;
+    
+    const total = designTemplates.length;
+    const selected = activeDesignTemplates.size;
+    
+    selectAllCheckbox.checked = total > 0 && selected === total;
+    selectAllCheckbox.indeterminate = selected > 0 && selected < total;
+}
+
+// Update counter
+function dtUpdateCounter() {
+    const counter = document.getElementById('dtCounter');
+    if (!counter) return;
+    
+    const total = designTemplates.length;
+    const selected = activeDesignTemplates.size;
+    counter.textContent = `${selected}/${total}`;
+    
+    if (selected === 0) {
+        counter.style.background = 'rgba(100, 100, 100, 0.15)';
+        counter.style.color = 'var(--text-muted)';
+    } else if (selected === total) {
+        counter.style.background = 'rgba(16, 185, 129, 0.15)';
+        counter.style.color = 'var(--success)';
+    } else {
+        counter.style.background = 'rgba(168, 85, 247, 0.15)';
+        counter.style.color = '#a855f7';
+    }
+}
+
+// Update badge
+function dtUpdateBadge() {
+    const badge = document.getElementById('dtBadge');
+    if (!badge) return;
+    
+    const count = activeDesignTemplates.size;
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+        badge.style.background = 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Search / Filter
+function dtFilterTemplates() {
+    const searchInput = document.getElementById('dtSearchInput');
+    const clearBtn = document.getElementById('dtSearchClear');
+    const searchTerm = searchInput ? searchInput.value : '';
+    
+    if (clearBtn) clearBtn.style.display = searchTerm ? 'flex' : 'none';
+    
+    dtRenderList(searchTerm);
+}
+
+// Clear search
+function dtClearSearch() {
+    const searchInput = document.getElementById('dtSearchInput');
+    const clearBtn = document.getElementById('dtSearchClear');
+    
+    if (searchInput) searchInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    
+    dtRenderList();
+}
+
+// ============ CRUD OPERATIONS ============
+
+// Open Add Modal
+function dtOpenAddModal() {
+    const modal = document.getElementById('dtModal');
+    const title = document.getElementById('dtModalTitle');
+    const saveText = document.getElementById('dtSaveText');
+    const nameInput = document.getElementById('dtNameInput');
+    const contentInput = document.getElementById('dtContentInput');
+    const editId = document.getElementById('dtEditId');
+    
+    if (title) title.innerHTML = '<i class="fas fa-plus-circle"></i> <span>Add New Design Template</span>';
+    if (saveText) saveText.textContent = 'Add Template';
+    if (nameInput) nameInput.value = '';
+    if (contentInput) contentInput.value = '';
+    if (editId) editId.value = '';
+    
+    if (modal) modal.classList.add('active');
+    if (nameInput) nameInput.focus();
+}
+
+// Open Edit Modal
+function dtOpenEditModal(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    const modal = document.getElementById('dtModal');
+    const title = document.getElementById('dtModalTitle');
+    const saveText = document.getElementById('dtSaveText');
+    const nameInput = document.getElementById('dtNameInput');
+    const contentInput = document.getElementById('dtContentInput');
+    const editId = document.getElementById('dtEditId');
+    
+    if (title) title.innerHTML = '<i class="fas fa-edit"></i> <span>Edit Design Template</span>';
+    if (saveText) saveText.textContent = 'Update Template';
+    if (nameInput) nameInput.value = template.name;
+    if (contentInput) contentInput.value = template.content;
+    if (editId) editId.value = template.id;
+    
+    if (modal) modal.classList.add('active');
+    if (nameInput) nameInput.focus();
+}
+
+// Close Modal
+function dtCloseModal() {
+    const modal = document.getElementById('dtModal');
+    if (modal) modal.classList.remove('active');
+}
+
+// Save (Add/Update)
+async function dtSaveTemplate() {
+    const nameInput = document.getElementById('dtNameInput');
+    const contentInput = document.getElementById('dtContentInput');
+    const editId = document.getElementById('dtEditId');
+    
+    const name = nameInput ? nameInput.value.trim() : '';
+    const content = contentInput ? contentInput.value.trim() : '';
+    const id = editId ? editId.value : '';
+    
+    if (!name || !content) {
+        showToast('Please fill in both name and content', 'warning');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', id ? 'update_design_template' : 'add_design_template');
+        formData.append('name', name);
+        formData.append('content', content);
+        if (id) formData.append('id', id);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.operationTime && typeof updateSpeedMonitor === 'function') {
+                updateSpeedMonitor();
+            }
+            showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
+            dtCloseModal();
+            await dtLoadTemplates();
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving design template:', error);
+        showToast('Error saving design template', 'error');
+    }
+}
+
+// Confirm Delete
+async function dtConfirmDelete(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Delete Design Template',
+            subtitle: template.name,
+            message: `Are you sure you want to delete "${template.name}"?`,
+            warning: 'This action cannot be undone.',
+            confirmText: 'Delete',
+            icon: 'fa-trash'
+        });
+        if (confirmed) {
+            dtDeleteTemplate(id);
+        }
+    } else if (confirm(`Delete "${template.name}"?`)) {
+        dtDeleteTemplate(id);
+    }
+}
+
+// Delete
+async function dtDeleteTemplate(id) {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'delete_design_template');
+        formData.append('id', id);
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Remove from active if selected
+            if (activeDesignTemplates.has(id)) {
+                activeDesignTemplates.delete(id);
+                dtRebuildEditor();
+            }
+            
+            if (data.operationTime && typeof updateSpeedMonitor === 'function') {
+                updateSpeedMonitor();
+            }
+            showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
+            await dtLoadTemplates();
+            dtUpdateBadge();
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting design template:', error);
+        showToast('Error deleting design template', 'error');
+    }
+}
+
+// Copy template content
+function dtCopyTemplate(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    navigator.clipboard.writeText(template.content).then(() => {
+        showToast(`"${template.name}" copied!`, 'success');
+    }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = template.content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(`"${template.name}" copied!`, 'success');
+    });
+}
+
+// Pull content from editor to template
+async function dtPullToTemplate(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    const editor = document.getElementById('promptEditor');
+    if (!editor || !editor.value.trim()) {
+        showToast('Editor is empty', 'warning');
+        return;
+    }
+    
+    if (typeof deConfirm === 'function') {
+        const confirmed = await deConfirm({
+            title: 'Pull to Design Template',
+            subtitle: template.name,
+            message: `Replace the content of "${template.name}" with current editor content?`,
+            warning: 'This will overwrite the existing template content.',
+            confirmText: 'Pull & Replace',
+            icon: 'fa-arrow-down'
+        });
+        if (!confirmed) return;
+    } else if (!confirm(`Replace content of "${template.name}" with editor content?`)) {
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', 'update_design_template');
+        formData.append('id', id);
+        formData.append('name', template.name);
+        formData.append('content', editor.value.trim());
+        
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showToast(`Content pulled to "${template.name}"`, 'success');
+            await dtLoadTemplates();
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error pulling to design template:', error);
+        showToast('Error pulling content', 'error');
+    }
+}
+
+// ============ PREVIEW ============
+
+// Open preview
+function dtOpenPreview(id) {
+    const template = designTemplates.find(t => t.id === id);
+    if (!template) return;
+    
+    const overlay = document.getElementById('dtPreviewModal');
+    const nameEl = document.getElementById('dtPreviewName');
+    const contentEl = document.getElementById('dtPreviewContent');
+    const editBtn = document.getElementById('dtPreviewEditBtn');
+    const useBtn = document.getElementById('dtPreviewUseBtn');
+    
+    if (nameEl) nameEl.textContent = template.name;
+    if (contentEl) contentEl.textContent = template.content;
+    
+    if (editBtn) {
+        editBtn.onclick = () => {
+            dtClosePreview();
+            dtOpenEditModal(id);
+        };
+    }
+    
+    if (useBtn) {
+        useBtn.onclick = () => {
+            dtClosePreview();
+            dtToggleTemplate(id);
+        };
+    }
+    
+    if (overlay) overlay.classList.add('active');
+}
+
+// Close preview
+function dtClosePreview() {
+    const overlay = document.getElementById('dtPreviewModal');
+    if (overlay) overlay.classList.remove('active');
+}
+
+// Copy preview content
+function dtCopyPreviewContent() {
+    const contentEl = document.getElementById('dtPreviewContent');
+    if (!contentEl) return;
+    
+    navigator.clipboard.writeText(contentEl.textContent).then(() => {
+        showToast('Content copied!', 'success');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = contentEl.textContent;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('Content copied!', 'success');
+    });
+}
+
+// Pull preview content from editor
+function dtPullPreviewContent() {
+    const editor = document.getElementById('promptEditor');
+    const nameEl = document.getElementById('dtPreviewName');
+    
+    if (!editor || !editor.value.trim()) {
+        showToast('Editor is empty', 'warning');
+        return;
+    }
+    
+    const name = nameEl ? nameEl.textContent : '';
+    const template = designTemplates.find(t => t.name === name);
+    if (template) {
+        dtPullToTemplate(template.id);
+    }
+}
+
+// ============ PUSH TO PROJECT PROMPTS ============
+
+function dtPushToNotes() {
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    if (activeDesignTemplates.size === 0) {
+        showToast('⚠️ No design templates selected', 'warning');
+        return;
+    }
+    
+    let content = '\n\n🎨 DESIGN TEMPLATES\n';
+    content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    
+    activeDesignTemplates.forEach(id => {
+        const template = designTemplates.find(t => t.id === id);
+        if (template) {
+            content += `\n📋 ${template.name}:\n${template.content}\n`;
+        }
+    });
+    
+    const currentContent = projectNotesTextarea.value;
+    projectNotesTextarea.value = currentContent + content;
+    
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    localStorage.setItem('projectPrompts', projectNotesTextarea.value);
+    
+    showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts`, 'success');
+}
+
+// ============ UTILITY ============
+
+function dtEscapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function dtHighlightText(text, searchTerm) {
+    if (!searchTerm) return dtEscapeHtml(text);
+    const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return dtEscapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
+}
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    dtLoadTemplates();
 });
 </script>
 
