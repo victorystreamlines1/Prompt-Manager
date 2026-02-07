@@ -1349,6 +1349,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // READ TEXT FILE — Read a .txt file content from server
+    // ============================================
+    if ($action === 'read_file_text') {
+        $filePath = $_POST['path'] ?? '';
+        
+        if (empty($filePath)) {
+            echo json_encode(['success' => false, 'message' => 'No path provided']);
+            exit;
+        }
+        
+        $filePath = realpath($filePath);
+        
+        if (!$filePath || !is_file($filePath)) {
+            echo json_encode(['success' => false, 'message' => 'File not found']);
+            exit;
+        }
+        
+        // Only allow text files
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        if ($ext !== 'txt') {
+            echo json_encode(['success' => false, 'message' => 'Not a text file']);
+            exit;
+        }
+        
+        try {
+            $content = file_get_contents($filePath);
+            $size = filesize($filePath);
+            
+            echo json_encode([
+                'success' => true,
+                'content' => $content,
+                'fileName' => basename($filePath),
+                'size' => $size
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -39406,6 +39447,187 @@ function ufHandleDocDetection() {
     }
     
     ufSaveToStorage();
+    
+    // Sync with Documentation Integration tool
+    if (ufDetectedDoc) {
+        setTimeout(() => { ufSyncToDocumentationTool(); }, 200);
+    }
+}
+
+// ═══════════════════════════════════════════
+// SYNC: Documentation File → Documentation Integration Tool
+// ═══════════════════════════════════════════
+
+async function ufSyncToDocumentationTool() {
+    // Only sync if a documentation file is detected
+    if (!ufDetectedDoc) return;
+    
+    // Skip if the Documentation tool already has a file loaded with the same name
+    if (typeof diFileName !== 'undefined' && diFileName === ufDetectedDoc) {
+        console.log('📚 Doc tool already has this file:', ufDetectedDoc);
+        return;
+    }
+    
+    // Try to find the file's server path for PHP reading
+    let serverPath = '';
+    const appDir = '<?php echo str_replace("\\", "/", dirname(__FILE__)); ?>';
+    
+    // Check standalone files first — they don't have server paths, try common locations
+    const standaloneMatch = Object.values(ufFileStorage).flat().find(f => 
+        f.name === ufDetectedDoc && !f.children
+    );
+    
+    if (standaloneMatch) {
+        // Try the app directory and common locations
+        const pathsToTry = [
+            appDir + '/' + ufDetectedDoc,
+        ];
+        
+        // Also check if file was found inside a folder with _serverPath
+        ufFileStorage.folders.forEach(folder => {
+            if (folder._serverPath) {
+                pathsToTry.push(folder._serverPath + '/' + ufDetectedDoc);
+                // Recursive search in children
+                function findInChildren(children, basePath) {
+                    if (!children || !Array.isArray(children)) return;
+                    children.forEach(child => {
+                        if (child.type === 'file' && child.name === ufDetectedDoc) {
+                            pathsToTry.unshift(basePath + '/' + child.name);
+                        } else if (child.type === 'folder' && child.children) {
+                            findInChildren(child.children, basePath + '/' + child.name);
+                        }
+                    });
+                }
+                findInChildren(folder.children, folder._serverPath);
+            }
+        });
+        
+        // Try each path via PHP
+        for (const tryPath of pathsToTry) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'read_file_text');
+                formData.append('path', tryPath);
+                
+                const response = await fetch('', { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                if (data.success && data.content) {
+                    serverPath = tryPath;
+                    
+                    // Set the Documentation Integration tool state
+                    diFileContent = data.content;
+                    diFileName = data.fileName;
+                    diEnableDoc = true;
+                    
+                    // Update UI — checkbox
+                    const checkbox = document.getElementById('diEnableDoc');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        const label = checkbox.closest('.di-checkbox-item');
+                        if (label) label.classList.add('checked');
+                    }
+                    
+                    // Show upload section
+                    const uploadSection = document.getElementById('diUploadSection');
+                    if (uploadSection) uploadSection.classList.add('show');
+                    
+                    // Show file info
+                    const fileInfo = document.getElementById('diFileInfo');
+                    const fileNameEl = document.getElementById('diFileName');
+                    const fileSizeEl = document.getElementById('diFileSize');
+                    if (fileNameEl) fileNameEl.textContent = data.fileName + ' (auto-detected)';
+                    if (fileSizeEl) fileSizeEl.textContent = typeof formatFileSize === 'function' ? formatFileSize(data.size || 0) : (data.size || 0) + ' bytes';
+                    if (fileInfo) fileInfo.classList.add('show');
+                    
+                    // Show mode section
+                    const modeSection = document.getElementById('diModeSection');
+                    if (modeSection) modeSection.classList.add('show');
+                    
+                    // Initialize mode UI
+                    if (typeof diSelectMode === 'function') diSelectMode(diIntegrationMode);
+                    
+                    // Save and update badge
+                    if (typeof diSaveToStorage === 'function') diSaveToStorage();
+                    if (typeof diUpdateBadge === 'function') diUpdateBadge();
+                    
+                    console.log('📚 Synced documentation to tool:', data.fileName, '(' + (data.size || 0) + ' bytes)');
+                    showToast(`📚 Documentation auto-loaded: ${data.fileName}`, 'success');
+                    return;
+                }
+            } catch (err) {
+                continue;
+            }
+        }
+    }
+    
+    // If file came from a folder tree, search in folder server paths
+    for (const folder of ufFileStorage.folders) {
+        if (!folder._serverPath || !folder.children) continue;
+        
+        function findDocPath(children, basePath) {
+            for (const child of children) {
+                if (child.type === 'file' && child.name === ufDetectedDoc) {
+                    return basePath + '/' + child.name;
+                }
+                if (child.type === 'folder' && child.children) {
+                    const found = findDocPath(child.children, basePath + '/' + child.name);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        
+        const docPath = findDocPath(folder.children, folder._serverPath);
+        if (docPath) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'read_file_text');
+                formData.append('path', docPath);
+                
+                const response = await fetch('', { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                if (data.success && data.content) {
+                    diFileContent = data.content;
+                    diFileName = data.fileName;
+                    diEnableDoc = true;
+                    
+                    const checkbox = document.getElementById('diEnableDoc');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        const label = checkbox.closest('.di-checkbox-item');
+                        if (label) label.classList.add('checked');
+                    }
+                    
+                    const uploadSection = document.getElementById('diUploadSection');
+                    if (uploadSection) uploadSection.classList.add('show');
+                    
+                    const fileInfo = document.getElementById('diFileInfo');
+                    const fileNameEl = document.getElementById('diFileName');
+                    const fileSizeEl = document.getElementById('diFileSize');
+                    if (fileNameEl) fileNameEl.textContent = data.fileName + ' (auto-detected)';
+                    if (fileSizeEl) fileSizeEl.textContent = typeof formatFileSize === 'function' ? formatFileSize(data.size || 0) : (data.size || 0) + ' bytes';
+                    if (fileInfo) fileInfo.classList.add('show');
+                    
+                    const modeSection = document.getElementById('diModeSection');
+                    if (modeSection) modeSection.classList.add('show');
+                    
+                    if (typeof diSelectMode === 'function') diSelectMode(diIntegrationMode);
+                    if (typeof diSaveToStorage === 'function') diSaveToStorage();
+                    if (typeof diUpdateBadge === 'function') diUpdateBadge();
+                    
+                    console.log('📚 Synced documentation to tool (from folder):', data.fileName);
+                    showToast(`📚 Documentation auto-loaded: ${data.fileName}`, 'success');
+                    return;
+                }
+            } catch (err) {
+                continue;
+            }
+        }
+    }
+    
+    console.log('📚 Documentation file detected but could not be read from server:', ufDetectedDoc);
 }
 
 // ═══════════════════════════════════════════
@@ -40322,6 +40544,11 @@ function ufLoadFromStorage() {
         setTimeout(() => {
             ufAutoDetectLogo();
         }, 200);
+        
+        // Sync documentation to Documentation Integration tool
+        setTimeout(() => {
+            if (ufDetectedDoc) ufSyncToDocumentationTool();
+        }, 500);
     } catch (e) {
         console.error('Error loading file upload state:', e);
     }
