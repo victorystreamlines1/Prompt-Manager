@@ -42509,13 +42509,12 @@ function dtRenderList(searchTerm = '') {
     dtUpdateCounter();
 }
 
-// Toggle a design template (add/remove from editor)
+// Toggle a design template (visual selection only - push via button)
 function dtToggleTemplate(id) {
     const template = designTemplates.find(t => t.id === id);
     if (!template) return;
     
     const dtItem = document.querySelector(`.dt-item[data-id="${id}"]`);
-    const editor = document.getElementById('promptEditor');
     
     if (activeDesignTemplates.has(id)) {
         activeDesignTemplates.delete(id);
@@ -42524,8 +42523,7 @@ function dtToggleTemplate(id) {
             const checkbox = dtItem.querySelector('input[type="checkbox"]');
             if (checkbox) checkbox.checked = false;
         }
-        dtRebuildEditor();
-        showToast(`${template.name} removed`, 'info');
+        showToast(`${template.name} deselected`, 'info');
     } else {
         activeDesignTemplates.add(id);
         if (dtItem) {
@@ -42533,24 +42531,12 @@ function dtToggleTemplate(id) {
             const checkbox = dtItem.querySelector('input[type="checkbox"]');
             if (checkbox) checkbox.checked = true;
         }
-        
-        // Append to editor
-        if (editor) {
-            if (editor.value.trim()) {
-                editor.value += '\n\n' + template.content;
-            } else {
-                editor.value = template.content;
-            }
-        }
-        
-        showToast(`${template.name} added`, 'success');
+        showToast(`${template.name} selected`, 'success');
     }
     
-    if (typeof updateCounts === 'function') updateCounts();
     dtUpdateCounter();
     dtUpdateSelectAll();
     dtUpdateBadge();
-    if (typeof recordHistoryState === 'function') recordHistoryState(true);
 }
 
 // Rebuild editor content after removing a template
@@ -42590,22 +42576,10 @@ function dtToggleAll(checked) {
     }
 }
 
-// Select all
+// Select all (visual only)
 function dtSelectAll() {
-    const editor = document.getElementById('promptEditor');
-    
     designTemplates.forEach(template => {
-        if (!activeDesignTemplates.has(template.id)) {
-            activeDesignTemplates.add(template.id);
-            
-            if (editor) {
-                if (editor.value.trim()) {
-                    editor.value += '\n\n' + template.content;
-                } else {
-                    editor.value = template.content;
-                }
-            }
-        }
+        activeDesignTemplates.add(template.id);
     });
     
     // Update all items UI
@@ -42615,15 +42589,13 @@ function dtSelectAll() {
         if (checkbox) checkbox.checked = true;
     });
     
-    if (typeof updateCounts === 'function') updateCounts();
     dtUpdateCounter();
     dtUpdateSelectAll();
     dtUpdateBadge();
-    if (typeof recordHistoryState === 'function') recordHistoryState(true);
     showToast(`All design templates selected (${designTemplates.length})`, 'success');
 }
 
-// Deselect all
+// Deselect all (visual only)
 function dtDeselectAll() {
     activeDesignTemplates.clear();
     
@@ -42633,13 +42605,9 @@ function dtDeselectAll() {
         if (checkbox) checkbox.checked = false;
     });
     
-    dtRebuildEditor();
-    
-    if (typeof updateCounts === 'function') updateCounts();
     dtUpdateCounter();
     dtUpdateSelectAll();
     dtUpdateBadge();
-    if (typeof recordHistoryState === 'function') recordHistoryState(true);
     showToast('All design templates deselected', 'info');
 }
 
