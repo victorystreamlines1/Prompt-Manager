@@ -38846,14 +38846,45 @@ function ufPopulatePageDetection() {
     
     if (!homepageSelect || !featuredSelect) return;
     
-    // Get all HTML and PHP files
+    // Get all HTML and PHP files — from standalone files AND from inside folders
     const pageFiles = [
-        ...ufFileStorage.html.map(f => ({ name: f.name, type: 'HTML' })),
-        ...ufFileStorage.php.map(f => ({ name: f.name, type: 'PHP' }))
+        ...ufFileStorage.html.map(f => ({ name: f.name, type: 'HTML', source: 'standalone' })),
+        ...ufFileStorage.php.map(f => ({ name: f.name, type: 'PHP', source: 'standalone' }))
     ];
     
+    // Also extract HTML/PHP files from inside folder trees (recursive)
+    function extractPagesFromChildren(children, folderPath) {
+        if (!children || !Array.isArray(children)) return;
+        children.forEach(child => {
+            if (child.type === 'folder' && child.children) {
+                extractPagesFromChildren(child.children, folderPath + '/' + child.name);
+            } else if (child.type === 'file') {
+                const ext = child.name.split('.').pop().toLowerCase();
+                if (['html', 'htm'].includes(ext)) {
+                    pageFiles.push({ name: child.name, type: 'HTML', source: folderPath, fullLabel: `${child.name} (${folderPath})` });
+                } else if (ext === 'php') {
+                    pageFiles.push({ name: child.name, type: 'PHP', source: folderPath, fullLabel: `${child.name} (${folderPath})` });
+                }
+            }
+        });
+    }
+    
+    ufFileStorage.folders.forEach(folder => {
+        if (folder.children) {
+            extractPagesFromChildren(folder.children, folder.name);
+        }
+    });
+    
+    // Remove duplicates by name (keep first occurrence)
+    const seen = new Set();
+    const uniquePageFiles = pageFiles.filter(f => {
+        if (seen.has(f.name)) return false;
+        seen.add(f.name);
+        return true;
+    });
+    
     // Show/hide detection section
-    if (pageFiles.length > 0) {
+    if (uniquePageFiles.length > 0) {
         detectionSection.style.display = 'block';
     } else {
         detectionSection.style.display = 'none';
@@ -38870,26 +38901,167 @@ function ufPopulatePageDetection() {
     homepageSelect.innerHTML = '<option value="">-- Select Homepage --</option>';
     featuredSelect.innerHTML = '<option value="">-- Select Featured Page --</option>';
     
-    pageFiles.forEach(file => {
+    uniquePageFiles.forEach(file => {
+        const label = file.fullLabel || `${file.name} (${file.type})`;
+        
         const option1 = document.createElement('option');
         option1.value = file.name;
-        option1.textContent = `${file.name} (${file.type})`;
+        option1.textContent = label;
         homepageSelect.appendChild(option1);
         
         const option2 = document.createElement('option');
         option2.value = file.name;
-        option2.textContent = `${file.name} (${file.type})`;
+        option2.textContent = label;
         featuredSelect.appendChild(option2);
     });
     
-    // Restore selections
-    if (currentHomepage && pageFiles.some(f => f.name === currentHomepage)) {
+    // ═══════════════════════════════════════════
+    // SMART AUTO-DETECTION — Educated Guess
+    // ═══════════════════════════════════════════
+    
+    // Try to restore previous selections first
+    let homepageRestored = false;
+    let featuredRestored = false;
+    
+    if (currentHomepage && uniquePageFiles.some(f => f.name === currentHomepage)) {
         homepageSelect.value = currentHomepage;
         ufHandleHomepageDetection();
+        homepageRestored = true;
     }
-    if (currentFeatured && pageFiles.some(f => f.name === currentFeatured)) {
+    if (currentFeatured && uniquePageFiles.some(f => f.name === currentFeatured)) {
         featuredSelect.value = currentFeatured;
+        ufHandleFeaturedDetection();
+        featuredRestored = true;
     }
+    
+    // If no previous selection, run auto-detection
+    if (!homepageRestored || !ufDetectedHomepage) {
+        const guessedHomepage = ufGuessHomepage(uniquePageFiles);
+        if (guessedHomepage) {
+            homepageSelect.value = guessedHomepage;
+            ufHandleHomepageDetection();
+            console.log('🏠 Auto-detected Homepage:', guessedHomepage);
+        }
+    }
+    
+    if (!featuredRestored || !ufDetectedFeatured) {
+        const guessedFeatured = ufGuessFeaturedPage(uniquePageFiles, ufDetectedHomepage);
+        if (guessedFeatured) {
+            featuredSelect.value = guessedFeatured;
+            ufHandleFeaturedDetection();
+            console.log('⭐ Auto-detected Featured Page:', guessedFeatured);
+        }
+    }
+}
+
+// ═══════════════════════════════════════════
+// SMART PAGE DETECTION — Educated Guess Logic
+// ═══════════════════════════════════════════
+
+// Guess the homepage from a list of page files (priority-based matching)
+function ufGuessHomepage(pageFiles) {
+    if (!pageFiles || pageFiles.length === 0) return '';
+    
+    const names = pageFiles.map(f => f.name.toLowerCase());
+    
+    // Priority list for homepage detection (most common → least common)
+    const homepagePatterns = [
+        // Exact matches (highest priority)
+        'index.html', 'index.php', 'index.htm',
+        'home.html', 'home.php', 'home.htm',
+        'default.html', 'default.php', 'default.htm',
+        'main.html', 'main.php', 'main.htm',
+        'welcome.html', 'welcome.php', 'welcome.htm',
+        'landing.html', 'landing.php', 'landing.htm',
+        'homepage.html', 'homepage.php', 'homepage.htm',
+        'front.html', 'front.php', 'front.htm',
+        'app.html', 'app.php', 'app.htm',
+    ];
+    
+    // Check exact matches first
+    for (const pattern of homepagePatterns) {
+        const match = pageFiles.find(f => f.name.toLowerCase() === pattern);
+        if (match) return match.name;
+    }
+    
+    // Partial matches — file name contains "index", "home", etc.
+    const partialPatterns = ['index', 'home', 'main', 'landing', 'default', 'welcome', 'front'];
+    for (const keyword of partialPatterns) {
+        const match = pageFiles.find(f => f.name.toLowerCase().includes(keyword));
+        if (match) return match.name;
+    }
+    
+    // Last resort: pick the first HTML file, then first PHP file
+    const firstHtml = pageFiles.find(f => f.type === 'HTML');
+    if (firstHtml) return firstHtml.name;
+    
+    const firstPhp = pageFiles.find(f => f.type === 'PHP');
+    if (firstPhp) return firstPhp.name;
+    
+    return '';
+}
+
+// Guess the featured/secondary page (priority-based, excluding homepage)
+function ufGuessFeaturedPage(pageFiles, homepage) {
+    if (!pageFiles || pageFiles.length === 0) return '';
+    
+    // Filter out the homepage
+    const candidates = pageFiles.filter(f => f.name !== homepage);
+    if (candidates.length === 0) return '';
+    
+    // Priority list for featured page detection
+    const featuredPatterns = [
+        // About pages (very common as "second page")
+        'about.html', 'about.php', 'about.htm',
+        'about-us.html', 'about-us.php', 'about-us.htm',
+        'aboutus.html', 'aboutus.php', 'aboutus.htm',
+        'who-we-are.html', 'who-we-are.php',
+        // Services / Products
+        'services.html', 'services.php', 'services.htm',
+        'products.html', 'products.php', 'products.htm',
+        'features.html', 'features.php', 'features.htm',
+        'solutions.html', 'solutions.php',
+        'offerings.html', 'offerings.php',
+        // Portfolio / Work
+        'portfolio.html', 'portfolio.php', 'portfolio.htm',
+        'projects.html', 'projects.php',
+        'work.html', 'work.php',
+        'gallery.html', 'gallery.php',
+        'showcase.html', 'showcase.php',
+        // Contact
+        'contact.html', 'contact.php', 'contact.htm',
+        'contact-us.html', 'contact-us.php',
+        'contactus.html', 'contactus.php',
+        // Blog
+        'blog.html', 'blog.php', 'blog.htm',
+        'news.html', 'news.php',
+        'articles.html', 'articles.php',
+        // Pricing
+        'pricing.html', 'pricing.php',
+        'plans.html', 'plans.php',
+        // Team
+        'team.html', 'team.php',
+        'our-team.html', 'our-team.php',
+        // FAQ
+        'faq.html', 'faq.php',
+        'help.html', 'help.php',
+    ];
+    
+    // Check exact matches
+    for (const pattern of featuredPatterns) {
+        const match = candidates.find(f => f.name.toLowerCase() === pattern);
+        if (match) return match.name;
+    }
+    
+    // Partial keyword matches
+    const partialPatterns = ['about', 'service', 'product', 'feature', 'portfolio', 'contact', 'blog', 'pricing', 'team', 'work', 'gallery'];
+    for (const keyword of partialPatterns) {
+        const match = candidates.find(f => f.name.toLowerCase().includes(keyword));
+        if (match) return match.name;
+    }
+    
+    // Last resort: pick the first non-homepage candidate
+    return candidates[0]?.name || '';
 }
 
 // Handle homepage detection
