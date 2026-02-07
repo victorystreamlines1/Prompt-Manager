@@ -29259,7 +29259,6 @@ in each section carefully and maintain proper connections between components.
         // Initialize distribution slider on page load
         function initDistributionSlider() {
             updateDistribution(1);
-            updateActiveLabel(1);
         }
         
         // ============ CUSTOM RESIZE HANDLE ============
@@ -31524,10 +31523,10 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
         
         if (win) {
             win.focus();
-            showNotification('🔄 Design Enhancer tab opened/switched', 'success');
+            showToast('🔄 Design Enhancer tab opened/switched', 'success');
         } else {
             // Popup blocker might have prevented opening
-            showNotification('⚠️ Please allow popups to open Design Enhancer', 'warning');
+            showToast('⚠️ Please allow popups to open Design Enhancer', 'warning');
         }
     };
     
@@ -35320,7 +35319,7 @@ function dtResetSelection() {
     dtSaveToStorage();
     dtUpdateUI();
     
-    showNotification('🎨 Theme selection reset to AI Decision', 'info');
+    showToast('🎨 Theme selection reset to AI Decision', 'info');
 }
 
 // Update char count
@@ -35568,7 +35567,7 @@ function dtPushToNotes() {
     const notesContent = document.getElementById('dtNotesTextarea')?.value.trim() || '';
     
     if (dtSelectedThemes.length === 0 && !notesContent) {
-        showNotification('⚠️ No themes selected or notes to push', 'warning');
+        showToast('⚠️ No themes selected or notes to push', 'warning');
         return;
     }
     
@@ -35697,7 +35696,7 @@ function dtPushToNotes() {
     const modeText = hasAI && otherThemes.length === 0 ? 'AI Creative Mode' : 
                      hasAI && otherThemes.length > 0 ? `AI Selection (${otherThemes.length} options)` :
                      `${otherThemes.length} theme(s)`;
-    showNotification(`🎨 ${modeText} pushed to Project Prompts`, 'success');
+    showToast(`🎨 ${modeText} pushed to Project Prompts`, 'success');
 }
 
 // Save to storage
@@ -35758,7 +35757,7 @@ function dtResetAll(skipToast = false) {
     dtUpdateUI();
     
     if (!skipToast) {
-        showNotification('🎨 Design themes reset', 'info');
+        showToast('🎨 Design themes reset', 'info');
     }
 }
 
@@ -35895,9 +35894,9 @@ function plToggleLayout(layoutValue, cardElement) {
     // Show notification
     const layoutName = plLayoutDescriptions[layoutValue]?.name || layoutValue;
     if (index > -1) {
-        showNotification(`Layout removed: ${layoutName}`, 'info');
+        showToast(`Layout removed: ${layoutName}`, 'info');
     } else {
-        showNotification(`🏗️ Layout added: ${layoutName}`, 'success');
+        showToast(`🏗️ Layout added: ${layoutName}`, 'success');
     }
 }
 
@@ -35972,7 +35971,7 @@ function plPushToNotes() {
     const notesContent = document.getElementById('plNotesTextarea')?.value.trim() || '';
     
     if (plSelectedLayouts.length === 0 && !notesContent) {
-        showNotification('⚠️ No layouts selected or notes to push', 'warning');
+        showToast('⚠️ No layouts selected or notes to push', 'warning');
         return;
     }
     
@@ -36052,7 +36051,7 @@ function plPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification(`🏗️ ${plSelectedLayouts.length} layout(s) pushed to Project Prompts`, 'success');
+    showToast(`🏗️ ${plSelectedLayouts.length} layout(s) pushed to Project Prompts`, 'success');
 }
 
 // Update character count
@@ -36120,7 +36119,7 @@ function plResetAll(skipToast = false) {
     localStorage.removeItem('plNotes');
     
     if (!skipToast) {
-        showNotification('🔄 Layouts reset to AI Decision', 'info');
+        showToast('🔄 Layouts reset to AI Decision', 'info');
     }
 }
 
@@ -37107,7 +37106,7 @@ function vrHandleFiles(files) {
     const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
     
     if (imageFiles.length === 0) {
-        showNotification('⚠️ Please upload image files only', 'warning');
+        showToast('⚠️ Please upload image files only', 'warning');
         return;
     }
     
@@ -37127,7 +37126,7 @@ function vrHandleFiles(files) {
         reader.readAsDataURL(file);
     });
     
-    showNotification(`✅ ${imageFiles.length} reference image(s) uploaded`, 'success');
+    showToast(`✅ ${imageFiles.length} reference image(s) uploaded`, 'success');
 }
 
 // Update gallery display
@@ -37160,13 +37159,13 @@ function vrRemoveImage(index) {
     vrUpdateGallery();
     vrSaveToStorage();
     vrUpdateBadge();
-    showNotification('🗑️ Reference image removed', 'info');
+    showToast('🗑️ Reference image removed', 'info');
 }
 
 // Clear all images
 function vrClearAll() {
     if (vrImages.length === 0) {
-        showNotification('⚠️ No reference images to clear', 'warning');
+        showToast('⚠️ No reference images to clear', 'warning');
         return;
     }
     
@@ -37184,7 +37183,7 @@ function vrClearAll() {
             vrSaveToStorage();
             vrUpdateBadge();
             document.getElementById('vrFileInput').value = '';
-            showNotification('✅ All reference images cleared', 'success');
+            showToast('✅ All reference images cleared', 'success');
         }
     });
 }
@@ -37212,7 +37211,7 @@ function vrSelectMode(mode) {
     
     // Notification
     const modeName = mode === 'ai-inspiration' ? 'AI Inspiration Mode' : 'Exact Replication Mode';
-    showNotification(`🎨 Reference mode: ${modeName}`, 'success');
+    showToast(`🎨 Reference mode: ${modeName}`, 'success');
 }
 
 // Update badge
@@ -37288,7 +37287,7 @@ function vrPushToNotes() {
     }
     
     if (!promptContent) {
-        showNotification('⚠️ No visual references or notes to push', 'warning');
+        showToast('⚠️ No visual references or notes to push', 'warning');
         return;
     }
     
@@ -37304,7 +37303,7 @@ function vrPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('📷 Visual reference pushed to Project Prompts', 'success');
+    showToast('📷 Visual reference pushed to Project Prompts', 'success');
 }
 
 // Character count for notes
@@ -37346,7 +37345,7 @@ function vrSaveToStorage() {
     } catch (e) {
         console.warn('Failed to save visual references:', e);
         if (e.name === 'QuotaExceededError') {
-            showNotification('⚠️ Storage limit reached. Consider using fewer or smaller images.', 'warning');
+            showToast('⚠️ Storage limit reached. Consider using fewer or smaller images.', 'warning');
         }
     }
 }
@@ -37398,7 +37397,7 @@ function vrResetAll(skipToast = false) {
     localStorage.removeItem('vrNotes');
     
     if (!skipToast) {
-        showNotification('📷 Visual references reset', 'info');
+        showToast('📷 Visual references reset', 'info');
     }
 }
 
@@ -37513,7 +37512,7 @@ function hpHandleTargetFile(event) {
     
     hpSaveToStorage();
     hpUpdateBadge();
-    showNotification(`📄 Target page selected: ${file.name}`, 'success');
+    showToast(`📄 Target page selected: ${file.name}`, 'success');
 }
 
 // Clear target file
@@ -37562,7 +37561,7 @@ function hpHandleExistingFile(event) {
     
     hpSaveToStorage();
     hpUpdateBadge();
-    showNotification(`📄 Existing page selected: ${file.name}`, 'success');
+    showToast(`📄 Existing page selected: ${file.name}`, 'success');
 }
 
 // Clear existing file
@@ -37712,7 +37711,7 @@ function hpPushToNotes() {
     }
     
     if (!promptContent.trim()) {
-        showNotification('⚠️ No homepage configuration to push', 'warning');
+        showToast('⚠️ No homepage configuration to push', 'warning');
         return;
     }
     
@@ -37728,7 +37727,7 @@ function hpPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('🏠 Homepage configuration pushed to Project Prompts', 'success');
+    showToast('🏠 Homepage configuration pushed to Project Prompts', 'success');
 }
 
 // Character count
@@ -37861,7 +37860,7 @@ function hpResetAll(skipToast = false) {
     hpUpdateBadge();
     
     if (!skipToast) {
-        showNotification('🏠 Homepage settings reset', 'info');
+        showToast('🏠 Homepage settings reset', 'info');
     }
 }
 
@@ -37973,7 +37972,7 @@ function ufSetupRootSelector() {
             const items = Array.from(e.dataTransfer.items);
             const folders = [];
             
-            showNotification('📁 Processing folders...', 'info');
+            showToast('📁 Processing folders...', 'info');
             
             for (const item of items) {
                 if (item.webkitGetAsEntry) {
@@ -38004,9 +38003,9 @@ function ufSetupRootSelector() {
                     rootSelectedDiv.style.display = 'flex';
                     rootNameSpan.textContent = `${folders.length} folder(s): ${folderNames} (${totalFiles} files)`;
                 }
-                showNotification(`📁 ${folders.length} folder(s) added to Project Structure`, 'success');
+                showToast(`📁 ${folders.length} folder(s) added to Project Structure`, 'success');
             } else {
-                showNotification('⚠️ No folders detected. Please drop folders, not files.', 'warning');
+                showToast('⚠️ No folders detected. Please drop folders, not files.', 'warning');
             }
         }
     });
@@ -38040,7 +38039,7 @@ function ufClearRoot() {
     if (dropDiv) dropDiv.style.display = 'flex';
     if (selectedDiv) selectedDiv.style.display = 'none';
     
-    showNotification('Project routes cleared', 'info');
+    showToast('Project routes cleared', 'info');
 }
 
 // Save root to storage
@@ -38285,11 +38284,11 @@ function ufSetupDropZone() {
             }
             
             if (foldersSkipped > 0) {
-                showNotification(`⚠️ ${foldersSkipped} folder(s) skipped — use "Project Routes" to add folders`, 'warning');
+                showToast(`⚠️ ${foldersSkipped} folder(s) skipped — use "Project Routes" to add folders`, 'warning');
             }
             
             if (fileInfos.length === 0 && foldersSkipped === 0) {
-                showNotification('⚠️ No files detected', 'warning');
+                showToast('⚠️ No files detected', 'warning');
             }
         }
     });
@@ -38372,10 +38371,10 @@ function ufHandleFoldersStructure(folders) {
     
     const totalFolders = folders.length;
     const totalFilesInFolders = folders.reduce((sum, f) => sum + (f.fileCount || 0), 0);
-    showNotification(`📁 ${totalFolders} folder(s) with ${totalFilesInFolders} files added`, 'success');
+    showToast(`📁 ${totalFolders} folder(s) with ${totalFilesInFolders} files added`, 'success');
     
-    // Auto-detect logo from newly added folders
-    ufAutoDetectLogo();
+    // Auto-detect logo from newly added folders (short delay to ensure storage is settled)
+    setTimeout(() => { ufAutoDetectLogo(); }, 100);
 }
 
 // Handle files structure (names only, no content)
@@ -38403,10 +38402,10 @@ function ufHandleFilesStructure(fileInfos) {
     
     document.getElementById('ufCategories')?.classList.add('show');
     
-    showNotification(`✅ ${fileInfos.length} file(s) added`, 'success');
+    showToast(`✅ ${fileInfos.length} file(s) added`, 'success');
     
-    // Auto-detect logo from newly added files
-    ufAutoDetectLogo();
+    // Auto-detect logo from newly added files (short delay to ensure storage is settled)
+    setTimeout(() => { ufAutoDetectLogo(); }, 100);
 }
 
 // Categorize file by name (extension)
@@ -38424,7 +38423,7 @@ function ufCategorizeFileByName(filename) {
 // Handle uploaded files
 function ufHandleFiles(files) {
     if (!files || files.length === 0) {
-        showNotification('No files selected', 'warning');
+        showToast('No files selected', 'warning');
         return;
     }
     
@@ -38446,7 +38445,7 @@ function ufHandleFiles(files) {
     // Show categories section
     document.getElementById('ufCategories').classList.add('show');
     
-    showNotification(`✅ ${files.length} file(s) processed`, 'success');
+    showToast(`✅ ${files.length} file(s) processed`, 'success');
 }
 
 // Categorize file by extension
@@ -38806,7 +38805,7 @@ function ufRemoveFile(category, index) {
     ufDisplayCategories();
     ufSaveToStorage();
     ufUpdateBadge();
-    showNotification('Item removed', 'info');
+    showToast('Item removed', 'info');
 }
 
 // Render folder tree recursively
@@ -39209,10 +39208,12 @@ async function ufAutoDetectLogo() {
     
     if (allImages.length === 0) {
         console.log('🎨 No image files found for logo detection');
+        ufHideLogoProgress();
         return;
     }
     
     console.log('🎨 Scanning', allImages.length, 'images for logo...');
+    ufShowLogoProgress('🔍 Scanning ' + allImages.length + ' images...');
     
     // Try exact pattern matches first
     let bestMatch = null;
@@ -39237,53 +39238,99 @@ async function ufAutoDetectLogo() {
     
     if (!bestMatch) {
         console.log('🎨 No logo file detected');
+        ufHideLogoProgress();
         return;
     }
     
     console.log('🎨 Logo detected:', bestMatch.name, 'from', bestMatch.source);
     
-    // Now we need to get the actual image data
-    // For folder files: we need the full server path. Reconstruct from the folder's known path
+    // Show progress indicator on branding zone
+    ufShowLogoProgress('🔍 Detecting logo...');
+    
+    // ─── FAST PATH: Try loading via web URL first (instant, no PHP call) ───
+    // Since we're on localhost, files in the app directory are accessible via URL
+    const webUrlsToTry = [
+        bestMatch.name,                         // Same directory as page
+        'uploads/' + bestMatch.name,             // Common upload dirs
+        'assets/' + bestMatch.name,
+        'images/' + bestMatch.name,
+        'img/' + bestMatch.name,
+        'static/' + bestMatch.name,
+        'public/' + bestMatch.name,
+        'media/' + bestMatch.name
+    ];
+    
+    // If from a folder tree, also try the relative folder path
+    if (bestMatch.path) {
+        webUrlsToTry.unshift(bestMatch.path);
+    }
+    
+    // Try web URLs — use Image element to test if accessible
+    for (const url of webUrlsToTry) {
+        const found = await new Promise(resolve => {
+            const testImg = new Image();
+            testImg.onload = function() {
+                // Image loaded! Convert to canvas → dataURL
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = testImg.naturalWidth;
+                    canvas.height = testImg.naturalHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(testImg, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    resolve(dataUrl);
+                } catch (e) {
+                    resolve(null); // CORS or other error
+                }
+            };
+            testImg.onerror = () => resolve(null);
+            // Set a timeout to not wait forever
+            setTimeout(() => resolve(null), 2000);
+            testImg.crossOrigin = 'anonymous';
+            testImg.src = url;
+        });
+        
+        if (found) {
+            ufShowLogoProgress('✅ Logo loaded!');
+            setTimeout(() => {
+                ufSetBrandingLogo(found, bestMatch.name);
+                showToast(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+            }, 600);
+            return;
+        }
+    }
+    
+    // Update progress for slow path
+    ufShowLogoProgress('🔄 Loading logo via server...');
+    
+    // ─── SLOW PATH: Try PHP file read as fallback ───
     let fullServerPath = '';
     
     if (bestMatch.source === 'folder') {
-        // Find the root folder that contains this image
         for (const folder of ufFileStorage.folders) {
-            // The folder was added via PHP browser — check if knownFolders or ufFileStorage has a path
-            // We need to find the server path. Let's search the PHP tree data.
             const folderRootName = bestMatch.path.split('/')[0];
             if (folder.name === folderRootName && folder._serverPath) {
-                // Reconstruct full path
-                const subPath = bestMatch.path.substring(folderRootName.length); // e.g. /assets/logo.png
+                const subPath = bestMatch.path.substring(folderRootName.length);
                 fullServerPath = folder._serverPath + subPath;
                 break;
             }
         }
     }
     
-    // Build a list of possible server paths to try
-    let pathsToTry = [];
-    
+    let phpPathsToTry = [];
     if (fullServerPath) {
-        pathsToTry.push(fullServerPath);
+        phpPathsToTry.push(fullServerPath);
     }
     
-    if (bestMatch.source === 'standalone' || !fullServerPath) {
-        // For standalone files (or if folder path reconstruction failed),
-        // try the app's base directory — since we run on Laragon/localhost,
-        // the file is likely in the same directory or a subdirectory
-        const appDir = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
-        pathsToTry.push(appDir + '/' + bestMatch.name);
-        
-        // Also try common subdirectories
-        const commonDirs = ['assets', 'images', 'img', 'static', 'public', 'media', 'uploads', 'resources'];
-        commonDirs.forEach(dir => {
-            pathsToTry.push(appDir + '/' + dir + '/' + bestMatch.name);
-        });
-    }
+    const appDir = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+    phpPathsToTry.push(appDir + '/' + bestMatch.name);
     
-    // Try each path until we find the file
-    for (const tryPath of pathsToTry) {
+    const commonDirs = ['assets', 'images', 'img', 'static', 'public', 'media', 'uploads', 'resources'];
+    commonDirs.forEach(dir => {
+        phpPathsToTry.push(appDir + '/' + dir + '/' + bestMatch.name);
+    });
+    
+    for (const tryPath of phpPathsToTry) {
         try {
             const formData = new FormData();
             formData.append('action', 'read_file_base64');
@@ -39293,17 +39340,52 @@ async function ufAutoDetectLogo() {
             const data = await response.json();
             
             if (data.success && data.dataUrl) {
-                ufSetBrandingLogo(data.dataUrl, bestMatch.name);
-                showNotification(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
-                return; // Found it!
+                ufShowLogoProgress('✅ Logo loaded!');
+                setTimeout(() => {
+                    ufSetBrandingLogo(data.dataUrl, bestMatch.name);
+                    showToast(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+                }, 600);
+                return;
             }
         } catch (err) {
-            // Try next path
             continue;
         }
     }
     
-    console.log('🎨 Logo file detected but could not be read from server:', bestMatch.name);
+    // Hide progress if detection fails
+    ufHideLogoProgress();
+    console.log('🎨 Logo file detected but could not be read:', bestMatch.name);
+}
+
+// Show logo detection progress indicator on the branding zone
+function ufShowLogoProgress(message) {
+    const zone = document.getElementById('brandingLogoZone');
+    if (!zone) return;
+    
+    // Create or update progress overlay
+    let overlay = document.getElementById('brandingLogoProgress');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'brandingLogoProgress';
+        overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,15,25,0.9);border-radius:12px;z-index:10;gap:0.5rem;transition:opacity 0.3s;';
+        zone.style.position = 'relative';
+        zone.appendChild(overlay);
+    }
+    
+    overlay.innerHTML = `<i class="fas fa-spinner fa-spin" style="color:#fbbf24;font-size:1.4rem;"></i><span style="color:#fbbf24;font-size:0.75rem;font-weight:600;">${message}</span>`;
+    overlay.style.opacity = '1';
+    overlay.style.display = 'flex';
+}
+
+// Hide logo detection progress
+function ufHideLogoProgress() {
+    const overlay = document.getElementById('brandingLogoProgress');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => { 
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay); 
+        }, 300);
+    }
 }
 
 // Set a logo image programmatically in the Branding section
@@ -39311,6 +39393,9 @@ function ufSetBrandingLogo(dataUrl, fileName) {
     brandingLogoDataUrl = dataUrl;
     brandingLogoFile = null; // No File object, we have dataUrl directly
     brandingLogoFileName = fileName || '';
+    
+    // Hide progress indicator
+    ufHideLogoProgress();
     
     const preview = document.getElementById('brandingLogoPreview');
     const prompt = document.getElementById('brandingUploadPrompt');
@@ -39390,11 +39475,20 @@ function ufCheckDroppedFilesForLogo(files) {
     
     console.log('🎨 Logo detected in dropped files:', bestMatch.name);
     
+    // Show progress on branding zone
+    ufShowLogoProgress('🔍 Detecting logo...');
+    
     // Read the file as DataURL and set as branding logo
     const reader = new FileReader();
     reader.onload = function(e) {
-        ufSetBrandingLogo(e.target.result, bestMatch.name);
-        showNotification(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+        ufShowLogoProgress('✅ Logo loaded!');
+        setTimeout(() => {
+            ufSetBrandingLogo(e.target.result, bestMatch.name);
+            showToast(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+        }, 600);
+    };
+    reader.onerror = function() {
+        ufHideLogoProgress();
     };
     reader.readAsDataURL(bestMatch);
 }
@@ -39513,7 +39607,7 @@ function ufPushToNotes() {
     const notesContent = document.getElementById('ufNotesTextarea')?.value.trim() || '';
     
     if (totalItems === 0 && !notesContent) {
-        showNotification('⚠️ No files, folders, or notes to push', 'warning');
+        showToast('⚠️ No files, folders, or notes to push', 'warning');
         return;
     }
     
@@ -39604,7 +39698,7 @@ function ufPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('📁 Project structure pushed to Project Prompts', 'success');
+    showToast('📁 Project structure pushed to Project Prompts', 'success');
 }
 
 // Build a full ASCII tree diagram for a folder and ALL its descendants (unlimited depth)
@@ -39712,7 +39806,7 @@ function ufClearAll() {
     localStorage.removeItem('ufDetectedFeatured');
     localStorage.removeItem('ufNotes');
     
-    showNotification('🗑️ All files cleared', 'info');
+    showToast('🗑️ All files cleared', 'info');
 }
 
 // Confirm reset
@@ -39720,7 +39814,7 @@ async function confirmResetFileUpload() {
     const totalFiles = Object.values(ufFileStorage).reduce((sum, arr) => sum + arr.length, 0);
     
     if (totalFiles === 0) {
-        showNotification('⚠️ No files to clear', 'warning');
+        showToast('⚠️ No files to clear', 'warning');
         return;
     }
     
@@ -39817,10 +39911,10 @@ function ufLoadFromStorage() {
         // Load notes
         ufLoadNotesFromStorage();
         
-        // Auto-detect logo if not already set (delayed to ensure branding state loads first)
+        // Auto-detect logo if not already set (short delay to ensure branding state loads first)
         setTimeout(() => {
             ufAutoDetectLogo();
-        }, 500);
+        }, 200);
     } catch (e) {
         console.error('Error loading file upload state:', e);
     }
@@ -39830,7 +39924,7 @@ function ufLoadFromStorage() {
 function ufResetAll(skipToast = false) {
     ufClearAll();
     if (!skipToast) {
-        showNotification('📁 File upload cleared', 'info');
+        showToast('📁 File upload cleared', 'info');
     }
 }
 
@@ -39871,7 +39965,7 @@ function exHandleFiles(files) {
     );
     
     if (htmlPhpFiles.length === 0) {
-        showNotification('⚠️ Please select HTML or PHP files only', 'warning');
+        showToast('⚠️ Please select HTML or PHP files only', 'warning');
         return;
     }
     
@@ -39886,7 +39980,7 @@ function exHandleFiles(files) {
     exUpdateFilesList();
     exSaveToStorage();
     exUpdateBadge();
-    showNotification(`✅ ${htmlPhpFiles.length} file(s) added to exclusion list`, 'success');
+    showToast(`✅ ${htmlPhpFiles.length} file(s) added to exclusion list`, 'success');
 }
 
 // Update excluded files list display
@@ -39925,7 +40019,7 @@ function exRemoveFile(index) {
     exUpdateFilesList();
     exSaveToStorage();
     exUpdateBadge();
-    showNotification(`🗑️ ${fileName} removed from exclusion list`, 'info');
+    showToast(`🗑️ ${fileName} removed from exclusion list`, 'info');
 }
 
 // Update badge
@@ -39989,7 +40083,7 @@ function exPushToNotes() {
     }
     
     if (!promptContent) {
-        showNotification('⚠️ No exclusions or notes to push', 'warning');
+        showToast('⚠️ No exclusions or notes to push', 'warning');
         return;
     }
     
@@ -40005,7 +40099,7 @@ function exPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('🚫 File exclusions pushed to Project Prompts', 'success');
+    showToast('🚫 File exclusions pushed to Project Prompts', 'success');
 }
 
 // Character count
@@ -40082,14 +40176,14 @@ function exResetAll(skipToast = false) {
     exUpdateBadge();
     
     if (!skipToast) {
-        showNotification('🚫 All exclusions cleared', 'info');
+        showToast('🚫 All exclusions cleared', 'info');
     }
 }
 
 // Confirm reset
 async function confirmResetExclusions() {
     if (exExcludedFiles.length === 0) {
-        showNotification('⚠️ No files to clear', 'warning');
+        showToast('⚠️ No files to clear', 'warning');
         return;
     }
     
@@ -40192,7 +40286,7 @@ function diToggleFormSubmit(event) {
     
     diSaveToStorage();
     diUpdateBadge();
-    showNotification(checkbox.checked ? '✅ FormSubmit.co enabled' : '❌ FormSubmit.co disabled', 'info');
+    showToast(checkbox.checked ? '✅ FormSubmit.co enabled' : '❌ FormSubmit.co disabled', 'info');
 }
 
 // Save email
@@ -40230,11 +40324,11 @@ function diHandleFile(event) {
         
         diSaveToStorage();
         diUpdateBadge();
-        showNotification('📄 Documentation file loaded!', 'success');
+        showToast('📄 Documentation file loaded!', 'success');
     };
     
     reader.onerror = function() {
-        showNotification('❌ Error reading file', 'error');
+        showToast('❌ Error reading file', 'error');
     };
     
     reader.readAsText(file);
@@ -40337,7 +40431,7 @@ function diHandleInjectionFiles(event) {
     event.target.value = '';
     
     diUpdateBadge();
-    showNotification(`📂 ${files.length} file(s) selected for injection`, 'success');
+    showToast(`📂 ${files.length} file(s) selected for injection`, 'success');
 }
 
 // Update injection files list display
@@ -40519,7 +40613,7 @@ function diPushToNotes() {
     }
     
     if (!promptContent) {
-        showNotification('⚠️ No documentation or settings to push', 'warning');
+        showToast('⚠️ No documentation or settings to push', 'warning');
         return;
     }
     
@@ -40535,7 +40629,7 @@ function diPushToNotes() {
     // Save
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showNotification('📚 Documentation settings pushed to Project Prompts', 'success');
+    showToast('📚 Documentation settings pushed to Project Prompts', 'success');
 }
 
 // Character count for notes
@@ -40583,7 +40677,7 @@ function diSaveToStorage() {
         } catch (e) {
             console.warn('Failed to save documentation file:', e);
             if (e.name === 'QuotaExceededError') {
-                showNotification('⚠️ File too large for storage', 'warning');
+                showToast('⚠️ File too large for storage', 'warning');
             }
         }
     } else {
@@ -40693,7 +40787,7 @@ function diResetAll(skipToast = false) {
     diUpdateBadge();
     
     if (!skipToast) {
-        showNotification('📚 Documentation settings reset', 'info');
+        showToast('📚 Documentation settings reset', 'info');
     }
 }
 
