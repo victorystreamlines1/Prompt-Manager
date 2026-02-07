@@ -1259,6 +1259,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // READ FILE AS BASE64 — Serve local image files
+    // ============================================
+    if ($action === 'read_file_base64') {
+        $filePath = $_POST['path'] ?? '';
+        
+        if (empty($filePath)) {
+            echo json_encode(['success' => false, 'message' => 'No path provided']);
+            exit;
+        }
+        
+        $filePath = realpath($filePath);
+        
+        if (!$filePath || !is_file($filePath)) {
+            echo json_encode(['success' => false, 'message' => 'File not found']);
+            exit;
+        }
+        
+        // Only allow image files
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'webp', 'bmp'];
+        
+        if (!in_array($ext, $allowedExts)) {
+            echo json_encode(['success' => false, 'message' => 'Not an image file']);
+            exit;
+        }
+        
+        $mimeTypes = [
+            'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif', 'svg' => 'image/svg+xml', 'ico' => 'image/x-icon',
+            'webp' => 'image/webp', 'bmp' => 'image/bmp'
+        ];
+        
+        try {
+            $content = file_get_contents($filePath);
+            $base64 = base64_encode($content);
+            $mime = $mimeTypes[$ext] ?? 'image/png';
+            $dataUrl = "data:{$mime};base64,{$base64}";
+            
+            echo json_encode([
+                'success' => true,
+                'dataUrl' => $dataUrl,
+                'fileName' => basename($filePath),
+                'mime' => $mime
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -31631,6 +31682,7 @@ document.querySelectorAll('.project-popup-overlay').forEach(overlay => {
 // Branding State
 let brandingLogoFile = null;
 let brandingLogoDataUrl = null;
+let brandingLogoFileName = ''; // Track filename separately for auto-detected logos
 
 // Handle Logo Upload
 function handleBrandingLogoUpload(input) {
@@ -31645,6 +31697,7 @@ function handleBrandingLogoUpload(input) {
     }
     
     brandingLogoFile = file;
+    brandingLogoFileName = file.name;
     
     // Read and display preview
     const reader = new FileReader();
@@ -31677,6 +31730,7 @@ function handleBrandingLogoUpload(input) {
 function clearBrandingLogo() {
     brandingLogoFile = null;
     brandingLogoDataUrl = null;
+    brandingLogoFileName = '';
     
     const preview = document.getElementById('brandingLogoPreview');
     const prompt = document.getElementById('brandingUploadPrompt');
@@ -31747,7 +31801,7 @@ function updateBrandingBadge() {
 function saveBrandingState() {
     const state = {
         logoDataUrl: brandingLogoDataUrl,
-        logoFileName: brandingLogoFile?.name || '',
+        logoFileName: brandingLogoFileName || brandingLogoFile?.name || '',
         title: document.getElementById('brandingTitleInput')?.value || '',
         favicon: document.getElementById('brandingFavicon')?.checked ?? true,
         logoPages: document.getElementById('brandingLogoPages')?.checked ?? true,
@@ -31768,6 +31822,7 @@ function loadBrandingState() {
         // Restore logo
         if (state.logoDataUrl) {
             brandingLogoDataUrl = state.logoDataUrl;
+            brandingLogoFileName = state.logoFileName || '';
             const preview = document.getElementById('brandingLogoPreview');
             const prompt = document.getElementById('brandingUploadPrompt');
             const img = document.getElementById('brandingLogoImg');
@@ -38136,13 +38191,18 @@ function ufSetupDropZone() {
     fileInput.addEventListener('change', (e) => {
         console.log('File input changed', e.target.files);
         if (e.target.files && e.target.files.length > 0) {
+            const files = Array.from(e.target.files);
             // Convert to structure info (names only, no content)
-            const fileInfos = Array.from(e.target.files).map(file => ({
+            const fileInfos = files.map(file => ({
                 name: file.name,
                 size: file.size,
                 type: 'file'
             }));
             ufHandleFilesStructure(fileInfos);
+            
+            // Check for logo files among the dropped files (we have File objects here)
+            ufCheckDroppedFilesForLogo(files);
+            
             e.target.value = ''; // Reset
         }
     });
@@ -38182,6 +38242,7 @@ function ufSetupDropZone() {
         if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
             const items = Array.from(e.dataTransfer.items);
             const fileInfos = [];
+            const actualFiles = []; // Keep File objects for logo detection
             let foldersSkipped = 0;
             
             for (const item of items) {
@@ -38199,6 +38260,7 @@ function ufSetupDropZone() {
                                     size: file.size,
                                     type: 'file'
                                 });
+                                actualFiles.push(file);
                             }
                         }
                     }
@@ -38210,6 +38272,7 @@ function ufSetupDropZone() {
                             size: file.size,
                             type: 'file'
                         });
+                        actualFiles.push(file);
                     }
                 }
             }
@@ -38217,6 +38280,8 @@ function ufSetupDropZone() {
             // Process files
             if (fileInfos.length > 0) {
                 ufHandleFilesStructure(fileInfos);
+                // Check dropped files for logo images
+                ufCheckDroppedFilesForLogo(actualFiles);
             }
             
             if (foldersSkipped > 0) {
@@ -38293,7 +38358,8 @@ function ufHandleFoldersStructure(folders) {
                 type: 'folder',
                 children: folder.children || [],
                 fileCount: folder.fileCount || 0,
-                folderCount: folder.folderCount || 0
+                folderCount: folder.folderCount || 0,
+                _serverPath: folder._serverPath || '' // Full server path for PHP file access
             });
         }
     });
@@ -38307,6 +38373,9 @@ function ufHandleFoldersStructure(folders) {
     const totalFolders = folders.length;
     const totalFilesInFolders = folders.reduce((sum, f) => sum + (f.fileCount || 0), 0);
     showNotification(`📁 ${totalFolders} folder(s) with ${totalFilesInFolders} files added`, 'success');
+    
+    // Auto-detect logo from newly added folders
+    ufAutoDetectLogo();
 }
 
 // Handle files structure (names only, no content)
@@ -38335,6 +38404,9 @@ function ufHandleFilesStructure(fileInfos) {
     document.getElementById('ufCategories')?.classList.add('show');
     
     showNotification(`✅ ${fileInfos.length} file(s) added`, 'success');
+    
+    // Auto-detect logo from newly added files
+    ufAutoDetectLogo();
 }
 
 // Categorize file by name (extension)
@@ -39064,6 +39136,269 @@ function ufGuessFeaturedPage(pageFiles, homepage) {
     return candidates[0]?.name || '';
 }
 
+// ═══════════════════════════════════════════
+// SMART LOGO AUTO-DETECTION
+// ═══════════════════════════════════════════
+
+// Auto-detect logo from uploaded files and folder trees
+async function ufAutoDetectLogo() {
+    // Skip if a logo is already set
+    if (brandingLogoDataUrl) {
+        console.log('🎨 Logo already set, skipping auto-detection');
+        return;
+    }
+    
+    const imageExts = ['png', 'jpg', 'jpeg', 'svg', 'ico', 'webp', 'gif'];
+    
+    // Priority list for logo file name patterns (most likely → least likely)
+    const logoPatterns = [
+        // Exact logo names (highest priority)
+        'logo.png', 'logo.svg', 'logo.jpg', 'logo.jpeg', 'logo.webp', 'logo.ico',
+        'logo-dark.png', 'logo-dark.svg', 'logo-light.png', 'logo-light.svg',
+        'logo-white.png', 'logo-black.png',
+        'logo-main.png', 'logo-main.svg',
+        'logo-full.png', 'logo-full.svg',
+        'logo-horizontal.png', 'logo-vertical.png',
+        'site-logo.png', 'site-logo.svg',
+        'brand-logo.png', 'brand-logo.svg',
+        // Favicon (common fallback)
+        'favicon.png', 'favicon.ico', 'favicon.svg', 'favicon-32x32.png', 'favicon-16x16.png',
+        'apple-touch-icon.png', 'apple-icon.png',
+        // Brand / icon names
+        'brand.png', 'brand.svg', 'brand.jpg',
+        'icon.png', 'icon.svg', 'icon.ico',
+        'symbol.png', 'symbol.svg',
+        'mark.png', 'mark.svg',
+        'emblem.png', 'emblem.svg',
+        'badge.png', 'badge.svg',
+    ];
+    
+    // Partial keywords for broader matching
+    const logoKeywords = ['logo', 'brand', 'favicon', 'icon', 'emblem', 'symbol', 'mark', 'badge'];
+    
+    // Collect all image files: {name, path (if from folder), source}
+    let allImages = [];
+    
+    // 1. From standalone image files (drop zone)
+    if (ufFileStorage.images) {
+        ufFileStorage.images.forEach(f => {
+            allImages.push({ name: f.name, path: '', source: 'standalone' });
+        });
+    }
+    
+    // 2. From folder trees (recursive) — these have full paths via PHP
+    function extractImagesFromTree(children, basePath) {
+        if (!children || !Array.isArray(children)) return;
+        children.forEach(child => {
+            if (child.type === 'folder' && child.children) {
+                extractImagesFromTree(child.children, basePath + '/' + child.name);
+            } else if (child.type === 'file') {
+                const ext = child.name.split('.').pop().toLowerCase();
+                if (imageExts.includes(ext)) {
+                    allImages.push({ name: child.name, path: basePath + '/' + child.name, source: 'folder' });
+                }
+            }
+        });
+    }
+    
+    ufFileStorage.folders.forEach(folder => {
+        if (folder.children) {
+            extractImagesFromTree(folder.children, folder.name);
+        }
+    });
+    
+    if (allImages.length === 0) {
+        console.log('🎨 No image files found for logo detection');
+        return;
+    }
+    
+    console.log('🎨 Scanning', allImages.length, 'images for logo...');
+    
+    // Try exact pattern matches first
+    let bestMatch = null;
+    for (const pattern of logoPatterns) {
+        const match = allImages.find(img => img.name.toLowerCase() === pattern);
+        if (match) {
+            bestMatch = match;
+            break;
+        }
+    }
+    
+    // Try partial keyword matches
+    if (!bestMatch) {
+        for (const keyword of logoKeywords) {
+            const match = allImages.find(img => img.name.toLowerCase().includes(keyword));
+            if (match) {
+                bestMatch = match;
+                break;
+            }
+        }
+    }
+    
+    if (!bestMatch) {
+        console.log('🎨 No logo file detected');
+        return;
+    }
+    
+    console.log('🎨 Logo detected:', bestMatch.name, 'from', bestMatch.source);
+    
+    // Now we need to get the actual image data
+    // For folder files: we need the full server path. Reconstruct from the folder's known path
+    let fullServerPath = '';
+    
+    if (bestMatch.source === 'folder') {
+        // Find the root folder that contains this image
+        for (const folder of ufFileStorage.folders) {
+            // The folder was added via PHP browser — check if knownFolders or ufFileStorage has a path
+            // We need to find the server path. Let's search the PHP tree data.
+            const folderRootName = bestMatch.path.split('/')[0];
+            if (folder.name === folderRootName && folder._serverPath) {
+                // Reconstruct full path
+                const subPath = bestMatch.path.substring(folderRootName.length); // e.g. /assets/logo.png
+                fullServerPath = folder._serverPath + subPath;
+                break;
+            }
+        }
+    }
+    
+    // Build a list of possible server paths to try
+    let pathsToTry = [];
+    
+    if (fullServerPath) {
+        pathsToTry.push(fullServerPath);
+    }
+    
+    if (bestMatch.source === 'standalone' || !fullServerPath) {
+        // For standalone files (or if folder path reconstruction failed),
+        // try the app's base directory — since we run on Laragon/localhost,
+        // the file is likely in the same directory or a subdirectory
+        const appDir = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+        pathsToTry.push(appDir + '/' + bestMatch.name);
+        
+        // Also try common subdirectories
+        const commonDirs = ['assets', 'images', 'img', 'static', 'public', 'media', 'uploads', 'resources'];
+        commonDirs.forEach(dir => {
+            pathsToTry.push(appDir + '/' + dir + '/' + bestMatch.name);
+        });
+    }
+    
+    // Try each path until we find the file
+    for (const tryPath of pathsToTry) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'read_file_base64');
+            formData.append('path', tryPath);
+            
+            const response = await fetch('', { method: 'POST', body: formData });
+            const data = await response.json();
+            
+            if (data.success && data.dataUrl) {
+                ufSetBrandingLogo(data.dataUrl, bestMatch.name);
+                showNotification(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+                return; // Found it!
+            }
+        } catch (err) {
+            // Try next path
+            continue;
+        }
+    }
+    
+    console.log('🎨 Logo file detected but could not be read from server:', bestMatch.name);
+}
+
+// Set a logo image programmatically in the Branding section
+function ufSetBrandingLogo(dataUrl, fileName) {
+    brandingLogoDataUrl = dataUrl;
+    brandingLogoFile = null; // No File object, we have dataUrl directly
+    brandingLogoFileName = fileName || '';
+    
+    const preview = document.getElementById('brandingLogoPreview');
+    const prompt = document.getElementById('brandingUploadPrompt');
+    const img = document.getElementById('brandingLogoImg');
+    const name = document.getElementById('brandingLogoName');
+    const zone = document.getElementById('brandingLogoZone');
+    
+    if (preview && prompt && img && name && zone) {
+        img.src = dataUrl;
+        name.textContent = fileName + ' (auto-detected)';
+        preview.style.display = 'flex';
+        prompt.style.display = 'none';
+        zone.classList.add('has-logo');
+    }
+    
+    if (typeof updateBrandingBadge === 'function') updateBrandingBadge();
+    if (typeof saveBrandingState === 'function') saveBrandingState();
+}
+
+// Check dropped File objects for logo images (has access to content at drop time)
+function ufCheckDroppedFilesForLogo(files) {
+    // Skip if logo is already set
+    if (brandingLogoDataUrl) return;
+    
+    const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/webp', 'image/gif'];
+    const logoKeywords = ['logo', 'brand', 'favicon', 'icon', 'emblem', 'symbol', 'mark', 'badge', 'crest', 'seal'];
+    
+    // Filter to only image files
+    const imageFiles = files.filter(f => 
+        imageTypes.includes(f.type) || 
+        f.type.startsWith('image/') ||
+        f.name.match(/\.(png|jpg|jpeg|svg|ico|webp|gif|bmp)$/i)
+    );
+    
+    console.log('🎨 Checking', imageFiles.length, 'image files for logo among', files.length, 'total files');
+    
+    if (imageFiles.length === 0) return;
+    
+    // Find the best logo candidate
+    let bestMatch = null;
+    
+    // Exact name patterns (highest priority)
+    const exactPatterns = [
+        'logo.png', 'logo.svg', 'logo.jpg', 'logo.jpeg', 'logo.webp', 'logo.ico',
+        'logo-dark.png', 'logo-dark.svg', 'logo-light.png', 'logo-light.svg',
+        'logo-white.png', 'logo-black.png', 'logo-main.png', 'logo-main.svg',
+        'site-logo.png', 'site-logo.svg', 'brand-logo.png', 'brand-logo.svg',
+        'favicon.ico', 'favicon.png', 'favicon.svg', 'favicon-32x32.png',
+        'apple-touch-icon.png', 'apple-icon.png',
+        'brand.png', 'brand.svg', 'icon.png', 'icon.svg'
+    ];
+    
+    for (const pattern of exactPatterns) {
+        const match = imageFiles.find(f => f.name.toLowerCase() === pattern);
+        if (match) { bestMatch = match; break; }
+    }
+    
+    // Partial keyword match
+    if (!bestMatch) {
+        for (const keyword of logoKeywords) {
+            const match = imageFiles.find(f => f.name.toLowerCase().includes(keyword));
+            if (match) { bestMatch = match; break; }
+        }
+    }
+    
+    // Last resort: if there's only 1 image file, it's likely the logo
+    if (!bestMatch && imageFiles.length === 1) {
+        bestMatch = imageFiles[0];
+    }
+    
+    // Another fallback: if there are few image files (≤3), pick the first PNG or SVG
+    if (!bestMatch && imageFiles.length <= 3) {
+        bestMatch = imageFiles.find(f => f.name.match(/\.(png|svg)$/i)) || imageFiles[0];
+    }
+    
+    if (!bestMatch) return;
+    
+    console.log('🎨 Logo detected in dropped files:', bestMatch.name);
+    
+    // Read the file as DataURL and set as branding logo
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        ufSetBrandingLogo(e.target.result, bestMatch.name);
+        showNotification(`🎨 Logo auto-detected: ${bestMatch.name}`, 'success');
+    };
+    reader.readAsDataURL(bestMatch);
+}
+
 // Handle homepage detection
 function ufHandleHomepageDetection() {
     const homepageSelect = document.getElementById('ufHomepageSelect');
@@ -39419,7 +39754,8 @@ function ufSaveToStorage() {
             type: f.type,
             fileCount: f.fileCount,
             folderCount: f.folderCount,
-            children: f.children
+            children: f.children,
+            _serverPath: f._serverPath || ''
         }));
     });
     localStorage.setItem('ufFileStorage', JSON.stringify(storageData));
@@ -39444,7 +39780,9 @@ function ufLoadFromStorage() {
                         size: f.size,
                         fileCount: f.fileCount,
                         folderCount: f.folderCount,
-                        children: f.children
+                        children: f.children,
+                        _serverPath: f._serverPath || '',
+                        type: f.type || (f.children ? 'folder' : 'file')
                     }));
                 }
             });
@@ -39478,6 +39816,11 @@ function ufLoadFromStorage() {
         
         // Load notes
         ufLoadNotesFromStorage();
+        
+        // Auto-detect logo if not already set (delayed to ensure branding state loads first)
+        setTimeout(() => {
+            ufAutoDetectLogo();
+        }, 500);
     } catch (e) {
         console.error('Error loading file upload state:', e);
     }
@@ -41034,6 +41377,7 @@ function toggleTheme() {
                 if (data.success && data.tree) {
                     // Convert PHP tree format to uf format {name, type, children, fileCount, folderCount}
                     const converted = fbConvertTreeToUfFormat(info.name, data.tree);
+                    converted._serverPath = info.path; // Store server path for logo detection
                     folders.push(converted);
                 } else {
                     // If tree fetch failed, add as empty folder
@@ -41042,7 +41386,8 @@ function toggleTheme() {
                         type: 'folder',
                         children: [],
                         fileCount: 0,
-                        folderCount: 0
+                        folderCount: 0,
+                        _serverPath: info.path
                     });
                 }
             } catch (err) {
@@ -41052,7 +41397,8 @@ function toggleTheme() {
                     type: 'folder',
                     children: [],
                     fileCount: 0,
-                    folderCount: 0
+                    folderCount: 0,
+                    _serverPath: info.path
                 });
             }
         }
