@@ -37518,6 +37518,41 @@ let hpExistingFileName = null;
 function hpInit() {
     hpLoadFromStorage();
     hpUpdateUI();
+    
+    // Reverse sync: If Project Files Uploader already detected pages, pull them in
+    // (short delay to ensure uploader state is loaded first)
+    setTimeout(() => {
+        hpSyncFromUploader();
+    }, 300);
+}
+
+// Reverse sync: Pull detected pages from Project Files Uploader into Homepage Config
+function hpSyncFromUploader() {
+    // Only sync if the uploader has detected pages and HP hasn't been manually configured
+    if (typeof ufDetectedHomepage === 'undefined') return;
+    
+    // If user manually configured, don't override
+    const userManuallySetExisting = localStorage.getItem('hpExistingFileName');
+    const userManuallySetNew = localStorage.getItem('hpCreateNew') === 'true';
+    
+    // If homepage detected and no existing file has been manually set
+    if (ufDetectedHomepage && !userManuallySetExisting && !userManuallySetNew) {
+        // Uploader detected a homepage — set it as existing landing page
+        hpCreateNew = false;
+        hpExistingFileName = ufDetectedHomepage;
+        
+        hpSaveToStorage();
+        hpUpdateUI();
+        console.log('🔄 HP reverse-sync: Existing page ←', ufDetectedHomepage);
+    }
+    
+    // If featured page detected and no target file has been set
+    if (ufDetectedFeatured && !hpTargetFileName) {
+        hpTargetFileName = ufDetectedFeatured;
+        hpSaveToStorage();
+        hpUpdateUI();
+        console.log('🔄 HP reverse-sync: Target page ←', ufDetectedFeatured);
+    }
 }
 
 // Toggle create new homepage checkbox
@@ -39030,6 +39065,8 @@ function ufPopulatePageDetection() {
         detectionSection.style.display = 'none';
         ufDetectedHomepage = '';
         ufDetectedFeatured = '';
+        // No pages found → sync to Homepage Config as "Create New"
+        ufSyncToHomepageConfig();
         return;
     }
     
@@ -39594,6 +39631,9 @@ function ufHandleHomepageDetection() {
     }
     
     ufSaveToStorage();
+    
+    // Sync with Homepage Configuration tool
+    ufSyncToHomepageConfig();
 }
 
 // Handle featured page detection
@@ -39612,6 +39652,109 @@ function ufHandleFeaturedDetection() {
     }
     
     ufSaveToStorage();
+    
+    // Sync with Homepage Configuration tool
+    ufSyncToHomepageConfig();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SYNCHRONIZATION: Project Files Uploader ↔ Homepage Configuration
+// ═══════════════════════════════════════════════════════════════════
+
+function ufSyncToHomepageConfig() {
+    // Only sync if Homepage Configuration functions are available
+    if (typeof hpUpdateUI !== 'function') return;
+    
+    const checkbox = document.getElementById('hpCreateNewHomepage');
+    if (!checkbox) return;
+    
+    // ─── CASE 1: Homepage detected → Existing landing page mode ───
+    if (ufDetectedHomepage) {
+        // Uncheck "Create New" if it was checked
+        if (hpCreateNew) {
+            hpCreateNew = false;
+            checkbox.checked = false;
+            const label = checkbox.closest('.hp-checkbox-label');
+            if (label) label.classList.remove('checked');
+            
+            // Toggle sections
+            const newPageSection = document.getElementById('hpNewPageSection');
+            const existingPageSection = document.getElementById('hpExistingPageSection');
+            if (newPageSection) newPageSection.classList.remove('show');
+            if (existingPageSection) existingPageSection.classList.remove('hide');
+            
+            // Toggle info boxes
+            const infoUnchecked = document.getElementById('hpInfoUnchecked');
+            const infoChecked = document.getElementById('hpInfoChecked');
+            if (infoUnchecked) infoUnchecked.classList.remove('hide');
+            if (infoChecked) infoChecked.classList.remove('show');
+        }
+        
+        // Set the existing landing page to the detected homepage
+        hpExistingFileName = ufDetectedHomepage;
+        
+        const existingFileDisplay = document.getElementById('hpExistingFileDisplay');
+        const existingFileNameSpan = document.getElementById('hpExistingFileName');
+        const existingClearBtn = document.getElementById('hpExistingClearBtn');
+        
+        if (existingFileNameSpan) existingFileNameSpan.textContent = ufDetectedHomepage + ' (auto-detected)';
+        if (existingFileDisplay) existingFileDisplay.classList.add('has-file');
+        if (existingClearBtn) existingClearBtn.classList.add('show');
+        
+        console.log('🔄 Synced to Homepage Config: Existing →', ufDetectedHomepage);
+    }
+    // ─── CASE 2: No homepage detected → Create New mode ───
+    else {
+        if (!hpCreateNew) {
+            hpCreateNew = true;
+            checkbox.checked = true;
+            const label = checkbox.closest('.hp-checkbox-label');
+            if (label) label.classList.add('checked');
+            
+            // Toggle sections
+            const newPageSection = document.getElementById('hpNewPageSection');
+            const existingPageSection = document.getElementById('hpExistingPageSection');
+            if (newPageSection) newPageSection.classList.add('show');
+            if (existingPageSection) existingPageSection.classList.add('hide');
+            
+            // Toggle info boxes
+            const infoUnchecked = document.getElementById('hpInfoUnchecked');
+            const infoChecked = document.getElementById('hpInfoChecked');
+            if (infoUnchecked) infoUnchecked.classList.add('hide');
+            if (infoChecked) infoChecked.classList.add('show');
+        }
+        
+        // Clear existing file since no homepage was detected
+        hpExistingFileName = null;
+        const existingFileDisplay = document.getElementById('hpExistingFileDisplay');
+        const existingFileNameSpan = document.getElementById('hpExistingFileName');
+        const existingClearBtn = document.getElementById('hpExistingClearBtn');
+        
+        if (existingFileNameSpan) existingFileNameSpan.textContent = 'No file selected (will enhance default homepage)';
+        if (existingFileDisplay) existingFileDisplay.classList.remove('has-file');
+        if (existingClearBtn) existingClearBtn.classList.remove('show');
+        
+        console.log('🔄 Synced to Homepage Config: Create New Landing Page');
+    }
+    
+    // ─── Featured page → Target page (for new landing) ───
+    if (ufDetectedFeatured) {
+        hpTargetFileName = ufDetectedFeatured;
+        
+        const targetFileDisplay = document.getElementById('hpFileDisplay');
+        const targetFileNameSpan = document.getElementById('hpTargetFileName');
+        const targetClearBtn = document.getElementById('hpClearBtn');
+        
+        if (targetFileNameSpan) targetFileNameSpan.textContent = ufDetectedFeatured + ' (auto-detected)';
+        if (targetFileDisplay) targetFileDisplay.classList.add('has-file');
+        if (targetClearBtn) targetClearBtn.classList.add('show');
+        
+        console.log('🔄 Synced Target Page →', ufDetectedFeatured);
+    }
+    
+    // Save and update badge
+    if (typeof hpSaveToStorage === 'function') hpSaveToStorage();
+    if (typeof hpUpdateBadge === 'function') hpUpdateBadge();
 }
 
 // Update badge
