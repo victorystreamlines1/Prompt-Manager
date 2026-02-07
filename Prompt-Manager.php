@@ -18603,6 +18603,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="">-- Select Homepage First --</option>
                                     </select>
                                 </div>
+                                <div class="uf-page-select-group">
+                                    <div class="uf-page-label">
+                                        <i class="fas fa-book"></i>
+                                        Documentation File
+                                        <span class="uf-page-badge not-set" id="ufDocBadge">Not Set</span>
+                                    </div>
+                                    <select class="uf-page-select" id="ufDocSelect" onchange="ufHandleDocDetection()">
+                                        <option value="">-- No documentation available --</option>
+                                    </select>
+                                    <p style="font-size: 0.6rem; color: var(--text-secondary); margin: 0.2rem 0 0 0; opacity: 0.7;">
+                                        <i class="fas fa-info-circle" style="margin-right: 0.2rem;"></i>Only <strong>.txt</strong> files are recognized as documentation files
+                                    </p>
+                                </div>
                             </div>
                             
                             <!-- Notes Section -->
@@ -38020,6 +38033,7 @@ let ufFileStorage = {
 // Page detection
 let ufDetectedHomepage = '';
 let ufDetectedFeatured = '';
+let ufDetectedDoc = '';
 
 // Root folder storage
 let ufRootFolder = null;
@@ -39017,6 +39031,7 @@ function ufToggleTreeFolder(header) {
 function ufPopulatePageDetection() {
     const homepageSelect = document.getElementById('ufHomepageSelect');
     const featuredSelect = document.getElementById('ufFeaturedSelect');
+    const docSelect = document.getElementById('ufDocSelect');
     const detectionSection = document.getElementById('ufPageDetection');
     
     if (!homepageSelect || !featuredSelect) return;
@@ -39058,13 +39073,61 @@ function ufPopulatePageDetection() {
         return true;
     });
     
-    // Show/hide detection section
-    if (uniquePageFiles.length > 0) {
+    // ─── Collect documentation files (.txt only) ───
+    const docExts = ['txt'];
+    const docFiles = [];
+    
+    // From all standalone file categories
+    Object.values(ufFileStorage).forEach(arr => {
+        if (!Array.isArray(arr)) return;
+        arr.forEach(f => {
+            if (!f.name || f.children) return; // skip folders
+            if (f.name.toLowerCase() === 'prompt.txt') return; // always exclude prompt.txt
+            const ext = f.name.split('.').pop().toLowerCase();
+            if (docExts.includes(ext)) {
+                docFiles.push({ name: f.name, type: ext.toUpperCase(), source: 'standalone' });
+            }
+        });
+    });
+    
+    // From inside folder trees (recursive)
+    function extractDocsFromChildren(children, folderPath) {
+        if (!children || !Array.isArray(children)) return;
+        children.forEach(child => {
+            if (child.type === 'folder' && child.children) {
+                extractDocsFromChildren(child.children, folderPath + '/' + child.name);
+            } else if (child.type === 'file') {
+                if (child.name.toLowerCase() === 'prompt.txt') return; // always exclude prompt.txt
+                const ext = child.name.split('.').pop().toLowerCase();
+                if (docExts.includes(ext)) {
+                    docFiles.push({ name: child.name, type: ext.toUpperCase(), source: folderPath, fullLabel: `${child.name} (${folderPath})` });
+                }
+            }
+        });
+    }
+    
+    ufFileStorage.folders.forEach(folder => {
+        if (folder.children) {
+            extractDocsFromChildren(folder.children, folder.name);
+        }
+    });
+    
+    // De-duplicate doc files
+    const seenDocs = new Set();
+    const uniqueDocFiles = docFiles.filter(f => {
+        if (seenDocs.has(f.name)) return false;
+        seenDocs.add(f.name);
+        return true;
+    });
+    
+    // Show/hide detection section (show if we have pages OR doc files)
+    if (uniquePageFiles.length > 0 || uniqueDocFiles.length > 0) {
         detectionSection.style.display = 'block';
     } else {
         detectionSection.style.display = 'none';
         ufDetectedHomepage = '';
         ufDetectedFeatured = '';
+        ufDetectedDoc = '';
         // No pages found → sync to Homepage Config as "Create New"
         ufSyncToHomepageConfig();
         return;
@@ -39073,6 +39136,7 @@ function ufPopulatePageDetection() {
     // Save current selections
     const currentHomepage = homepageSelect.value;
     const currentFeatured = featuredSelect.value;
+    const currentDoc = docSelect ? docSelect.value : '';
     
     // Repopulate dropdowns
     homepageSelect.innerHTML = '<option value="">-- Select Homepage --</option>';
@@ -39092,6 +39156,18 @@ function ufPopulatePageDetection() {
         featuredSelect.appendChild(option2);
     });
     
+    // Populate documentation dropdown
+    if (docSelect) {
+        docSelect.innerHTML = '<option value="">-- No documentation available --</option>';
+        uniqueDocFiles.forEach(file => {
+            const label = file.fullLabel || `${file.name} (${file.type})`;
+            const option = document.createElement('option');
+            option.value = file.name;
+            option.textContent = label;
+            docSelect.appendChild(option);
+        });
+    }
+    
     // ═══════════════════════════════════════════
     // SMART AUTO-DETECTION — Educated Guess
     // ═══════════════════════════════════════════
@@ -39099,6 +39175,7 @@ function ufPopulatePageDetection() {
     // Try to restore previous selections first
     let homepageRestored = false;
     let featuredRestored = false;
+    let docRestored = false;
     
     if (currentHomepage && uniquePageFiles.some(f => f.name === currentHomepage)) {
         homepageSelect.value = currentHomepage;
@@ -39109,6 +39186,11 @@ function ufPopulatePageDetection() {
         featuredSelect.value = currentFeatured;
         ufHandleFeaturedDetection();
         featuredRestored = true;
+    }
+    if (docSelect && currentDoc && uniqueDocFiles.some(f => f.name === currentDoc)) {
+        docSelect.value = currentDoc;
+        ufHandleDocDetection();
+        docRestored = true;
     }
     
     // If no previous selection, run auto-detection
@@ -39127,6 +39209,16 @@ function ufPopulatePageDetection() {
             featuredSelect.value = guessedFeatured;
             ufHandleFeaturedDetection();
             console.log('⭐ Auto-detected Featured Page:', guessedFeatured);
+        }
+    }
+    
+    // Auto-detect documentation file
+    if (docSelect && (!docRestored || !ufDetectedDoc)) {
+        const guessedDoc = ufGuessDocumentation(uniqueDocFiles);
+        if (guessedDoc) {
+            docSelect.value = guessedDoc;
+            ufHandleDocDetection();
+            console.log('📄 Auto-detected Documentation:', guessedDoc);
         }
     }
 }
@@ -39239,6 +39331,81 @@ function ufGuessFeaturedPage(pageFiles, homepage) {
     
     // Last resort: pick the first non-homepage candidate
     return candidates[0]?.name || '';
+}
+
+// ═══════════════════════════════════════════
+// SMART DOCUMENTATION FILE DETECTION
+// ═══════════════════════════════════════════
+
+// Guess the documentation file from all files (priority-based matching)
+function ufGuessDocumentation(docFiles) {
+    if (!docFiles || docFiles.length === 0) return '';
+    
+    // Only .txt files are considered documentation (exclude prompt.txt)
+    const txtOnly = docFiles.filter(f => f.name.toLowerCase().endsWith('.txt') && f.name.toLowerCase() !== 'prompt.txt');
+    if (txtOnly.length === 0) return '';
+    
+    // Exact filename matches (highest priority) — common doc .txt names
+    const exactPatterns = [
+        // Project-specific documentation (always top priority)
+        '_Final Version - Genetic Invent Report.txt',
+        'readme.txt', 'README.txt',
+        'documentation.txt', 'docs.txt', 'doc.txt',
+        'guide.txt', 'manual.txt', 'help.txt',
+        'instructions.txt', 'howto.txt', 'how-to.txt',
+        'getting-started.txt', 'quickstart.txt', 'quick-start.txt',
+        'setup.txt', 'install.txt', 'installation.txt',
+        'changelog.txt', 'CHANGELOG.txt', 'changes.txt',
+        'release-notes.txt', 'history.txt',
+        'license.txt', 'LICENSE.txt',
+        'contributing.txt', 'CONTRIBUTING.txt',
+        'api.txt', 'api-docs.txt', 'reference.txt',
+        'notes.txt', 'info.txt', 'about.txt',
+        'faq.txt', 'todo.txt', 'TODO.txt',
+    ];
+    
+    // Check exact matches (case-insensitive)
+    for (const pattern of exactPatterns) {
+        const match = txtOnly.find(f => f.name.toLowerCase() === pattern.toLowerCase());
+        if (match) return match.name;
+    }
+    
+    // Keyword-based partial matching (still only .txt files)
+    // Files starting with _ are often priority documentation (e.g. _Final Version...)
+    const underscoreDoc = txtOnly.find(f => f.name.startsWith('_'));
+    if (underscoreDoc) return underscoreDoc.name;
+    
+    const docKeywords = ['report', 'final', 'readme', 'documentation', 'docs', 'guide', 'manual', 'help', 
+                         'instruction', 'howto', 'how-to', 'changelog', 'release', 
+                         'getting-started', 'quickstart', 'setup', 'install', 'license',
+                         'contributing', 'api-doc', 'reference', 'notes', 'faq', 'todo',
+                         'spec', 'description', 'overview', 'summary'];
+    
+    for (const keyword of docKeywords) {
+        const match = txtOnly.find(f => f.name.toLowerCase().includes(keyword));
+        if (match) return match.name;
+    }
+    
+    // Fallback: first .txt file available
+    return txtOnly[0]?.name || '';
+}
+
+// Handle documentation file detection change
+function ufHandleDocDetection() {
+    const docSelect = document.getElementById('ufDocSelect');
+    const docBadge = document.getElementById('ufDocBadge');
+    
+    ufDetectedDoc = docSelect.value;
+    
+    if (ufDetectedDoc) {
+        docBadge.textContent = 'Set';
+        docBadge.className = 'uf-page-badge set';
+    } else {
+        docBadge.textContent = 'Not Set';
+        docBadge.className = 'uf-page-badge not-set';
+    }
+    
+    ufSaveToStorage();
 }
 
 // ═══════════════════════════════════════════
@@ -39882,6 +40049,9 @@ function ufPushToNotes() {
     if (ufDetectedFeatured) {
         promptContent += `**⭐ Featured Page:** ${ufDetectedFeatured}\n`;
     }
+    if (ufDetectedDoc) {
+        promptContent += `**📄 Documentation File:** ${ufDetectedDoc}\n`;
+    }
     
     if (totalItems > 0) {
         promptContent += `\n**NOTE:** These files and folders represent the current project structure. Please consider them when making changes.\n`;
@@ -39971,6 +40141,7 @@ function ufClearAll() {
     Object.keys(ufFileStorage).forEach(key => ufFileStorage[key] = []);
     ufDetectedHomepage = '';
     ufDetectedFeatured = '';
+    ufDetectedDoc = '';
     
     // Clear root folder / project routes
     ufRootFolder = null;
@@ -39996,11 +40167,23 @@ function ufClearAll() {
         featuredSelect.disabled = true;
     }
     
+    // Reset doc dropdown
+    const docSelect = document.getElementById('ufDocSelect');
+    if (docSelect) {
+        docSelect.value = '';
+        docSelect.innerHTML = '<option value="">-- No documentation available --</option>';
+    }
+    
     // Reset badges
     document.getElementById('ufHomepageBadge').textContent = 'Not Set';
     document.getElementById('ufHomepageBadge').className = 'uf-page-badge not-set';
     document.getElementById('ufFeaturedBadge').textContent = 'Not Set';
     document.getElementById('ufFeaturedBadge').className = 'uf-page-badge not-set';
+    const docBadge = document.getElementById('ufDocBadge');
+    if (docBadge) {
+        docBadge.textContent = 'Not Set';
+        docBadge.className = 'uf-page-badge not-set';
+    }
     
     // Clear notes
     const notesTextarea = document.getElementById('ufNotesTextarea');
@@ -40016,6 +40199,7 @@ function ufClearAll() {
     localStorage.removeItem('ufFileStorage');
     localStorage.removeItem('ufDetectedHomepage');
     localStorage.removeItem('ufDetectedFeatured');
+    localStorage.removeItem('ufDetectedDoc');
     localStorage.removeItem('ufNotes');
     
     showToast('🗑️ All files cleared', 'info');
@@ -40067,6 +40251,7 @@ function ufSaveToStorage() {
     localStorage.setItem('ufFileStorage', JSON.stringify(storageData));
     localStorage.setItem('ufDetectedHomepage', ufDetectedHomepage);
     localStorage.setItem('ufDetectedFeatured', ufDetectedFeatured);
+    localStorage.setItem('ufDetectedDoc', ufDetectedDoc);
 }
 
 // Load from storage
@@ -40097,6 +40282,7 @@ function ufLoadFromStorage() {
         
         ufDetectedHomepage = localStorage.getItem('ufDetectedHomepage') || '';
         ufDetectedFeatured = localStorage.getItem('ufDetectedFeatured') || '';
+        ufDetectedDoc = localStorage.getItem('ufDetectedDoc') || '';
         
         // Restore page detection UI
         if (ufDetectedHomepage) {
@@ -40117,6 +40303,15 @@ function ufLoadFromStorage() {
             if (featuredBadge) {
                 featuredBadge.textContent = 'Set';
                 featuredBadge.className = 'uf-page-badge set';
+            }
+        }
+        if (ufDetectedDoc) {
+            const docSelect = document.getElementById('ufDocSelect');
+            const docBadge = document.getElementById('ufDocBadge');
+            if (docSelect) docSelect.value = ufDetectedDoc;
+            if (docBadge) {
+                docBadge.textContent = 'Set';
+                docBadge.className = 'uf-page-badge set';
             }
         }
         

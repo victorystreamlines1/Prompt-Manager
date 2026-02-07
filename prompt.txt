@@ -1,5 +1,1 @@
-Now I want you to fix the path of the project routes. By default, it should take the path of the selected folder in this button, in prompt editor. ---><button class="btn btn-folder connected snipcss-ZkRtA" id="btnFolderPicker" onclick="selectPromptFolder()" title="Connected to AIPromptDictionary/prompt.txt">
-    <i class="fas fa-folder-open"></i> Folder <span class="folder-status"></span>
-</button>
-
-if this button is not selecting anything or not indicating anything it should take the last selected path if there is no last selected path in the previous session, then it will take C. path
+Now I want to add one feature in the project file uploader. I have two drop-down lists, home page and featured page. I want to add one more documentation or documentation file. Or documentation page. Rather no, documentation file. So add a drop-down that will detect automatically the documentation file. If it did not find the documentation file, it should put in the drop-down no documentation available. But it should detect cleverly the documentation file in the selected folder or set of files. So add a new drop-down, try to make it clever and detect a documentation file if it is available. 
