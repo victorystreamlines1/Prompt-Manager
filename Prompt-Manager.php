@@ -1171,6 +1171,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // ============================================
+    // RESOLVE FOLDER PATH - Find a folder by name in common locations
+    // ============================================
+    if ($action === 'resolve_folder_path') {
+        $folderName = $_POST['folder_name'] ?? '';
+        
+        if (empty($folderName)) {
+            echo json_encode(['success' => false, 'path' => '']);
+            exit;
+        }
+        
+        $appDir = dirname(__FILE__);
+        
+        // Common search locations (ordered by priority)
+        $searchPaths = [
+            $appDir . '/../' . $folderName,           // Sibling of app dir (e.g. C:/laragon/FolderName)
+            $appDir . '/../../www/' . $folderName,     // Laragon www (e.g. C:/laragon/www/FolderName)
+            $appDir . '/' . $folderName,               // Inside app dir
+            'C:/laragon/www/' . $folderName,           // Absolute Laragon www
+            'C:/laragon/' . $folderName,               // Absolute Laragon root
+            'C:/Users/' . get_current_user() . '/Desktop/' . $folderName,
+            'C:/Users/' . get_current_user() . '/Documents/' . $folderName,
+        ];
+        
+        foreach ($searchPaths as $tryPath) {
+            $resolved = realpath($tryPath);
+            if ($resolved && is_dir($resolved)) {
+                echo json_encode([
+                    'success' => true,
+                    'path' => str_replace('\\', '/', $resolved)
+                ]);
+                exit;
+            }
+        }
+        
+        echo json_encode(['success' => false, 'path' => '']);
+        exit;
+    }
+    
+    // ============================================
     // FOLDER TREE - Get full directory tree for a folder
     // ============================================
     if ($action === 'get_folder_tree') {
@@ -25614,6 +25653,20 @@ in each section carefully and maintain proper connections between components.
             if (savedFolderName) {
                 updateFolderUI(savedFolderName, false);
                 
+                // Resolve server path if not already cached
+                if (!localStorage.getItem('fbLastBrowsedPath')) {
+                    try {
+                        const resolveForm = new FormData();
+                        resolveForm.append('action', 'resolve_folder_path');
+                        resolveForm.append('folder_name', savedFolderName);
+                        const resolveResp = await fetch('', { method: 'POST', body: resolveForm });
+                        const resolveData = await resolveResp.json();
+                        if (resolveData.success && resolveData.path) {
+                            localStorage.setItem('fbLastBrowsedPath', resolveData.path);
+                        }
+                    } catch (e) {}
+                }
+                
                 // Try auto-reconnect from IndexedDB
                 try {
                     const savedHandle = await getHandleFromDB('promptFolder');
@@ -25669,6 +25722,22 @@ in each section carefully and maintain proper connections between components.
                 // Save folder name to localStorage
                 localStorage.setItem('promptFolderName', folderName);
                 await saveHandleToDB('promptFolder', promptFolderHandle);
+                
+                // Immediately resolve the server path for the folder browser
+                // This ensures the Design Enhancer's "Project Routes" opens to this folder
+                try {
+                    const resolveForm = new FormData();
+                    resolveForm.append('action', 'resolve_folder_path');
+                    resolveForm.append('folder_name', folderName);
+                    const resolveResp = await fetch('', { method: 'POST', body: resolveForm });
+                    const resolveData = await resolveResp.json();
+                    if (resolveData.success && resolveData.path) {
+                        localStorage.setItem('fbLastBrowsedPath', resolveData.path);
+                        console.log('📁 Folder browser default updated →', resolveData.path);
+                    }
+                } catch (resolveErr) {
+                    console.log('📁 Could not resolve folder path for browser:', resolveErr.message);
+                }
                 
                 // Update UI
                 updateFolderUI(folderName, true);
@@ -41287,24 +41356,63 @@ function toggleTheme() {
     let fbParentPath = '';
     let fbSelectedFolders = new Map(); // Map of folderName → folderPath selected in the modal
     let fbMode = 'prompt'; // 'prompt' = send to prompt editor, 'enhancer' = send to Design Enhancer
+    const fbDefaultFallback = 'C:/';
+    const fbAppDir = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+
+    // Resolve the best starting path for the folder browser
+    // Priority: 1) Last browsed / resolved path (updated whenever prompt folder changes), 2) Resolve prompt folder name, 3) C:/
+    async function fbResolveStartPath() {
+        // 1) Use last browsed path — this gets updated every time user changes the
+        //    Prompt Editor folder OR manually navigates in the folder browser
+        const lastPath = localStorage.getItem('fbLastBrowsedPath');
+        if (lastPath) {
+            console.log('📁 Folder browser: using saved path →', lastPath);
+            return lastPath;
+        }
+        
+        // 2) Try to resolve Prompt Editor's connected folder name
+        const promptFolderName = localStorage.getItem('promptFolderName');
+        if (promptFolderName) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'resolve_folder_path');
+                formData.append('folder_name', promptFolderName);
+                
+                const response = await fetch('', { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                if (data.success && data.path) {
+                    localStorage.setItem('fbLastBrowsedPath', data.path);
+                    console.log('📁 Folder browser: resolved prompt folder →', data.path);
+                    return data.path;
+                }
+            } catch (err) {
+                console.log('📁 Could not resolve prompt folder name:', err.message);
+            }
+        }
+        
+        // 3) Fallback to C:/
+        console.log('📁 Folder browser: using default fallback → C:/');
+        return fbDefaultFallback;
+    }
 
     // Open the folder browser modal (for Prompt Editor — left panel)
-    window.openFolderBrowser = function() {
+    window.openFolderBrowser = async function() {
         fbMode = 'prompt';
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.add('active');
         
-        const startPath = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+        const startPath = await fbResolveStartPath();
         fbNavigate(startPath);
     };
 
     // Open the folder browser modal (for Design Enhancer — right panel)
-    window.openDeFolderBrowser = function() {
+    window.openDeFolderBrowser = async function() {
         fbMode = 'enhancer';
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.add('active');
         
-        const startPath = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+        const startPath = await fbResolveStartPath();
         fbNavigate(startPath);
     };
 
@@ -41342,6 +41450,9 @@ function toggleTheme() {
                 fbCurrentPath = data.currentPath;
                 fbParentPath = data.parentPath;
                 pathInput.value = data.currentPath;
+                
+                // Save last browsed path for next session
+                localStorage.setItem('fbLastBrowsedPath', data.currentPath);
                 
                 fbRenderFolders(data.folders);
             } else {

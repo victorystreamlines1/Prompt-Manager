@@ -1,1 +1,5 @@
-It's working properly but it's not spontaneous. I have to refresh in order for the logo to detect the logo and the selected file picker or folder picker. So make sure that whenever I do any selection or modify the folder or file picker in the project file uploader, it should immediately trigger an activation to the logo to detect it. It takes so long and I have to refresh every time. 
+Now I want you to fix the path of the project routes. By default, it should take the path of the selected folder in this button, in prompt editor. ---><button class="btn btn-folder connected snipcss-ZkRtA" id="btnFolderPicker" onclick="selectPromptFolder()" title="Connected to AIPromptDictionary/prompt.txt">
+    <i class="fas fa-folder-open"></i> Folder <span class="folder-status"></span>
+</button>
+
+if this button is not selecting anything or not indicating anything it should take the last selected path if there is no last selected path in the previous session, then it will take C. path
