@@ -4679,6 +4679,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.65rem;
         }
         
+        .pc-push-buttons-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .pc-push-buttons-row .pc-push-btn {
+            flex: 1;
+            font-size: 0.65rem;
+            padding: 0.55rem 0.4rem;
+        }
+        
+        .pc-push-dashboard-btn {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.18) 0%, 
+                rgba(139, 92, 246, 0.10) 100%) !important;
+            border-color: rgba(99, 102, 241, 0.35) !important;
+            color: #a78bfa !important;
+        }
+        
+        .pc-push-dashboard-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.30) 0%, 
+                rgba(139, 92, 246, 0.20) 100%) !important;
+            border-color: rgba(139, 92, 246, 0.55) !important;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25) !important;
+            color: #c4b5fd !important;
+        }
+        
         /* ═══════════════════════════════════════════════════════════════════
            📝 CUSTOM INSTRUCTIONS TOOL - Design Enhancer Right Panel
            ═══════════════════════════════════════════════════════════════════ */
@@ -19865,12 +19893,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="pc-custom-list" id="pcCustomPagesList"></div>
                         </div>
                         
-                        <!-- Push to Project Prompts -->
+                        <!-- Push Buttons -->
                         <div class="pc-push-section">
-                            <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Prompts">
-                                <i class="fas fa-arrow-down"></i>
-                                <span>Push to Project Prompts</span>
-                            </button>
+                            <div class="pc-push-buttons-row">
+                                <button type="button" class="pc-push-btn" onclick="pcPushToNotes()" title="Push selected pages to Project Prompts">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span>Push to Prompts</span>
+                                </button>
+                                <button type="button" class="pc-push-btn pc-push-dashboard-btn" onclick="pcPushToDashboard()" title="Classify pages and push to Dashboard (Backend / Pages / Frontend)">
+                                    <i class="fas fa-columns"></i>
+                                    <span>Push to Dashboard</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -34265,6 +34299,187 @@ function generatePagePrompt(page) {
     return `Create a "${page.name}" page with appropriate content, layout, and functionality.`;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// 🚀 PUSH TO DEVELOPMENT DASHBOARD (Backend / Pages / Frontend)
+// ═══════════════════════════════════════════════════════════════════
+
+// Classification map: page id → 'backend' | 'page' | 'frontend'
+const pcPageClassification = {
+    // Backend — server-side logic, auth, user accounts, data processing, e-commerce processing
+    'login':          'backend',
+    'register':       'backend',
+    'dashboard':      'backend',
+    'profile':        'backend',
+    'settings':       'backend',
+    'notifications':  'backend',
+    'messages':       'backend',
+    'cart':           'backend',
+    'checkout':       'backend',
+    'order-tracking': 'backend',
+    'order-history':  'backend',
+    'returns':        'backend',
+    'wishlist':       'backend',
+    'shipping-info':  'backend',
+    'gift-cards':     'backend',
+    'booking':        'backend',
+    'appointments':   'backend',
+
+    // Frontend — visual/presentational, landing-like, CSS/design-heavy
+    'home':           'frontend',
+    'gallery':        'frontend',
+    'portfolio':      'frontend',
+    'coming-soon':    'frontend',
+    '404':            'frontend',
+    'sitemap':        'frontend',
+
+    // Pages (normal content) — everything not listed above defaults to 'page'
+    'about':          'page',
+    'contact':        'page',
+    'services':       'page',
+    'products':       'page',
+    'shop':           'page',
+    'blog':           'page',
+    'news':           'page',
+    'team':           'page',
+    'testimonials':   'page',
+    'pricing':        'page',
+    'features':       'page',
+    'faq':            'page',
+    'careers':        'page',
+    'support':        'page',
+    'privacy':        'page',
+    'terms':          'page',
+    'events':         'page',
+    'webinars':       'page',
+    'courses':        'page',
+    'tutorials':      'page',
+    'documentation':  'page',
+    'knowledge-base': 'page',
+    'community':      'page',
+    'reviews':        'page',
+    'referral':       'page',
+    'cookie-policy':  'page',
+    'accessibility':  'page',
+    'disclaimer':     'page',
+    'locations':      'page',
+    'menu':           'page',
+    'catalog':        'page',
+    'comparison':     'page',
+    'calculator':     'page',
+    'quote-request':  'page',
+    'demo-request':   'page',
+    'newsletter':     'page',
+    'affiliates':     'page',
+    'press':          'page',
+    'resources':      'page',
+    'downloads':      'page',
+    'whitepapers':    'page',
+    'investors':      'page',
+    'partners':       'page',
+    'clients':        'page',
+    'case-studies':   'page',
+    'success-stories':'page',
+    'awards':         'page',
+};
+
+// Smart classify: looks up the map, falls back to keyword heuristics for custom pages
+function pcClassifyPage(pageId, pageName) {
+    // Direct map lookup
+    if (pcPageClassification[pageId]) {
+        return pcPageClassification[pageId];
+    }
+
+    // Keyword-based heuristics for custom / template pages
+    const lowerName = (pageName || pageId).toLowerCase();
+    const lowerID   = pageId.toLowerCase();
+
+    const backendKeywords = [
+        'login', 'register', 'signup', 'sign-up', 'auth', 'admin', 'dashboard',
+        'profile', 'account', 'settings', 'password', 'cart', 'checkout',
+        'order', 'payment', 'invoice', 'billing', 'subscription', 'booking',
+        'appointment', 'ticket', 'api', 'webhook', 'cron', 'migration',
+        'notification', 'message', 'inbox', 'wishlist', 'return', 'refund',
+        'shipping', 'tracking', 'backend', 'server', 'database', 'upload'
+    ];
+
+    const frontendKeywords = [
+        'home', 'landing', 'hero', 'gallery', 'portfolio', 'showcase',
+        'coming-soon', 'under-construction', 'maintenance', '404', 'error',
+        'sitemap', 'splash', 'intro', 'welcome', 'preview', 'demo',
+        'frontend', 'ui', 'animation', 'visual'
+    ];
+
+    for (const kw of backendKeywords) {
+        if (lowerID.includes(kw) || lowerName.includes(kw)) return 'backend';
+    }
+    for (const kw of frontendKeywords) {
+        if (lowerID.includes(kw) || lowerName.includes(kw)) return 'frontend';
+    }
+
+    // Default to 'page' (normal content page)
+    return 'page';
+}
+
+// Push selected pages into the Development Dashboard containers
+function pcPushToDashboard() {
+    // Gather all selected pages
+    const selectedPredefined = pcSelectedPredefined.map(id => {
+        const page = pcPredefinedPages.find(p => p.id === id);
+        return page ? { id: page.id, name: page.name, isCustom: false } : null;
+    }).filter(Boolean);
+
+    const selectedCustom = pcCustomPages.filter(p => p.checked).map(p => ({
+        id: p.id,
+        name: p.name,
+        desc: p.desc,
+        isCustom: true
+    }));
+
+    const allSelected = [...selectedPredefined, ...selectedCustom];
+
+    if (allSelected.length === 0) {
+        if (typeof showToast === 'function') showToast('⚠️ No pages selected', 'warning');
+        return;
+    }
+
+    // Check that dashboard functions exist
+    if (typeof addDynamicItem !== 'function' || typeof dynamicItems === 'undefined') {
+        if (typeof showToast === 'function') showToast('⚠️ Development Dashboard not found', 'error');
+        return;
+    }
+
+    // Classify pages into the three buckets
+    const buckets = { backend: [], page: [], frontend: [] };
+
+    allSelected.forEach(page => {
+        const type = pcClassifyPage(page.id, page.name);
+        buckets[type].push(page);
+    });
+
+    // Inject into dashboard containers
+    let totalAdded = 0;
+    const summary = [];
+
+    ['backend', 'page', 'frontend'].forEach(type => {
+        const pages = buckets[type];
+        if (pages.length === 0) return;
+
+        pages.forEach(page => {
+            const description = generatePagePrompt(page);
+            addDynamicItem(type, page.name, description);
+            totalAdded++;
+        });
+
+        const label = type === 'backend' ? 'Backend' : type === 'page' ? 'Pages' : 'Frontend';
+        summary.push(`${pages.length} ${label}`);
+    });
+
+    // Success feedback
+    if (typeof showToast === 'function') {
+        showToast(`🚀 ${totalAdded} page${totalAdded > 1 ? 's' : ''} pushed to Dashboard (${summary.join(', ')})`, 'success');
+    }
+}
+
 // Hide template results when clicking outside
 document.addEventListener('click', function(e) {
     const results = document.getElementById('pcTemplateResults');
@@ -43161,7 +43376,7 @@ const dePushMap = {
     'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToNotes(); } },
     'exclusionTool':         { name: 'File Exclusion',          fn: function() { exPushToNotes(); } },
     'brandingTool':          { name: 'Logo & Branding',         fn: function() { pushBrandingToNotes(); } },
-    'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToNotes(); } },
+    'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToDashboard(); } },
     'customInstructionsTool':{ name: 'Custom Instructions',     fn: function() { ciPushToNotes(); } },
     'styleTypesTool':        { name: 'Enhanced Style Types',    fn: function() { stPushToNotes(); } },
     'designThemeTool':       { name: 'Design Theme',            fn: function() { dtPushToNotes(); } },
