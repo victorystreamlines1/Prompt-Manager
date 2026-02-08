@@ -19023,11 +19023,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.08);
             box-shadow: 0 0 10px rgba(139,92,246,0.2);
         }
-        .dynamic-item-btn.tm-btn.tm-disabled {
-            opacity: 0.3;
-            pointer-events: none;
-            cursor: default;
-        }
         .dynamic-item-btn.tm-btn.tm-active {
             background: rgba(139,92,246,0.18);
             border-color: rgba(139,92,246,0.3);
@@ -19043,6 +19038,192 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             from { opacity: 0; transform: translate(-50%,-50%) scale(0.92); }
             to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
         }
+
+        /* ── TM Import Folder UI ── */
+        .tm-import-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 32px;
+            text-align: center;
+            min-height: 320px;
+        }
+        .tm-import-zone .tm-import-icon {
+            font-size: 56px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 12px rgba(139,92,246,0.3));
+            animation: tmImportFloat 3s ease-in-out infinite;
+        }
+        @keyframes tmImportFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .tm-import-zone h3 {
+            color: #e2e8f0;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 8px;
+        }
+        .tm-import-zone p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin: 0 0 28px;
+            max-width: 380px;
+            line-height: 1.5;
+        }
+        .tm-import-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tm-import-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px dashed rgba(139,92,246,0.35);
+            background: rgba(139,92,246,0.08);
+            color: #c4b5fd;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .tm-import-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.15));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tm-import-btn:hover {
+            border-color: rgba(139,92,246,0.6);
+            background: rgba(139,92,246,0.15);
+            color: #ddd6fe;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139,92,246,0.2);
+        }
+        .tm-import-btn:hover::before { opacity: 1; }
+        .tm-import-btn i { font-size: 16px; position: relative; z-index: 1; }
+        .tm-import-btn span { position: relative; z-index: 1; }
+        .tm-import-btn.tm-import-primary {
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(59,130,246,0.2));
+            border-color: rgba(139,92,246,0.4);
+        }
+        .tm-import-btn.tm-import-primary:hover {
+            background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(59,130,246,0.3));
+            box-shadow: 0 8px 30px rgba(139,92,246,0.3);
+        }
+        .tm-import-btn-empty {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px dashed rgba(100,116,139,0.3);
+            background: rgba(100,116,139,0.05);
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tm-import-btn-empty:hover {
+            border-color: rgba(59,130,246,0.4);
+            color: #93c5fd;
+            background: rgba(59,130,246,0.08);
+        }
+
+        /* ── TM Toolbar Import Button ── */
+        .tm-toolbar-import {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1.5px dashed rgba(139,92,246,0.35);
+            background: rgba(139,92,246,0.06);
+            color: #c4b5fd;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .tm-toolbar-import:hover {
+            border-color: rgba(139,92,246,0.5);
+            background: rgba(139,92,246,0.15);
+            color: #ddd6fe;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139,92,246,0.15);
+        }
+        .tm-toolbar-divider {
+            width: 1px;
+            height: 22px;
+            background: rgba(255,255,255,0.08);
+            margin: 0 4px;
+        }
+
+        /* ── TM Import Progress ── */
+        .tm-import-progress {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 32px;
+            text-align: center;
+            min-height: 320px;
+        }
+        .tm-import-spinner {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(139,92,246,0.15);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: tmSpin 0.8s linear infinite;
+            margin-bottom: 18px;
+        }
+        @keyframes tmSpin {
+            to { transform: rotate(360deg); }
+        }
+        .tm-import-progress p {
+            color: #c4b5fd;
+            font-size: 14px;
+            margin: 0;
+        }
+        .tm-import-progress small {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* Folder path badge in stats bar */
+        .tm-folder-path {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(139,92,246,0.1);
+            border: 1px solid rgba(139,92,246,0.2);
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #c4b5fd;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: default;
+        }
+        .tm-folder-path i { font-size: 10px; opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -24716,8 +24897,7 @@ function setLanguage(langCode) {
                     if (btn) {
                         const has = tmDetectHierarchy(value);
                         btn.classList.toggle('tm-active', has);
-                        btn.classList.toggle('tm-disabled', !has);
-                        btn.title = has ? 'Open Template Manager' : 'No file hierarchy detected';
+                        btn.title = has ? 'Open Template Manager (hierarchy detected)' : 'Open Template Manager';
                     }
                 }
             }
@@ -24799,10 +24979,10 @@ function setLanguage(langCode) {
                            oninput="updateDynamicItem('${type}', '${item.id}', 'name', this.value)">
                     <div class="dynamic-item-actions">
                         <button type="button"
-                                class="dynamic-item-btn tm-btn ${tmDetectHierarchy(item.prompt) ? 'tm-active' : 'tm-disabled'}"
+                                class="dynamic-item-btn tm-btn ${tmDetectHierarchy(item.prompt) ? 'tm-active' : ''}"
                                 id="tmBtn_${item.id}"
                                 onclick="tmOpen('${type}', '${item.id}')"
-                                title="${tmDetectHierarchy(item.prompt) ? 'Open Template Manager' : 'No file hierarchy detected'}">
+                                title="${tmDetectHierarchy(item.prompt) ? 'Open Template Manager (hierarchy detected)' : 'Open Template Manager'}">
                             <i class="fas fa-microscope"></i>
                         </button>
                         <input type="file" 
@@ -25272,18 +25452,20 @@ function setLanguage(langCode) {
         }
 
         // ── Open Template Manager ──
+        let tmImportedPath = '';  // Track the imported folder path
+
         function tmOpen(type, itemId) {
             const item = dynamicItems[type]?.find(it => it.id === itemId);
             if (!item) return;
-            if (!tmDetectHierarchy(item.prompt)) {
-                if (typeof showToast === 'function') showToast('⚠️ No file/folder hierarchy detected in this item', 'warning');
-                return;
-            }
 
             tmCurrentType = type;
             tmCurrentItemId = itemId;
             tmModified = false;
-            tmTreeData = tmParseTree(item.prompt);
+            tmImportedPath = '';
+
+            // Parse existing hierarchy if present
+            const hasHierarchy = tmDetectHierarchy(item.prompt);
+            tmTreeData = hasHierarchy ? tmParseTree(item.prompt) : [];
 
             // Ensure popup shell exists
             tmEnsurePopup();
@@ -25300,14 +25482,21 @@ function setLanguage(langCode) {
             if (overlay) { overlay.classList.add('tm-visible'); }
             if (popup) { popup.classList.add('tm-visible'); }
 
-            // Render
-            tmRenderTree();
+            // Render — if no data, show import zone; otherwise show tree
+            if (tmTreeData.length === 0) {
+                tmShowImportZone();
+            } else {
+                tmRenderTree();
+            }
             tmUpdateStats();
             tmUpdateModifiedState();
 
             // Clear search
             const searchEl = document.getElementById('tmSearch');
             if (searchEl) searchEl.value = '';
+
+            // Update folder path badge
+            tmUpdatePathBadge();
         }
 
         // ── Close ──
@@ -25343,13 +25532,23 @@ function setLanguage(langCode) {
                             <i class="fas fa-search"></i>
                             <input type="text" class="tm-search" id="tmSearch" placeholder="Search nodes..." oninput="tmFilterTree(this.value)">
                         </div>
-                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('folder')" title="Add Folder"><i class="fas fa-folder-plus"></i> Folder</button>
-                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('file')" title="Add File"><i class="fas fa-file-medical"></i> File</button>
+                        <div class="tm-toolbar-divider"></div>
+                        <button class="tm-toolbar-import" onclick="tmTriggerImport()" title="Import folder from your PC">
+                            <i class="fas fa-folder-open"></i> Import Folder
+                        </button>
+                        <button class="tm-toolbar-import" onclick="tmTriggerImport(true)" title="Add a folder from your PC into the current tree">
+                            <i class="fas fa-plus-circle"></i> Add Folder
+                        </button>
+                        <div class="tm-toolbar-divider"></div>
+                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('folder')" title="Add Empty Folder"><i class="fas fa-folder-plus"></i> Folder</button>
+                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('file')" title="Add Empty File"><i class="fas fa-file-medical"></i> File</button>
+                        <input type="file" id="tmFolderPicker" webkitdirectory directory multiple style="display:none" onchange="tmHandleFolderPick(this)">
                     </div>
                     <div class="tm-stats" id="tmStats">
                         <div class="tm-stat"><i class="fas fa-folder"></i> <span class="tm-stat-val" id="tmStatFolders">0</span> folders</div>
                         <div class="tm-stat"><i class="fas fa-file"></i> <span class="tm-stat-val" id="tmStatFiles">0</span> files</div>
                         <div class="tm-stat"><i class="fas fa-layer-group"></i> Depth: <span class="tm-stat-val" id="tmStatDepth">0</span></div>
+                        <span class="tm-folder-path" id="tmFolderPathBadge" style="display:none;" title=""><i class="fas fa-map-marker-alt"></i> <span id="tmFolderPathText"></span></span>
                         <div class="tm-breadcrumb" id="tmBreadcrumb"><span>Root</span></div>
                     </div>
                     <div class="tm-tree-container" id="tmTreeContainer"></div>
