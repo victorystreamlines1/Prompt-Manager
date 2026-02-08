@@ -13600,6 +13600,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
         }
         
+        /* Save New Button - Cyan/Teal */
+        .project-btn.save-new-btn {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #22d3ee;
+        }
+        
+        .project-btn.save-new-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.22) 0%, rgba(8, 145, 178, 0.16) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            color: #67e8f9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+        }
+        
         /* Load Button - Purple */
         .project-btn.load-btn {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
@@ -19675,6 +19690,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="project-btn save-btn" onclick="saveCurrentProject()" title="Save Project">
                                     <i class="fas fa-save"></i>
                                     <span>Save</span>
+                                </button>
+                                <button type="button" class="project-btn save-new-btn" onclick="saveAsNewProject()" title="Save as New Project">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Save New</span>
                                 </button>
                                 <button type="button" class="project-btn load-btn" onclick="openLoadProjectPopup()" title="Load Project">
                                     <i class="fas fa-folder-open"></i>
@@ -33421,6 +33440,28 @@ function saveProjectFromPopup() {
     projectData.name = name;
     projectData.description = description;
     
+    saveProject(projectData);
+}
+
+// Save as new project (clone current dashboard state into a brand new project)
+function saveAsNewProject() {
+    const projectData = collectDashboardData();
+    // No id = new project
+    projectData.id = '';
+
+    // Get current project name for the base
+    const selector = document.getElementById('projectSelector');
+    const selectedOption = selector.options[selector.selectedIndex];
+    const baseName = (selectedOption && selectedOption.value) ? selectedOption.textContent.trim() : '';
+
+    // Generate a new name
+    if (baseName) {
+        projectData.name = baseName + ' (Copy)';
+    } else {
+        projectData.name = 'New Project ' + new Date().toLocaleString();
+    }
+    projectData.description = projectData.description || '';
+
     saveProject(projectData);
 }
 
