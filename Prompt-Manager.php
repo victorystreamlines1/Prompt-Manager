@@ -26987,16 +26987,21 @@ function recordSpeed(type, time, connection) {
             
             items.forEach((item, idx) => {
                 const itemName = item.name || `${sectionName} ${idx + 1}`;
+                const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                 blockContent += `\n#${idx + 1} ${itemName}\n`;
                 
                 if (item.files && item.files.length > 0) {
                     blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                 }
                 if (item.prompt && item.prompt.trim()) {
-                    const pLines = item.prompt.split('\n');
-                    blockContent += `   📝 ${pLines[0]}\n`;
-                    for (let i = 1; i < pLines.length; i++) {
-                        blockContent += `      ${pLines[i]}\n`;
+                    if (isTreeItem) {
+                        blockContent += item.prompt.trim() + '\n';
+                    } else {
+                        const pLines = item.prompt.split('\n');
+                        blockContent += `   📝 ${pLines[0]}\n`;
+                        for (let i = 1; i < pLines.length; i++) {
+                            blockContent += `      ${pLines[i]}\n`;
+                        }
                     }
                 }
             });
@@ -27084,16 +27089,21 @@ ${blockContent}
                 
                 dynamicItems.backend.forEach((item, idx) => {
                     const itemName = item.name || `Backend ${idx + 1}`;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        const pLines = item.prompt.split('\n');
-                        blockContent += `   📝 ${pLines[0]}\n`;
-                        for (let i = 1; i < pLines.length; i++) {
-                            blockContent += `      ${pLines[i]}\n`;
+                        if (isTreeItem) {
+                            blockContent += item.prompt.trim() + '\n';
+                        } else {
+                            const pLines = item.prompt.split('\n');
+                            blockContent += `   📝 ${pLines[0]}\n`;
+                            for (let i = 1; i < pLines.length; i++) {
+                                blockContent += `      ${pLines[i]}\n`;
+                            }
                         }
                     }
                 });
@@ -27111,16 +27121,21 @@ ${blockContent}
                 
                 dynamicItems.page.forEach((item, idx) => {
                     const itemName = item.name || `Page ${idx + 1}`;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        const pLines = item.prompt.split('\n');
-                        blockContent += `   📝 ${pLines[0]}\n`;
-                        for (let i = 1; i < pLines.length; i++) {
-                            blockContent += `      ${pLines[i]}\n`;
+                        if (isTreeItem) {
+                            blockContent += item.prompt.trim() + '\n';
+                        } else {
+                            const pLines = item.prompt.split('\n');
+                            blockContent += `   📝 ${pLines[0]}\n`;
+                            for (let i = 1; i < pLines.length; i++) {
+                                blockContent += `      ${pLines[i]}\n`;
+                            }
                         }
                     }
                 });
@@ -27138,16 +27153,21 @@ ${blockContent}
                 
                 dynamicItems.frontend.forEach((item, idx) => {
                     const itemName = item.name || `Frontend ${idx + 1}`;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        const pLines = item.prompt.split('\n');
-                        blockContent += `   📝 ${pLines[0]}\n`;
-                        for (let i = 1; i < pLines.length; i++) {
-                            blockContent += `      ${pLines[i]}\n`;
+                        if (isTreeItem) {
+                            blockContent += item.prompt.trim() + '\n';
+                        } else {
+                            const pLines = item.prompt.split('\n');
+                            blockContent += `   📝 ${pLines[0]}\n`;
+                            for (let i = 1; i < pLines.length; i++) {
+                                blockContent += `      ${pLines[i]}\n`;
+                            }
                         }
                     }
                 });
@@ -27398,32 +27418,43 @@ server-side logic, API endpoints, and database operations.
                 dynamicItems.backend.forEach((item, index) => {
                     const itemName = item.name || `Backend ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     
-                    promptSections.push(`
+                    if (isTreeItem) {
+                        // Multi-level tree item: copy-paste raw content as-is
+                        promptSections.push(`\n📄 BACKEND #${index + 1}: ${itemName}`);
+                        if (fileCount > 0) {
+                            promptSections.push(`📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
+                        }
+                        promptSections.push(item.prompt.trim());
+                    } else {
+                        // Normal item: keep box formatting
+                        promptSections.push(`
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  📄 BACKEND #${index + 1}: ${itemName.padEnd(55)}│
 ├─────────────────────────────────────────────────────────────────────────────┤`);
                     
-                    if (fileCount > 0) {
-                        const filesList = item.files.map(f => f.name).join(', ');
-                        promptSections.push(`
+                        if (fileCount > 0) {
+                            const filesList = item.files.map(f => f.name).join(', ');
+                            promptSections.push(`
 │  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
-                    }
+                        }
                     
-                    if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`│  📝 Instructions:                                                            │`);
-                        item.prompt.split('\n').forEach(pLine => {
-                            if (pLine.length <= 73) {
-                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                            } else {
-                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                });
-                            }
-                        });
-                    }
+                        if (item.prompt && item.prompt.trim()) {
+                            promptSections.push(`│  📝 Instructions:                                                            │`);
+                            item.prompt.split('\n').forEach(pLine => {
+                                if (pLine.length <= 73) {
+                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                                } else {
+                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                    });
+                                }
+                            });
+                        }
                     
-                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                    }
                 });
                 
                 promptSections.push(`
@@ -27448,32 +27479,43 @@ application pages that may include both frontend display and backend logic.
                 dynamicItems.page.forEach((item, index) => {
                     const itemName = item.name || `Page ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     
-                    promptSections.push(`
+                    if (isTreeItem) {
+                        // Multi-level tree item: copy-paste raw content as-is
+                        promptSections.push(`\n🪟 PAGE #${index + 1}: ${itemName}`);
+                        if (fileCount > 0) {
+                            promptSections.push(`📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
+                        }
+                        promptSections.push(item.prompt.trim());
+                    } else {
+                        // Normal item: keep box formatting
+                        promptSections.push(`
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  🪟 PAGE #${index + 1}: ${itemName.padEnd(58)}│
 ├─────────────────────────────────────────────────────────────────────────────┤`);
                     
-                    if (fileCount > 0) {
-                        const filesList = item.files.map(f => f.name).join(', ');
-                        promptSections.push(`
+                        if (fileCount > 0) {
+                            const filesList = item.files.map(f => f.name).join(', ');
+                            promptSections.push(`
 │  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
-                    }
+                        }
                     
-                    if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`│  📝 Instructions:                                                            │`);
-                        item.prompt.split('\n').forEach(pLine => {
-                            if (pLine.length <= 73) {
-                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                            } else {
-                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                });
-                            }
-                        });
-                    }
+                        if (item.prompt && item.prompt.trim()) {
+                            promptSections.push(`│  📝 Instructions:                                                            │`);
+                            item.prompt.split('\n').forEach(pLine => {
+                                if (pLine.length <= 73) {
+                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                                } else {
+                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                    });
+                                }
+                            });
+                        }
                     
-                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                    }
                 });
                 
                 promptSections.push(`
@@ -27498,32 +27540,43 @@ user interface, styling, and client-side interactions.
                 dynamicItems.frontend.forEach((item, index) => {
                     const itemName = item.name || `Frontend ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
+                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
                     
-                    promptSections.push(`
+                    if (isTreeItem) {
+                        // Multi-level tree item: copy-paste raw content as-is
+                        promptSections.push(`\n🎨 FRONTEND #${index + 1}: ${itemName}`);
+                        if (fileCount > 0) {
+                            promptSections.push(`📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
+                        }
+                        promptSections.push(item.prompt.trim());
+                    } else {
+                        // Normal item: keep box formatting
+                        promptSections.push(`
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  🎨 FRONTEND #${index + 1}: ${itemName.padEnd(55)}│
 ├─────────────────────────────────────────────────────────────────────────────┤`);
                     
-                    if (fileCount > 0) {
-                        const filesList = item.files.map(f => f.name).join(', ');
-                        promptSections.push(`
+                        if (fileCount > 0) {
+                            const filesList = item.files.map(f => f.name).join(', ');
+                            promptSections.push(`
 │  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
-                    }
+                        }
                     
-                    if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`│  📝 Instructions:                                                            │`);
-                        item.prompt.split('\n').forEach(pLine => {
-                            if (pLine.length <= 73) {
-                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                            } else {
-                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                });
-                            }
-                        });
-                    }
+                        if (item.prompt && item.prompt.trim()) {
+                            promptSections.push(`│  📝 Instructions:                                                            │`);
+                            item.prompt.split('\n').forEach(pLine => {
+                                if (pLine.length <= 73) {
+                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                                } else {
+                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                    });
+                                }
+                            });
+                        }
                     
-                    promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
+                    }
                 });
                 
                 promptSections.push(`
