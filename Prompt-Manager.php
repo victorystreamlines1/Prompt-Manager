@@ -3500,6 +3500,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         /* ═══════════════════════════════════════════════════════════════════
+           🚀 GENERAL PUSH ALL BUTTON
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-push-all-wrapper {
+            margin-bottom: 0.5rem;
+        }
+        
+        .de-push-all-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+        
+        .de-push-all-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .de-push-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+            border-color: rgba(245, 158, 11, 0.7);
+        }
+        
+        .de-push-all-btn:hover::before {
+            left: 100%;
+        }
+        
+        .de-push-all-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+        }
+        
+        .de-push-all-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .de-push-all-btn:hover i {
+            transform: scale(1.15);
+        }
+        
+        .de-push-all-btn .de-push-all-progress {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            font-weight: 600;
+            margin-left: 0.2rem;
+        }
+        
+        .de-push-all-btn.pushing {
+            pointer-events: none;
+            background: linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%);
+            border-color: rgba(245, 158, 11, 0.2);
+            animation: dePushAllPulse 1.2s ease-in-out infinite;
+        }
+        
+        .de-push-all-btn.pushing i.fa-layer-group {
+            display: none;
+        }
+        
+        .de-push-all-btn.push-done {
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        @keyframes dePushAllPulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; }
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
            👑 BRANDING TOOL - Design Enhancer Right Panel
            ═══════════════════════════════════════════════════════════════════ */
         
@@ -13231,10 +13325,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.05);
         }
         
-        .clear-notes-btn:hover {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: rgba(239, 68, 68, 0.3);
+        .notes-btn.clear-notes-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             color: #f87171;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        
+        .notes-btn.clear-notes-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .notes-btn.clear-notes-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
         }
         
         .project-notes-body {
@@ -18768,7 +18880,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span>→ Editor</span>
                                     </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
-                                        <i class="fas fa-eraser"></i>
+                                        <i class="fas fa-times"></i>
+                                        <span>Clear</span>
                                     </button>
                                     <button type="button" class="notes-btn collapse-notes-btn" onclick="toggleProjectNotes()" title="Collapse/Expand">
                                         <i class="fas fa-chevron-up" id="notesCollapseIcon"></i>
@@ -19305,6 +19418,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="button" class="de-control-btn reset-all" onclick="deResetAll()" title="Reset All to Default">
                         <i class="fas fa-undo"></i>
                         <span>Reset All</span>
+                    </button>
+                </div>
+                
+                <!-- General Push All Button -->
+                <div class="de-push-all-wrapper">
+                    <button type="button" class="de-push-all-btn" id="dePushAllBtn" onclick="dePushAll()" title="Push all tools to Project Prompts at once">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Push All to Project Prompts</span>
                     </button>
                 </div>
                 
@@ -43029,6 +43150,88 @@ function dtHighlightText(text, searchTerm) {
 document.addEventListener('DOMContentLoaded', function() {
     dtLoadTemplates();
 });
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     🚀 GENERAL PUSH ALL - Design Enhancer
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+// Push All tools to Project Prompts sequentially with a slight delay
+async function dePushAll() {
+    const btn = document.getElementById('dePushAllBtn');
+    if (!btn || btn.classList.contains('pushing')) return;
+    
+    // All push functions in the Design Enhancer (order matches tool panel)
+    const pushFunctions = [
+        { name: 'Project Files Upload',    fn: 'ufPushToNotes' },
+        { name: 'File Exclusion',          fn: 'exPushToNotes' },
+        { name: 'Logo & Branding',         fn: 'pushBrandingToNotes' },
+        { name: 'Pages Creator',           fn: 'pcPushToNotes' },
+        { name: 'Custom Instructions',     fn: 'ciPushToNotes' },
+        { name: 'Enhanced Style Types',    fn: 'stPushToNotes' },
+        { name: 'Design Theme',            fn: 'dtPushToNotes' },
+        { name: 'Page Layout Structure',   fn: 'plPushToNotes' },
+        { name: 'Execution Mode',          fn: 'emPushToNotes' },
+        { name: 'Design Focus Areas',      fn: 'dfPushToNotes' },
+        { name: 'Enhancement Level',       fn: 'elPushToNotes' },
+        { name: 'Task Breakdown',          fn: 'tbPushToNotes' },
+        { name: 'Visual Reference',        fn: 'vrPushToNotes' },
+        { name: 'Homepage Configuration',  fn: 'hpPushToNotes' },
+        { name: 'Documentation',           fn: 'diPushToNotes' },
+    ];
+    
+    // Enter pushing state
+    const originalHTML = btn.innerHTML;
+    btn.classList.add('pushing');
+    
+    let pushed = 0;
+    const total = pushFunctions.length;
+    
+    // Update button text to show progress
+    function updateProgress(current, label) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Pushing ${current}/${total}...</span> <span class="de-push-all-progress">${label}</span>`;
+    }
+    
+    // Delay helper — gives the JS event loop time to process DOM updates
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Execute each push sequentially with a slight delay
+    for (let i = 0; i < pushFunctions.length; i++) {
+        const item = pushFunctions[i];
+        
+        // Check if the function exists before calling
+        if (typeof window[item.fn] === 'function') {
+            updateProgress(i + 1, item.name);
+            
+            try {
+                window[item.fn]();
+            } catch (err) {
+                console.warn(`⚠️ Push failed for ${item.name}:`, err);
+            }
+            
+            pushed++;
+            
+            // Slight delay between pushes to let JS process DOM updates and toasts
+            await delay(150);
+        }
+    }
+    
+    // Done — show success state
+    btn.classList.remove('pushing');
+    btn.classList.add('push-done');
+    btn.innerHTML = `<i class="fas fa-check-circle"></i> <span>Pushed ${pushed} Tool${pushed !== 1 ? 's' : ''} Successfully</span>`;
+    
+    if (typeof showToast === 'function') {
+        showToast(`🚀 All ${pushed} tool(s) pushed to Project Prompts`, 'success');
+    }
+    
+    // Reset button after 2.5 seconds
+    await delay(2500);
+    btn.classList.remove('push-done');
+    btn.innerHTML = originalHTML;
+}
 </script>
 
 <!-- Theme Toggle Script -->
