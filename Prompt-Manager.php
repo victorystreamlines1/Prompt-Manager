@@ -13615,6 +13615,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
         }
         
+        /* Rename Button - Amber/Orange */
+        .project-btn.rename-btn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+        
+        .project-btn.rename-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.16) 100%);
+            border-color: rgba(245, 158, 11, 0.5);
+            color: #fcd34d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+        }
+        
         /* Load Button - Purple */
         .project-btn.load-btn {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
@@ -19694,6 +19709,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button type="button" class="project-btn save-new-btn" onclick="saveAsNewProject()" title="Save as New Project">
                                     <i class="fas fa-copy"></i>
                                     <span>Save New</span>
+                                </button>
+                                <button type="button" class="project-btn rename-btn" onclick="renameCurrentProject()" title="Rename Project">
+                                    <i class="fas fa-pen"></i>
+                                    <span>Rename</span>
                                 </button>
                                 <button type="button" class="project-btn load-btn" onclick="openLoadProjectPopup()" title="Load Project">
                                     <i class="fas fa-folder-open"></i>
@@ -33443,26 +33462,52 @@ function saveProjectFromPopup() {
     saveProject(projectData);
 }
 
-// Save as new project (clone current dashboard state into a brand new project)
+// Save as new project — opens popup for user to enter a name, keeps dashboard data intact
 function saveAsNewProject() {
-    const projectData = collectDashboardData();
-    // No id = new project
-    projectData.id = '';
-
-    // Get current project name for the base
+    // Get current project name as suggestion
     const selector = document.getElementById('projectSelector');
     const selectedOption = selector.options[selector.selectedIndex];
     const baseName = (selectedOption && selectedOption.value) ? selectedOption.textContent.trim() : '';
 
-    // Generate a new name
-    if (baseName) {
-        projectData.name = baseName + ' (Copy)';
-    } else {
-        projectData.name = 'New Project ' + new Date().toLocaleString();
-    }
-    projectData.description = projectData.description || '';
+    // Open popup in "Save New" mode — empty ID so it creates a new project
+    document.getElementById('projectEditId').value = '';
+    document.getElementById('projectNameInput').value = baseName ? baseName + ' (Copy)' : '';
+    document.getElementById('projectDescInput').value = '';
+    document.getElementById('projectPopupTitle').textContent = 'Save as New Project';
 
-    saveProject(projectData);
+    const popup = document.getElementById('newProjectPopup');
+    popup.classList.add('active');
+    
+    // Select the name text so user can easily overwrite
+    const nameInput = document.getElementById('projectNameInput');
+    nameInput.focus();
+    nameInput.select();
+}
+
+// Rename current project — opens popup to change name only
+function renameCurrentProject() {
+    if (!currentProjectId) {
+        showToast('⚠️ No project selected to rename', 'warning');
+        return;
+    }
+
+    // Get current project name
+    const selector = document.getElementById('projectSelector');
+    const selectedOption = selector.options[selector.selectedIndex];
+    const currentName = (selectedOption && selectedOption.value) ? selectedOption.textContent.trim() : '';
+
+    // Open popup in "Rename" mode — keep the ID so it updates
+    document.getElementById('projectEditId').value = currentProjectId;
+    document.getElementById('projectNameInput').value = currentName;
+    document.getElementById('projectDescInput').value = '';
+    document.getElementById('projectPopupTitle').textContent = 'Rename Project';
+
+    const popup = document.getElementById('newProjectPopup');
+    popup.classList.add('active');
+
+    const nameInput = document.getElementById('projectNameInput');
+    nameInput.focus();
+    nameInput.select();
 }
 
 // Save current project (quick save)
