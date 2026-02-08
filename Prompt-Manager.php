@@ -27428,40 +27428,18 @@ server-side logic, API endpoints, and database operations.
                         }
                         promptSections.push(item.prompt.trim());
                     } else {
-                        // Normal item: keep box formatting
-                        promptSections.push(`
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  📄 BACKEND #${index + 1}: ${itemName.padEnd(55)}│
-├─────────────────────────────────────────────────────────────────────────────┤`);
-                    
+                        // Normal item: clean simple format
+                        promptSections.push(`\n── 📄 BACKEND #${index + 1}: ${itemName} ──`);
                         if (fileCount > 0) {
-                            const filesList = item.files.map(f => f.name).join(', ');
-                            promptSections.push(`
-│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                            promptSections.push(`   📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
                         }
-                    
                         if (item.prompt && item.prompt.trim()) {
-                            promptSections.push(`│  📝 Instructions:                                                            │`);
-                            item.prompt.split('\n').forEach(pLine => {
-                                if (pLine.length <= 73) {
-                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                                } else {
-                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                    });
-                                }
-                            });
+                            promptSections.push(`   📝 Instructions:\n   ${item.prompt.trim()}`);
                         }
-                    
-                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
                     }
                 });
                 
-                promptSections.push(`
-💡 NOTE: If database operations are required, refer to the DATABASE CONNECTION 
-section above for credentials. Ensure proper error handling and security measures 
-are implemented for each backend component.
-`);
+                promptSections.push(`\n💡 NOTE: If database operations are required, refer to the DATABASE CONNECTION \nsection above for credentials. Ensure proper error handling and security measures \nare implemented for each backend component.\n`);
             }
 
             // 3. PAGE SECTIONS (Dynamic)
@@ -27489,40 +27467,18 @@ application pages that may include both frontend display and backend logic.
                         }
                         promptSections.push(item.prompt.trim());
                     } else {
-                        // Normal item: keep box formatting
-                        promptSections.push(`
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  🪟 PAGE #${index + 1}: ${itemName.padEnd(58)}│
-├─────────────────────────────────────────────────────────────────────────────┤`);
-                    
+                        // Normal item: clean simple format
+                        promptSections.push(`\n── 🪟 PAGE #${index + 1}: ${itemName} ──`);
                         if (fileCount > 0) {
-                            const filesList = item.files.map(f => f.name).join(', ');
-                            promptSections.push(`
-│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                            promptSections.push(`   📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
                         }
-                    
                         if (item.prompt && item.prompt.trim()) {
-                            promptSections.push(`│  📝 Instructions:                                                            │`);
-                            item.prompt.split('\n').forEach(pLine => {
-                                if (pLine.length <= 73) {
-                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                                } else {
-                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                    });
-                                }
-                            });
+                            promptSections.push(`   📝 Instructions:\n   ${item.prompt.trim()}`);
                         }
-                    
-                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
                     }
                 });
                 
-                promptSections.push(`
-💡 NOTE: If these pages require database access, refer to the DATABASE CONNECTION 
-section. If they interact with backend APIs, refer to the BACKEND SECTION. If they 
-include frontend components, refer to the FRONTEND SECTION.
-`);
+                promptSections.push(`\n💡 NOTE: If these pages require database access, refer to the DATABASE CONNECTION \nsection. If they interact with backend APIs, refer to the BACKEND SECTION. If they \ninclude frontend components, refer to the FRONTEND SECTION.\n`);
             }
 
             // 4. FRONTEND SECTIONS (Dynamic)
@@ -27550,41 +27506,18 @@ user interface, styling, and client-side interactions.
                         }
                         promptSections.push(item.prompt.trim());
                     } else {
-                        // Normal item: keep box formatting
-                        promptSections.push(`
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  🎨 FRONTEND #${index + 1}: ${itemName.padEnd(55)}│
-├─────────────────────────────────────────────────────────────────────────────┤`);
-                    
+                        // Normal item: clean simple format
+                        promptSections.push(`\n── 🎨 FRONTEND #${index + 1}: ${itemName} ──`);
                         if (fileCount > 0) {
-                            const filesList = item.files.map(f => f.name).join(', ');
-                            promptSections.push(`
-│  📁 Files (${fileCount}): ${filesList.substring(0, 55).padEnd(55)}│`);
+                            promptSections.push(`   📁 Files (${fileCount}): ${item.files.map(f => f.name).join(', ')}`);
                         }
-                    
                         if (item.prompt && item.prompt.trim()) {
-                            promptSections.push(`│  📝 Instructions:                                                            │`);
-                            item.prompt.split('\n').forEach(pLine => {
-                                if (pLine.length <= 73) {
-                                    promptSections.push(`│  ${pLine.padEnd(73)}│`);
-                                } else {
-                                    (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
-                                        promptSections.push(`│  ${chunk.padEnd(73)}│`);
-                                    });
-                                }
-                            });
+                            promptSections.push(`   📝 Instructions:\n   ${item.prompt.trim()}`);
                         }
-                    
-                        promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
                     }
                 });
                 
-                promptSections.push(`
-💡 NOTE: If these frontend components connect to backend APIs, refer to the 
-BACKEND SECTION. If they display data from the database, ensure the backend 
-properly fetches and serves the data. Maintain consistent styling and responsive 
-design across all components.
-`);
+                promptSections.push(`\n💡 NOTE: If these frontend components connect to backend APIs, refer to the \nBACKEND SECTION. If they display data from the database, ensure the backend \nproperly fetches and serves the data. Maintain consistent styling and responsive \ndesign across all components.\n`);
             }
 
             // 5. PROJECT PROMPTS SECTION (if has content)
