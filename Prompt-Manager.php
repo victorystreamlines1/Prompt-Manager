@@ -9554,6 +9554,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
         }
         
+        .uf-btn-dashboard {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.10) 100%);
+            color: #a78bfa;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+        }
+        
+        .uf-btn-dashboard:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.30) 0%, rgba(139, 92, 246, 0.20) 100%);
+            border-color: rgba(139, 92, 246, 0.55);
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+            color: #c4b5fd;
+            transform: translateY(-1px);
+        }
+        
         .uf-total-badge {
             background: linear-gradient(135deg, #7c4dff 0%, #00e676 100%);
             color: white;
@@ -19616,6 +19630,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-arrow-right"></i>
                                     Push to Prompts
                                     <span class="uf-total-badge" id="ufTotalBadge">0</span>
+                                </button>
+                                <button class="uf-btn uf-btn-dashboard" onclick="ufPushToDashboard()" title="Classify files & folders and push to Dashboard (Backend / Pages / Frontend)">
+                                    <i class="fas fa-columns"></i>
+                                    Push to Dashboard
                                 </button>
                                 <button class="uf-btn uf-btn-danger" onclick="ufClearAll()">
                                     <i class="fas fa-trash-alt"></i>
@@ -41563,6 +41581,153 @@ function ufPushToNotes() {
     showToast('📁 Project structure pushed to Project Prompts', 'success');
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// 🚀 PUSH TO DEVELOPMENT DASHBOARD (File Upload → Backend/Pages/Frontend)
+// ═══════════════════════════════════════════════════════════════════
+
+// Classify a folder name into backend / page / frontend
+function ufClassifyFolder(folderName) {
+    const lower = (folderName || '').toLowerCase();
+
+    const backendKw = [
+        'api', 'server', 'backend', 'config', 'database', 'db', 'migrations',
+        'models', 'controllers', 'routes', 'middleware', 'services', 'helpers',
+        'utils', 'lib', 'core', 'admin', 'auth', 'cron', 'jobs', 'queue',
+        'storage', 'logs', 'vendor', 'node_modules', 'php', 'laravel',
+        'express', 'nest', 'django', 'flask', 'spring', 'includes', 'classes'
+    ];
+
+    const frontendKw = [
+        'css', 'styles', 'scss', 'sass', 'less', 'js', 'javascript', 'scripts',
+        'assets', 'images', 'img', 'icons', 'fonts', 'media', 'static',
+        'public', 'dist', 'build', 'components', 'ui', 'frontend', 'views',
+        'layouts', 'partials', 'templates', 'theme', 'themes', 'resources',
+        'src', 'app'
+    ];
+
+    const pageKw = [
+        'pages', 'page', 'html', 'views', 'screens', 'sections'
+    ];
+
+    for (const kw of backendKw)  { if (lower === kw || lower.includes(kw)) return 'backend'; }
+    for (const kw of pageKw)     { if (lower === kw || lower.includes(kw)) return 'page'; }
+    for (const kw of frontendKw) { if (lower === kw || lower.includes(kw)) return 'frontend'; }
+
+    return 'page'; // default folders go to Pages
+}
+
+// Push uploaded files/folders into the Development Dashboard
+function ufPushToDashboard() {
+    // Check dashboard functions exist
+    if (typeof addDynamicItem !== 'function' || typeof dynamicItems === 'undefined') {
+        showToast('⚠️ Development Dashboard not found', 'error');
+        return;
+    }
+
+    const totalFolders = ufFileStorage.folders.length;
+    const totalStandaloneFiles = Object.entries(ufFileStorage).reduce(
+        (sum, [cat, arr]) => cat !== 'folders' ? sum + arr.length : sum, 0
+    );
+    const notesContent = document.getElementById('ufNotesTextarea')?.value.trim() || '';
+
+    if (totalFolders === 0 && totalStandaloneFiles === 0 && !notesContent) {
+        showToast('⚠️ No files, folders, or notes to push', 'warning');
+        return;
+    }
+
+    let totalAdded = 0;
+    const counts = { backend: 0, page: 0, frontend: 0 };
+
+    // ── Folders → classify each folder ──
+    ufFileStorage.folders.forEach(folder => {
+        const type = ufClassifyFolder(folder.name);
+        let desc = `📂 Folder: ${folder.name}/`;
+        if (folder.fileCount)   desc += `\n• ${folder.fileCount} file(s)`;
+        if (folder.folderCount) desc += `\n• ${folder.folderCount} subfolder(s)`;
+
+        // Include tree structure in description
+        if (folder.children && folder.children.length > 0) {
+            desc += `\n\n` + ufBuildFolderTreeText(folder.name, folder.children);
+        }
+
+        addDynamicItem(type, folder.name, desc);
+        counts[type]++;
+        totalAdded++;
+    });
+
+    // ── Standalone files → classify by category ──
+
+    // PHP files → Backend
+    if (ufFileStorage.php && ufFileStorage.php.length > 0) {
+        const names = ufFileStorage.php.map(f => f.name).join(', ');
+        const desc = `🐘 PHP Files (${ufFileStorage.php.length}):\n` +
+            ufFileStorage.php.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('backend', 'PHP Files', desc);
+        counts.backend++;
+        totalAdded++;
+    }
+
+    // HTML files → Pages
+    if (ufFileStorage.html && ufFileStorage.html.length > 0) {
+        const desc = `🌐 HTML Files (${ufFileStorage.html.length}):\n` +
+            ufFileStorage.html.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('page', 'HTML Files', desc);
+        counts.page++;
+        totalAdded++;
+    }
+
+    // CSS files → Frontend
+    if (ufFileStorage.css && ufFileStorage.css.length > 0) {
+        const desc = `🎨 CSS/Style Files (${ufFileStorage.css.length}):\n` +
+            ufFileStorage.css.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('frontend', 'CSS Styles', desc);
+        counts.frontend++;
+        totalAdded++;
+    }
+
+    // JavaScript files → Frontend
+    if (ufFileStorage.javascript && ufFileStorage.javascript.length > 0) {
+        const desc = `📜 JavaScript Files (${ufFileStorage.javascript.length}):\n` +
+            ufFileStorage.javascript.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('frontend', 'JavaScript Files', desc);
+        counts.frontend++;
+        totalAdded++;
+    }
+
+    // Images → Frontend
+    if (ufFileStorage.images && ufFileStorage.images.length > 0) {
+        const desc = `🖼️ Image Assets (${ufFileStorage.images.length}):\n` +
+            ufFileStorage.images.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('frontend', 'Image Assets', desc);
+        counts.frontend++;
+        totalAdded++;
+    }
+
+    // Other files → Pages (general)
+    if (ufFileStorage.other && ufFileStorage.other.length > 0) {
+        const desc = `📄 Other Files (${ufFileStorage.other.length}):\n` +
+            ufFileStorage.other.map(f => `  • ${f.name}`).join('\n');
+        addDynamicItem('page', 'Other Files', desc);
+        counts.page++;
+        totalAdded++;
+    }
+
+    // ── Project notes → add as a general item ──
+    if (notesContent) {
+        addDynamicItem('page', 'Project Notes', `📝 Project Notes & Instructions:\n\n${notesContent}`);
+        counts.page++;
+        totalAdded++;
+    }
+
+    // Summary
+    const parts = [];
+    if (counts.backend > 0)  parts.push(`${counts.backend} Backend`);
+    if (counts.page > 0)     parts.push(`${counts.page} Pages`);
+    if (counts.frontend > 0) parts.push(`${counts.frontend} Frontend`);
+
+    showToast(`🚀 ${totalAdded} item${totalAdded > 1 ? 's' : ''} pushed to Dashboard (${parts.join(', ')})`, 'success');
+}
+
 // Build a full ASCII tree diagram for a folder and ALL its descendants (unlimited depth)
 function ufBuildFolderTreeText(folderName, children) {
     let lines = [`📁 ${folderName}/`];
@@ -43373,7 +43538,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Map each tool element ID → { display name, push function }
 const dePushMap = {
-    'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToNotes(); } },
+    'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToDashboard(); } },
     'exclusionTool':         { name: 'File Exclusion',          fn: function() { exPushToNotes(); } },
     'brandingTool':          { name: 'Logo & Branding',         fn: function() { pushBrandingToNotes(); } },
     'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToDashboard(); } },
