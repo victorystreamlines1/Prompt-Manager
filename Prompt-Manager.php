@@ -15403,6 +15403,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(99, 102, 241, 0.6);
         }
         
+        /* When section is expanded via drag, remove max-height */
+        .dynamic-section.ds-expanded .dynamic-items-grid {
+            max-height: none;
+        }
+        
+        /* ── Vertical Resize Handle ── */
+        .ds-resize-handle {
+            width: 100%;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: ns-resize;
+            user-select: none;
+            position: relative;
+            border-top: 1px solid rgba(99, 102, 241, 0.08);
+            border-radius: 0 0 16px 16px;
+            background: linear-gradient(180deg, rgba(15, 15, 35, 0) 0%, rgba(99, 102, 241, 0.04) 100%);
+            transition: background 0.25s ease, border-color 0.25s ease;
+            flex-shrink: 0;
+        }
+        
+        .ds-resize-handle:hover {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.12) 100%);
+            border-top-color: rgba(99, 102, 241, 0.22);
+        }
+        
+        .ds-resize-handle.ds-dragging {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.10) 0%, rgba(99, 102, 241, 0.18) 100%);
+            border-top-color: rgba(99, 102, 241, 0.35);
+        }
+        
+        .ds-resize-handle-icon {
+            width: 32px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(99, 102, 241, 0.25);
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        
+        .ds-resize-handle:hover .ds-resize-handle-icon {
+            background: rgba(99, 102, 241, 0.45);
+            width: 44px;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        }
+        
+        .ds-resize-handle.ds-dragging .ds-resize-handle-icon {
+            background: rgba(99, 102, 241, 0.6);
+            width: 50px;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+        }
+        
+        /* Section-specific handle colors */
+        #backendSection .ds-resize-handle:hover .ds-resize-handle-icon {
+            background: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.25);
+        }
+        #backendSection .ds-resize-handle.ds-dragging .ds-resize-handle-icon {
+            background: rgba(6, 182, 212, 0.7);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+        
+        #pageSection .ds-resize-handle:hover .ds-resize-handle-icon {
+            background: rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 8px rgba(167, 139, 250, 0.25);
+        }
+        #pageSection .ds-resize-handle.ds-dragging .ds-resize-handle-icon {
+            background: rgba(167, 139, 250, 0.7);
+            box-shadow: 0 0 12px rgba(167, 139, 250, 0.4);
+        }
+        
+        #frontendSection .ds-resize-handle:hover .ds-resize-handle-icon {
+            background: rgba(251, 146, 60, 0.5);
+            box-shadow: 0 0 8px rgba(251, 146, 60, 0.25);
+        }
+        #frontendSection .ds-resize-handle.ds-dragging .ds-resize-handle-icon {
+            background: rgba(251, 146, 60, 0.7);
+            box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);
+        }
+        
         .dynamic-item {
             display: flex;
             flex-direction: column;
@@ -15594,6 +15675,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(99, 102, 241, 0.35);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
             background: rgba(15, 15, 30, 0.8);
+        }
+        
+        .dynamic-section.ds-expanded .dynamic-item-prompt {
+            max-height: none;
         }
         
         .dynamic-item-prompt::placeholder {
@@ -18819,6 +18904,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <small>Click "Add" to create one</small>
                                     </div>
                                 </div>
+                                <div class="ds-resize-handle" data-section="backendSection" title="Drag down to expand">
+                                    <span class="ds-resize-handle-icon"></span>
+                                </div>
                             </div>
                             
                             <!-- Pages Section -->
@@ -18845,6 +18933,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <small>Click "Add" to create one</small>
                                     </div>
                                 </div>
+                                <div class="ds-resize-handle" data-section="pageSection" title="Drag down to expand">
+                                    <span class="ds-resize-handle-icon"></span>
+                                </div>
                             </div>
                             
                             <!-- Frontend Section -->
@@ -18870,6 +18961,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <p>No frontend items</p>
                                         <small>Click "Add" to create one</small>
                                     </div>
+                                </div>
+                                <div class="ds-resize-handle" data-section="frontendSection" title="Drag down to expand">
+                                    <span class="ds-resize-handle-icon"></span>
                                 </div>
                             </div>
                         </div>
@@ -24371,6 +24465,78 @@ function setLanguage(langCode) {
             });
             localStorage.removeItem(DYNAMIC_ITEMS_KEY);
         }
+        
+        // ════════════════════════════════════════════════════════════════
+        // VERTICAL RESIZE HANDLE – Backend / Pages / Frontend
+        // ════════════════════════════════════════════════════════════════
+        (function initDsResize() {
+            let activeHandle = null;
+            let startY = 0;
+            let startH = 0;
+            let targetGrid = null;
+
+            function onPointerDown(e) {
+                const handle = e.target.closest('.ds-resize-handle');
+                if (!handle) return;
+
+                e.preventDefault();
+                activeHandle = handle;
+                const section = handle.closest('.dynamic-section');
+                targetGrid = section ? section.querySelector('.dynamic-items-grid') : null;
+                if (!targetGrid) return;
+
+                // Mark section as expanded so CSS removes max-height
+                section.classList.add('ds-expanded');
+                handle.classList.add('ds-dragging');
+
+                startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+                startH = targetGrid.getBoundingClientRect().height;
+
+                // Set explicit height so dragging works from current rendered height
+                targetGrid.style.height = startH + 'px';
+                targetGrid.style.maxHeight = 'none';
+
+                document.addEventListener('mousemove', onPointerMove, { passive: false });
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+                document.addEventListener('touchend', onPointerUp);
+
+                // Prevent text selection while dragging
+                document.body.style.userSelect = 'none';
+                document.body.style.cursor = 'ns-resize';
+            }
+
+            function onPointerMove(e) {
+                if (!activeHandle || !targetGrid) return;
+                e.preventDefault();
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+                const delta = clientY - startY;
+                const newH = Math.max(100, startH + delta); // min 100px
+                targetGrid.style.height = newH + 'px';
+            }
+
+            function onPointerUp() {
+                if (activeHandle) {
+                    activeHandle.classList.remove('ds-dragging');
+                    activeHandle = null;
+                }
+                targetGrid = null;
+                document.removeEventListener('mousemove', onPointerMove);
+                document.removeEventListener('mouseup', onPointerUp);
+                document.removeEventListener('touchmove', onPointerMove);
+                document.removeEventListener('touchend', onPointerUp);
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            }
+
+            // Attach listeners to all resize handles
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.ds-resize-handle').forEach(function(handle) {
+                    handle.addEventListener('mousedown', onPointerDown);
+                    handle.addEventListener('touchstart', onPointerDown, { passive: false });
+                });
+            });
+        })();
         
         // Auto-save on changes
         function initDashboardAutoSave() {
