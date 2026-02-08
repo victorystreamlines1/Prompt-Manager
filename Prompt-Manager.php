@@ -26987,7 +26987,7 @@ function recordSpeed(type, time, connection) {
             
             items.forEach((item, idx) => {
                 const itemName = item.name || `${sectionName} ${idx + 1}`;
-                const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                 blockContent += `\n#${idx + 1} ${itemName}\n`;
                 
                 if (item.files && item.files.length > 0) {
@@ -27089,7 +27089,7 @@ ${blockContent}
                 
                 dynamicItems.backend.forEach((item, idx) => {
                     const itemName = item.name || `Backend ${idx + 1}`;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
@@ -27121,7 +27121,7 @@ ${blockContent}
                 
                 dynamicItems.page.forEach((item, idx) => {
                     const itemName = item.name || `Page ${idx + 1}`;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
@@ -27153,7 +27153,7 @@ ${blockContent}
                 
                 dynamicItems.frontend.forEach((item, idx) => {
                     const itemName = item.name || `Frontend ${idx + 1}`;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     blockContent += `\n#${idx + 1} ${itemName}\n`;
                     
                     if (item.files && item.files.length > 0) {
@@ -27418,7 +27418,7 @@ server-side logic, API endpoints, and database operations.
                 dynamicItems.backend.forEach((item, index) => {
                     const itemName = item.name || `Backend ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     
                     if (isTreeItem) {
                         // Multi-level tree item: copy-paste raw content as-is
@@ -27479,7 +27479,7 @@ application pages that may include both frontend display and backend logic.
                 dynamicItems.page.forEach((item, index) => {
                     const itemName = item.name || `Page ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     
                     if (isTreeItem) {
                         // Multi-level tree item: copy-paste raw content as-is
@@ -27540,7 +27540,7 @@ user interface, styling, and client-side interactions.
                 dynamicItems.frontend.forEach((item, index) => {
                     const itemName = item.name || `Frontend ${index + 1}`;
                     const fileCount = item.files ? item.files.length : 0;
-                    const isTreeItem = item.prompt && /[├└│]──|📂.*\//.test(item.prompt);
+                    const isTreeItem = item.prompt && /[├└]── /.test(item.prompt);
                     
                     if (isTreeItem) {
                         // Multi-level tree item: copy-paste raw content as-is
