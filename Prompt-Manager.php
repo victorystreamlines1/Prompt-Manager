@@ -26993,7 +26993,11 @@ function recordSpeed(type, time, connection) {
                     blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                 }
                 if (item.prompt && item.prompt.trim()) {
-                    blockContent += `   📝 ${item.prompt}\n`;
+                    const pLines = item.prompt.split('\n');
+                    blockContent += `   📝 ${pLines[0]}\n`;
+                    for (let i = 1; i < pLines.length; i++) {
+                        blockContent += `      ${pLines[i]}\n`;
+                    }
                 }
             });
             
@@ -27086,7 +27090,11 @@ ${blockContent}
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        blockContent += `   📝 ${item.prompt}\n`;
+                        const pLines = item.prompt.split('\n');
+                        blockContent += `   📝 ${pLines[0]}\n`;
+                        for (let i = 1; i < pLines.length; i++) {
+                            blockContent += `      ${pLines[i]}\n`;
+                        }
                     }
                 });
                 
@@ -27109,7 +27117,11 @@ ${blockContent}
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        blockContent += `   📝 ${item.prompt}\n`;
+                        const pLines = item.prompt.split('\n');
+                        blockContent += `   📝 ${pLines[0]}\n`;
+                        for (let i = 1; i < pLines.length; i++) {
+                            blockContent += `      ${pLines[i]}\n`;
+                        }
                     }
                 });
                 
@@ -27132,7 +27144,11 @@ ${blockContent}
                         blockContent += `   📁 Files: ${item.files.map(f => f.name).join(', ')}\n`;
                     }
                     if (item.prompt && item.prompt.trim()) {
-                        blockContent += `   📝 ${item.prompt}\n`;
+                        const pLines = item.prompt.split('\n');
+                        blockContent += `   📝 ${pLines[0]}\n`;
+                        for (let i = 1; i < pLines.length; i++) {
+                            blockContent += `      ${pLines[i]}\n`;
+                        }
                     }
                 });
                 
@@ -27395,18 +27411,16 @@ server-side logic, API endpoints, and database operations.
                     }
                     
                     if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`
-│  📝 Instructions:                                                            │
-│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
-                        
-                        // If prompt is longer, add continuation
-                        if (item.prompt.length > 70) {
-                            const remaining = item.prompt.substring(70);
-                            const lines = remaining.match(/.{1,73}/g) || [];
-                            lines.forEach(line => {
-                                promptSections.push(`│  ${line.padEnd(73)}│`);
-                            });
-                        }
+                        promptSections.push(`│  📝 Instructions:                                                            │`);
+                        item.prompt.split('\n').forEach(pLine => {
+                            if (pLine.length <= 73) {
+                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                            } else {
+                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                });
+                            }
+                        });
                     }
                     
                     promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
@@ -27447,17 +27461,16 @@ application pages that may include both frontend display and backend logic.
                     }
                     
                     if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`
-│  📝 Instructions:                                                            │
-│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
-                        
-                        if (item.prompt.length > 70) {
-                            const remaining = item.prompt.substring(70);
-                            const lines = remaining.match(/.{1,73}/g) || [];
-                            lines.forEach(line => {
-                                promptSections.push(`│  ${line.padEnd(73)}│`);
-                            });
-                        }
+                        promptSections.push(`│  📝 Instructions:                                                            │`);
+                        item.prompt.split('\n').forEach(pLine => {
+                            if (pLine.length <= 73) {
+                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                            } else {
+                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                });
+                            }
+                        });
                     }
                     
                     promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
@@ -27498,17 +27511,16 @@ user interface, styling, and client-side interactions.
                     }
                     
                     if (item.prompt && item.prompt.trim()) {
-                        promptSections.push(`
-│  📝 Instructions:                                                            │
-│  ${item.prompt.substring(0, 70).padEnd(73)}│`);
-                        
-                        if (item.prompt.length > 70) {
-                            const remaining = item.prompt.substring(70);
-                            const lines = remaining.match(/.{1,73}/g) || [];
-                            lines.forEach(line => {
-                                promptSections.push(`│  ${line.padEnd(73)}│`);
-                            });
-                        }
+                        promptSections.push(`│  📝 Instructions:                                                            │`);
+                        item.prompt.split('\n').forEach(pLine => {
+                            if (pLine.length <= 73) {
+                                promptSections.push(`│  ${pLine.padEnd(73)}│`);
+                            } else {
+                                (pLine.match(/.{1,73}/g) || []).forEach(chunk => {
+                                    promptSections.push(`│  ${chunk.padEnd(73)}│`);
+                                });
+                            }
+                        });
                     }
                     
                     promptSections.push(`└─────────────────────────────────────────────────────────────────────────────┘`);
