@@ -21589,7 +21589,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         <!-- Push to Project Prompts -->
                         <div class="dt-push-section">
-                            <button type="button" class="dt-push-btn" onclick="dtPushToNotes()" title="Push selected design templates to Project Prompts">
+                            <button type="button" class="dt-push-btn" onclick="dtTemplatePushToNotes()" title="Push selected design templates to Project Prompts">
                                 <i class="fas fa-arrow-down"></i>
                                 <span>Push to Project Prompts</span>
                             </button>
@@ -43100,7 +43100,7 @@ function dtPullPreviewContent() {
 
 // ============ PUSH TO PROJECT PROMPTS ============
 
-function dtPushToNotes() {
+function dtTemplatePushToNotes() {
     const projectNotesTextarea = document.getElementById('projectNotesTextarea');
     if (!projectNotesTextarea) return;
     
@@ -43156,67 +43156,87 @@ document.addEventListener('DOMContentLoaded', function() {
      🚀 GENERAL PUSH ALL - Design Enhancer
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
-// Push All tools to Project Prompts sequentially with a slight delay
+// Map each tool element ID → { display name, push function }
+const dePushMap = {
+    'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToNotes(); } },
+    'exclusionTool':         { name: 'File Exclusion',          fn: function() { exPushToNotes(); } },
+    'brandingTool':          { name: 'Logo & Branding',         fn: function() { pushBrandingToNotes(); } },
+    'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToNotes(); } },
+    'customInstructionsTool':{ name: 'Custom Instructions',     fn: function() { ciPushToNotes(); } },
+    'styleTypesTool':        { name: 'Enhanced Style Types',    fn: function() { stPushToNotes(); } },
+    'designThemeTool':       { name: 'Design Theme',            fn: function() { dtPushToNotes(); } },
+    'layoutTool':            { name: 'Page Layout Structure',   fn: function() { plPushToNotes(); } },
+    'executionModeTool':     { name: 'Execution Mode',          fn: function() { emPushToNotes(); } },
+    'designFocusTool':       { name: 'Design Focus Areas',      fn: function() { dfPushToNotes(); } },
+    'enhancementLevelTool':  { name: 'Enhancement Level',       fn: function() { elPushToNotes(); } },
+    'taskBreakdownTool':     { name: 'Task Breakdown',          fn: function() { tbPushToNotes(); } },
+    'visualReferenceTool':   { name: 'Visual Reference',        fn: function() { vrPushToNotes(); } },
+    'homepageTool':          { name: 'Homepage Configuration',  fn: function() { hpPushToNotes(); } },
+    'documentationTool':     { name: 'Documentation',           fn: function() { diPushToNotes(); } },
+    'designTemplateTool':    { name: 'Design Templates',        fn: function() { dtTemplatePushToNotes(); } },
+};
+
+// Push All tools to Project Prompts in their current visual DOM order
 async function dePushAll() {
     const btn = document.getElementById('dePushAllBtn');
     if (!btn || btn.classList.contains('pushing')) return;
     
-    // All push functions in the Design Enhancer (order matches tool panel)
-    const pushFunctions = [
-        { name: 'Project Files Upload',    fn: 'ufPushToNotes' },
-        { name: 'File Exclusion',          fn: 'exPushToNotes' },
-        { name: 'Logo & Branding',         fn: 'pushBrandingToNotes' },
-        { name: 'Pages Creator',           fn: 'pcPushToNotes' },
-        { name: 'Custom Instructions',     fn: 'ciPushToNotes' },
-        { name: 'Enhanced Style Types',    fn: 'stPushToNotes' },
-        { name: 'Design Theme',            fn: 'dtPushToNotes' },
-        { name: 'Page Layout Structure',   fn: 'plPushToNotes' },
-        { name: 'Execution Mode',          fn: 'emPushToNotes' },
-        { name: 'Design Focus Areas',      fn: 'dfPushToNotes' },
-        { name: 'Enhancement Level',       fn: 'elPushToNotes' },
-        { name: 'Task Breakdown',          fn: 'tbPushToNotes' },
-        { name: 'Visual Reference',        fn: 'vrPushToNotes' },
-        { name: 'Homepage Configuration',  fn: 'hpPushToNotes' },
-        { name: 'Documentation',           fn: 'diPushToNotes' },
-    ];
+    // Read current DOM order of tools from the container
+    const container = document.getElementById('deToolsContainer');
+    if (!container) return;
+    
+    const toolElements = container.querySelectorAll('.de-tool-section');
+    const pushQueue = [];
+    
+    toolElements.forEach(el => {
+        const entry = dePushMap[el.id];
+        if (entry) {
+            pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
+        }
+    });
+    
+    if (pushQueue.length === 0) return;
     
     // Enter pushing state
     const originalHTML = btn.innerHTML;
     btn.classList.add('pushing');
     
     let pushed = 0;
-    const total = pushFunctions.length;
+    const total = pushQueue.length;
     
     // Update button text to show progress
     function updateProgress(current, label) {
         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Pushing ${current}/${total}...</span> <span class="de-push-all-progress">${label}</span>`;
     }
     
-    // Delay helper — gives the JS event loop time to process DOM updates
-    function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    // Yield to browser — requestAnimationFrame + setTimeout ensures DOM flush
+    function yieldToBrowser() {
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
+                setTimeout(resolve, 120);
+            });
+        });
     }
     
-    // Execute each push sequentially with a slight delay
-    for (let i = 0; i < pushFunctions.length; i++) {
-        const item = pushFunctions[i];
+    // Execute each push sequentially in DOM order with a yield between each
+    for (let i = 0; i < pushQueue.length; i++) {
+        const item = pushQueue[i];
         
-        // Check if the function exists before calling
-        if (typeof window[item.fn] === 'function') {
-            updateProgress(i + 1, item.name);
-            
-            try {
-                window[item.fn]();
-            } catch (err) {
-                console.warn(`⚠️ Push failed for ${item.name}:`, err);
-            }
-            
+        updateProgress(i + 1, item.name);
+        
+        // Yield BEFORE each push so the progress UI updates
+        await yieldToBrowser();
+        
+        try {
+            item.fn();
             pushed++;
-            
-            // Slight delay between pushes to let JS process DOM updates and toasts
-            await delay(150);
+        } catch (err) {
+            console.warn(`⚠️ Push failed for ${item.name}:`, err);
         }
     }
+    
+    // Final yield to let last push settle
+    await yieldToBrowser();
     
     // Done — show success state
     btn.classList.remove('pushing');
@@ -43228,7 +43248,7 @@ async function dePushAll() {
     }
     
     // Reset button after 2.5 seconds
-    await delay(2500);
+    await new Promise(r => setTimeout(r, 2500));
     btn.classList.remove('push-done');
     btn.innerHTML = originalHTML;
 }

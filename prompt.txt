@@ -1,3 +1,1 @@
-change this button from an icon to the word clear make it look nice and cool and compatible with the theme of the project prompts container ---><button type="button" class="notes-btn clear-notes-btn snipcss-Ow74G" onclick="clearProjectNotes()" title="Clear Notes">
-    <i class="fas fa-eraser"></i>
-</button>
+and the general push or push all button you missed one of the items and it is enhanced level I clicked it and the enhanced level information did not show in the project prompts container so make sure it is clicked with other set of clicking in other items. 
