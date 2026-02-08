@@ -3593,6 +3593,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 1; }
         }
         
+        /* Push All + Dashboard variant */
+        .de-push-all-dashboard-btn {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0c4a6e 50%, #164e63 100%) !important;
+            border-color: rgba(6, 182, 212, 0.4) !important;
+            color: #67e8f9 !important;
+        }
+        
+        .de-push-all-dashboard-btn:hover {
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35) !important;
+            border-color: rgba(6, 182, 212, 0.7) !important;
+        }
+        
+        .de-push-all-dashboard-btn.pushing {
+            background: linear-gradient(135deg, #0c4a6e 0%, #164e63 50%, #083344 100%) !important;
+            border-color: rgba(6, 182, 212, 0.2) !important;
+        }
+        
+        .de-push-all-dashboard-btn.push-done {
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%) !important;
+            border-color: rgba(16, 185, 129, 0.5) !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+        }
+        
+        .de-push-all-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
         /* ═══════════════════════════════════════════════════════════════════
            👑 BRANDING TOOL - Design Enhancer Right Panel
            ═══════════════════════════════════════════════════════════════════ */
@@ -20218,11 +20246,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </button>
                 </div>
                 
-                <!-- General Push All Button -->
+                <!-- General Push All Buttons -->
                 <div class="de-push-all-wrapper">
                     <button type="button" class="de-push-all-btn" id="dePushAllBtn" onclick="dePushAll()" title="Push all tools to Project Prompts at once">
                         <i class="fas fa-layer-group"></i>
                         <span>Push All to Project Prompts</span>
+                    </button>
+                    <button type="button" class="de-push-all-btn de-push-all-dashboard-btn" id="dePushAllDashboardBtn" onclick="dePushAllDashboard()" title="Push all tools — Files & Pages go to Dashboard, rest to Prompts">
+                        <i class="fas fa-columns"></i>
+                        <span>Push All + Dashboard</span>
                     </button>
                 </div>
                 
@@ -45303,10 +45335,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Map each tool element ID → { display name, push function }
 const dePushMap = {
-    'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToDashboard(); } },
+    'fileUploadTool':        { name: 'Project Files Upload',    fn: function() { ufPushToNotes(); } },
     'exclusionTool':         { name: 'File Exclusion',          fn: function() { exPushToNotes(); } },
     'brandingTool':          { name: 'Logo & Branding',         fn: function() { pushBrandingToNotes(); } },
-    'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToDashboard(); } },
+    'pagesCreatorTool':      { name: 'Pages Creator',           fn: function() { pcPushToNotes(); } },
     'customInstructionsTool':{ name: 'Custom Instructions',     fn: function() { ciPushToNotes(); } },
     'styleTypesTool':        { name: 'Enhanced Style Types',    fn: function() { stPushToNotes(); } },
     'designThemeTool':       { name: 'Design Theme',            fn: function() { dtPushToNotes(); } },
@@ -45393,6 +45425,77 @@ async function dePushAll() {
     }
     
     // Reset button after 2.5 seconds
+    await new Promise(r => setTimeout(r, 2500));
+    btn.classList.remove('push-done');
+    btn.innerHTML = originalHTML;
+}
+
+// Dashboard-specific overrides for Push All + Dashboard button
+const dePushMapDashboardOverrides = {
+    'fileUploadTool':   { name: 'Project Files Upload',  fn: function() { ufPushToDashboard(); } },
+    'pagesCreatorTool': { name: 'Pages Creator',          fn: function() { pcPushToDashboard(); } }
+};
+
+// Push All + Dashboard: same as dePushAll but file upload & pages creator go to Dashboard
+async function dePushAllDashboard() {
+    const btn = document.getElementById('dePushAllDashboardBtn');
+    if (!btn || btn.classList.contains('pushing')) return;
+    
+    const container = document.getElementById('deToolsContainer');
+    if (!container) return;
+    
+    const toolElements = container.querySelectorAll('.de-tool-section');
+    const pushQueue = [];
+    
+    toolElements.forEach(el => {
+        // Use dashboard override if available, otherwise use default map
+        const entry = dePushMapDashboardOverrides[el.id] || dePushMap[el.id];
+        if (entry) {
+            pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
+        }
+    });
+    
+    if (pushQueue.length === 0) return;
+    
+    const originalHTML = btn.innerHTML;
+    btn.classList.add('pushing');
+    
+    let pushed = 0;
+    const total = pushQueue.length;
+    
+    function updateProgress(current, label) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Pushing ${current}/${total}...</span> <span class="de-push-all-progress">${label}</span>`;
+    }
+    
+    function yieldToBrowser() {
+        return new Promise(resolve => {
+            requestAnimationFrame(() => { setTimeout(resolve, 120); });
+        });
+    }
+    
+    for (let i = 0; i < pushQueue.length; i++) {
+        const item = pushQueue[i];
+        updateProgress(i + 1, item.name);
+        await yieldToBrowser();
+        
+        try {
+            item.fn();
+            pushed++;
+        } catch (err) {
+            console.warn(`⚠️ Push failed for ${item.name}:`, err);
+        }
+    }
+    
+    await yieldToBrowser();
+    
+    btn.classList.remove('pushing');
+    btn.classList.add('push-done');
+    btn.innerHTML = `<i class="fas fa-check-circle"></i> <span>Pushed ${pushed} Tool${pushed !== 1 ? 's' : ''} Successfully</span>`;
+    
+    if (typeof showToast === 'function') {
+        showToast(`🚀 All ${pushed} tool(s) pushed (Files & Pages → Dashboard)`, 'success');
+    }
+    
     await new Promise(r => setTimeout(r, 2500));
     btn.classList.remove('push-done');
     btn.innerHTML = originalHTML;
