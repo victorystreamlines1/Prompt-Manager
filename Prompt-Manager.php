@@ -18601,6 +18601,448 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             from { opacity: 1; transform: translateX(0); }
             to { opacity: 0; transform: translateX(50px); }
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           TEMPLATE MANAGER – Popup & Tree UI
+           ═══════════════════════════════════════════════════════════════ */
+        .tm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 99998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .tm-overlay.tm-visible { opacity: 1; pointer-events: all; }
+
+        .tm-popup {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            width: 820px; min-width: 480px;
+            height: 600px; min-height: 380px;
+            background: linear-gradient(170deg, #0f0f20 0%, #13132b 40%, #0d0d1f 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 18px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 40px rgba(99,102,241,0.08);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            resize: both;
+        }
+        .tm-popup.tm-visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: all;
+        }
+        .tm-popup.tm-dragging { transition: none; }
+
+        /* ── Title bar ── */
+        .tm-titlebar {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.7rem 1rem;
+            background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(99,102,241,0.04) 100%);
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+            cursor: grab;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .tm-titlebar:active { cursor: grabbing; }
+        .tm-titlebar-icon {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.15));
+            color: #a5b4fc;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .tm-titlebar-text {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            letter-spacing: 0.2px;
+        }
+        .tm-titlebar-sub {
+            font-size: 0.65rem;
+            font-weight: 400;
+            color: rgba(148,163,184,0.7);
+            margin-left: 0.4rem;
+        }
+        .tm-titlebar-actions { display: flex; gap: 0.35rem; }
+        .tm-titlebar-btn {
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.04);
+            color: rgba(148,163,184,0.8);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tm-titlebar-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            border-color: rgba(255,255,255,0.15);
+        }
+        .tm-titlebar-btn.tm-close-btn:hover {
+            background: rgba(239,68,68,0.2);
+            border-color: rgba(239,68,68,0.3);
+            color: #f87171;
+        }
+
+        /* ── Toolbar ── */
+        .tm-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(10,10,25,0.5);
+            border-bottom: 1px solid rgba(99,102,241,0.08);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .tm-search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 160px;
+        }
+        .tm-search-wrap i {
+            position: absolute;
+            left: 10px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            color: rgba(148,163,184,0.5);
+            pointer-events: none;
+        }
+        .tm-search {
+            width: 100%;
+            padding: 0.4rem 0.6rem 0.4rem 1.8rem;
+            background: rgba(15,15,35,0.8);
+            border: 1px solid rgba(99,102,241,0.12);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.72rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .tm-search:focus {
+            border-color: rgba(99,102,241,0.35);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+        }
+        .tm-search::placeholder { color: rgba(148,163,184,0.4); }
+        .tm-toolbar-btn {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 7px;
+            background: rgba(99,102,241,0.06);
+            color: rgba(165,180,252,0.8);
+            font-size: 0.65rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 0.3rem;
+        }
+        .tm-toolbar-btn:hover {
+            background: rgba(99,102,241,0.15);
+            border-color: rgba(99,102,241,0.3);
+            color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+        .tm-toolbar-btn.tm-add-btn {
+            background: rgba(16,185,129,0.08);
+            border-color: rgba(16,185,129,0.2);
+            color: rgba(52,211,153,0.85);
+        }
+        .tm-toolbar-btn.tm-add-btn:hover {
+            background: rgba(16,185,129,0.18);
+            border-color: rgba(16,185,129,0.35);
+            color: #6ee7b7;
+        }
+
+        /* ── Stats bar ── */
+        .tm-stats {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.3rem 1rem;
+            background: rgba(10,10,25,0.35);
+            border-bottom: 1px solid rgba(99,102,241,0.06);
+            font-size: 0.62rem;
+            color: rgba(148,163,184,0.6);
+            flex-shrink: 0;
+        }
+        .tm-stat { display: flex; align-items: center; gap: 0.25rem; }
+        .tm-stat i { font-size: 0.6rem; }
+        .tm-stat-val { font-weight: 600; color: rgba(165,180,252,0.8); }
+        .tm-breadcrumb {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 0.3rem;
+            font-size: 0.6rem;
+            color: rgba(148,163,184,0.5);
+        }
+        .tm-breadcrumb span { cursor: pointer; transition: color 0.15s; }
+        .tm-breadcrumb span:hover { color: #a5b4fc; }
+        .tm-breadcrumb .tm-bc-sep { color: rgba(99,102,241,0.3); cursor: default; }
+
+        /* ── Tree container ── */
+        .tm-tree-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0.6rem 0.8rem;
+        }
+        .tm-tree-container::-webkit-scrollbar { width: 6px; }
+        .tm-tree-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); }
+        .tm-tree-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+        .tm-tree-container::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+
+        .tm-tree-empty {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 3rem 1rem;
+            color: rgba(148,163,184,0.4);
+            text-align: center;
+        }
+        .tm-tree-empty i { font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.3; }
+        .tm-tree-empty p { font-size: 0.8rem; margin: 0; }
+        .tm-tree-empty small { font-size: 0.65rem; opacity: 0.6; }
+
+        /* ── Tree node ── */
+        .tm-node {
+            margin-left: 0;
+            border-left: 1px solid rgba(99,102,241,0.06);
+            transition: border-color 0.2s;
+        }
+        .tm-node:hover > .tm-node-row { background: rgba(99,102,241,0.04); }
+        .tm-node.tm-highlight > .tm-node-row { background: rgba(251,191,36,0.08); }
+        .tm-node-children { margin-left: 1.2rem; }
+        .tm-node-children.tm-collapsed { display: none; }
+
+        .tm-node-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 8px;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .tm-node-row:hover { background: rgba(99,102,241,0.06); }
+
+        .tm-node-toggle {
+            width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; background: none;
+            color: rgba(148,163,184,0.5);
+            font-size: 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            border-radius: 4px;
+            margin-top: 1px;
+        }
+        .tm-node-toggle:hover { background: rgba(99,102,241,0.1); color: #a5b4fc; }
+        .tm-node-toggle.tm-expanded i { transform: rotate(90deg); }
+        .tm-node-toggle.tm-leaf { visibility: hidden; }
+
+        .tm-node-icon {
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .tm-node-icon.tm-folder {
+            background: rgba(251,191,36,0.12);
+            color: #fbbf24;
+        }
+        .tm-node-icon.tm-file { background: rgba(99,102,241,0.1); color: #818cf8; }
+        .tm-node-icon.tm-file-php { background: rgba(99,102,241,0.12); color: #818cf8; }
+        .tm-node-icon.tm-file-js { background: rgba(234,179,8,0.12); color: #facc15; }
+        .tm-node-icon.tm-file-css { background: rgba(56,189,248,0.12); color: #38bdf8; }
+        .tm-node-icon.tm-file-html { background: rgba(249,115,22,0.12); color: #f97316; }
+        .tm-node-icon.tm-file-img { background: rgba(168,85,247,0.12); color: #a855f7; }
+        .tm-node-icon.tm-file-json { background: rgba(16,185,129,0.12); color: #10b981; }
+        .tm-node-icon.tm-file-md { background: rgba(148,163,184,0.12); color: #94a3b8; }
+
+        .tm-node-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+        .tm-node-name-row {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .tm-node-name {
+            padding: 0.15rem 0.4rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 60px;
+        }
+        .tm-node-name:hover { border-color: rgba(99,102,241,0.15); background: rgba(15,15,35,0.5); }
+        .tm-node-name:focus {
+            border-color: rgba(99,102,241,0.35);
+            background: rgba(15,15,35,0.8);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.08);
+        }
+        .tm-node-name.tm-folder-name { color: #fbbf24; font-weight: 600; }
+
+        .tm-node-desc {
+            width: 100%;
+            padding: 0.25rem 0.4rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: rgba(148,163,184,0.75);
+            font-size: 0.65rem;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            min-height: 22px;
+            max-height: 80px;
+            overflow-y: auto;
+            transition: all 0.2s;
+            line-height: 1.35;
+        }
+        .tm-node-desc:hover { border-color: rgba(99,102,241,0.12); background: rgba(15,15,35,0.4); }
+        .tm-node-desc:focus {
+            border-color: rgba(99,102,241,0.25);
+            background: rgba(15,15,35,0.7);
+            min-height: 40px;
+        }
+        .tm-node-desc::placeholder { color: rgba(148,163,184,0.3); font-style: italic; }
+
+        .tm-node-actions {
+            display: flex;
+            gap: 0.2rem;
+            opacity: 0;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .tm-node-row:hover .tm-node-actions { opacity: 1; }
+        .tm-node-action {
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; border-radius: 5px;
+            background: transparent;
+            color: rgba(148,163,184,0.5);
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tm-node-action:hover { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+        .tm-node-action.tm-del:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+        .tm-node-action.tm-add-child:hover { background: rgba(16,185,129,0.15); color: #34d399; }
+
+        /* ── Footer ── */
+        .tm-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.55rem 1rem;
+            background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(99,102,241,0.02) 100%);
+            border-top: 1px solid rgba(99,102,241,0.12);
+            flex-shrink: 0;
+        }
+        .tm-footer-info {
+            font-size: 0.62rem;
+            color: rgba(148,163,184,0.5);
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .tm-footer-info .tm-modified {
+            color: rgba(251,191,36,0.7);
+            font-weight: 500;
+        }
+        .tm-footer-actions { display: flex; gap: 0.4rem; }
+        .tm-footer-btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .tm-footer-btn.tm-cancel {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            color: rgba(148,163,184,0.8);
+        }
+        .tm-footer-btn.tm-cancel:hover {
+            background: rgba(255,255,255,0.1);
+            color: #e2e8f0;
+        }
+        .tm-footer-btn.tm-save {
+            background: linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.2) 100%);
+            border-color: rgba(99,102,241,0.35);
+            color: #c7d2fe;
+            box-shadow: 0 2px 10px rgba(99,102,241,0.15);
+        }
+        .tm-footer-btn.tm-save:hover {
+            background: linear-gradient(135deg, rgba(99,102,241,0.35) 0%, rgba(139,92,246,0.3) 100%);
+            border-color: rgba(99,102,241,0.5);
+            color: #e0e7ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(99,102,241,0.25);
+        }
+
+        /* ── Template Manager button in dynamic items ── */
+        .dynamic-item-btn.tm-btn {
+            background: rgba(139,92,246,0.1);
+            border-color: rgba(139,92,246,0.2);
+            color: #a78bfa;
+        }
+        .dynamic-item-btn.tm-btn:hover {
+            background: rgba(139,92,246,0.2);
+            border-color: rgba(139,92,246,0.35);
+            color: #c4b5fd;
+            transform: scale(1.08);
+            box-shadow: 0 0 10px rgba(139,92,246,0.2);
+        }
+        .dynamic-item-btn.tm-btn.tm-disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            cursor: default;
+        }
+        .dynamic-item-btn.tm-btn.tm-active {
+            background: rgba(139,92,246,0.18);
+            border-color: rgba(139,92,246,0.3);
+            box-shadow: 0 0 6px rgba(139,92,246,0.15);
+            animation: tmPulse 2s ease-in-out infinite;
+        }
+        @keyframes tmPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(139,92,246,0.15); }
+            50% { box-shadow: 0 0 12px rgba(139,92,246,0.3); }
+        }
+
+        @keyframes tmFadeIn {
+            from { opacity: 0; transform: translate(-50%,-50%) scale(0.92); }
+            to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -24268,6 +24710,16 @@ function setLanguage(langCode) {
             if (item) {
                 item[field] = value;
                 saveDynamicItems();
+                // Refresh TM button state when prompt changes
+                if (field === 'prompt') {
+                    const btn = document.getElementById('tmBtn_' + id);
+                    if (btn) {
+                        const has = tmDetectHierarchy(value);
+                        btn.classList.toggle('tm-active', has);
+                        btn.classList.toggle('tm-disabled', !has);
+                        btn.title = has ? 'Open Template Manager' : 'No file hierarchy detected';
+                    }
+                }
             }
         }
         
@@ -24346,6 +24798,13 @@ function setLanguage(langCode) {
                            onchange="updateDynamicItem('${type}', '${item.id}', 'name', this.value)"
                            oninput="updateDynamicItem('${type}', '${item.id}', 'name', this.value)">
                     <div class="dynamic-item-actions">
+                        <button type="button"
+                                class="dynamic-item-btn tm-btn ${tmDetectHierarchy(item.prompt) ? 'tm-active' : 'tm-disabled'}"
+                                id="tmBtn_${item.id}"
+                                onclick="tmOpen('${type}', '${item.id}')"
+                                title="${tmDetectHierarchy(item.prompt) ? 'Open Template Manager' : 'No file hierarchy detected'}">
+                            <i class="fas fa-microscope"></i>
+                        </button>
                         <input type="file" 
                                class="dynamic-item-file-input" 
                                id="file_${item.id}" 
@@ -24537,6 +24996,682 @@ function setLanguage(langCode) {
                 });
             });
         })();
+
+        // ════════════════════════════════════════════════════════════════
+        // TEMPLATE MANAGER – Full system
+        // ════════════════════════════════════════════════════════════════
+        
+        // ── State ──
+        let tmCurrentType = null;
+        let tmCurrentItemId = null;
+        let tmTreeData = [];          // Array of root nodes
+        let tmModified = false;
+        let tmIdCounter = 0;
+
+        // ── Detection: does text contain file/folder hierarchy? ──
+        function tmDetectHierarchy(text) {
+            if (!text || typeof text !== 'string') return false;
+            const t = text.trim();
+            if (t.length < 10) return false;
+            
+            // Tree connector characters (├── └── │)
+            const hasTreeConnectors = /[├└│]──|[├└│]\s/.test(t);
+            // Folder emoji patterns
+            const hasFolderEmoji = /📁|📂/.test(t);
+            // File emojis in tree context
+            const hasFileEmoji = /📄|📜|🐘|🎨|🌐|📋|📝|🖼|⚙|📦|🐍|🗃/.test(t);
+            // Path-like patterns (folder/file)
+            const hasPathPattern = /\w+\/(\w+\.\w+|\w+\/)/.test(t);
+            // Indentation-based hierarchy (2+ lines with leading spaces)
+            const lines = t.split('\n').filter(l => l.trim());
+            const indentedLines = lines.filter(l => /^\s{2,}/.test(l) || /^[│├└\s]{2,}/.test(l));
+            const hasIndentHierarchy = indentedLines.length >= 2;
+            // Bullet-list file items (  • filename.ext)
+            const hasBulletFiles = (t.match(/•\s+\S+\.\w+/g) || []).length >= 2;
+            
+            // Score-based — need at least 2 positive signals
+            let score = 0;
+            if (hasTreeConnectors) score += 2;
+            if (hasFolderEmoji)    score += 2;
+            if (hasFileEmoji)      score += 1;
+            if (hasPathPattern)    score += 1;
+            if (hasIndentHierarchy) score += 1;
+            if (hasBulletFiles)    score += 1;
+            
+            return score >= 3;
+        }
+
+        // ── Parse ASCII tree text into JS node objects ──
+        function tmParseTree(text) {
+            if (!text) return [];
+            const lines = text.split('\n');
+            const roots = [];
+            const stack = []; // { depth, node }
+            tmIdCounter = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const raw = lines[i];
+                if (!raw.trim()) continue;
+
+                // Detect if this is a tree-structured line
+                const treeMatch = raw.match(/^([\s│]*)[├└]──\s*(.*)/);
+                // Or a root folder line (📁 name/)
+                const rootMatch = raw.match(/^(📁|📂)\s*(.+)/);
+                // Or a bullet item (  • filename)
+                const bulletMatch = raw.match(/^\s*•\s+(.+)/);
+                // Or a header/info line
+                const headerMatch = raw.match(/^(📂\s*Folder:|🐘|🌐|🎨|📜|🖼|📄)\s*(.*)/);
+
+                let node = null;
+                let depth = 0;
+
+                if (treeMatch) {
+                    // Calculate depth from prefix length
+                    const prefix = treeMatch[1];
+                    depth = Math.floor(prefix.replace(/[│]/g, ' ').length / 4) + 1;
+                    const content = treeMatch[2].trim();
+                    node = tmParseNodeContent(content);
+                } else if (rootMatch && i <= 5) {
+                    // Root folder — first few lines
+                    const name = rootMatch[2].replace(/\/\s*$/, '').trim();
+                    node = { id: 'tm_' + (++tmIdCounter), name: name, type: 'folder', desc: '', children: [] };
+                    depth = 0;
+                } else if (bulletMatch) {
+                    // Bullet item — treat as file at depth 1
+                    const name = bulletMatch[1].trim();
+                    if (name.includes('.') || name.match(/^\S+$/)) {
+                        node = { id: 'tm_' + (++tmIdCounter), name: name, type: 'file', desc: '', children: [] };
+                        depth = stack.length > 0 ? stack[stack.length - 1].depth + 1 : 1;
+                    }
+                } else if (headerMatch && roots.length === 0) {
+                    // Header line like "📂 Folder: myproject/" — becomes root
+                    let name = headerMatch[2].replace(/\/\s*$/, '').trim();
+                    // Remove "Folder: " prefix
+                    name = name.replace(/^Folder:\s*/i, '');
+                    node = { id: 'tm_' + (++tmIdCounter), name: name, type: 'folder', desc: '', children: [] };
+                    depth = 0;
+                }
+
+                // Skip metadata lines (• N file(s), etc.)
+                if (!node && raw.match(/^\s*•\s+\d+\s+(file|subfolder|folder)/)) continue;
+                // Skip divider/header lines
+                if (!node && raw.match(/^[━─═•\s]*$/) && raw.trim().length > 0) continue;
+                if (!node) {
+                    // Try to attach as description to the last node in stack
+                    if (stack.length > 0) {
+                        const last = stack[stack.length - 1].node;
+                        const trimmed = raw.trim();
+                        if (trimmed && !trimmed.match(/^(📂\s*Folder:|Total:|NOTE:|\*\*NOTE)/)) {
+                            if (last.desc) last.desc += '\n' + trimmed;
+                            else last.desc = trimmed;
+                        }
+                    }
+                    continue;
+                }
+
+                // Place node in hierarchy
+                // Pop stack to find parent
+                while (stack.length > 0 && stack[stack.length - 1].depth >= depth) {
+                    stack.pop();
+                }
+
+                if (stack.length === 0) {
+                    roots.push(node);
+                } else {
+                    stack[stack.length - 1].node.children.push(node);
+                }
+                stack.push({ depth, node });
+            }
+
+            // If we ended up with no roots but have some content, create a virtual root
+            if (roots.length === 0 && text.trim().length > 0) {
+                roots.push({
+                    id: 'tm_' + (++tmIdCounter),
+                    name: 'Root',
+                    type: 'folder',
+                    desc: text.trim(),
+                    children: []
+                });
+            }
+
+            return roots;
+        }
+
+        // Parse a single node's content (after ├── or └──)
+        function tmParseNodeContent(content) {
+            // Remove leading emoji
+            const emojiMatch = content.match(/^(📁|📂|📄|📜|🐘|🎨|🌐|📋|📝|🖼️?|⚙️?|📦|🐍|🗃️?)\s*(.*)/);
+            let name, isFolder = false;
+            if (emojiMatch) {
+                const emoji = emojiMatch[1];
+                name = emojiMatch[2].trim();
+                isFolder = (emoji === '📁' || emoji === '📂');
+            } else {
+                name = content.trim();
+            }
+            // If name ends with /, it's a folder
+            if (name.endsWith('/')) {
+                isFolder = true;
+                name = name.slice(0, -1);
+            }
+            // If no extension and not already flagged as file, treat as folder
+            if (!isFolder && !name.includes('.')) {
+                isFolder = true;
+            }
+            return {
+                id: 'tm_' + (++tmIdCounter),
+                name: name,
+                type: isFolder ? 'folder' : 'file',
+                desc: '',
+                children: []
+            };
+        }
+
+        // ── Serialize tree back to ASCII text ──
+        function tmSerializeTree(nodes, itemName) {
+            if (!nodes || nodes.length === 0) return '';
+            let lines = [];
+
+            function renderNodes(items, prefix) {
+                if (!items) return;
+                const sorted = [...items].sort((a, b) => {
+                    const af = a.type === 'folder', bf = b.type === 'folder';
+                    if (af !== bf) return af ? -1 : 1;
+                    return a.name.localeCompare(b.name);
+                });
+                for (let i = 0; i < sorted.length; i++) {
+                    const n = sorted[i];
+                    const isLast = i === sorted.length - 1;
+                    const connector = isLast ? '└── ' : '├── ';
+                    const childPfx = isLast ? '    ' : '│   ';
+                    const icon = n.type === 'folder' ? '📂' : tmFileIcon(n.name);
+                    const slash = n.type === 'folder' ? '/' : '';
+                    lines.push(prefix + connector + icon + ' ' + n.name + slash);
+                    if (n.desc && n.desc.trim()) {
+                        n.desc.trim().split('\n').forEach(d => {
+                            lines.push(prefix + childPfx + '   💬 ' + d);
+                        });
+                    }
+                    if (n.type === 'folder' && n.children && n.children.length > 0) {
+                        renderNodes(n.children, prefix + childPfx);
+                    }
+                }
+            }
+
+            // If there's a single root folder, use it as the root
+            if (nodes.length === 1 && nodes[0].type === 'folder') {
+                const root = nodes[0];
+                lines.push('📁 ' + root.name + '/');
+                if (root.desc && root.desc.trim()) {
+                    root.desc.trim().split('\n').forEach(d => {
+                        lines.push('   💬 ' + d);
+                    });
+                }
+                renderNodes(root.children, '');
+            } else {
+                // Multiple roots
+                nodes.forEach(root => {
+                    if (root.type === 'folder') {
+                        lines.push('📁 ' + root.name + '/');
+                        if (root.desc) root.desc.trim().split('\n').forEach(d => lines.push('   💬 ' + d));
+                        renderNodes(root.children, '');
+                    } else {
+                        lines.push(tmFileIcon(root.name) + ' ' + root.name);
+                        if (root.desc) root.desc.trim().split('\n').forEach(d => lines.push('   💬 ' + d));
+                    }
+                    lines.push('');
+                });
+            }
+
+            return lines.join('\n');
+        }
+
+        // File icon helper
+        function tmFileIcon(name) {
+            const ext = (name || '').split('.').pop().toLowerCase();
+            if (['php'].includes(ext)) return '🐘';
+            if (['js','ts','jsx','tsx'].includes(ext)) return '📜';
+            if (['css','scss','sass','less'].includes(ext)) return '🎨';
+            if (['html','htm'].includes(ext)) return '🌐';
+            if (['json','xml','yaml','yml'].includes(ext)) return '📋';
+            if (['md','txt','log'].includes(ext)) return '📝';
+            if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) return '🖼️';
+            if (['py'].includes(ext)) return '🐍';
+            if (['sql','db','sqlite'].includes(ext)) return '🗃️';
+            if (['zip','rar','tar','gz'].includes(ext)) return '📦';
+            if (['env','gitignore','htaccess'].includes(ext) || (name || '').startsWith('.')) return '⚙️';
+            return '📄';
+        }
+
+        // ── Node icon CSS class helper ──
+        function tmIconClass(node) {
+            if (node.type === 'folder') return 'tm-folder';
+            const ext = (node.name || '').split('.').pop().toLowerCase();
+            if (['php'].includes(ext)) return 'tm-file tm-file-php';
+            if (['js','ts','jsx','tsx'].includes(ext)) return 'tm-file tm-file-js';
+            if (['css','scss','sass','less'].includes(ext)) return 'tm-file tm-file-css';
+            if (['html','htm'].includes(ext)) return 'tm-file tm-file-html';
+            if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) return 'tm-file tm-file-img';
+            if (['json','xml','yaml','yml'].includes(ext)) return 'tm-file tm-file-json';
+            if (['md','txt','log'].includes(ext)) return 'tm-file tm-file-md';
+            return 'tm-file';
+        }
+
+        // FontAwesome icon for node
+        function tmFaIcon(node) {
+            if (node.type === 'folder') return 'fa-folder';
+            const ext = (node.name || '').split('.').pop().toLowerCase();
+            if (['php'].includes(ext)) return 'fa-code';
+            if (['js','ts','jsx','tsx'].includes(ext)) return 'fa-file-code';
+            if (['css','scss','sass','less'].includes(ext)) return 'fa-palette';
+            if (['html','htm'].includes(ext)) return 'fa-globe';
+            if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) return 'fa-image';
+            if (['json','xml','yaml','yml'].includes(ext)) return 'fa-database';
+            if (['md','txt','log'].includes(ext)) return 'fa-file-alt';
+            return 'fa-file';
+        }
+
+        // ── Open Template Manager ──
+        function tmOpen(type, itemId) {
+            const item = dynamicItems[type]?.find(it => it.id === itemId);
+            if (!item) return;
+            if (!tmDetectHierarchy(item.prompt)) {
+                if (typeof showToast === 'function') showToast('⚠️ No file/folder hierarchy detected in this item', 'warning');
+                return;
+            }
+
+            tmCurrentType = type;
+            tmCurrentItemId = itemId;
+            tmModified = false;
+            tmTreeData = tmParseTree(item.prompt);
+
+            // Ensure popup shell exists
+            tmEnsurePopup();
+
+            // Update title
+            const titleEl = document.getElementById('tmTitleText');
+            if (titleEl) {
+                titleEl.innerHTML = `Template Manager <span class="tm-titlebar-sub">${escapeHtml(item.name || type)}</span>`;
+            }
+
+            // Show
+            const overlay = document.getElementById('tmOverlay');
+            const popup = document.getElementById('tmPopup');
+            if (overlay) { overlay.classList.add('tm-visible'); }
+            if (popup) { popup.classList.add('tm-visible'); }
+
+            // Render
+            tmRenderTree();
+            tmUpdateStats();
+            tmUpdateModifiedState();
+
+            // Clear search
+            const searchEl = document.getElementById('tmSearch');
+            if (searchEl) searchEl.value = '';
+        }
+
+        // ── Close ──
+        function tmClose() {
+            const overlay = document.getElementById('tmOverlay');
+            const popup = document.getElementById('tmPopup');
+            if (overlay) overlay.classList.remove('tm-visible');
+            if (popup) popup.classList.remove('tm-visible');
+            tmCurrentType = null;
+            tmCurrentItemId = null;
+            tmTreeData = [];
+            tmModified = false;
+        }
+
+        // ── Ensure popup HTML shell exists ──
+        function tmEnsurePopup() {
+            if (document.getElementById('tmPopup')) return;
+            const shell = document.createElement('div');
+            shell.innerHTML = `
+                <div class="tm-overlay" id="tmOverlay" onclick="tmClose()"></div>
+                <div class="tm-popup" id="tmPopup">
+                    <div class="tm-titlebar" id="tmTitlebar">
+                        <div class="tm-titlebar-icon"><i class="fas fa-microscope"></i></div>
+                        <div class="tm-titlebar-text" id="tmTitleText">Template Manager</div>
+                        <div class="tm-titlebar-actions">
+                            <button class="tm-titlebar-btn" onclick="tmExpandAll()" title="Expand All"><i class="fas fa-expand-alt"></i></button>
+                            <button class="tm-titlebar-btn" onclick="tmCollapseAll()" title="Collapse All"><i class="fas fa-compress-alt"></i></button>
+                            <button class="tm-titlebar-btn tm-close-btn" onclick="tmClose()" title="Close"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div class="tm-toolbar">
+                        <div class="tm-search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="tm-search" id="tmSearch" placeholder="Search nodes..." oninput="tmFilterTree(this.value)">
+                        </div>
+                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('folder')" title="Add Folder"><i class="fas fa-folder-plus"></i> Folder</button>
+                        <button class="tm-toolbar-btn tm-add-btn" onclick="tmAddRootNode('file')" title="Add File"><i class="fas fa-file-medical"></i> File</button>
+                    </div>
+                    <div class="tm-stats" id="tmStats">
+                        <div class="tm-stat"><i class="fas fa-folder"></i> <span class="tm-stat-val" id="tmStatFolders">0</span> folders</div>
+                        <div class="tm-stat"><i class="fas fa-file"></i> <span class="tm-stat-val" id="tmStatFiles">0</span> files</div>
+                        <div class="tm-stat"><i class="fas fa-layer-group"></i> Depth: <span class="tm-stat-val" id="tmStatDepth">0</span></div>
+                        <div class="tm-breadcrumb" id="tmBreadcrumb"><span>Root</span></div>
+                    </div>
+                    <div class="tm-tree-container" id="tmTreeContainer"></div>
+                    <div class="tm-footer">
+                        <div class="tm-footer-info">
+                            <span id="tmFooterStatus">Ready</span>
+                            <span class="tm-modified" id="tmModifiedBadge" style="display:none;">● Modified</span>
+                        </div>
+                        <div class="tm-footer-actions">
+                            <button class="tm-footer-btn tm-cancel" onclick="tmClose()">Cancel</button>
+                            <button class="tm-footer-btn tm-save" onclick="tmSave()"><i class="fas fa-save"></i> Save</button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(shell);
+            tmInitDrag();
+        }
+
+        // ── Render tree into container ──
+        function tmRenderTree(filterTerm) {
+            const container = document.getElementById('tmTreeContainer');
+            if (!container) return;
+
+            if (!tmTreeData || tmTreeData.length === 0) {
+                container.innerHTML = `<div class="tm-tree-empty"><i class="fas fa-tree"></i><p>No hierarchy found</p><small>Add folders or files using the toolbar</small></div>`;
+                return;
+            }
+
+            const filter = (filterTerm || '').toLowerCase().trim();
+            container.innerHTML = '';
+            tmTreeData.forEach(node => {
+                const el = tmRenderNode(node, filter, 0);
+                if (el) container.appendChild(el);
+            });
+        }
+
+        // Render a single node + children recursively
+        function tmRenderNode(node, filter, depth) {
+            // Filter check
+            const nameMatch = !filter || node.name.toLowerCase().includes(filter);
+            const descMatch = !filter || (node.desc || '').toLowerCase().includes(filter);
+            let childrenMatch = false;
+
+            // Check if any children match
+            const childEls = [];
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    const el = tmRenderNode(child, filter, depth + 1);
+                    if (el) { childEls.push(el); childrenMatch = true; }
+                });
+            }
+
+            // If filter active and nothing matches, skip
+            if (filter && !nameMatch && !descMatch && !childrenMatch) return null;
+
+            const div = document.createElement('div');
+            div.className = 'tm-node' + (filter && nameMatch ? ' tm-highlight' : '');
+            div.dataset.id = node.id;
+
+            const hasChildren = node.type === 'folder';
+            const isExpanded = node._expanded !== false;
+
+            const row = document.createElement('div');
+            row.className = 'tm-node-row';
+            row.innerHTML = `
+                <button class="tm-node-toggle ${hasChildren ? (isExpanded ? 'tm-expanded' : '') : 'tm-leaf'}" 
+                        onclick="tmToggleNode('${node.id}')" title="${hasChildren ? 'Toggle expand' : ''}">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="tm-node-icon ${tmIconClass(node)}"><i class="fas ${tmFaIcon(node)}"></i></div>
+                <div class="tm-node-info">
+                    <div class="tm-node-name-row">
+                        <input type="text" class="tm-node-name ${node.type === 'folder' ? 'tm-folder-name' : ''}" 
+                               value="${escapeHtml(node.name)}" 
+                               onchange="tmUpdateNode('${node.id}','name',this.value)"
+                               oninput="tmUpdateNode('${node.id}','name',this.value)"
+                               placeholder="Node name...">
+                    </div>
+                    <textarea class="tm-node-desc" placeholder="Add description..." 
+                              onchange="tmUpdateNode('${node.id}','desc',this.value)"
+                              oninput="tmUpdateNode('${node.id}','desc',this.value)">${escapeHtml(node.desc || '')}</textarea>
+                </div>
+                <div class="tm-node-actions">
+                    ${hasChildren ? `<button class="tm-node-action tm-add-child" onclick="tmAddChild('${node.id}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>
+                    <button class="tm-node-action tm-add-child" onclick="tmAddChild('${node.id}','file')" title="Add file"><i class="fas fa-file-medical"></i></button>` : ''}
+                    <button class="tm-node-action tm-del" onclick="tmDeleteNode('${node.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                </div>`;
+            div.appendChild(row);
+
+            // Children container
+            if (hasChildren) {
+                const childrenDiv = document.createElement('div');
+                childrenDiv.className = 'tm-node-children' + (isExpanded ? '' : ' tm-collapsed');
+                childEls.forEach(c => childrenDiv.appendChild(c));
+                div.appendChild(childrenDiv);
+            }
+
+            return div;
+        }
+
+        // ── Node operations ──
+        function tmFindNode(id, nodes) {
+            nodes = nodes || tmTreeData;
+            for (const n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) {
+                    const found = tmFindNode(id, n.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function tmFindParent(id, nodes, parent) {
+            nodes = nodes || tmTreeData;
+            for (const n of nodes) {
+                if (n.id === id) return { parent, siblings: nodes };
+                if (n.children) {
+                    const found = tmFindParent(id, n.children, n);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function tmToggleNode(id) {
+            const node = tmFindNode(id);
+            if (!node) return;
+            node._expanded = node._expanded === false ? true : false;
+            // Toggle in DOM without full re-render
+            const nodeEl = document.querySelector(`.tm-node[data-id="${id}"]`);
+            if (nodeEl) {
+                const toggle = nodeEl.querySelector(':scope > .tm-node-row .tm-node-toggle');
+                const children = nodeEl.querySelector(':scope > .tm-node-children');
+                if (toggle) toggle.classList.toggle('tm-expanded', node._expanded);
+                if (children) children.classList.toggle('tm-collapsed', !node._expanded);
+            }
+        }
+
+        function tmUpdateNode(id, field, value) {
+            const node = tmFindNode(id);
+            if (!node) return;
+            node[field] = value;
+            tmModified = true;
+            tmUpdateModifiedState();
+        }
+
+        function tmDeleteNode(id) {
+            const info = tmFindParent(id);
+            if (!info) return;
+            const idx = info.siblings.findIndex(n => n.id === id);
+            if (idx !== -1) {
+                info.siblings.splice(idx, 1);
+                tmModified = true;
+                tmRenderTree(document.getElementById('tmSearch')?.value);
+                tmUpdateStats();
+                tmUpdateModifiedState();
+            }
+        }
+
+        function tmAddChild(parentId, type) {
+            const parent = tmFindNode(parentId);
+            if (!parent) return;
+            if (!parent.children) parent.children = [];
+            const newNode = {
+                id: 'tm_' + (++tmIdCounter),
+                name: type === 'folder' ? 'new-folder' : 'new-file.txt',
+                type: type,
+                desc: '',
+                children: []
+            };
+            parent.children.push(newNode);
+            parent._expanded = true;
+            tmModified = true;
+            tmRenderTree(document.getElementById('tmSearch')?.value);
+            tmUpdateStats();
+            tmUpdateModifiedState();
+            // Focus the new node name
+            setTimeout(() => {
+                const el = document.querySelector(`.tm-node[data-id="${newNode.id}"] .tm-node-name`);
+                if (el) { el.focus(); el.select(); }
+            }, 50);
+        }
+
+        function tmAddRootNode(type) {
+            const newNode = {
+                id: 'tm_' + (++tmIdCounter),
+                name: type === 'folder' ? 'new-folder' : 'new-file.txt',
+                type: type,
+                desc: '',
+                children: []
+            };
+            tmTreeData.push(newNode);
+            tmModified = true;
+            tmRenderTree(document.getElementById('tmSearch')?.value);
+            tmUpdateStats();
+            tmUpdateModifiedState();
+            setTimeout(() => {
+                const el = document.querySelector(`.tm-node[data-id="${newNode.id}"] .tm-node-name`);
+                if (el) { el.focus(); el.select(); }
+            }, 50);
+        }
+
+        // ── Expand / Collapse all ──
+        function tmSetExpandAll(nodes, val) {
+            if (!nodes) return;
+            nodes.forEach(n => {
+                if (n.type === 'folder') {
+                    n._expanded = val;
+                    tmSetExpandAll(n.children, val);
+                }
+            });
+        }
+        function tmExpandAll() {
+            tmSetExpandAll(tmTreeData, true);
+            tmRenderTree(document.getElementById('tmSearch')?.value);
+        }
+        function tmCollapseAll() {
+            tmSetExpandAll(tmTreeData, false);
+            tmRenderTree(document.getElementById('tmSearch')?.value);
+        }
+
+        // ── Search/filter ──
+        function tmFilterTree(term) {
+            tmRenderTree(term);
+        }
+
+        // ── Stats ──
+        function tmCountNodes(nodes, stats) {
+            stats = stats || { folders: 0, files: 0, maxDepth: 0 };
+            if (!nodes) return stats;
+            nodes.forEach(n => {
+                if (n.type === 'folder') stats.folders++;
+                else stats.files++;
+                if (n.children && n.children.length > 0) {
+                    const sub = tmCountNodes(n.children, { folders: stats.folders, files: stats.files, maxDepth: stats.maxDepth + 1 });
+                    stats.folders = sub.folders;
+                    stats.files = sub.files;
+                    if (sub.maxDepth > stats.maxDepth) stats.maxDepth = sub.maxDepth;
+                }
+            });
+            return stats;
+        }
+        function tmUpdateStats() {
+            const s = tmCountNodes(tmTreeData, { folders: 0, files: 0, maxDepth: 0 });
+            const fEl = document.getElementById('tmStatFolders');
+            const fiEl = document.getElementById('tmStatFiles');
+            const dEl = document.getElementById('tmStatDepth');
+            if (fEl) fEl.textContent = s.folders;
+            if (fiEl) fiEl.textContent = s.files;
+            if (dEl) dEl.textContent = s.maxDepth;
+        }
+
+        function tmUpdateModifiedState() {
+            const badge = document.getElementById('tmModifiedBadge');
+            const status = document.getElementById('tmFooterStatus');
+            if (badge) badge.style.display = tmModified ? 'inline' : 'none';
+            if (status) status.textContent = tmModified ? 'Unsaved changes' : 'Ready';
+        }
+
+        // ── Save ──
+        function tmSave() {
+            if (!tmCurrentType || !tmCurrentItemId) return;
+            const item = dynamicItems[tmCurrentType]?.find(it => it.id === tmCurrentItemId);
+            if (!item) return;
+
+            // Serialize tree back to text
+            const newText = tmSerializeTree(tmTreeData, item.name);
+
+            // Update item prompt
+            item.prompt = newText;
+            saveDynamicItems();
+            renderDynamicItems(tmCurrentType);
+
+            tmModified = false;
+            tmUpdateModifiedState();
+
+            if (typeof showToast === 'function') {
+                const s = tmCountNodes(tmTreeData);
+                showToast(`✅ Template saved — ${s.folders} folder(s), ${s.files} file(s)`, 'success');
+            }
+
+            tmClose();
+        }
+
+        // ── Popup dragging ──
+        function tmInitDrag() {
+            const titlebar = document.getElementById('tmTitlebar');
+            const popup = document.getElementById('tmPopup');
+            if (!titlebar || !popup) return;
+
+            let dragging = false, offX = 0, offY = 0;
+
+            titlebar.addEventListener('mousedown', function(e) {
+                // Don't drag on buttons
+                if (e.target.closest('.tm-titlebar-btn') || e.target.closest('.tm-titlebar-actions')) return;
+                dragging = true;
+                popup.classList.add('tm-dragging');
+                const rect = popup.getBoundingClientRect();
+                offX = e.clientX - rect.left;
+                offY = e.clientY - rect.top;
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                const x = e.clientX - offX;
+                const y = e.clientY - offY;
+                popup.style.left = x + 'px';
+                popup.style.top = y + 'px';
+                popup.style.transform = 'none';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (dragging) {
+                    dragging = false;
+                    popup.classList.remove('tm-dragging');
+                    document.body.style.userSelect = '';
+                }
+            });
+        }
         
         // Auto-save on changes
         function initDashboardAutoSave() {
