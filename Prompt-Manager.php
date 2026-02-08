@@ -25567,6 +25567,185 @@ function setLanguage(langCode) {
             tmInitDrag();
         }
 
+        // ── Import Zone (shown when no hierarchy exists) ──
+        let tmImportAddMode = false; // false = replace tree, true = add to existing tree
+
+        function tmShowImportZone() {
+            const container = document.getElementById('tmTreeContainer');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="tm-import-zone">
+                    <div class="tm-import-icon"><i class="fas fa-folder-open"></i></div>
+                    <h3>No File Hierarchy Found</h3>
+                    <p>This item has no folder/file structure yet. Import a folder from your computer or start building manually.</p>
+                    <div class="tm-import-actions">
+                        <button class="tm-import-btn tm-import-primary" onclick="tmTriggerImport(false)">
+                            <i class="fas fa-upload"></i>
+                            <span>Import Folder</span>
+                        </button>
+                        <button class="tm-import-btn-empty" onclick="tmAddRootNode('folder'); tmRenderTree();">
+                            <i class="fas fa-folder-plus"></i>
+                            <span>Start Empty</span>
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        function tmTriggerImport(addMode) {
+            tmImportAddMode = !!addMode;
+            const picker = document.getElementById('tmFolderPicker');
+            if (picker) {
+                picker.value = '';   // reset so same folder can be re-picked
+                picker.click();
+            }
+        }
+
+        function tmHandleFolderPick(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            // Show progress
+            const container = document.getElementById('tmTreeContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="tm-import-progress">
+                        <div class="tm-import-spinner"></div>
+                        <p>Processing ${files.length} file${files.length > 1 ? 's' : ''}...</p>
+                        <small>Building folder hierarchy</small>
+                    </div>`;
+            }
+
+            // Use setTimeout so the UI updates before we process
+            setTimeout(() => {
+                const tree = tmBuildTreeFromFiles(files);
+
+                if (tmImportAddMode && tmTreeData.length > 0) {
+                    // Add mode — merge new tree roots into existing tree
+                    tree.forEach(n => tmTreeData.push(n));
+                } else {
+                    // Replace mode
+                    tmTreeData = tree;
+                }
+
+                // Extract root folder path for the badge
+                if (files.length > 0) {
+                    const firstPath = files[0].webkitRelativePath || files[0].name;
+                    const rootFolder = firstPath.split('/')[0] || firstPath;
+                    tmImportedPath = rootFolder;
+                }
+
+                tmModified = true;
+                tmRenderTree();
+                tmUpdateStats();
+                tmUpdateModifiedState();
+                tmUpdatePathBadge();
+
+                const action = tmImportAddMode ? 'added to' : 'imported into';
+                if (typeof showToast === 'function') {
+                    showToast(`📂 Folder ${action} Template Manager (${files.length} files)`, 'success');
+                }
+            }, 80);
+        }
+
+        // Build a nested tree structure from the FileList (webkitdirectory)
+        function tmBuildTreeFromFiles(fileList) {
+            // Step 1: Build a nested object from relative paths
+            const root = {};  // { [name]: { _files: [], _children: {} } }
+
+            for (let i = 0; i < fileList.length; i++) {
+                const f = fileList[i];
+                const relPath = f.webkitRelativePath || f.name;
+                const parts = relPath.split('/');
+
+                let current = root;
+                for (let p = 0; p < parts.length; p++) {
+                    const part = parts[p];
+                    if (p === parts.length - 1) {
+                        // It's a file
+                        if (!current._files) current._files = [];
+                        current._files.push(part);
+                    } else {
+                        // It's a folder
+                        if (!current._children) current._children = {};
+                        if (!current._children[part]) current._children[part] = {};
+                        current = current._children[part];
+                    }
+                }
+            }
+
+            // Step 2: Convert the nested object into tmTreeData format
+            function convert(obj, folderName) {
+                const node = {
+                    id: 'tm_' + (++tmIdCounter),
+                    name: folderName,
+                    type: 'folder',
+                    desc: '',
+                    children: [],
+                    _expanded: true
+                };
+
+                // Add sub-folders first
+                if (obj._children) {
+                    const sortedDirs = Object.keys(obj._children).sort((a, b) => a.localeCompare(b));
+                    for (const dirName of sortedDirs) {
+                        node.children.push(convert(obj._children[dirName], dirName));
+                    }
+                }
+
+                // Add files
+                if (obj._files) {
+                    const sortedFiles = [...obj._files].sort((a, b) => a.localeCompare(b));
+                    for (const fileName of sortedFiles) {
+                        node.children.push({
+                            id: 'tm_' + (++tmIdCounter),
+                            name: fileName,
+                            type: 'file',
+                            desc: '',
+                            children: []
+                        });
+                    }
+                }
+
+                return node;
+            }
+
+            // The top-level of root._children contains the root folder(s)
+            const results = [];
+            if (root._children) {
+                const topFolders = Object.keys(root._children).sort((a, b) => a.localeCompare(b));
+                for (const folder of topFolders) {
+                    results.push(convert(root._children[folder], folder));
+                }
+            }
+            // Top-level loose files (unlikely with webkitdirectory, but handle anyway)
+            if (root._files) {
+                for (const fileName of root._files) {
+                    results.push({
+                        id: 'tm_' + (++tmIdCounter),
+                        name: fileName,
+                        type: 'file',
+                        desc: '',
+                        children: []
+                    });
+                }
+            }
+
+            return results;
+        }
+
+        function tmUpdatePathBadge() {
+            const badge = document.getElementById('tmFolderPathBadge');
+            const text = document.getElementById('tmFolderPathText');
+            if (!badge || !text) return;
+            if (tmImportedPath) {
+                text.textContent = tmImportedPath;
+                badge.title = 'Imported from: ' + tmImportedPath;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
         // ── Render tree into container ──
         function tmRenderTree(filterTerm) {
             const container = document.getElementById('tmTreeContainer');
