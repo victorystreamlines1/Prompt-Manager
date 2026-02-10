@@ -20857,6 +20857,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                       oninput="ciUpdateCharCount()"></textarea>
                         </div>
                         
+                        <button type="button" onclick="document.getElementById('ciTextarea').value='';ciUpdateCharCount();" title="Clear instructions" style="margin-top:4px;padding:3px 10px;font-size:0.6rem;color:#a78bfa;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);border-radius:5px;cursor:pointer;">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                        
                         <!-- Info & Counter -->
                         <div class="ci-info-row">
                             <span class="ci-info-text">
