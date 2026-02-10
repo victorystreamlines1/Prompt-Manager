@@ -3926,6 +3926,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
             color: #f87171;
             margin-bottom: 0.4rem;
+            flex-wrap: wrap;
+        }
+        
+        .branding-clear-btn {
+            margin-left: auto;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #fbbf24;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.25s ease;
+        }
+        
+        .branding-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.18) 100%);
+            border-color: rgba(251, 191, 36, 0.5);
+            color: #fcd34d;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(251, 191, 36, 0.2);
+        }
+        
+        .branding-clear-btn:active {
+            transform: translateY(0);
         }
         
         .branding-custom-textarea {
@@ -20651,11 +20680,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Custom Instructions (shown when options unchecked) -->
-                        <div class="branding-custom-instructions" id="brandingCustomInstructions" style="display: none;">
+                        <!-- Custom Instructions (always visible) -->
+                        <div class="branding-custom-instructions" id="brandingCustomInstructions">
                             <div class="branding-custom-header">
                                 <i class="fas fa-edit"></i>
                                 <span>Custom Instructions</span>
+                                <button type="button" class="branding-clear-btn" onclick="brandingClearAndReset()" title="Clear logo, check all options & clear instructions">
+                                    <i class="fas fa-eraser"></i> Clear & Reset
+                                </button>
                             </div>
                             <textarea id="brandingCustomPrompt" class="branding-custom-textarea" placeholder="Specify custom instructions for unchecked options...&#10;&#10;Example:&#10;• Apply logo only to: index.html, about.html&#10;• Set favicon for homepage only&#10;• Use logo in footer instead of header"></textarea>
                         </div>
@@ -34833,21 +34865,7 @@ function toggleBrandingOptionItem(element) {
     }
     
     updateBrandingBadge();
-    updateCustomInstructionsVisibility();
     saveBrandingState();
-}
-
-// Update Custom Instructions Visibility
-function updateCustomInstructionsVisibility() {
-    const favicon = document.getElementById('brandingFavicon')?.checked;
-    const logoPages = document.getElementById('brandingLogoPages')?.checked;
-    const titlePages = document.getElementById('brandingTitlePages')?.checked;
-    
-    const customSection = document.getElementById('brandingCustomInstructions');
-    if (customSection) {
-        // Show if any option is unchecked
-        customSection.style.display = (!favicon || !logoPages || !titlePages) ? 'block' : 'none';
-    }
 }
 
 // Update Badge Count
@@ -34937,7 +34955,6 @@ function loadBrandingState() {
         }
         
         updateBrandingBadge();
-        updateCustomInstructionsVisibility();
         
     } catch (e) {
         console.error('Error loading branding state:', e);
@@ -35045,10 +35062,6 @@ function resetBranding(skipToast = false) {
     const customPrompt = document.getElementById('brandingCustomPrompt');
     if (customPrompt) customPrompt.value = '';
     
-    // Hide custom instructions section
-    const customSection = document.getElementById('brandingCustomInstructions');
-    if (customSection) customSection.style.display = 'none';
-    
     // Update badge
     updateBrandingBadge();
     
@@ -35059,6 +35072,12 @@ function resetBranding(skipToast = false) {
         showToast('🔄 Branding reset to default', 'info');
     }
     console.log('✅ Branding reset to default');
+}
+
+// Clear & Reset Branding (called from the Clear & Reset button inside Custom Instructions)
+function brandingClearAndReset() {
+    resetBranding(true);
+    showToast('🧹 Branding cleared & reset to default', 'info');
 }
 
 // Initialize Branding on DOM ready
@@ -35730,8 +35749,7 @@ async function deResetAll() {
     if (brandingLogoPreview) brandingLogoPreview.style.display = 'none';
     const brandingUploadPrompt = document.getElementById('brandingUploadPrompt');
     if (brandingUploadPrompt) brandingUploadPrompt.style.display = 'block';
-    const brandingCustomInstructions = document.getElementById('brandingCustomInstructions');
-    if (brandingCustomInstructions) brandingCustomInstructions.style.display = 'none';
+    // brandingCustomInstructions is always visible now - no need to hide
     const brandingTitleText = document.getElementById('brandingTitleText');
     if (brandingTitleText) brandingTitleText.textContent = 'Preview will appear here';
     
