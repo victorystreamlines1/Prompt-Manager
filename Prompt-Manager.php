@@ -38981,6 +38981,13 @@ function dtResetSelection() {
         }
     });
     
+    // Clear additional theme instructions
+    const notesTextarea = document.getElementById('dtNotesTextarea');
+    if (notesTextarea) {
+        notesTextarea.value = '';
+        dtUpdateCharCount();
+    }
+    
     dtSaveToStorage();
     dtUpdateUI();
     
