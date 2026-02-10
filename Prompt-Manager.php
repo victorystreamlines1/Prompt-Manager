@@ -7072,8 +7072,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Enhancement Level Notes */
         .el-notes-section {
             margin-top: 0.75rem;
+            position: relative;
         }
         
+        .el-notes-section > .el-notes-label,
+        .el-notes-section > .el-clear-btn {
+            display: inline-flex;
+            vertical-align: middle;
+        }
+
         .el-notes-label {
             display: flex;
             align-items: center;
@@ -7086,6 +7093,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .el-notes-label i {
             font-size: 0.6rem;
+        }
+        
+        .el-clear-btn {
+            float: right;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.55rem;
+            font-weight: 600;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%);
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .el-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+        
+        .el-clear-btn:active {
+            transform: translateY(0);
+        }
+        
+        .el-clear-btn i {
+            font-size: 0.5rem;
         }
         
         .el-notes-textarea {
@@ -7170,6 +7209,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         [data-theme="light"] .el-notes-label {
             color: #d97706;
+        }
+        
+        [data-theme="light"] .el-clear-btn {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.04) 100%);
+            border-color: rgba(220, 38, 38, 0.25);
+            color: #dc2626;
+        }
+        
+        [data-theme="light"] .el-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border-color: rgba(220, 38, 38, 0.45);
+            color: #b91c1c;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
         }
         
         [data-theme="light"] .el-notes-textarea {
@@ -21690,8 +21742,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         <!-- Radio Options -->
                         <div class="el-radio-group">
-                            <label class="el-radio-item" data-level="preserve" onclick="elSelectLevel('preserve')">
-                                <input type="radio" name="el_level" id="el_preserve" value="preserve">
+                            <label class="el-radio-item selected" data-level="preserve" onclick="elSelectLevel('preserve')">
+                                <input type="radio" name="el_level" id="el_preserve" value="preserve" checked>
                                 <div class="el-radio-content">
                                     <strong>🛡️ Preserve Design</strong>
                                     <p>Keep current design intact, only fix bugs and add functionality</p>
@@ -21704,8 +21756,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <p>Minor improvements, keep existing design mostly intact</p>
                                 </div>
                             </label>
-                            <label class="el-radio-item selected" data-level="moderate" onclick="elSelectLevel('moderate')">
-                                <input type="radio" name="el_level" id="el_moderate" value="moderate" checked>
+                            <label class="el-radio-item" data-level="moderate" onclick="elSelectLevel('moderate')">
+                                <input type="radio" name="el_level" id="el_moderate" value="moderate">
                                 <div class="el-radio-content">
                                     <strong>⭐ Moderate Enhancement</strong>
                                     <p>Balanced improvements, modern look while preserving structure</p>
@@ -21726,6 +21778,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <i class="fas fa-edit"></i>
                                 <span>Additional Enhancement Instructions</span>
                             </label>
+                            <button type="button" class="el-clear-btn" id="elClearBtn" onclick="elClearAndReset()" title="Clear instructions & reset to Preserve Design">
+                                <i class="fas fa-eraser"></i> Clear & Reset
+                            </button>
                             <textarea 
                                 id="elNotesTextarea" 
                                 class="el-notes-textarea" 
@@ -40368,6 +40423,18 @@ function elResetAll(skipToast = false) {
     
     if (!skipToast && typeof showToast === 'function') {
         showToast('🔄 Enhancement level reset to Preserve Design', 'info');
+    }
+}
+
+// Clear button: clear textarea + reset level to Preserve Design
+function elClearAndReset() {
+    const textarea = document.getElementById('elNotesTextarea');
+    if (textarea) textarea.value = '';
+    elSelectedLevel = 'preserve';
+    elUpdateUI();
+    elSaveToStorage();
+    if (typeof showToast === 'function') {
+        showToast('🧹 Instructions cleared & level reset to Preserve Design', 'info');
     }
 }
 
