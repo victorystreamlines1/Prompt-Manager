@@ -20780,6 +20780,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             <!-- Custom Pages List -->
                             <div class="pc-custom-list" id="pcCustomPagesList"></div>
+                            <button type="button" onclick="pcCustomPages=[];document.getElementById('pcCustomPagesList').innerHTML='';savePCState();updatePCCounts();" title="Delete all custom pages" style="margin-top:4px;padding:3px 10px;font-size:0.6rem;color:#fb923c;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:5px;cursor:pointer;">
+                                <i class="fas fa-trash"></i> Clear Custom Pages
+                            </button>
                         </div>
                         
                         <!-- Push Buttons -->
