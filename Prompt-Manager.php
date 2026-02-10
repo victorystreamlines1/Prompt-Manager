@@ -35426,81 +35426,472 @@ async function deResetAll() {
     
     if (!confirmed) return;
     
-    // Reset Branding (skip individual toast)
-    resetBranding(true);
+    // ═══════════════════════════════════════════
+    // STEP 1: Call each tool's reset function
+    // ═══════════════════════════════════════════
     
-    // Reset Pages Creator (skip individual toast)
-    resetPagesCreator(true);
-    
-    // Reset Custom Instructions (skip individual toast)
-    if (typeof resetCustomInstructions === 'function') {
-        resetCustomInstructions(true);
-    }
-    
-    // Reset Style Types (skip individual toast)
-    if (typeof stResetAll === 'function') {
-        stResetAll(true);
-    }
-    
-    // Reset Design Themes (skip individual toast)
-    if (typeof dtResetAll === 'function') {
-        dtResetAll(true);
-    }
-    
-    // Reset Page Layout Structure (skip individual toast)
-    if (typeof plResetAll === 'function') {
-        plResetAll(true);
-    }
-    
-    // Reset Execution Mode (skip individual toast)
-    if (typeof emResetAll === 'function') {
-        emResetAll(true);
-    }
-    
-    // Reset Design Focus (skip individual toast)
-    if (typeof dfResetAll === 'function') {
-        dfResetAll(true);
-    }
-    
-    // Reset Enhancement Level (skip individual toast)
-    if (typeof elResetAll === 'function') {
-        elResetAll(true);
-    }
-    
-    // Reset Task Breakdown (skip individual toast)
-    if (typeof tbResetAll === 'function') {
-        tbResetAll(true);
-    }
-    
-    // Reset Visual Reference (skip individual toast)
-    if (typeof vrResetAll === 'function') {
-        vrResetAll(true);
-    }
-    
-    // Reset Homepage Configuration (skip individual toast)
-    if (typeof hpResetAll === 'function') {
-        hpResetAll(true);
-    }
-    
-    // Reset File Upload (skip individual toast)
+    // 1. Project Files Upload
     if (typeof ufResetAll === 'function') {
         ufResetAll(true);
+    } else if (typeof ufClearAll === 'function') {
+        ufClearAll();
     }
     
-    // Reset File Exclusion Manager (skip individual toast)
+    // 2. File Exclusion Manager
     if (typeof exResetAll === 'function') {
         exResetAll(true);
     }
     
-    // Reset Documentation Integration (skip individual toast)
+    // 3. Logo & Branding
+    if (typeof resetBranding === 'function') {
+        resetBranding(true);
+    }
+    
+    // 4. Pages Creator
+    if (typeof resetPagesCreator === 'function') {
+        resetPagesCreator(true);
+    }
+    
+    // 5. Custom Instructions
+    if (typeof resetCustomInstructions === 'function') {
+        resetCustomInstructions(true);
+    }
+    
+    // 6. Enhanced Style Types
+    if (typeof stResetAll === 'function') {
+        stResetAll(true);
+    }
+    
+    // 7. Design Themes
+    if (typeof dtResetAll === 'function') {
+        dtResetAll(true);
+    }
+    
+    // 8. Page Layout Structure
+    if (typeof plResetAll === 'function') {
+        plResetAll(true);
+    }
+    
+    // 9. Execution Mode
+    if (typeof emResetAll === 'function') {
+        emResetAll(true);
+    }
+    
+    // 10. Design Focus Areas
+    if (typeof dfResetAll === 'function') {
+        dfResetAll(true);
+    }
+    
+    // 11. Enhancement Level
+    if (typeof elResetAll === 'function') {
+        elResetAll(true);
+    }
+    
+    // 12. Task Breakdown
+    if (typeof tbResetAll === 'function') {
+        tbResetAll(true);
+    }
+    
+    // 13. Visual Reference
+    if (typeof vrResetAll === 'function') {
+        vrResetAll(true);
+    }
+    
+    // 14. Homepage Configuration
+    if (typeof hpResetAll === 'function') {
+        hpResetAll(true);
+    }
+    
+    // 15. Documentation Integration
     if (typeof diResetAll === 'function') {
         diResetAll(true);
     }
+    
+    // 16. Design Templates
+    if (typeof dtTemplateResetAll === 'function') {
+        dtTemplateResetAll(true);
+    }
+    
+    // ═══════════════════════════════════════════
+    // STEP 2: Manual DOM sweep of every tool
+    // Loop through each tool section and force-clear
+    // all inputs, textareas, checkboxes, selects, etc.
+    // ═══════════════════════════════════════════
+    
+    const toolContainer = document.getElementById('deToolsContainer');
+    if (toolContainer) {
+        const allToolSections = toolContainer.querySelectorAll('.de-tool-section');
+        
+        allToolSections.forEach(section => {
+            const toolId = section.id || '';
+            
+            // --- Clear all text inputs (except those with specific defaults) ---
+            section.querySelectorAll('input[type="text"], input[type="email"], input[type="url"]').forEach(input => {
+                // Some inputs have specific defaults
+                if (input.id === 'hpNewPageName') {
+                    input.value = 'index';
+                } else if (input.id === 'diPageName') {
+                    input.value = 'documentation';
+                } else {
+                    input.value = '';
+                }
+            });
+            
+            // --- Clear all textareas ---
+            section.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = '';
+            });
+            
+            // --- Reset all file inputs ---
+            section.querySelectorAll('input[type="file"]').forEach(fileInput => {
+                fileInput.value = '';
+            });
+            
+            // --- Reset checkboxes to proper defaults per tool ---
+            if (toolId === 'brandingTool') {
+                // Branding: favicon, logo-pages, title-pages default to checked
+                ['brandingFavicon', 'brandingLogoPages', 'brandingTitlePages'].forEach(cbId => {
+                    const cb = document.getElementById(cbId);
+                    if (cb) {
+                        cb.checked = true;
+                        const item = cb.closest('.branding-option-item');
+                        if (item) item.classList.add('checked');
+                    }
+                });
+            } else if (toolId === 'designFocusTool') {
+                // Design Focus: all 6 options default to checked
+                ['df_layout', 'df_colors', 'df_animations', 'df_responsive', 'df_modern', 'df_seo'].forEach(cbId => {
+                    const cb = document.getElementById(cbId);
+                    if (cb) {
+                        cb.checked = true;
+                        const item = cb.closest('.df-checkbox-item');
+                        if (item) item.classList.add('checked');
+                    }
+                });
+            } else {
+                // All other tools: uncheck all checkboxes
+                section.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                    cb.indeterminate = false;
+                    const item = cb.closest('.branding-option-item, .di-checkbox-item, .hp-checkbox-label, .dt-select-all, .select-all-checkbox, [class*="checkbox"]');
+                    if (item) item.classList.remove('checked');
+                });
+            }
+            
+            // --- Reset select dropdowns to first option ---
+            section.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // --- Clear search clear buttons (hide them) ---
+            section.querySelectorAll('[class*="search-clear"], [class*="clear-btn"]').forEach(btn => {
+                btn.style.display = 'none';
+            });
+            
+            // --- Remove 'checked'/'selected'/'active'/'show'/'has-file'/'has-logo' states ---
+            section.querySelectorAll('.checked').forEach(el => {
+                // Skip branding defaults and design focus defaults (already handled above)
+                if (toolId === 'brandingTool' && el.classList.contains('branding-option-item')) return;
+                if (toolId === 'designFocusTool' && el.classList.contains('df-checkbox-item')) return;
+                el.classList.remove('checked');
+            });
+            section.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            section.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+            section.querySelectorAll('.has-file').forEach(el => el.classList.remove('has-file'));
+            section.querySelectorAll('.has-logo').forEach(el => el.classList.remove('has-logo'));
+            
+            // --- Hide dynamic content containers that use .show class ---
+            section.querySelectorAll('.show').forEach(el => {
+                // Keep tool bodies visible, only hide sub-sections
+                if (!el.classList.contains('de-tool-body') && !el.classList.contains('de-tool-section')) {
+                    el.classList.remove('show');
+                }
+            });
+            
+            // --- Reset badges to hidden ---
+            section.querySelectorAll('.de-tool-badge').forEach(badge => {
+                badge.style.display = 'none';
+                badge.textContent = '0';
+            });
+        });
+    }
+    
+    // ═══════════════════════════════════════════
+    // STEP 3: Tool-specific manual cleanup
+    // For elements that might not be caught by
+    // the generic sweep above
+    // ═══════════════════════════════════════════
+    
+    // --- Project Files Upload: extra cleanup ---
+    const ufCategories = document.getElementById('ufCategories');
+    if (ufCategories) ufCategories.classList.remove('show');
+    const ufStructureTree = document.getElementById('ufStructureTree');
+    if (ufStructureTree) ufStructureTree.innerHTML = '';
+    const ufCategoryGrid = document.getElementById('ufCategoryGrid');
+    if (ufCategoryGrid) ufCategoryGrid.innerHTML = '';
+    const ufPageDetection = document.getElementById('ufPageDetection');
+    if (ufPageDetection) ufPageDetection.style.display = 'none';
+    const ufRootDrop = document.getElementById('ufRootDrop');
+    if (ufRootDrop) ufRootDrop.style.display = 'flex';
+    const ufRootSelected = document.getElementById('ufRootSelected');
+    if (ufRootSelected) ufRootSelected.style.display = 'none';
+    const ufRootName = document.getElementById('ufRootName');
+    if (ufRootName) ufRootName.textContent = 'No folders selected';
+    const ufStatFolders = document.getElementById('ufStatFolders');
+    if (ufStatFolders) ufStatFolders.textContent = '0';
+    const ufStatFiles = document.getElementById('ufStatFiles');
+    if (ufStatFiles) ufStatFiles.textContent = '0';
+    const ufCharCount = document.getElementById('ufCharCount');
+    if (ufCharCount) ufCharCount.textContent = '0 characters';
+    const ufTotalBadge = document.getElementById('ufTotalBadge');
+    if (ufTotalBadge) ufTotalBadge.textContent = '0';
+    // Reset page detection badges
+    ['ufHomepageBadge', 'ufFeaturedBadge', 'ufDocBadge'].forEach(id => {
+        const badge = document.getElementById(id);
+        if (badge) {
+            badge.textContent = 'Not Set';
+            badge.className = 'uf-page-badge not-set';
+        }
+    });
+    // Reset featured select to disabled
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    if (featuredSelect) {
+        featuredSelect.disabled = true;
+        featuredSelect.innerHTML = '<option value="">-- Select Homepage First --</option>';
+    }
+    const docSelect = document.getElementById('ufDocSelect');
+    if (docSelect) {
+        docSelect.innerHTML = '<option value="">-- No documentation available --</option>';
+    }
+    
+    // --- File Exclusion: extra cleanup ---
+    const exFilesContainer = document.getElementById('exFilesContainer');
+    if (exFilesContainer) exFilesContainer.innerHTML = '';
+    const exCharCount = document.getElementById('exCharCount');
+    if (exCharCount) exCharCount.textContent = '0 characters';
+    
+    // --- Branding: extra cleanup ---
+    const brandingLogoPreview = document.getElementById('brandingLogoPreview');
+    if (brandingLogoPreview) brandingLogoPreview.style.display = 'none';
+    const brandingUploadPrompt = document.getElementById('brandingUploadPrompt');
+    if (brandingUploadPrompt) brandingUploadPrompt.style.display = 'block';
+    const brandingCustomInstructions = document.getElementById('brandingCustomInstructions');
+    if (brandingCustomInstructions) brandingCustomInstructions.style.display = 'none';
+    const brandingTitleText = document.getElementById('brandingTitleText');
+    if (brandingTitleText) brandingTitleText.textContent = 'Preview will appear here';
+    
+    // --- Pages Creator: extra cleanup ---
+    const pcCustomPagesList = document.getElementById('pcCustomPagesList');
+    if (pcCustomPagesList) pcCustomPagesList.innerHTML = '';
+    const pcTemplateResults = document.getElementById('pcTemplateResults');
+    if (pcTemplateResults) {
+        pcTemplateResults.innerHTML = '';
+        pcTemplateResults.classList.remove('active');
+    }
+    const pcSelectedCount = document.getElementById('pcSelectedCount');
+    if (pcSelectedCount) pcSelectedCount.textContent = '0 selected';
+    const pcCustomBadge = document.getElementById('pcCustomBadge');
+    if (pcCustomBadge) {
+        pcCustomBadge.textContent = '0';
+        pcCustomBadge.style.display = 'none';
+    }
+    // Uncheck all predefined page items
+    document.querySelectorAll('.pc-page-item').forEach(item => item.classList.remove('selected'));
+    
+    // --- Custom Instructions: extra cleanup ---
+    const ciCharCount = document.getElementById('ciCharCount');
+    if (ciCharCount) ciCharCount.textContent = '0 chars';
+    
+    // --- Style Types: extra cleanup ---
+    document.querySelectorAll('.st-style-card').forEach(card => card.classList.remove('selected'));
+    const stSelectedTags = document.getElementById('stSelectedTags');
+    if (stSelectedTags) stSelectedTags.innerHTML = '';
+    const stPreviewContent = document.getElementById('stPreviewContent');
+    if (stPreviewContent) {
+        stPreviewContent.innerHTML = '<div class="st-preview-icon"><i class="fas fa-palette"></i></div><h4 class="st-preview-title">Select styles to see preview</h4><p class="st-preview-subtitle">Choose multiple styles to create unique combinations</p>';
+    }
+    const stCountBadge = document.getElementById('stCountBadge');
+    if (stCountBadge) stCountBadge.textContent = '0 selected';
+    const stInfoText = document.getElementById('stInfoText');
+    if (stInfoText) stInfoText.textContent = 'Click to select multiple styles';
+    const stCharCount = document.getElementById('stCharCount');
+    if (stCharCount) stCharCount.textContent = '0 characters';
+    
+    // --- Design Themes: extra cleanup ---
+    document.querySelectorAll('.dt-theme-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.theme === 'ai-decision') card.classList.add('selected');
+    });
+    const dtCharCount = document.getElementById('dtCharCount');
+    if (dtCharCount) dtCharCount.textContent = '0 characters';
+    
+    // --- Page Layout: extra cleanup ---
+    document.querySelectorAll('.pl-layout-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.layout === 'ai-decision') card.classList.add('selected');
+    });
+    const plCharCount = document.getElementById('plCharCount');
+    if (plCharCount) plCharCount.textContent = '0 characters';
+    
+    // --- Execution Mode: extra cleanup ---
+    document.querySelectorAll('.em-mode-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.mode === 'read-before') card.classList.add('selected');
+    });
+    const emCharCount = document.getElementById('emCharCount');
+    if (emCharCount) emCharCount.textContent = '0 characters';
+    
+    // --- Design Focus: extra cleanup ---
+    const dfCharCount = document.getElementById('dfCharCount');
+    if (dfCharCount) dfCharCount.textContent = '0 characters';
+    
+    // --- Enhancement Level: extra cleanup ---
+    document.querySelectorAll('.el-level-card').forEach(card => {
+        card.classList.remove('selected');
+        if (card.dataset.level === 'preserve') card.classList.add('selected');
+    });
+    const elCharCount = document.getElementById('elCharCount');
+    if (elCharCount) elCharCount.textContent = '0 characters';
+    
+    // --- Task Breakdown: extra cleanup ---
+    const tbSlider = document.getElementById('tbPartsSlider');
+    if (tbSlider) tbSlider.value = 3;
+    const tbPartsValue = document.getElementById('tbPartsValue');
+    if (tbPartsValue) tbPartsValue.textContent = '3';
+    const tbOptimizeCheckbox = document.getElementById('tbOptimizeToken');
+    if (tbOptimizeCheckbox) tbOptimizeCheckbox.checked = true;
+    // Reset execution mode radio to step-by-step
+    document.querySelectorAll('input[name="tb_execution"]').forEach(radio => {
+        radio.checked = (radio.value === 'step-by-step');
+    });
+    const tbCharCount = document.getElementById('tbCharCount');
+    if (tbCharCount) tbCharCount.textContent = '0 characters';
+    
+    // --- Visual Reference: extra cleanup ---
+    const vrGallery = document.getElementById('vrGallery');
+    if (vrGallery) vrGallery.innerHTML = '';
+    const vrEmptyState = document.getElementById('vrEmptyState');
+    if (vrEmptyState) vrEmptyState.style.display = 'flex';
+    // Reset mode to ai-inspiration
+    document.querySelectorAll('.vr-mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.mode === 'ai-inspiration') btn.classList.add('active');
+    });
+    const vrCharCount = document.getElementById('vrCharCount');
+    if (vrCharCount) vrCharCount.textContent = '0 characters';
+    const vrCountBadge = document.getElementById('vrCountBadge');
+    if (vrCountBadge) vrCountBadge.textContent = '0 images';
+    
+    // --- Homepage Configuration: extra cleanup ---
+    const hpNewPageSection = document.getElementById('hpNewPageSection');
+    if (hpNewPageSection) hpNewPageSection.classList.remove('show');
+    const hpExistingPageSection = document.getElementById('hpExistingPageSection');
+    if (hpExistingPageSection) hpExistingPageSection.classList.remove('hide');
+    const hpInfoUnchecked = document.getElementById('hpInfoUnchecked');
+    if (hpInfoUnchecked) hpInfoUnchecked.classList.remove('hide');
+    const hpInfoChecked = document.getElementById('hpInfoChecked');
+    if (hpInfoChecked) hpInfoChecked.classList.remove('show');
+    const hpTargetFileName = document.getElementById('hpTargetFileName');
+    if (hpTargetFileName) hpTargetFileName.textContent = 'No file selected (will use current homepage)';
+    const hpExistingFileName = document.getElementById('hpExistingFileName');
+    if (hpExistingFileName) hpExistingFileName.textContent = 'No file selected (will enhance default homepage)';
+    const hpClearBtn = document.getElementById('hpClearBtn');
+    if (hpClearBtn) hpClearBtn.classList.remove('show');
+    const hpExistingClearBtn = document.getElementById('hpExistingClearBtn');
+    if (hpExistingClearBtn) hpExistingClearBtn.classList.remove('show');
+    const hpCharCount = document.getElementById('hpCharCount');
+    if (hpCharCount) hpCharCount.textContent = '0 characters';
+    
+    // --- Documentation Integration: extra cleanup ---
+    const diUploadSection = document.getElementById('diUploadSection');
+    if (diUploadSection) diUploadSection.classList.remove('show');
+    const diEmailSection = document.getElementById('diEmailSection');
+    if (diEmailSection) diEmailSection.classList.remove('show');
+    const diFileInfo = document.getElementById('diFileInfo');
+    if (diFileInfo) diFileInfo.classList.remove('show');
+    const diModeSection = document.getElementById('diModeSection');
+    if (diModeSection) diModeSection.classList.remove('show');
+    const diCreatePageInput = document.getElementById('diCreatePageInput');
+    if (diCreatePageInput) diCreatePageInput.classList.remove('show');
+    const diInjectionFilesDiv = document.getElementById('diInjectionFiles');
+    if (diInjectionFilesDiv) diInjectionFilesDiv.classList.remove('show');
+    const diInjectionList = document.getElementById('diInjectionList');
+    if (diInjectionList) diInjectionList.innerHTML = '';
+    // Reset mode radio to ai-decision
+    document.querySelectorAll('input[name="di_mode"]').forEach(radio => {
+        radio.checked = (radio.value === 'ai-decision');
+        const label = radio.closest('.di-mode-option');
+        if (label) {
+            label.classList.toggle('checked', radio.value === 'ai-decision');
+        }
+    });
+    const diCharCount = document.getElementById('diCharCount');
+    if (diCharCount) diCharCount.textContent = '0 characters';
+    
+    // --- Design Templates: extra cleanup ---
+    document.querySelectorAll('.dt-item').forEach(item => {
+        item.classList.remove('checked');
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb) cb.checked = false;
+    });
+    const dtCounter = document.getElementById('dtCounter');
+    if (dtCounter) dtCounter.textContent = '0/' + (typeof designTemplates !== 'undefined' ? designTemplates.length : '0');
+    const dtSelectAllCheckbox = document.getElementById('dtSelectAllCheckbox');
+    if (dtSelectAllCheckbox) {
+        dtSelectAllCheckbox.checked = false;
+        dtSelectAllCheckbox.indeterminate = false;
+    }
+    
+    // ═══════════════════════════════════════════
+    // STEP 4: Clear all Design Enhancer related
+    // localStorage keys to prevent reload of old state
+    // ═══════════════════════════════════════════
+    const deStorageKeys = [
+        'branding_state',
+        'pcSelectedPages', 'pcCustomPages', 'pc_predefined_pages', 'pc_custom_pages',
+        'ci_content',
+        'st_data', 'st_notes',
+        'dtSelectedThemes', 'dtNotes',
+        'plSelectedLayouts', 'plNotes',
+        'em_data',
+        'df_data',
+        'el_data',
+        'tb_data',
+        'vrImages', 'vrMode', 'vrNotes',
+        'hpCreateNew', 'hpNewPageName', 'hpTargetFileName', 'hpExistingFileName', 'hpNotes',
+        'ufFileStorage', 'ufDetectedHomepage', 'ufDetectedFeatured', 'ufDetectedDoc', 'ufNotes', 'ufRootFolder',
+        'exExcludedFiles', 'exNotes',
+        'diEnableDoc', 'diEnableFormSubmit', 'diContactEmail', 'diIntegrationMode',
+        'diFileContent', 'diFileName', 'diNotes', 'diPageName', 'diInjectionFiles'
+    ];
+    deStorageKeys.forEach(key => localStorage.removeItem(key));
+    
+    // ═══════════════════════════════════════════
+    // STEP 5: Update all badge/count functions
+    // ═══════════════════════════════════════════
+    if (typeof updateBrandingBadge === 'function') updateBrandingBadge();
+    if (typeof pcUpdateSelectedCount === 'function') pcUpdateSelectedCount();
+    if (typeof ciUpdateCharCount === 'function') ciUpdateCharCount();
+    if (typeof stUpdateCharCount === 'function') stUpdateCharCount();
+    if (typeof dtUpdateCharCount === 'function') dtUpdateCharCount();
+    if (typeof plUpdateCharCount === 'function') plUpdateCharCount();
+    if (typeof emUpdateBadge === 'function') emUpdateBadge();
+    if (typeof dfUpdateUI === 'function') dfUpdateUI();
+    if (typeof elUpdateUI === 'function') elUpdateUI();
+    if (typeof tbUpdateUI === 'function') tbUpdateUI();
+    if (typeof vrUpdateBadge === 'function') vrUpdateBadge();
+    if (typeof hpUpdateBadge === 'function') hpUpdateBadge();
+    if (typeof ufUpdateBadge === 'function') ufUpdateBadge();
+    if (typeof exUpdateBadge === 'function') exUpdateBadge();
+    if (typeof diUpdateBadge === 'function') diUpdateBadge();
+    if (typeof dtUpdateBadge === 'function') dtUpdateBadge();
+    if (typeof dtUpdateCounter === 'function') dtUpdateCounter();
     
     // Expand all sections
     deUncollapseAll();
     
     showToast('✨ All tools reset to default!', 'success');
+    console.log('✅ Design Enhancer: All 16 tools fully reset');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -39806,7 +40197,7 @@ document.addEventListener('DOMContentLoaded', function() {
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 // Enhancement Level state
-let elSelectedLevel = 'moderate';
+let elSelectedLevel = 'preserve';
 
 // Level details for prompt generation
 const elLevelDetails = {
@@ -39954,20 +40345,20 @@ function elLoadFromStorage() {
     if (saved) {
         try {
             const data = JSON.parse(saved);
-            elSelectedLevel = data.level || 'moderate';
+            elSelectedLevel = data.level || 'preserve';
             const textarea = document.getElementById('elNotesTextarea');
             if (textarea && data.notes) {
                 textarea.value = data.notes;
             }
         } catch (e) {
-            elSelectedLevel = 'moderate';
+            elSelectedLevel = 'preserve';
         }
     }
 }
 
 // Reset enhancement level
 function elResetAll(skipToast = false) {
-    elSelectedLevel = 'moderate';
+    elSelectedLevel = 'preserve';
     const textarea = document.getElementById('elNotesTextarea');
     if (textarea) {
         textarea.value = '';
@@ -39976,7 +40367,7 @@ function elResetAll(skipToast = false) {
     localStorage.removeItem('el_data');
     
     if (!skipToast && typeof showToast === 'function') {
-        showToast('🔄 Enhancement level reset to Moderate', 'info');
+        showToast('🔄 Enhancement level reset to Preserve Design', 'info');
     }
 }
 
@@ -39987,7 +40378,7 @@ async function confirmResetEnhancementLevel() {
             title: 'Reset Enhancement Level',
             subtitle: 'Design Enhancer',
             message: 'Are you sure you want to reset the enhancement level?',
-            warning: 'Level will be set to "Moderate" and notes will be cleared.',
+            warning: 'Level will be set to "Preserve Design" and notes will be cleared.',
             confirmText: 'Reset',
             icon: 'fa-sliders-h'
         });
@@ -45304,6 +45695,41 @@ function dtTemplatePushToNotes() {
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
     showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts`, 'success');
+}
+
+// Reset Design Templates tool
+function dtTemplateResetAll(skipToast = false) {
+    activeDesignTemplates.clear();
+    
+    // Clear search
+    const searchInput = document.getElementById('dtSearchInput');
+    if (searchInput) searchInput.value = '';
+    const searchClear = document.getElementById('dtSearchClear');
+    if (searchClear) searchClear.style.display = 'none';
+    
+    // Uncheck select all
+    const selectAllCheckbox = document.getElementById('dtSelectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+    
+    // Uncheck all items
+    document.querySelectorAll('.dt-item').forEach(item => {
+        item.classList.remove('checked');
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = false;
+    });
+    
+    dtUpdateCounter();
+    dtUpdateBadge();
+    
+    // Re-render without filter
+    dtRenderTemplates();
+    
+    if (!skipToast) {
+        showToast('🔄 Design Templates reset', 'info');
+    }
 }
 
 // ============ UTILITY ============
