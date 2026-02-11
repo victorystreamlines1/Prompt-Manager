@@ -506,6 +506,13 @@ if ($pdo) {
             // Column might already exist
         }
         
+        // Add folder_data column if it doesn't exist (for storing project folder template data)
+        try {
+            $pdo->exec("ALTER TABLE reporter_prompt_projects ADD COLUMN folder_data LONGTEXT AFTER language_settings");
+        } catch (PDOException $e) {
+            // Column might already exist
+        }
+        
         // Create Design Enhancer Tool Order table
         $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_tool_order (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1045,6 +1052,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $projectNotes = $_POST['project_notes'] ?? '';
         $promptContent = $_POST['prompt_content'] ?? '';
         $languageSettings = $_POST['language_settings'] ?? '{"language":"english","defaultLanguage":"english","multiLanguages":[]}';
+        $folderData = $_POST['folder_data'] ?? '[]';
         
         if ($name) {
             try {
@@ -1056,13 +1064,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         name = ?, description = ?, database_id = ?, database_name = ?, 
                         database_host = ?, database_user = ?, database_pass = ?, database_port = ?,
                         include_remote = ?, include_localhost = ?, backends = ?, pages = ?, frontends = ?, 
-                        project_notes = ?, prompt_content = ?, language_settings = ?
+                        project_notes = ?, prompt_content = ?, language_settings = ?, folder_data = ?
                         WHERE id = ?");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
                         $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
-                        $projectNotes, $promptContent, $languageSettings, $id
+                        $projectNotes, $promptContent, $languageSettings, $folderData, $id
                     ]);
                     $projectId = $id;
                     $message = 'Project updated successfully!';
@@ -1072,13 +1080,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("INSERT INTO reporter_prompt_projects 
                         (name, description, database_id, database_name, database_host, database_user, 
                          database_pass, database_port, include_remote, include_localhost, backends, pages, frontends, 
-                         project_notes, prompt_content, language_settings) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                         project_notes, prompt_content, language_settings, folder_data) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([
                         $name, $description, $databaseId, $databaseName,
                         $databaseHost, $databaseUser, $databasePass, $databasePort,
                         $includeRemote, $includeLocalhost, $backends, $pages, $frontends, 
-                        $projectNotes, $promptContent, $languageSettings
+                        $projectNotes, $promptContent, $languageSettings, $folderData
                     ]);
                     $projectId = $pdo->lastInsertId();
                     $message = 'Project created successfully!';
@@ -31230,6 +31238,72 @@ in each section carefully and maintain proper connections between components.
             showToast('All folders cleared', 'info');
         }
 
+        // Serialize ftFolderStore to JSON string for saving to database
+        function ftSerializeFolderStore() {
+            if (ftFolderStore.size === 0) return '[]';
+            const arr = [];
+            ftFolderStore.forEach((data, name) => {
+                arr.push({
+                    name: name,
+                    path: data.path || '',
+                    treeText: data.treeText || '',
+                    treeData: data.treeData || null,
+                    added: data.added || Date.now()
+                });
+            });
+            return JSON.stringify(arr);
+        }
+
+        // Deserialize JSON string back into ftFolderStore and render
+        function ftDeserializeFolderStore(jsonStr) {
+            // Clear existing data
+            ftFolderStore.clear();
+            ftIdToName.clear();
+            
+            if (!jsonStr || jsonStr === '[]' || jsonStr === 'null') {
+                ftRenderAll();
+                return;
+            }
+            
+            try {
+                let arr = jsonStr;
+                if (typeof arr === 'string') {
+                    arr = JSON.parse(arr);
+                }
+                if (!Array.isArray(arr) || arr.length === 0) {
+                    ftRenderAll();
+                    return;
+                }
+                
+                arr.forEach(item => {
+                    const name = item.name;
+                    const safeId = name.replace(/[^a-zA-Z0-9_-]/g, '_');
+                    
+                    ftFolderStore.set(name, {
+                        path: item.path || '',
+                        treeText: item.treeText || '',
+                        treeData: item.treeData || null,
+                        added: item.added || Date.now()
+                    });
+                    ftIdToName.set(safeId, name);
+                    
+                    // Also register in editorFolders and knownFolders for checkbox sync
+                    if (!editorFolders.has(name)) {
+                        editorFolders.set(name, `<!-- FOLDER:${name} -->`);
+                    }
+                    if (!knownFolders.has(name)) {
+                        knownFolders.set(name, { path: item.path || '' });
+                    }
+                });
+                
+                ftRenderAll();
+                console.log(`📂 Restored ${arr.length} folder(s) from project data`);
+            } catch (e) {
+                console.warn('Could not deserialize folder data:', e);
+                ftRenderAll();
+            }
+        }
+
         // Resize handle for folder template
         (function() {
             const handle = document.getElementById('ftResizeHandle');
@@ -34318,6 +34392,9 @@ function collectDashboardData() {
         // Language settings
         language_settings: JSON.stringify(appLanguageSettings),
         
+        // Folder template data
+        folder_data: ftSerializeFolderStore(),
+        
         // Items - use dynamicItems object which has all the data including prompts and files
         backends: [],
         pages: [],
@@ -34391,6 +34468,7 @@ function saveProject(projectData) {
     formData.append('frontends', JSON.stringify(projectData.frontends || []));
     formData.append('project_notes', projectData.project_notes || '');
     formData.append('language_settings', projectData.language_settings || JSON.stringify(appLanguageSettings));
+    formData.append('folder_data', projectData.folder_data || '[]');
     // Include prompt editor content
     const promptEditor = document.getElementById('promptEditor');
     formData.append('prompt_content', promptEditor ? promptEditor.value : '');
@@ -34664,6 +34742,16 @@ function applyProjectToDashboard(project) {
         } catch (e) {
             console.warn('Could not parse language settings:', e);
         }
+    }
+    
+    // Restore folder template data
+    if (project.folder_data) {
+        ftDeserializeFolderStore(project.folder_data);
+    } else {
+        // Clear folder template if no folder data in project
+        ftFolderStore.clear();
+        ftIdToName.clear();
+        ftRenderAll();
     }
     
     // NOTE: We do NOT load prompt_content into the main editor automatically
@@ -35184,6 +35272,13 @@ function resetDashboardItems() {
     // Reset database dropdown
     const dbDropdown = document.getElementById('dbDropdown');
     if (dbDropdown) dbDropdown.selectedIndex = 0;
+    
+    // Clear folder template
+    if (typeof ftFolderStore !== 'undefined') {
+        ftFolderStore.clear();
+        ftIdToName.clear();
+        ftRenderAll();
+    }
 }
 
 // Helper: Escape HTML
