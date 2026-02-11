@@ -27638,8 +27638,12 @@ ${blockContent}
             const projectPromptsContent = getProjectNotes();
             const hasProjectPrompts = projectPromptsContent.length > 0;
             
+            // Check if we have project folders in the template
+            const hasProjectFolders = ftFolderStore.size > 0;
+            const folderCount = ftFolderStore.size;
+            
             // If nothing at all is selected/available, still add the language directive
-            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts) {
+            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts && !hasProjectFolders) {
                 // Add language directive even with no other content
                 const languageDirectiveOnly = generateLanguageDirective();
                 if (editor) {
@@ -27656,11 +27660,25 @@ ${blockContent}
                 return;
             }
             
-            // EARLY CHECK: If ONLY Project Prompts has content (no dashboard items selected)
-            // Include language directive + project prompts
-            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && hasProjectPrompts) {
+            // EARLY CHECK: If ONLY Project Prompts/Folders have content (no dashboard items selected)
+            // Include language directive + folders + project prompts
+            if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && (hasProjectPrompts || hasProjectFolders)) {
                 const languageDirectiveOnly = generateLanguageDirective();
-                const combinedContent = languageDirectiveOnly + '\n\n' + projectPromptsContent;
+                let earlyParts = [languageDirectiveOnly];
+                
+                // Add folder trees if present
+                if (hasProjectFolders) {
+                    let folderBlock = `\n════════════════════════════════════════════════════════════════════════════════\n📂 PROJECT STRUCTURE (${folderCount} Folder${folderCount > 1 ? 's' : ''})\n════════════════════════════════════════════════════════════════════════════════\n\nThe following project folder structure(s) provide context about the codebase\narchitecture. Use this to understand the file organization:\n`;
+                    ftFolderStore.forEach((data, name) => {
+                        folderBlock += `\n┌─── 📁 ${name} ───────────────────────────────────────────────────┐\n${data.treeText}\n└──────────────────────────────────────────────────────────────────────┘\n`;
+                    });
+                    earlyParts.push(folderBlock);
+                }
+                
+                if (hasProjectPrompts) {
+                    earlyParts.push(projectPromptsContent);
+                }
+                const combinedContent = earlyParts.join('\n\n');
                 
                 if (editor) {
                     if (editor.value.trim()) {
@@ -27671,7 +27689,8 @@ ${blockContent}
                     updateCounts();
                     recordHistoryState(true);
                 }
-                showToast('✨ Language + Project Prompts sent to Editor', 'success');
+                const earlyLabel = hasProjectFolders && hasProjectPrompts ? 'Folders + Project Prompts' : hasProjectFolders ? 'Project Folders' : 'Project Prompts';
+                showToast(`✨ Language + ${earlyLabel} sent to Editor`, 'success');
                 saveDashboardSettings();
                 saveDynamicItems();
                 return;
@@ -27703,10 +27722,36 @@ Please follow the instructions below carefully. Each section contains specific
 details about the application components you need to work with.
 
 📊 PROJECT OVERVIEW:
-   • Backend Components: ${backendCount}
+${hasProjectFolders ? `   • Project Folders: ${folderCount}\n` : ''}   • Backend Components: ${backendCount}
    • Page Components: ${pageCount}
    • Frontend Components: ${frontendCount}
 `);
+
+            // 0. PROJECT STRUCTURE SECTION (if folders exist in template) — prepended before all other sections
+            if (hasProjectFolders) {
+                hasContent = true;
+                let folderSection = `
+════════════════════════════════════════════════════════════════════════════════
+📂 PROJECT STRUCTURE (${folderCount} Folder${folderCount > 1 ? 's' : ''})
+════════════════════════════════════════════════════════════════════════════════
+
+The following project folder structure(s) provide context about the codebase
+architecture. Use this to understand the file organization and ensure any new
+files or modifications follow the existing project structure.
+`;
+                ftFolderStore.forEach((data, name) => {
+                    folderSection += `
+┌─── 📁 ${name} ───────────────────────────────────────────────────┐
+${data.treeText}
+└──────────────────────────────────────────────────────────────────────┘
+`;
+                });
+                folderSection += `
+💡 NOTE: When creating new files or making changes, respect the existing folder
+structure above. Place files in the appropriate directories.
+`;
+                promptSections.push(folderSection);
+            }
 
             // 1. DATABASE SECTION (if database is selected from dropdown AND at least one credential checkbox is checked)
             const isRemoteChecked = document.getElementById('dbCredentialsCheckbox')?.checked || false;
@@ -27962,6 +28007,7 @@ ${(hasDatabaseSelected && hasCredentialSelected) ? '  ✅ Database Connection ('
 ${hasBackendItems ? `  ✅ Backend Section (${backendCount} component${backendCount > 1 ? 's' : ''})` : '  ⬜ Backend Section'}
 ${hasPageItems ? `  ✅ Page Section (${pageCount} page${pageCount > 1 ? 's' : ''})` : '  ⬜ Page Section'}
 ${hasFrontendItems ? `  ✅ Frontend Section (${frontendCount} component${frontendCount > 1 ? 's' : ''})` : '  ⬜ Frontend Section'}
+${hasProjectFolders ? `  ✅ Project Structure (${folderCount} folder${folderCount > 1 ? 's' : ''})` : '  ⬜ Project Structure'}
 ${hasProjectPrompts ? '  ✅ Project Prompts included' : '  ⬜ Project Prompts'}
 
 Total Components: ${backendCount + pageCount + frontendCount}
@@ -27992,7 +28038,7 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Count total items
-            const totalItems = ((hasDatabaseSelected && hasCredentialSelected) ? 1 : 0) + backendCount + pageCount + frontendCount + (hasProjectPrompts ? 1 : 0);
+            const totalItems = ((hasDatabaseSelected && hasCredentialSelected) ? 1 : 0) + backendCount + pageCount + frontendCount + (hasProjectPrompts ? 1 : 0) + (hasProjectFolders ? folderCount : 0);
             
             // Show success toast
             showToast(`✨ Generated ${totalItems} component${totalItems > 1 ? 's' : ''} → Prompt Editor`, 'success');
