@@ -12576,16 +12576,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* ============================================ */
-        /* FOLDER TREE TEMPLATE (above prompt editor)  */
+        /* FOLDER TREE TEMPLATE (in Development Dashboard) */
         /* ============================================ */
         .folder-template-container {
             display: none;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--bg-secondary);
+            margin: 0.6rem 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(139, 92, 246, 0.03) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
             max-height: 45vh;
             overflow-y: auto;
+            overflow-x: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+        }
+        .folder-template-container:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
         }
         .folder-template-container.has-folders {
             display: block;
@@ -20008,6 +20015,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
+                        <!-- Folder Tree Template (displays picked folders visually) -->
+                        <div class="folder-template-container" id="folderTemplateContainer">
+                            <div class="folder-template-header">
+                                <div class="ft-title">
+                                    <i class="fas fa-sitemap"></i>
+                                    <span>Project Folders</span>
+                                    <span class="ft-badge" id="ftFolderCount">0</span>
+                                </div>
+                                <div class="ft-actions">
+                                    <button onclick="ftCopyAllTrees()" title="Copy all trees to clipboard">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                    <button onclick="ftPushToProjectPrompts()" title="Push all folder trees to Project Prompts">
+                                        <i class="fas fa-arrow-down"></i> Push
+                                    </button>
+                                    <button onclick="ftCollapseAll()" title="Collapse/Expand all folders">
+                                        <i class="fas fa-compress-alt"></i>
+                                    </button>
+                                    <button class="ft-danger" onclick="ftClearAll()" title="Remove all folders">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="folder-template-body" id="ftFolderBody">
+                            </div>
+                            <div class="ft-resize-handle" id="ftResizeHandle" title="Drag to resize"></div>
+                        </div>
+                        
                         <!-- Project Prompts Section (Resizable) -->
                         <div class="project-notes-section" id="projectNotesSection">
                             <div class="project-notes-header">
@@ -20378,34 +20413,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
-                <!-- Folder Tree Template (displays picked folders visually) -->
-                <div class="folder-template-container" id="folderTemplateContainer">
-                    <div class="folder-template-header">
-                        <div class="ft-title">
-                            <i class="fas fa-sitemap"></i>
-                            <span>Project Folders</span>
-                            <span class="ft-badge" id="ftFolderCount">0</span>
-                        </div>
-                        <div class="ft-actions">
-                            <button onclick="ftCopyAllTrees()" title="Copy all trees to clipboard">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                            <button onclick="ftPushToEditor()" title="Push all folder trees to prompt editor">
-                                <i class="fas fa-arrow-down"></i> Push
-                            </button>
-                            <button onclick="ftCollapseAll()" title="Collapse/Expand all folders">
-                                <i class="fas fa-compress-alt"></i>
-                            </button>
-                            <button class="ft-danger" onclick="ftClearAll()" title="Remove all folders">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="folder-template-body" id="ftFolderBody">
-                    </div>
-                    <div class="ft-resize-handle" id="ftResizeHandle" title="Drag to resize"></div>
-                </div>
-
                 <div class="editor-body">
                     <div class="editor-highlight-overlay" id="editorHighlightOverlay"></div>
                     <textarea id="promptEditor" placeholder="Your generated prompt will appear here...&#10;&#10;Check the prompt templates on the left to build your prompt, or type directly."></textarea>
@@ -30928,7 +30935,7 @@ in each section carefully and maintain proper connections between components.
         }
         
         // ============================================
-        // FOLDER TREE TEMPLATE — Visual display above editor
+        // FOLDER TREE TEMPLATE — Visual display in Development Dashboard
         // ============================================
         const ftFolderStore = new Map(); // folderName → { path, treeText, treeData, addedAt }
         const ftIdToName = new Map(); // safeId → folderName (reverse lookup)
@@ -31122,27 +31129,32 @@ in each section carefully and maintain proper connections between components.
             });
         }
 
-        function ftPushToEditor() {
+        function ftPushToProjectPrompts() {
             if (ftFolderStore.size === 0) {
                 showToast('No folders to push', 'info');
                 return;
             }
-            const editor = document.getElementById('promptEditor');
+            const textarea = document.getElementById('projectNotesTextarea');
+            if (!textarea) {
+                showToast('Project Prompts textarea not found', 'warning');
+                return;
+            }
             let allText = '';
             ftFolderStore.forEach((data, name) => {
-                const marker = `<!-- FOLDER:${name} -->`;
-                const endMarker = `<!-- /END FOLDER:${name} -->`;
                 if (allText) allText += '\n\n';
-                allText += `${marker}\n${data.treeText}\n${endMarker}`;
+                allText += data.treeText;
             });
-            if (editor.value.trim()) {
-                editor.value += '\n\n' + allText;
+            if (textarea.value.trim()) {
+                textarea.value += '\n\n' + allText;
             } else {
-                editor.value = allText;
+                textarea.value = allText;
             }
-            updateCounts();
-            recordHistoryState(true);
-            showToast(`📝 ${ftFolderStore.size} folder tree(s) pushed to editor!`, 'success');
+            // Auto-expand textarea
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            // Trigger change event for any listeners
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            showToast(`📝 ${ftFolderStore.size} folder tree(s) pushed to Project Prompts!`, 'success');
         }
 
         function ftCollapseAll() {
@@ -31278,7 +31290,7 @@ in each section carefully and maintain proper connections between components.
             if (editorFolders.has(folderName)) {
                 // Folder is in editor — remove from editor (uncheck)
                 removeFolderFromEditor(folderName);
-                showToast(`📁 ${folderName} removed from editor`, 'info');
+                showToast(`📁 ${folderName} removed from template`, 'info');
             } else {
                 // Folder not in editor — add back to editor (check) with tree
                 const marker = `<!-- FOLDER:${folderName} -->`;
@@ -31286,7 +31298,7 @@ in each section carefully and maintain proper connections between components.
                 await addFolderToEditor(folderName, marker, folderPath);
                 updateCounts();
                 recordHistoryState(true);
-                showToast(`📁 ${folderName} added to editor`, 'success');
+                showToast(`📁 ${folderName} added to template`, 'success');
             }
             // Re-render display to update checkbox state
             loadUploadedFiles();
