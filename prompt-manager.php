@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
             $_SESSION['remembered'] = true;
         }
         
-        header('Location: index.php');
+        header('Location: prompt-manager.php');
         exit;
     } else {
         $login_error = 'Invalid password! Please try again.';
@@ -60,7 +60,7 @@ if (isset($_GET['logout'])) {
     }
     
     session_destroy();
-    header('Location: index.php');
+    header('Location: prompt-manager.php');
     exit;
 }
 
@@ -590,8 +590,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
     $filepath = __DIR__ . '/' . basename($filename); // basename for security
     
-    // Security check: don't allow deleting index.php or system files
-    $blockedFiles = ['index.php', 'catalog.html', 'default.php', 'backend.php'];
+    // Security check: don't allow deleting prompt-manager.php or system files
+    $blockedFiles = ['prompt-manager.php', 'catalog.html', 'default.php', 'backend.php'];
     
     if (in_array(basename($filename), $blockedFiles)) {
         echo json_encode([
@@ -771,8 +771,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 continue;
             }
             
-            // Skip index.php itself
-            if ($filename === 'index.php') {
+            // Skip prompt-manager.php itself
+            if ($filename === 'prompt-manager.php') {
                 continue;
             }
             
@@ -1410,8 +1410,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $oldFilepath = __DIR__ . '/' . basename($oldFilename);
     $newFilepath = __DIR__ . '/' . basename($newFilename);
     
-    // Security check: don't allow renaming index.php or system files
-    $blockedFiles = ['index.php', 'catalog.html', 'default.php', 'backend.php'];
+    // Security check: don't allow renaming prompt-manager.php or system files
+    $blockedFiles = ['prompt-manager.php', 'catalog.html', 'default.php', 'backend.php'];
     
     if (in_array(basename($oldFilename), $blockedFiles)) {
         echo json_encode([
@@ -1839,7 +1839,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $backButtonCode = <<<'HTML'
 
 <!-- Back to Catalog Button -->
-<a href="index.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
+<a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
         <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -2331,7 +2331,7 @@ foreach ($allFiles as $file) {
     $filename = basename($file);
     
     // Skip catalog files
-    if ($filename === 'catalog.html' || $filename === 'index.php' || $filename === 'catalog_scanner.php') {
+    if ($filename === 'catalog.html' || $filename === 'prompt-manager.php' || $filename === 'catalog_scanner.php') {
         continue;
     }
     
@@ -4991,7 +4991,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'delete');
                 formData.append('filename', fileToDelete);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5031,7 +5031,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'toggle_back_button');
                 formData.append('filename', filename);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5085,7 +5085,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'toggle_code_editor_button');
                 formData.append('filename', filename);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5143,7 +5143,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'toggle_platform_button');
                 formData.append('filename', filename);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5242,7 +5242,7 @@ usort($fileList, function($a, $b) {
                 formData.append('old_filename', fileToRename);
                 formData.append('new_filename', newFilename);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5326,7 +5326,7 @@ usort($fileList, function($a, $b) {
                 formData.append('source_filename', fileToDuplicate);
                 formData.append('new_filename', newFilename);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5637,7 +5637,7 @@ usort($fileList, function($a, $b) {
                     formData.append('logo', logoFile);
                 }
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5709,7 +5709,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', currentTransferLinkFile);
                 formData.append('target_url', targetUrl);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5742,7 +5742,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'check_transfer_link');
                 formData.append('filename', filename);
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5808,7 +5808,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', filename);
                 formData.append('target_url', ''); // Empty URL means remove
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5839,7 +5839,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', filename);
                 formData.append('target_url', ''); // Empty to trigger remove
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5912,7 +5912,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', currentIframeFile);
                 formData.append('iframe_url', iframeUrl);
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -5953,7 +5953,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', filename);
                 formData.append('iframe_url', ''); // Empty to trigger remove
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -6078,7 +6078,7 @@ usort($fileList, function($a, $b) {
                     formData.append('logo', logoFile);
                 }
 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -6425,7 +6425,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', filename);
                 formData.append('exclude', exclude ? 'true' : 'false');
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -6722,7 +6722,7 @@ usort($fileList, function($a, $b) {
             <!-- Info Box -->
             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2);">
                 <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 600;">TARGET:</div>
-                <div style="color: #fbbf24; font-size: 14px; font-weight: 700;">All included catalog pages (excluding index.php)</div>
+                <div style="color: #fbbf24; font-size: 14px; font-weight: 700;">All included catalog pages (excluding prompt-manager.php)</div>
             </div>
             
             <!-- Warning -->
@@ -6998,7 +6998,7 @@ usort($fileList, function($a, $b) {
                 formData.append('filename', currentSuperAdminFile);
                 formData.append('password', password);
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -7102,7 +7102,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'remove_super_admin');
                 formData.append('filename', currentRemoveSuperAdminFile);
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -7174,7 +7174,7 @@ usort($fileList, function($a, $b) {
                 formData.append('action', 'check_super_admin');
                 formData.append('filename', filename);
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -7280,7 +7280,7 @@ usort($fileList, function($a, $b) {
                 formData.append('operation', operation);
                 formData.append('password', password);
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -7434,7 +7434,7 @@ usort($fileList, function($a, $b) {
                 const formData = new FormData();
                 formData.append('action', 'get_active_connections');
                 
-                const response = await fetch('index.php', {
+                const response = await fetch('prompt-manager.php', {
                     method: 'POST',
                     body: formData
                 });

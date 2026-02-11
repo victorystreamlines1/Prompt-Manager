@@ -10750,7 +10750,7 @@ Please wait for me to provide the URL, or if I've already included it above, pro
 
 
     <!-- Back to Catalog Button -->
-    <a href="index.php" id="backToCatalogBtn" class="catalog-back-btn"
+    <a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn"
         style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;"
         title="Back to Catalog"
         onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';"

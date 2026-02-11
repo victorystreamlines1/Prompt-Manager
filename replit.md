@@ -20,7 +20,7 @@ This is a single-page PHP application that provides:
 
 ```
 /
-├── index.php              # Main application file (contains all logic and UI)
+├── prompt-manager.php     # Main application file (contains all logic and UI)
 ├── prompt.txt             # Original prompt file
 ├── prompt-manager-report.html  # Static report file
 └── uploads/               # Directory for uploaded files (created at runtime)
@@ -35,7 +35,7 @@ php -S 0.0.0.0:5000
 
 ## Database Configuration
 
-The application connects to an external MySQL database. The connection details are currently hardcoded in `index.php`. For production use, consider moving these to environment variables.
+The application connects to an external MySQL database. The connection details are currently hardcoded in `prompt-manager.php`. For production use, consider moving these to environment variables.
 
 ## Authentication
 

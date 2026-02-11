@@ -136,7 +136,7 @@ Database administration:
 - Execute queries
 - Import/export data
 
-### Catalog (`index.php`)
+### Catalog (`prompt-manager.php`)
 Main entry point:
 - Browse all PHP files
 - Admin authentication
