@@ -19427,7 +19427,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- Folder Picker Zone (PHP-powered multi-folder browser) -->
                 <div class="file-picker-container">
-                    <div class="drop-zone-mini folder-zone" id="folderDropZone">
+                    <div class="drop-zone-mini folder-zone" id="folderDropZone" onclick="console.log('📁 folderDropZone clicked');if(typeof openFolderBrowser==='function'){try{openFolderBrowser()}catch(e){console.error('❌ openFolderBrowser error:',e);showToast('Error: '+e.message,'error')}}else{console.error('❌ openFolderBrowser not defined');showToast('Folder browser not loaded. Please refresh.','error')}">
                         <i class="fas fa-folder-plus"></i>
                         <span>Pick folders here</span>
                     </div>
@@ -30142,12 +30142,8 @@ in each section carefully and maintain proper connections between components.
             // Folder Picker - Drop Zone (opens PHP-powered folder browser)
             const folderDropZone = document.getElementById('folderDropZone');
             
-            // Folder zone click - opens PHP folder browser modal (multi-select)
-            folderDropZone.addEventListener('click', () => {
-                if (typeof openFolderBrowser === 'function') {
-                    openFolderBrowser();
-                }
-            });
+            // Folder zone click is handled via inline onclick on the HTML element
+            // (more reliable — doesn't depend on setupEventListeners() completing)
             
             // Also support drag & drop of folders onto the zone
             folderDropZone.addEventListener('dragover', (e) => {
@@ -46121,6 +46117,7 @@ function toggleTheme() {
 // FOLDER BROWSER - PHP-Powered Multi-Select
 // ============================================
 (function() {
+    console.log('📁 Folder Browser IIFE initializing...');
     let fbCurrentPath = '';
     let fbParentPath = '';
     let fbSelectedFolders = new Map(); // Map of folderName → folderPath selected in the modal
@@ -46174,6 +46171,7 @@ function toggleTheme() {
         const startPath = await fbResolveStartPath();
         fbNavigate(startPath);
     };
+    console.log('✅ openFolderBrowser registered on window');
 
     // Open the folder browser modal (for Design Enhancer — right panel)
     window.openDeFolderBrowser = async function() {
