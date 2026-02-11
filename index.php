@@ -12575,6 +12575,284 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-muted);
         }
 
+        /* ============================================ */
+        /* FOLDER TREE TEMPLATE (above prompt editor)  */
+        /* ============================================ */
+        .folder-template-container {
+            display: none;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            max-height: 45vh;
+            overflow-y: auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .folder-template-container.has-folders {
+            display: block;
+        }
+        .folder-template-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.08) 100%);
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            backdrop-filter: blur(12px);
+        }
+        .folder-template-header .ft-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .folder-template-header .ft-title i {
+            font-size: 0.85rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .folder-template-header .ft-badge {
+            background: var(--gradient-main);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .folder-template-header .ft-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .folder-template-header .ft-actions button {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .folder-template-header .ft-actions button:hover {
+            background: rgba(99,102,241,0.15);
+            border-color: rgba(99,102,241,0.3);
+            color: var(--accent-primary);
+        }
+        .folder-template-header .ft-actions button.ft-danger:hover {
+            background: rgba(239,68,68,0.15);
+            border-color: rgba(239,68,68,0.3);
+            color: var(--danger);
+        }
+        .folder-template-body {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        /* Individual folder card */
+        .ft-folder-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .ft-folder-card:hover {
+            border-color: rgba(99,102,241,0.35);
+            box-shadow: 0 2px 16px rgba(99,102,241,0.1);
+        }
+        .ft-folder-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04));
+            border-bottom: 1px solid rgba(99,102,241,0.1);
+            cursor: pointer;
+            user-select: none;
+        }
+        .ft-folder-card-header:hover {
+            background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+        }
+        .ft-folder-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .ft-folder-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .ft-folder-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ft-folder-path {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+        }
+        .ft-folder-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .ft-folder-stats span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .ft-folder-stats i {
+            font-size: 0.65rem;
+            opacity: 0.7;
+        }
+        .ft-card-actions {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .ft-card-actions button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            transition: all 0.2s ease;
+        }
+        .ft-card-actions button:hover {
+            background: rgba(99,102,241,0.15);
+            color: var(--accent-primary);
+        }
+        .ft-card-actions button.ft-remove:hover {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+        }
+        .ft-chevron {
+            transition: transform 0.3s ease;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+        .ft-folder-card.collapsed .ft-chevron {
+            transform: rotate(-90deg);
+        }
+        .ft-folder-card.collapsed .ft-folder-tree-wrap {
+            display: none;
+        }
+        /* Tree content area */
+        .ft-folder-tree-wrap {
+            padding: 8px 12px 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        .ft-folder-tree-wrap::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .ft-folder-tree-wrap::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        .ft-tree-content {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.65;
+            color: var(--text-secondary);
+            white-space: pre;
+            outline: none;
+            min-height: 20px;
+            border-radius: 6px;
+            padding: 6px 8px;
+            transition: all 0.2s ease;
+        }
+        .ft-tree-content:focus {
+            background: rgba(99,102,241,0.05);
+            box-shadow: inset 0 0 0 1px rgba(99,102,241,0.2);
+        }
+        .ft-tree-content:hover:not(:focus) {
+            background: rgba(255,255,255,0.02);
+        }
+        /* Resize handle at bottom of template */
+        .ft-resize-handle {
+            height: 6px;
+            background: linear-gradient(90deg, transparent 30%, var(--border-color) 50%, transparent 70%);
+            cursor: ns-resize;
+            transition: all 0.2s ease;
+            opacity: 0.5;
+        }
+        .ft-resize-handle:hover {
+            opacity: 1;
+            background: linear-gradient(90deg, transparent 20%, var(--accent-primary) 50%, transparent 80%);
+            height: 8px;
+        }
+        /* Scrollbar for container */
+        .folder-template-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .folder-template-container::-webkit-scrollbar-thumb {
+            background: rgba(99,102,241,0.3);
+            border-radius: 3px;
+        }
+        .folder-template-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        /* Animation for new cards */
+        @keyframes ftSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ft-folder-card.ft-new {
+            animation: ftSlideIn 0.35s ease forwards;
+        }
+        /* Empty state */
+        .ft-empty-hint {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
         /* Custom Resize Handle */
         .resize-handle {
             display: flex;
@@ -20100,6 +20378,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                 </div>
+                <!-- Folder Tree Template (displays picked folders visually) -->
+                <div class="folder-template-container" id="folderTemplateContainer">
+                    <div class="folder-template-header">
+                        <div class="ft-title">
+                            <i class="fas fa-sitemap"></i>
+                            <span>Project Folders</span>
+                            <span class="ft-badge" id="ftFolderCount">0</span>
+                        </div>
+                        <div class="ft-actions">
+                            <button onclick="ftCopyAllTrees()" title="Copy all trees to clipboard">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <button onclick="ftPushToEditor()" title="Push all folder trees to prompt editor">
+                                <i class="fas fa-arrow-down"></i> Push
+                            </button>
+                            <button onclick="ftCollapseAll()" title="Collapse/Expand all folders">
+                                <i class="fas fa-compress-alt"></i>
+                            </button>
+                            <button class="ft-danger" onclick="ftClearAll()" title="Remove all folders">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="folder-template-body" id="ftFolderBody">
+                    </div>
+                    <div class="ft-resize-handle" id="ftResizeHandle" title="Drag to resize"></div>
+                </div>
+
                 <div class="editor-body">
                     <div class="editor-highlight-overlay" id="editorHighlightOverlay"></div>
                     <textarea id="promptEditor" placeholder="Your generated prompt will appear here...&#10;&#10;Check the prompt templates on the left to build your prompt, or type directly."></textarea>
@@ -30621,10 +30927,276 @@ in each section carefully and maintain proper connections between components.
             return lines.join('\n');
         }
         
-        // Add a folder's reference + tree diagram to the editor (makes it "checked")
-        async function addFolderToEditor(folderName, marker, folderPath) {
+        // ============================================
+        // FOLDER TREE TEMPLATE — Visual display above editor
+        // ============================================
+        const ftFolderStore = new Map(); // folderName → { path, treeText, treeData, addedAt }
+        const ftIdToName = new Map(); // safeId → folderName (reverse lookup)
+
+        function ftUpdateContainer() {
+            const container = document.getElementById('folderTemplateContainer');
+            const badge = document.getElementById('ftFolderCount');
+            const count = ftFolderStore.size;
+            badge.textContent = count;
+            if (count > 0) {
+                container.classList.add('has-folders');
+            } else {
+                container.classList.remove('has-folders');
+            }
+        }
+
+        function ftCountTreeStats(treeText) {
+            let folders = 0, files = 0;
+            const lines = treeText.split('\n');
+            for (const line of lines) {
+                if (line.includes('📂') || (line.includes('📁') && line.endsWith('/'))) folders++;
+                else if (line.match(/[📄🖼️📜🐘🎨🌐📋📝🐍🗃️📦⚙️]/)) files++;
+            }
+            return { folders, files };
+        }
+
+        function ftEscapeAttr(str) {
+            return str.replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        function ftEscapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function ftGetSafeId(folderName) {
+            return folderName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        function ftRenderCard(folderName) {
+            const data = ftFolderStore.get(folderName);
+            if (!data) return '';
+            const stats = ftCountTreeStats(data.treeText);
+            const sid = ftGetSafeId(folderName);
+            ftIdToName.set(sid, folderName);
+            const escHtml = ftEscapeHtml(folderName);
+            const escPath = ftEscapeHtml(data.path || 'No path');
+            return `
+                <div class="ft-folder-card ft-new" id="ftCard_${sid}" data-sid="${sid}">
+                    <div class="ft-folder-card-header" onclick="ftToggleCard('${sid}')">
+                        <div class="ft-folder-info">
+                            <i class="fas fa-chevron-down ft-chevron" id="ftChev_${sid}"></i>
+                            <div class="ft-folder-icon"><i class="fas fa-folder-tree"></i></div>
+                            <div>
+                                <div class="ft-folder-name">${escHtml}</div>
+                                <div class="ft-folder-path">${escPath}</div>
+                            </div>
+                        </div>
+                        <div class="ft-folder-stats">
+                            <span><i class="fas fa-folder"></i> ${stats.folders}</span>
+                            <span><i class="fas fa-file"></i> ${stats.files}</span>
+                        </div>
+                        <div class="ft-card-actions">
+                            <button onclick="event.stopPropagation();ftCopyTree('${sid}')" title="Copy tree">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button onclick="event.stopPropagation();ftRefreshTree('${sid}')" title="Refresh tree">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="ft-remove" onclick="event.stopPropagation();ftRemoveFolder('${sid}')" title="Remove folder">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ft-folder-tree-wrap">
+                        <div class="ft-tree-content" contenteditable="true" spellcheck="false"
+                             id="ftTree_${sid}"
+                             oninput="ftOnTreeEdit('${sid}', this)">${ftEscapeHtml(data.treeText).replace(/\n/g, '<br>')}</div>
+                    </div>
+                </div>`;
+        }
+
+        function ftRenderAll() {
+            const body = document.getElementById('ftFolderBody');
+            if (ftFolderStore.size === 0) {
+                body.innerHTML = '';
+                ftUpdateContainer();
+                return;
+            }
+            let html = '';
+            ftFolderStore.forEach((_, name) => {
+                html += ftRenderCard(name);
+            });
+            body.innerHTML = html;
+            ftUpdateContainer();
+            // Remove animation class after it plays
+            setTimeout(() => {
+                body.querySelectorAll('.ft-new').forEach(el => el.classList.remove('ft-new'));
+            }, 400);
+        }
+
+        function ftAddFolderCard(folderName) {
+            const body = document.getElementById('ftFolderBody');
+            body.insertAdjacentHTML('beforeend', ftRenderCard(folderName));
+            ftUpdateContainer();
+            // Remove animation class after it plays
+            setTimeout(() => {
+                const sid = ftGetSafeId(folderName);
+                const card = document.getElementById('ftCard_' + sid);
+                if (card) card.classList.remove('ft-new');
+            }, 400);
+        }
+
+        function ftToggleCard(safeId) {
+            const card = document.getElementById('ftCard_' + safeId);
+            if (card) card.classList.toggle('collapsed');
+        }
+
+        function ftOnTreeEdit(sid, el) {
+            const folderName = ftIdToName.get(sid);
+            if (!folderName) return;
+            const data = ftFolderStore.get(folderName);
+            if (data) {
+                data.treeText = el.innerText;
+            }
+        }
+
+        function ftRemoveFolder(sid) {
+            const folderName = ftIdToName.get(sid);
+            if (!folderName) return;
+            ftFolderStore.delete(folderName);
+            ftIdToName.delete(sid);
+            const card = document.getElementById('ftCard_' + sid);
+            if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    card.remove();
+                    ftUpdateContainer();
+                }, 310);
+            } else {
+                ftUpdateContainer();
+            }
+            if (editorFolders.has(folderName)) editorFolders.delete(folderName);
+            if (knownFolders.has(folderName)) knownFolders.delete(folderName);
+            updateCounts();
+            loadUploadedFiles();
+            showToast(`📁 ${folderName} removed`, 'info');
+        }
+
+        function ftCopyTree(sid) {
+            const folderName = ftIdToName.get(sid);
+            if (!folderName) return;
+            const data = ftFolderStore.get(folderName);
+            if (data) {
+                navigator.clipboard.writeText(data.treeText).then(() => {
+                    showToast(`📋 ${folderName} tree copied!`, 'success');
+                });
+            }
+        }
+
+        async function ftRefreshTree(sid) {
+            const folderName = ftIdToName.get(sid);
+            if (!folderName) return;
+            const data = ftFolderStore.get(folderName);
+            if (!data || !data.path) {
+                showToast('No path available to refresh', 'warning');
+                return;
+            }
+            const treeData = await fetchFolderTree(data.path);
+            if (treeData) {
+                data.treeText = buildTreeDiagram(folderName, treeData);
+                data.treeData = treeData;
+                const treeEl = document.getElementById('ftTree_' + sid);
+                if (treeEl) treeEl.innerText = data.treeText;
+                showToast(`🔄 ${folderName} refreshed!`, 'success');
+            }
+        }
+
+        function ftCopyAllTrees() {
+            if (ftFolderStore.size === 0) {
+                showToast('No folders to copy', 'info');
+                return;
+            }
+            let allText = '';
+            ftFolderStore.forEach((data, name) => {
+                if (allText) allText += '\n\n';
+                allText += data.treeText;
+            });
+            navigator.clipboard.writeText(allText).then(() => {
+                showToast(`📋 All folder trees copied!`, 'success');
+            });
+        }
+
+        function ftPushToEditor() {
+            if (ftFolderStore.size === 0) {
+                showToast('No folders to push', 'info');
+                return;
+            }
             const editor = document.getElementById('promptEditor');
-            
+            let allText = '';
+            ftFolderStore.forEach((data, name) => {
+                const marker = `<!-- FOLDER:${name} -->`;
+                const endMarker = `<!-- /END FOLDER:${name} -->`;
+                if (allText) allText += '\n\n';
+                allText += `${marker}\n${data.treeText}\n${endMarker}`;
+            });
+            if (editor.value.trim()) {
+                editor.value += '\n\n' + allText;
+            } else {
+                editor.value = allText;
+            }
+            updateCounts();
+            recordHistoryState(true);
+            showToast(`📝 ${ftFolderStore.size} folder tree(s) pushed to editor!`, 'success');
+        }
+
+        function ftCollapseAll() {
+            const cards = document.querySelectorAll('.ft-folder-card');
+            const allCollapsed = Array.from(cards).every(c => c.classList.contains('collapsed'));
+            cards.forEach(c => {
+                if (allCollapsed) {
+                    c.classList.remove('collapsed');
+                } else {
+                    c.classList.add('collapsed');
+                }
+            });
+        }
+
+        function ftClearAll() {
+            if (ftFolderStore.size === 0) return;
+            if (!confirm('Remove all folders from the template?')) return;
+            ftFolderStore.forEach((_, name) => {
+                if (editorFolders.has(name)) editorFolders.delete(name);
+                if (knownFolders.has(name)) knownFolders.delete(name);
+            });
+            ftFolderStore.clear();
+            ftIdToName.clear();
+            ftRenderAll();
+            updateCounts();
+            loadUploadedFiles();
+            showToast('All folders cleared', 'info');
+        }
+
+        // Resize handle for folder template
+        (function() {
+            const handle = document.getElementById('ftResizeHandle');
+            const container = document.getElementById('folderTemplateContainer');
+            if (!handle || !container) return;
+            let startY, startH;
+            handle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                startY = e.clientY;
+                startH = container.offsetHeight;
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onUp);
+            });
+            function onDrag(e) {
+                const newH = startH + (e.clientY - startY);
+                container.style.maxHeight = Math.max(80, newH) + 'px';
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', onUp);
+            }
+        })();
+
+        // Add a folder's reference + tree diagram to the TEMPLATE (makes it "checked")
+        async function addFolderToEditor(folderName, marker, folderPath) {
             if (!marker) {
                 marker = `<!-- FOLDER:${folderName} -->`;
             }
@@ -30635,36 +31207,38 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Fetch tree from PHP if we have a path
-            let content = '';
+            let treeText = '';
+            let treeData = null;
             if (folderPath) {
-                const treeData = await fetchFolderTree(folderPath);
+                treeData = await fetchFolderTree(folderPath);
                 if (treeData) {
-                    content = buildTreeDiagram(folderName, treeData);
+                    treeText = buildTreeDiagram(folderName, treeData);
                 } else {
-                    content = `📁 ${folderName}/\n    (could not read directory contents)`;
+                    treeText = `📁 ${folderName}/\n    (could not read directory contents)`;
                 }
             } else {
-                // No path available (drag & drop) — just show the folder name
-                content = `[📁 ${folderName}]`;
+                treeText = `[📁 ${folderName}]`;
             }
             
-            // Append to editor with spacing
-            let textToAdd = '';
-            if (editor.value.trim()) {
-                textToAdd = '\n\n';
-            }
-            textToAdd += `${marker}\n${content}\n${marker.replace('<!--', '<!-- /END ')}`;
+            // Store in folder template
+            ftFolderStore.set(folderName, {
+                path: folderPath,
+                treeText: treeText,
+                treeData: treeData,
+                addedAt: Date.now()
+            });
             
-            editor.value += textToAdd;
+            // Add card to template UI
+            ftAddFolderCard(folderName);
             
-            // Track in editorFolders (active in editor)
+            // Track in editorFolders (active)
             editorFolders.set(folderName, {
                 marker: marker,
                 addedAt: Date.now()
             });
         }
         
-        // Remove folder content from editor only (folder stays in display list)
+        // Remove folder content from template + editor (folder stays in display list)
         function removeFolderFromEditor(folderName) {
             const editor = document.getElementById('promptEditor');
             const folderData = editorFolders.get(folderName);
@@ -30687,6 +31261,16 @@ in each section carefully and maintain proper connections between components.
                 editorFolders.delete(folderName);
                 updateCounts();
             }
+            
+            // Also remove from folder template UI
+            if (ftFolderStore.has(folderName)) {
+                const sid = ftGetSafeId(folderName);
+                ftFolderStore.delete(folderName);
+                ftIdToName.delete(sid);
+                const card = document.getElementById('ftCard_' + sid);
+                if (card) card.remove();
+                ftUpdateContainer();
+            }
         }
         
         // Toggle folder checkbox — adds/removes from editor, folder stays in display list
@@ -30708,11 +31292,20 @@ in each section carefully and maintain proper connections between components.
             loadUploadedFiles();
         }
         
-        // Delete folder completely (remove from display list AND editor)
+        // Delete folder completely (remove from display list, editor, AND template)
         function deleteFolder(folderName) {
             // Remove from editor if active
             if (editorFolders.has(folderName)) {
                 removeFolderFromEditor(folderName);
+            }
+            // Remove from template if present
+            if (ftFolderStore.has(folderName)) {
+                const sid = ftGetSafeId(folderName);
+                ftFolderStore.delete(folderName);
+                ftIdToName.delete(sid);
+                const card = document.getElementById('ftCard_' + sid);
+                if (card) card.remove();
+                ftUpdateContainer();
             }
             // Remove from display list
             knownFolders.delete(folderName);
