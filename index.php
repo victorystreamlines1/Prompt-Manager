@@ -12796,8 +12796,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         /* Tree content area */
         .ft-folder-tree-wrap {
-            padding: 8px 12px 10px;
-            max-height: 300px;
+            padding: 8px 6px 10px;
+            max-height: 500px;
             overflow-y: auto;
             overflow-x: auto;
         }
@@ -12859,6 +12859,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .ft-folder-card.ft-new {
             animation: ftSlideIn 0.35s ease forwards;
+        }
+        /* ═══ Interactive Tree Nodes ═══ */
+        .ft-itree {
+            padding: 4px 0;
+        }
+        .ft-inode {
+            position: relative;
+            margin: 0;
+            padding: 0 0 0 20px;
+        }
+        .ft-inode-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 3px 6px;
+            border-radius: 7px;
+            transition: background 0.15s ease;
+            position: relative;
+        }
+        .ft-inode-row:hover {
+            background: rgba(99,102,241,0.07);
+        }
+        .ft-inode-toggle {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: rgba(99,102,241,0.1);
+            color: var(--accent-primary, #6366f1);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            margin-top: 3px;
+            transition: all 0.2s ease;
+        }
+        .ft-inode-toggle:hover {
+            background: rgba(99,102,241,0.25);
+            transform: scale(1.1);
+        }
+        .ft-inode-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        .ft-inode-toggle.collapsed:hover {
+            transform: rotate(-90deg) scale(1.1);
+        }
+        .ft-inode-toggle-spacer {
+            width: 20px;
+            flex-shrink: 0;
+        }
+        .ft-inode-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+        .ft-inode-icon.folder {
+            background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.10));
+            color: #fbbf24;
+        }
+        .ft-inode-icon.file {
+            background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(59,130,246,0.08));
+            color: #60a5fa;
+        }
+        .ft-inode-input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: var(--text-primary, #e2e8f0);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            padding: 4px 8px;
+            line-height: 1.5;
+            resize: none;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            outline: none;
+            min-height: 26px;
+            max-height: 200px;
+        }
+        .ft-inode-input:hover {
+            border-color: rgba(99,102,241,0.2);
+            background: rgba(99,102,241,0.04);
+        }
+        .ft-inode-input:focus {
+            border-color: rgba(99,102,241,0.4);
+            background: rgba(99,102,241,0.06);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+        }
+        .ft-inode-actions {
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .ft-inode-row:hover .ft-inode-actions {
+            opacity: 1;
+        }
+        .ft-inode-actions button {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted, #888);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .ft-inode-actions button:hover {
+            background: rgba(99,102,241,0.15);
+            color: var(--accent-primary, #6366f1);
+        }
+        .ft-inode-actions button.ft-del:hover {
+            background: rgba(239,68,68,0.15);
+            color: #ef4444;
+        }
+        .ft-inode-children {
+            padding-left: 8px;
+            margin-left: 9px;
+            border-left: 1px dashed rgba(99,102,241,0.15);
+            transition: all 0.25s ease;
+        }
+        .ft-inode-children.collapsed {
+            display: none;
+        }
+        .ft-itree-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px 6px;
+            border-bottom: 1px solid rgba(99,102,241,0.08);
+            margin-bottom: 4px;
+        }
+        .ft-itree-toolbar button {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border: 1px solid rgba(99,102,241,0.15);
+            background: rgba(99,102,241,0.06);
+            color: var(--text-secondary, #aaa);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ft-itree-toolbar button:hover {
+            background: rgba(99,102,241,0.15);
+            color: var(--accent-primary, #6366f1);
+            border-color: rgba(99,102,241,0.3);
         }
         /* Empty state */
         .ft-empty-hint {
@@ -31087,14 +31252,340 @@ in each section carefully and maintain proper connections between components.
             return folderName.replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
+        // ─── Interactive Tree Node System ───
+        let ftNodeIdCounter = 0;
+        const ftNodeMap = new Map();
+        const ftTreeRoots = new Map();
+
+        function ftNextNodeId() { return 'ftn_' + (++ftNodeIdCounter); }
+
+        function ftBuildNodeMap(items, sid, parentId) {
+            const ids = [];
+            if (!items || !Array.isArray(items)) return ids;
+            for (const item of items) {
+                const nid = ftNextNodeId();
+                const node = {
+                    id: nid, name: item.name || '', type: item.type || 'file',
+                    description: '', parentId: parentId, sid: sid, childIds: []
+                };
+                if (node.type === 'folder' && item.children) {
+                    node.childIds = ftBuildNodeMap(item.children, sid, nid);
+                }
+                ftNodeMap.set(nid, node);
+                ids.push(nid);
+            }
+            return ids;
+        }
+
+        function ftClearNodeMapForSid(sid) {
+            const rootIds = ftTreeRoots.get(sid);
+            if (!rootIds) return;
+            function removeR(nid) {
+                const n = ftNodeMap.get(nid);
+                if (!n) return;
+                if (n.childIds) n.childIds.forEach(c => removeR(c));
+                ftNodeMap.delete(nid);
+            }
+            rootIds.forEach(nid => removeR(nid));
+            ftTreeRoots.delete(sid);
+        }
+
+        function ftCountTreeStatsFromData(items) {
+            let folders = 0, files = 0;
+            function count(arr) {
+                if (!arr) return;
+                for (const it of arr) {
+                    if (it.type === 'folder') { folders++; if (it.children) count(it.children); }
+                    else files++;
+                }
+            }
+            count(items);
+            return { folders, files };
+        }
+
+        function ftGetNodeIcon(name, type) {
+            if (type === 'folder') return 'fas fa-folder';
+            const ext = (name.split('.').pop() || '').toLowerCase();
+            const m = {
+                html:'fab fa-html5', htm:'fab fa-html5', css:'fab fa-css3-alt', scss:'fab fa-css3-alt',
+                js:'fab fa-js-square', ts:'fab fa-js-square', jsx:'fab fa-react', tsx:'fab fa-react',
+                vue:'fab fa-vuejs', php:'fab fa-php', py:'fab fa-python',
+                json:'fas fa-cog', xml:'fas fa-code', md:'fab fa-markdown', txt:'fas fa-file-alt',
+                png:'fas fa-image', jpg:'fas fa-image', jpeg:'fas fa-image', gif:'fas fa-image',
+                svg:'fas fa-bezier-curve', webp:'fas fa-image', ico:'fas fa-image',
+                pdf:'fas fa-file-pdf', zip:'fas fa-file-archive', rar:'fas fa-file-archive',
+                sql:'fas fa-database', env:'fas fa-key', sh:'fas fa-terminal',
+                yml:'fas fa-cog', yaml:'fas fa-cog'
+            };
+            return m[ext] || 'fas fa-file';
+        }
+
+        function ftGetNodeIconColor(name, type) {
+            if (type === 'folder') return '#fbbf24';
+            const ext = (name.split('.').pop() || '').toLowerCase();
+            const m = {
+                html:'#e44d26', htm:'#e44d26', css:'#264de4', scss:'#264de4',
+                js:'#f7df1e', ts:'#3178c6', jsx:'#61dafb', tsx:'#61dafb',
+                vue:'#42b883', php:'#777bb3', py:'#3776ab',
+                json:'#fbbf24', xml:'#f97316', md:'#cbd5e1', txt:'#9ca3af',
+                png:'#10b981', jpg:'#10b981', jpeg:'#10b981', gif:'#10b981',
+                svg:'#ff6b9d', webp:'#10b981', ico:'#10b981',
+                pdf:'#ef4444', zip:'#a855f7', rar:'#a855f7',
+                sql:'#06b6d4', env:'#fbbf24', sh:'#22c55e',
+                yml:'#f97316', yaml:'#f97316'
+            };
+            return m[ext] || '#6b7280';
+        }
+
+        function ftRenderNode(nid) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return '';
+            const isFolder = node.type === 'folder';
+            const iconCls = ftGetNodeIcon(node.name, node.type);
+            const iconColor = ftGetNodeIconColor(node.name, node.type);
+            const iconType = isFolder ? 'folder' : 'file';
+
+            const toggleHtml = isFolder
+                ? `<button class="ft-inode-toggle" id="ftToggle_${nid}" onclick="ftNodeToggle('${nid}')" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>`
+                : `<div class="ft-inode-toggle-spacer"></div>`;
+
+            const val = node.description ? node.name + ' — ' + node.description : node.name;
+            const escapedVal = ftEscapeHtml(val);
+
+            let acts = '<div class="ft-inode-actions">';
+            if (isFolder) {
+                acts += `<button onclick="ftAddChild('${nid}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>`;
+                acts += `<button onclick="ftAddChild('${nid}','file')" title="Add file"><i class="fas fa-plus"></i></button>`;
+            }
+            acts += `<button class="ft-del" onclick="ftDeleteNode('${nid}')" title="Remove"><i class="fas fa-trash-alt"></i></button>`;
+            acts += '</div>';
+
+            let childrenHtml = '';
+            if (isFolder) {
+                childrenHtml = `<div class="ft-inode-children" id="ftChildren_${nid}">`;
+                for (const cid of node.childIds) childrenHtml += ftRenderNode(cid);
+                childrenHtml += '</div>';
+            }
+
+            return `<div class="ft-inode" id="ftNode_${nid}" data-nid="${nid}">
+                <div class="ft-inode-row">
+                    ${toggleHtml}
+                    <div class="ft-inode-icon ${iconType}" style="color:${iconColor}"><i class="${iconCls}"></i></div>
+                    <textarea class="ft-inode-input" rows="1" spellcheck="false" data-nid="${nid}"
+                        oninput="ftAutoResize(this);ftNodeInputChanged('${nid}',this)">${escapedVal}</textarea>
+                    ${acts}
+                </div>
+                ${childrenHtml}
+            </div>`;
+        }
+
+        function ftRenderInteractiveTree(sid) {
+            const rootIds = ftTreeRoots.get(sid);
+            if (!rootIds || rootIds.length === 0) {
+                return '<div class="ft-itree"><div style="padding:10px;color:var(--text-muted);font-size:0.8rem;text-align:center;">Empty tree</div></div>';
+            }
+            let html = `<div class="ft-itree-toolbar">
+                <button onclick="ftExpandAllNodes('${sid}')" title="Expand all"><i class="fas fa-expand-alt"></i> Expand</button>
+                <button onclick="ftCollapseAllNodes('${sid}')" title="Collapse all"><i class="fas fa-compress-alt"></i> Collapse</button>
+                <button onclick="ftAddRootChild('${sid}','folder')" title="Add root folder"><i class="fas fa-folder-plus"></i></button>
+                <button onclick="ftAddRootChild('${sid}','file')" title="Add root file"><i class="fas fa-plus"></i></button>
+            </div>`;
+            html += '<div class="ft-itree" id="ftITree_' + sid + '">';
+            for (const nid of rootIds) html += ftRenderNode(nid);
+            html += '</div>';
+            return html;
+        }
+
+        function ftNodeToggle(nid) {
+            const toggle = document.getElementById('ftToggle_' + nid);
+            const children = document.getElementById('ftChildren_' + nid);
+            if (!toggle || !children) return;
+            toggle.classList.toggle('collapsed');
+            children.classList.toggle('collapsed');
+        }
+
+        function ftAutoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+        }
+
+        function ftInitAutoResize(sid) {
+            const card = document.getElementById('ftCard_' + sid);
+            if (!card) return;
+            card.querySelectorAll('.ft-inode-input').forEach(ta => ftAutoResize(ta));
+        }
+
+        function ftNodeInputChanged(nid, el) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            const val = el.value;
+            const dashIdx = val.indexOf(' — ');
+            if (dashIdx > -1) {
+                node.name = val.substring(0, dashIdx);
+                node.description = val.substring(dashIdx + 3);
+            } else {
+                node.name = val;
+                node.description = '';
+            }
+            const folderName = ftIdToName.get(node.sid);
+            if (folderName) {
+                const data = ftFolderStore.get(folderName);
+                if (data) data._dirty = true;
+            }
+        }
+
+        function ftAddChild(parentNid, type) {
+            const parent = ftNodeMap.get(parentNid);
+            if (!parent || parent.type !== 'folder') return;
+            const nid = ftNextNodeId();
+            const name = type === 'folder' ? 'new-folder' : 'new-file.txt';
+            ftNodeMap.set(nid, { id: nid, name, type, description: '', parentId: parentNid, sid: parent.sid, childIds: [] });
+            parent.childIds.push(nid);
+
+            const childrenEl = document.getElementById('ftChildren_' + parentNid);
+            if (childrenEl) {
+                childrenEl.classList.remove('collapsed');
+                const toggleEl = document.getElementById('ftToggle_' + parentNid);
+                if (toggleEl) toggleEl.classList.remove('collapsed');
+                childrenEl.insertAdjacentHTML('beforeend', ftRenderNode(nid));
+                const newNode = document.getElementById('ftNode_' + nid);
+                if (newNode) {
+                    const ta = newNode.querySelector('.ft-inode-input');
+                    if (ta) { ftAutoResize(ta); ta.focus(); ta.select(); }
+                }
+            }
+            const folderName = ftIdToName.get(parent.sid);
+            if (folderName) { const d = ftFolderStore.get(folderName); if (d) d._dirty = true; }
+        }
+
+        function ftAddRootChild(sid, type) {
+            const rootIds = ftTreeRoots.get(sid);
+            if (!rootIds) return;
+            const nid = ftNextNodeId();
+            const name = type === 'folder' ? 'new-folder' : 'new-file.txt';
+            ftNodeMap.set(nid, { id: nid, name, type, description: '', parentId: null, sid, childIds: [] });
+            rootIds.push(nid);
+
+            const treeEl = document.getElementById('ftITree_' + sid);
+            if (treeEl) {
+                treeEl.insertAdjacentHTML('beforeend', ftRenderNode(nid));
+                const newNode = document.getElementById('ftNode_' + nid);
+                if (newNode) {
+                    const ta = newNode.querySelector('.ft-inode-input');
+                    if (ta) { ftAutoResize(ta); ta.focus(); ta.select(); }
+                }
+            }
+            const folderName = ftIdToName.get(sid);
+            if (folderName) { const d = ftFolderStore.get(folderName); if (d) d._dirty = true; }
+        }
+
+        function ftDeleteNode(nid) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            if (node.parentId) {
+                const parent = ftNodeMap.get(node.parentId);
+                if (parent) parent.childIds = parent.childIds.filter(id => id !== nid);
+            } else {
+                const rootIds = ftTreeRoots.get(node.sid);
+                if (rootIds) { const idx = rootIds.indexOf(nid); if (idx > -1) rootIds.splice(idx, 1); }
+            }
+            function removeR(id) {
+                const n = ftNodeMap.get(id);
+                if (!n) return;
+                if (n.childIds) n.childIds.forEach(c => removeR(c));
+                ftNodeMap.delete(id);
+            }
+            removeR(nid);
+            const el = document.getElementById('ftNode_' + nid);
+            if (el) {
+                el.style.transition = 'all 0.2s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(10px)';
+                setTimeout(() => el.remove(), 210);
+            }
+            const folderName = ftIdToName.get(node.sid);
+            if (folderName) { const d = ftFolderStore.get(folderName); if (d) d._dirty = true; }
+        }
+
+        function ftExpandAllNodes(sid) {
+            const card = document.getElementById('ftCard_' + sid);
+            if (!card) return;
+            card.querySelectorAll('.ft-inode-children').forEach(el => el.classList.remove('collapsed'));
+            card.querySelectorAll('.ft-inode-toggle').forEach(el => el.classList.remove('collapsed'));
+        }
+
+        function ftCollapseAllNodes(sid) {
+            const card = document.getElementById('ftCard_' + sid);
+            if (!card) return;
+            card.querySelectorAll('.ft-inode-children').forEach(el => el.classList.add('collapsed'));
+            card.querySelectorAll('.ft-inode-toggle').forEach(el => el.classList.add('collapsed'));
+        }
+
+        function ftSerializeTreeText(sid) {
+            const rootIds = ftTreeRoots.get(sid);
+            const folderName = ftIdToName.get(sid);
+            if (!rootIds || !folderName) return '';
+            let lines = ['📁 ' + folderName + '/'];
+            function renderN(nids, prefix) {
+                for (let i = 0; i < nids.length; i++) {
+                    const nd = ftNodeMap.get(nids[i]);
+                    if (!nd) continue;
+                    const isLast = (i === nids.length - 1);
+                    const conn = isLast ? '└── ' : '├── ';
+                    const childPfx = isLast ? '    ' : '│   ';
+                    if (nd.type === 'folder') {
+                        let lbl = '📂 ' + nd.name + '/';
+                        if (nd.description) lbl += ' — ' + nd.description;
+                        lines.push(prefix + conn + lbl);
+                        if (nd.childIds.length > 0) renderN(nd.childIds, prefix + childPfx);
+                    } else {
+                        const ext = (nd.name.split('.').pop() || '').toLowerCase();
+                        let icon = '📄';
+                        if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                        else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                        else if (['php'].includes(ext)) icon = '🐘';
+                        else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                        else if (['html','htm'].includes(ext)) icon = '🌐';
+                        else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                        else if (['md','txt','log'].includes(ext)) icon = '📝';
+                        else if (['py'].includes(ext)) icon = '🐍';
+                        else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
+                        else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
+                        else if (['env','gitignore','htaccess'].includes(ext) || nd.name.startsWith('.')) icon = '⚙️';
+                        let lbl = icon + ' ' + nd.name;
+                        if (nd.description) lbl += ' — ' + nd.description;
+                        lines.push(prefix + conn + lbl);
+                    }
+                }
+            }
+            renderN(rootIds, '');
+            return lines.join('\n');
+        }
+
         function ftRenderCard(folderName) {
             const data = ftFolderStore.get(folderName);
             if (!data) return '';
-            const stats = ftCountTreeStats(data.treeText);
             const sid = ftGetSafeId(folderName);
             ftIdToName.set(sid, folderName);
             const escHtml = ftEscapeHtml(folderName);
             const escPath = ftEscapeHtml(data.path || 'No path');
+
+            // Build interactive node map from treeData if available
+            let treeBodyHtml = '';
+            let stats = { folders: 0, files: 0 };
+            if (data.treeData && Array.isArray(data.treeData) && data.treeData.length > 0) {
+                ftClearNodeMapForSid(sid);
+                const rootIds = ftBuildNodeMap(data.treeData, sid, null);
+                ftTreeRoots.set(sid, rootIds);
+                treeBodyHtml = ftRenderInteractiveTree(sid);
+                stats = ftCountTreeStatsFromData(data.treeData);
+            } else {
+                treeBodyHtml = `<div class="ft-tree-content" contenteditable="true" spellcheck="false"
+                     id="ftTree_${sid}"
+                     oninput="ftOnTreeEdit('${sid}', this)">${ftEscapeHtml(data.treeText).replace(/\n/g, '<br>')}</div>`;
+                stats = ftCountTreeStats(data.treeText);
+            }
+
             return `
                 <div class="ft-folder-card ft-new" id="ftCard_${sid}" data-sid="${sid}">
                     <div class="ft-folder-card-header" onclick="ftToggleCard('${sid}')">
@@ -31123,9 +31614,7 @@ in each section carefully and maintain proper connections between components.
                         </div>
                     </div>
                     <div class="ft-folder-tree-wrap">
-                        <div class="ft-tree-content" contenteditable="true" spellcheck="false"
-                             id="ftTree_${sid}"
-                             oninput="ftOnTreeEdit('${sid}', this)">${ftEscapeHtml(data.treeText).replace(/\n/g, '<br>')}</div>
+                        ${treeBodyHtml}
                     </div>
                 </div>`;
         }
@@ -31143,7 +31632,10 @@ in each section carefully and maintain proper connections between components.
             });
             body.innerHTML = html;
             ftUpdateContainer();
-            // Remove animation class after it plays
+            // Init auto-resize for all interactive tree textareas
+            ftFolderStore.forEach((_, name) => {
+                ftInitAutoResize(ftGetSafeId(name));
+            });
             setTimeout(() => {
                 body.querySelectorAll('.ft-new').forEach(el => el.classList.remove('ft-new'));
             }, 400);
@@ -31153,9 +31645,10 @@ in each section carefully and maintain proper connections between components.
             const body = document.getElementById('ftFolderBody');
             body.insertAdjacentHTML('beforeend', ftRenderCard(folderName));
             ftUpdateContainer();
-            // Remove animation class after it plays
+            const sid = ftGetSafeId(folderName);
+            // Init auto-resize for interactive tree textareas after DOM insertion
+            requestAnimationFrame(() => ftInitAutoResize(sid));
             setTimeout(() => {
-                const sid = ftGetSafeId(folderName);
                 const card = document.getElementById('ftCard_' + sid);
                 if (card) card.classList.remove('ft-new');
             }, 400);
@@ -31178,6 +31671,7 @@ in each section carefully and maintain proper connections between components.
         function ftRemoveFolder(sid) {
             const folderName = ftIdToName.get(sid);
             if (!folderName) return;
+            ftClearNodeMapForSid(sid);
             ftFolderStore.delete(folderName);
             ftIdToName.delete(sid);
             const card = document.getElementById('ftCard_' + sid);
@@ -31203,11 +31697,17 @@ in each section carefully and maintain proper connections between components.
             const folderName = ftIdToName.get(sid);
             if (!folderName) return;
             const data = ftFolderStore.get(folderName);
-            if (data) {
-                navigator.clipboard.writeText(data.treeText).then(() => {
-                    showToast(`📋 ${folderName} tree copied!`, 'success');
-                });
+            if (!data) return;
+            // Use interactive tree serialization if available
+            let text = data.treeText;
+            if (ftTreeRoots.has(sid)) {
+                text = ftSerializeTreeText(sid);
+                data.treeText = text;
+                data._dirty = false;
             }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`📋 ${folderName} tree copied!`, 'success');
+            });
         }
 
         async function ftRefreshTree(sid) {
@@ -31235,8 +31735,27 @@ in each section carefully and maintain proper connections between components.
             if (treeData) {
                 data.treeText = buildTreeDiagram(folderName, treeData);
                 data.treeData = treeData;
-                const treeEl = document.getElementById('ftTree_' + sid);
-                if (treeEl) treeEl.innerText = data.treeText;
+                data._dirty = false;
+                // Rebuild interactive tree in the card
+                if (ftTreeRoots.has(sid)) {
+                    ftClearNodeMapForSid(sid);
+                    const rootIds = ftBuildNodeMap(treeData, sid, null);
+                    ftTreeRoots.set(sid, rootIds);
+                    const wrapEl = document.querySelector('#ftCard_' + sid + ' .ft-folder-tree-wrap');
+                    if (wrapEl) {
+                        wrapEl.innerHTML = ftRenderInteractiveTree(sid);
+                        requestAnimationFrame(() => ftInitAutoResize(sid));
+                    }
+                    // Update stats in header
+                    const statsFromData = ftCountTreeStatsFromData(treeData);
+                    const statsEl = document.querySelector('#ftCard_' + sid + ' .ft-folder-stats');
+                    if (statsEl) {
+                        statsEl.innerHTML = `<span><i class="fas fa-folder"></i> ${statsFromData.folders}</span><span><i class="fas fa-file"></i> ${statsFromData.files}</span>`;
+                    }
+                } else {
+                    const treeEl = document.getElementById('ftTree_' + sid);
+                    if (treeEl) treeEl.innerText = data.treeText;
+                }
                 showToast(`🔄 ${folderName} refreshed!`, 'success');
             } else {
                 showToast('Could not refresh — folder handle expired. Re-pick the folder.', 'warning');
@@ -31251,7 +31770,15 @@ in each section carefully and maintain proper connections between components.
             let allText = '';
             ftFolderStore.forEach((data, name) => {
                 if (allText) allText += '\n\n';
-                allText += data.treeText;
+                const sid = ftGetSafeId(name);
+                if (ftTreeRoots.has(sid)) {
+                    const serialized = ftSerializeTreeText(sid);
+                    data.treeText = serialized;
+                    data._dirty = false;
+                    allText += serialized;
+                } else {
+                    allText += data.treeText;
+                }
             });
             navigator.clipboard.writeText(allText).then(() => {
                 showToast(`📋 All folder trees copied!`, 'success');
@@ -31271,7 +31798,15 @@ in each section carefully and maintain proper connections between components.
             let allText = '';
             ftFolderStore.forEach((data, name) => {
                 if (allText) allText += '\n\n';
-                allText += data.treeText;
+                const sid = ftGetSafeId(name);
+                if (ftTreeRoots.has(sid)) {
+                    const serialized = ftSerializeTreeText(sid);
+                    data.treeText = serialized;
+                    data._dirty = false;
+                    allText += serialized;
+                } else {
+                    allText += data.treeText;
+                }
             });
             if (textarea.value.trim()) {
                 textarea.value += '\n\n' + allText;
@@ -31302,11 +31837,15 @@ in each section carefully and maintain proper connections between components.
             if (ftFolderStore.size === 0) return;
             if (!confirm('Remove all folders from the template?')) return;
             ftFolderStore.forEach((_, name) => {
+                const sid = ftGetSafeId(name);
+                ftClearNodeMapForSid(sid);
                 if (editorFolders.has(name)) editorFolders.delete(name);
                 if (knownFolders.has(name)) knownFolders.delete(name);
             });
             ftFolderStore.clear();
             ftIdToName.clear();
+            ftNodeMap.clear();
+            ftTreeRoots.clear();
             ftRenderAll();
             updateCounts();
             loadUploadedFiles();
@@ -31318,6 +31857,12 @@ in each section carefully and maintain proper connections between components.
             if (ftFolderStore.size === 0) return '[]';
             const arr = [];
             ftFolderStore.forEach((data, name) => {
+                const sid = ftGetSafeId(name);
+                // Sync treeText from interactive tree if dirty
+                if (ftTreeRoots.has(sid) && data._dirty) {
+                    data.treeText = ftSerializeTreeText(sid);
+                    data._dirty = false;
+                }
                 arr.push({
                     name: name,
                     path: data.path || '',
@@ -31331,7 +31876,9 @@ in each section carefully and maintain proper connections between components.
 
         // Deserialize JSON string back into ftFolderStore and render
         function ftDeserializeFolderStore(jsonStr) {
-            // Clear existing data
+            // Clear existing data including interactive node maps
+            ftNodeMap.clear();
+            ftTreeRoots.clear();
             ftFolderStore.clear();
             ftIdToName.clear();
             
