@@ -30571,6 +30571,10 @@ in each section carefully and maintain proper connections between components.
         let editorFolders = new Map(); // foldername -> {marker, addedAt} — folders active in editor
         let knownFolders = new Map(); // foldername -> {addedAt} — all folders in display list (persists)
         
+        // Client-side folder caches (for user's local PC browsing via File System Access API)
+        const clientTreeCache = new Map(); // folderName → treeData (built client-side)
+        const clientHandleCache = new Map(); // folderName → FileSystemDirectoryHandle (for refresh)
+        
         // Current file mode: 'content' or 'reference'
         let currentFileMode = 'reference';
 
@@ -30920,7 +30924,58 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Fetch folder tree from PHP server
+        // Build directory tree client-side from FileSystemDirectoryHandle (user's local PC)
+        async function buildClientSideTree(dirHandle, depth = 0, maxDepth = 0) {
+            if (maxDepth > 0 && depth >= maxDepth) return [];
+            
+            const tree = [];
+            const dirs = [];
+            const files = [];
+            const skipDirs = new Set(['.git', 'node_modules', 'vendor', '__pycache__', '.next', '.nuxt', 'dist', 'build', '.svn', '.idea', '.vscode']);
+            
+            try {
+                for await (const entry of dirHandle.values()) {
+                    // Skip hidden files/folders (except .env, .htaccess)
+                    if (entry.name.startsWith('.') && entry.name !== '.env' && entry.name !== '.htaccess') continue;
+                    if (entry.kind === 'directory' && skipDirs.has(entry.name)) continue;
+                    
+                    if (entry.kind === 'directory') {
+                        dirs.push(entry);
+                    } else {
+                        files.push(entry);
+                    }
+                }
+            } catch (e) {
+                console.warn('Cannot read directory:', e.message);
+                return tree;
+            }
+            
+            // Sort alphabetically
+            dirs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            
+            // Add directories first (with their children)
+            for (const dir of dirs) {
+                const children = await buildClientSideTree(dir, depth + 1, maxDepth);
+                tree.push({
+                    name: dir.name,
+                    type: 'folder',
+                    children: children
+                });
+            }
+            
+            // Then add files
+            for (const file of files) {
+                tree.push({
+                    name: file.name,
+                    type: 'file'
+                });
+            }
+            
+            return tree;
+        }
+        
+        // Fetch folder tree from PHP server (fallback for localhost)
         async function fetchFolderTree(folderPath) {
             if (!folderPath) return null;
             
@@ -31154,17 +31209,32 @@ in each section carefully and maintain proper connections between components.
             const folderName = ftIdToName.get(sid);
             if (!folderName) return;
             const data = ftFolderStore.get(folderName);
-            if (!data || !data.path) {
-                showToast('No path available to refresh', 'warning');
-                return;
+            if (!data) return;
+            
+            let treeData = null;
+            
+            // Try client-side refresh first (FileSystemDirectoryHandle cached from user's PC)
+            if (clientHandleCache.has(folderName)) {
+                try {
+                    treeData = await buildClientSideTree(clientHandleCache.get(folderName));
+                } catch (e) {
+                    console.warn('Client-side refresh failed:', e.message);
+                }
             }
-            const treeData = await fetchFolderTree(data.path);
+            
+            // Fallback to PHP server-side refresh (for localhost)
+            if (!treeData && data.path) {
+                treeData = await fetchFolderTree(data.path);
+            }
+            
             if (treeData) {
                 data.treeText = buildTreeDiagram(folderName, treeData);
                 data.treeData = treeData;
                 const treeEl = document.getElementById('ftTree_' + sid);
                 if (treeEl) treeEl.innerText = data.treeText;
                 showToast(`🔄 ${folderName} refreshed!`, 'success');
+            } else {
+                showToast('Could not refresh — folder handle expired. Re-pick the folder.', 'warning');
             }
         }
 
@@ -31338,10 +31408,16 @@ in each section carefully and maintain proper connections between components.
                 folderPath = knownFolders.get(folderName).path || '';
             }
             
-            // Fetch tree from PHP if we have a path
+            // Build tree: check client-side cache first (user's local PC), then PHP server fallback
             let treeText = '';
             let treeData = null;
-            if (folderPath) {
+            if (clientTreeCache.has(folderName)) {
+                // Use client-side built tree (from File System Access API)
+                treeData = clientTreeCache.get(folderName);
+                clientTreeCache.delete(folderName);
+                treeText = buildTreeDiagram(folderName, treeData);
+            } else if (folderPath) {
+                // Fallback: fetch tree from PHP server (works on localhost)
                 treeData = await fetchFolderTree(folderPath);
                 if (treeData) {
                     treeText = buildTreeDiagram(folderName, treeData);
