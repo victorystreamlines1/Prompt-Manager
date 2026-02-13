@@ -47408,26 +47408,53 @@ function toggleTheme() {
             // Design Enhancer: build tree for each, convert to uf format
             await fbSendToDesignEnhancerClient(selectedNames);
         } else {
-            // Prompt Editor: build tree for each, cache in window.clientTreeCache/clientHandleCache,
-            // then call handleFolders with empty paths (addFolderToEditor will pick from cache)
-            const folderInfos = [];
+            // Prompt Editor: build ONE unified tree from all selected folders
+            // Root = current directory name, children = selected folders with full recursive trees
+            const rootName = fbCurrentHandle ? fbCurrentHandle.name : 'Project';
+            const unifiedTree = [];
             
             for (const name of selectedNames) {
                 const handle = fbClientHandles.get(name);
                 if (handle) {
                     try {
-                        const treeData = await window.buildClientSideTree(handle);
-                        window.clientTreeCache.set(name, treeData);
-                        window.clientHandleCache.set(name, handle);
+                        const children = await window.buildClientSideTree(handle);
+                        unifiedTree.push({
+                            name: name,
+                            type: 'folder',
+                            children: children
+                        });
                     } catch (err) {
                         console.warn('Could not build tree for', name, err.message);
+                        unifiedTree.push({ name: name, type: 'folder', children: [] });
                     }
+                } else {
+                    unifiedTree.push({ name: name, type: 'folder', children: [] });
                 }
-                folderInfos.push({ name, path: '' });
             }
             
+            // Also read files from the current directory and append sorted after folders
+            if (fbCurrentHandle) {
+                try {
+                    const rootFiles = [];
+                    for await (const entry of fbCurrentHandle.values()) {
+                        if (entry.kind === 'file' && !entry.name.startsWith('.')) {
+                            rootFiles.push({ name: entry.name, type: 'file' });
+                        }
+                    }
+                    rootFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+                    unifiedTree.push(...rootFiles);
+                } catch (e) { /* ignore */ }
+            }
+            
+            // Cache as ONE unified entry
+            window.clientTreeCache.set(rootName, unifiedTree);
+            if (fbCurrentHandle) {
+                window.clientHandleCache.set(rootName, fbCurrentHandle);
+            }
+            
+            // Send as ONE folder to handleFolders → creates ONE card in the editor
             if (typeof handleFolders === 'function') {
-                handleFolders(folderInfos);
+                handleFolders([{ name: rootName, path: '' }]);
             }
         }
     }
