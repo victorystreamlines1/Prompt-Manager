@@ -47145,23 +47145,36 @@ function toggleTheme() {
         
         try {
             const subdirs = [];
+            const fileEntries = [];
             for await (const entry of dirHandle.values()) {
+                if (entry.name.startsWith('.') || fbSkipDirs.has(entry.name)) continue;
                 if (entry.kind === 'directory') {
-                    if (entry.name.startsWith('.') || fbSkipDirs.has(entry.name)) continue;
                     subdirs.push(entry);
                     fbClientHandles.set(entry.name, entry);
+                } else if (entry.kind === 'file') {
+                    fileEntries.push(entry);
                 }
             }
             
             subdirs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            fileEntries.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
             
             const folders = subdirs.map(entry => ({
                 name: entry.name,
-                path: '',           // no server path in client mode
-                hasSubdirs: true    // assume all may have subdirs
+                path: '',
+                hasSubdirs: true,
+                itemType: 'folder'
             }));
             
-            fbRenderFolders(folders);
+            const files = fileEntries.map(entry => ({
+                name: entry.name,
+                path: '',
+                hasSubdirs: false,
+                itemType: 'file'
+            }));
+            
+            // Pass both folders and files — folders first, then files
+            fbRenderClientItems(folders, files);
         } catch (err) {
             listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-exclamation-triangle"></i><p>Cannot read directory. Permission may have been revoked.</p></div>';
             console.error('Client folder read error:', err);
@@ -47202,7 +47215,7 @@ function toggleTheme() {
         }
     };
 
-    // Render folder list (works for both PHP and client mode)
+    // Render folder list (PHP mode only — unchanged)
     function fbRenderFolders(folders) {
         const listContainer = document.getElementById('fbFolderList');
         
@@ -47217,14 +47230,9 @@ function toggleTheme() {
             const escapedName = folder.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const escapedPath = (folder.path || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             
-            // Enter button: PHP mode uses fbNavigate(path), client mode uses fbEnterFolder(name)
             let enterBtn = '';
             if (folder.hasSubdirs) {
-                if (fbClientMode) {
-                    enterBtn = `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbEnterFolder('${escapedName}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>`;
-                } else {
-                    enterBtn = `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbNavigate('${escapedPath}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>`;
-                }
+                enterBtn = `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbNavigate('${escapedPath}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>`;
             }
             
             html += `
@@ -47237,6 +47245,87 @@ function toggleTheme() {
         }
         
         listContainer.innerHTML = html;
+    }
+
+    // Render client-mode items: selectable folders + display-only files
+    function fbRenderClientItems(folders, files) {
+        const listContainer = document.getElementById('fbFolderList');
+        
+        if (folders.length === 0 && files.length === 0) {
+            listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-folder-open"></i><p>Empty folder</p></div>';
+            return;
+        }
+        
+        let html = '';
+        
+        // Folders section — selectable, with enter arrow
+        if (folders.length > 0) {
+            html += `<div class="fb-section-label" style="padding:6px 12px;font-size:11px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:6px;"><i class="fas fa-folder" style="color:#fbbf24;"></i> Folders (${folders.length})</div>`;
+            for (const folder of folders) {
+                const isSelected = fbSelectedFolders.has(folder.name);
+                const escapedName = folder.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                html += `
+                <div class="fb-folder-item ${isSelected ? 'selected' : ''}" data-name="${folder.name}" data-path="" onclick="fbToggleFolder('${escapedName}', '', this)">
+                    <div class="fb-folder-checkbox"><i class="fas fa-check"></i></div>
+                    <i class="fas fa-folder fb-folder-icon"></i>
+                    <span class="fb-folder-name">${folder.name}</span>
+                    <button class="fb-folder-enter" onclick="event.stopPropagation(); fbEnterFolder('${escapedName}')" title="Browse inside"><i class="fas fa-arrow-right"></i></button>
+                </div>`;
+            }
+        }
+        
+        // Files section — display only, not selectable
+        if (files.length > 0) {
+            html += `<div class="fb-section-label" style="padding:6px 12px;font-size:11px;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.06);margin-top:4px;display:flex;align-items:center;gap:6px;"><i class="fas fa-file" style="color:#60a5fa;"></i> Files (${files.length})</div>`;
+            for (const file of files) {
+                const icon = fbGetFileIcon(file.name);
+                html += `
+                <div class="fb-folder-item fb-file-item" style="opacity:0.7;cursor:default;pointer-events:none;">
+                    <div class="fb-folder-checkbox" style="visibility:hidden;"><i class="fas fa-check"></i></div>
+                    <i class="${icon.cls}" style="color:${icon.color};font-size:14px;width:20px;text-align:center;"></i>
+                    <span class="fb-folder-name" style="color:var(--text-muted,#aaa);">${file.name}</span>
+                </div>`;
+            }
+        }
+        
+        listContainer.innerHTML = html;
+    }
+
+    // Get file icon based on extension
+    function fbGetFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const map = {
+            html: { cls: 'fab fa-html5', color: '#e44d26' },
+            htm:  { cls: 'fab fa-html5', color: '#e44d26' },
+            css:  { cls: 'fab fa-css3-alt', color: '#264de4' },
+            js:   { cls: 'fab fa-js-square', color: '#f7df1e' },
+            ts:   { cls: 'fab fa-js-square', color: '#3178c6' },
+            jsx:  { cls: 'fab fa-react', color: '#61dafb' },
+            tsx:  { cls: 'fab fa-react', color: '#61dafb' },
+            vue:  { cls: 'fab fa-vuejs', color: '#42b883' },
+            php:  { cls: 'fab fa-php', color: '#777bb3' },
+            py:   { cls: 'fab fa-python', color: '#3776ab' },
+            json: { cls: 'fas fa-cog', color: '#fbbf24' },
+            xml:  { cls: 'fas fa-code', color: '#f97316' },
+            md:   { cls: 'fab fa-markdown', color: '#ffffff' },
+            txt:  { cls: 'fas fa-file-alt', color: '#9ca3af' },
+            svg:  { cls: 'fas fa-bezier-curve', color: '#ff6b9d' },
+            png:  { cls: 'fas fa-image', color: '#10b981' },
+            jpg:  { cls: 'fas fa-image', color: '#10b981' },
+            jpeg: { cls: 'fas fa-image', color: '#10b981' },
+            gif:  { cls: 'fas fa-image', color: '#10b981' },
+            webp: { cls: 'fas fa-image', color: '#10b981' },
+            ico:  { cls: 'fas fa-image', color: '#10b981' },
+            pdf:  { cls: 'fas fa-file-pdf', color: '#ef4444' },
+            zip:  { cls: 'fas fa-file-archive', color: '#a855f7' },
+            env:  { cls: 'fas fa-key', color: '#fbbf24' },
+            sql:  { cls: 'fas fa-database', color: '#06b6d4' },
+            sh:   { cls: 'fas fa-terminal', color: '#22c55e' },
+            yml:  { cls: 'fas fa-cog', color: '#f97316' },
+            yaml: { cls: 'fas fa-cog', color: '#f97316' },
+        };
+        return map[ext] || { cls: 'fas fa-file', color: '#6b7280' };
     }
 
     // Toggle folder selection
