@@ -30572,8 +30572,11 @@ in each section carefully and maintain proper connections between components.
         let knownFolders = new Map(); // foldername -> {addedAt} — all folders in display list (persists)
         
         // Client-side folder caches (for user's local PC browsing via File System Access API)
-        const clientTreeCache = new Map(); // folderName → treeData (built client-side)
-        const clientHandleCache = new Map(); // folderName → FileSystemDirectoryHandle (for refresh)
+        // Exposed on window so Folder Browser IIFE (separate script block) can populate them
+        if (!window.clientTreeCache) window.clientTreeCache = new Map();
+        if (!window.clientHandleCache) window.clientHandleCache = new Map();
+        const clientTreeCache = window.clientTreeCache; // folderName → treeData (built client-side)
+        const clientHandleCache = window.clientHandleCache; // folderName → FileSystemDirectoryHandle (for refresh)
         
         // Current file mode: 'content' or 'reference'
         let currentFileMode = 'reference';
@@ -30925,6 +30928,8 @@ in each section carefully and maintain proper connections between components.
         }
         
         // Build directory tree client-side from FileSystemDirectoryHandle (user's local PC)
+        // Also exposed on window for Folder Browser IIFE access
+        window.buildClientSideTree = buildClientSideTree;
         async function buildClientSideTree(dirHandle, depth = 0, maxDepth = 0) {
             if (maxDepth > 0 && depth >= maxDepth) return [];
             
@@ -46936,29 +46941,40 @@ function toggleTheme() {
 
 <script>
 // ============================================
-// FOLDER BROWSER - PHP-Powered Multi-Select
+// FOLDER BROWSER - Hybrid: PHP on localhost, File System Access API on remote
 // ============================================
 (function() {
     console.log('📁 Folder Browser IIFE initializing...');
+    
+    // ── Shared state ──
     let fbCurrentPath = '';
     let fbParentPath = '';
-    let fbSelectedFolders = new Map(); // Map of folderName → folderPath selected in the modal
-    let fbMode = 'prompt'; // 'prompt' = send to prompt editor, 'enhancer' = send to Design Enhancer
+    let fbSelectedFolders = new Map(); // folderName → folderPath (PHP) or '' (client)
+    let fbMode = 'prompt'; // 'prompt' | 'enhancer'
     const fbDefaultFallback = 'C:/';
     const fbAppDir = '<?php echo str_replace('\\', '/', dirname(__FILE__)); ?>';
+    
+    // ── Client-side mode state (File System Access API for remote hosts) ──
+    let fbClientMode = false;
+    let fbClientHandles = new Map();    // current view's subfolder name → FileSystemDirectoryHandle
+    let fbClientNavStack = [];          // [{handle, name}] for "Go Up" navigation
+    let fbCurrentHandle = null;         // FileSystemDirectoryHandle of directory being viewed
+    const fbSkipDirs = new Set(['.git', 'node_modules', 'vendor', '__pycache__', '.next', '.nuxt', 'dist', 'build', '.svn', '.idea', '.vscode', '.cache', '.output']);
+    
+    // ── Detect localhost vs remote host ──
+    function fbIsLocalhost() {
+        const h = window.location.hostname;
+        return h === 'localhost' || h === '127.0.0.1' || h === '::1' || h.endsWith('.local') || h.endsWith('.test');
+    }
 
-    // Resolve the best starting path for the folder browser
-    // Priority: 1) Last browsed / resolved path (updated whenever prompt folder changes), 2) Resolve prompt folder name, 3) C:/
+    // ── Resolve start path (PHP mode only) ──
     async function fbResolveStartPath() {
-        // 1) Use last browsed path — this gets updated every time user changes the
-        //    Prompt Editor folder OR manually navigates in the folder browser
         const lastPath = localStorage.getItem('fbLastBrowsedPath');
         if (lastPath) {
             console.log('📁 Folder browser: using saved path →', lastPath);
             return lastPath;
         }
         
-        // 2) Try to resolve Prompt Editor's connected folder name
         const promptFolderName = localStorage.getItem('promptFolderName');
         if (promptFolderName) {
             try {
@@ -46979,30 +46995,79 @@ function toggleTheme() {
             }
         }
         
-        // 3) Fallback to C:/
         console.log('📁 Folder browser: using default fallback → C:/');
         return fbDefaultFallback;
     }
 
-    // Open the folder browser modal (for Prompt Editor — left panel)
+    // ════════════════════════════════════════════════════════════════
+    // OPEN / CLOSE
+    // ════════════════════════════════════════════════════════════════
+
+    // Open folder browser (Prompt Editor — left panel)
     window.openFolderBrowser = async function() {
         fbMode = 'prompt';
-        const overlay = document.getElementById('folderBrowserOverlay');
-        overlay.classList.add('active');
+        fbSelectedFolders = new Map();
+        fbUpdateSelectedCount();
         
-        const startPath = await fbResolveStartPath();
-        fbNavigate(startPath);
+        if (fbIsLocalhost()) {
+            // PHP mode — browse server filesystem
+            fbClientMode = false;
+            const overlay = document.getElementById('folderBrowserOverlay');
+            overlay.classList.add('active');
+            const startPath = await fbResolveStartPath();
+            fbNavigate(startPath);
+        } else {
+            // Client mode — use File System Access API to browse user's PC
+            fbClientMode = true;
+            try {
+                const handle = await window.showDirectoryPicker({ mode: 'read' });
+                fbCurrentHandle = handle;
+                fbClientNavStack = [];
+                fbClientHandles = new Map();
+                
+                const overlay = document.getElementById('folderBrowserOverlay');
+                overlay.classList.add('active');
+                await fbNavigateClient(handle, handle.name);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Folder picker error:', err);
+                    showToast('Could not open folder picker: ' + err.message, 'error');
+                }
+            }
+        }
     };
     console.log('✅ openFolderBrowser registered on window');
 
-    // Open the folder browser modal (for Design Enhancer — right panel)
+    // Open folder browser (Design Enhancer — right panel)
     window.openDeFolderBrowser = async function() {
         fbMode = 'enhancer';
-        const overlay = document.getElementById('folderBrowserOverlay');
-        overlay.classList.add('active');
+        fbSelectedFolders = new Map();
+        fbUpdateSelectedCount();
         
-        const startPath = await fbResolveStartPath();
-        fbNavigate(startPath);
+        if (fbIsLocalhost()) {
+            fbClientMode = false;
+            const overlay = document.getElementById('folderBrowserOverlay');
+            overlay.classList.add('active');
+            const startPath = await fbResolveStartPath();
+            fbNavigate(startPath);
+        } else {
+            fbClientMode = true;
+            try {
+                const handle = await window.showDirectoryPicker({ mode: 'read' });
+                fbCurrentHandle = handle;
+                fbClientNavStack = [];
+                fbClientHandles = new Map();
+                
+                const overlay = document.getElementById('folderBrowserOverlay');
+                overlay.classList.add('active');
+                await fbNavigateClient(handle, handle.name);
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Folder picker error:', err);
+                    showToast('Could not open folder picker: ' + err.message, 'error');
+                }
+            }
+        }
     };
 
     // Close the folder browser modal
@@ -47010,12 +47075,23 @@ function toggleTheme() {
         const overlay = document.getElementById('folderBrowserOverlay');
         overlay.classList.remove('active');
         fbSelectedFolders = new Map();
+        fbClientHandles = new Map();
+        fbClientNavStack = [];
+        fbCurrentHandle = null;
+        fbClientMode = false;
         fbMode = 'prompt';
         fbUpdateSelectedCount();
+        // Restore path input for next open
+        const pathInput = document.getElementById('fbPathInput');
+        if (pathInput) { pathInput.readOnly = false; pathInput.title = ''; }
     };
 
-    // Navigate to a path
+    // ════════════════════════════════════════════════════════════════
+    // PHP MODE — Navigate server filesystem (localhost)
+    // ════════════════════════════════════════════════════════════════
+
     window.fbNavigate = async function(path) {
+        if (fbClientMode) return; // ignore in client mode
         if (!path) return;
         
         const listContainer = document.getElementById('fbFolderList');
@@ -47040,7 +47116,6 @@ function toggleTheme() {
                 fbParentPath = data.parentPath;
                 pathInput.value = data.currentPath;
                 
-                // Save last browsed path for next session
                 localStorage.setItem('fbLastBrowsedPath', data.currentPath);
                 
                 fbRenderFolders(data.folders);
@@ -47053,14 +47128,81 @@ function toggleTheme() {
         }
     };
 
+    // ════════════════════════════════════════════════════════════════
+    // CLIENT MODE — Navigate via File System Access API (remote host)
+    // ════════════════════════════════════════════════════════════════
+
+    async function fbNavigateClient(dirHandle, pathLabel) {
+        const listContainer = document.getElementById('fbFolderList');
+        const pathInput = document.getElementById('fbPathInput');
+        
+        listContainer.innerHTML = '<div class="fb-loading"><i class="fas fa-spinner fa-spin"></i> Reading folder...</div>';
+        pathInput.value = pathLabel || dirHandle.name;
+        pathInput.readOnly = true;
+        pathInput.title = 'Client-side mode — navigate using folder entries';
+        fbCurrentHandle = dirHandle;
+        fbClientHandles = new Map();
+        
+        try {
+            const subdirs = [];
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'directory') {
+                    if (entry.name.startsWith('.') || fbSkipDirs.has(entry.name)) continue;
+                    subdirs.push(entry);
+                    fbClientHandles.set(entry.name, entry);
+                }
+            }
+            
+            subdirs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            
+            const folders = subdirs.map(entry => ({
+                name: entry.name,
+                path: '',           // no server path in client mode
+                hasSubdirs: true    // assume all may have subdirs
+            }));
+            
+            fbRenderFolders(folders);
+        } catch (err) {
+            listContainer.innerHTML = '<div class="fb-empty"><i class="fas fa-exclamation-triangle"></i><p>Cannot read directory. Permission may have been revoked.</p></div>';
+            console.error('Client folder read error:', err);
+        }
+    }
+
+    // Enter a subfolder (client mode) — called from render onclick
+    window.fbEnterFolder = function(folderName) {
+        const handle = fbClientHandles.get(folderName);
+        if (!handle) return;
+        
+        // Push current directory onto nav stack
+        fbClientNavStack.push({ handle: fbCurrentHandle, name: fbCurrentHandle.name });
+        
+        // Build path label from stack
+        const pathLabel = fbClientNavStack.map(p => p.name).join(' / ') + ' / ' + folderName;
+        fbNavigateClient(handle, pathLabel);
+    };
+
+    // ════════════════════════════════════════════════════════════════
+    // SHARED — Go Up, Render, Select, Add
+    // ════════════════════════════════════════════════════════════════
+
     // Go up one directory
     window.fbGoUp = function() {
-        if (fbParentPath && fbParentPath !== fbCurrentPath) {
-            fbNavigate(fbParentPath);
+        if (fbClientMode) {
+            if (fbClientNavStack.length > 0) {
+                const parent = fbClientNavStack.pop();
+                const pathLabel = fbClientNavStack.length > 0
+                    ? fbClientNavStack.map(p => p.name).join(' / ') + ' / ' + parent.name
+                    : parent.name;
+                fbNavigateClient(parent.handle, pathLabel);
+            }
+        } else {
+            if (fbParentPath && fbParentPath !== fbCurrentPath) {
+                fbNavigate(fbParentPath);
+            }
         }
     };
 
-    // Render folder list
+    // Render folder list (works for both PHP and client mode)
     function fbRenderFolders(folders) {
         const listContainer = document.getElementById('fbFolderList');
         
@@ -47073,14 +47215,24 @@ function toggleTheme() {
         for (const folder of folders) {
             const isSelected = fbSelectedFolders.has(folder.name);
             const escapedName = folder.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const escapedPath = folder.path.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const escapedPath = (folder.path || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            // Enter button: PHP mode uses fbNavigate(path), client mode uses fbEnterFolder(name)
+            let enterBtn = '';
+            if (folder.hasSubdirs) {
+                if (fbClientMode) {
+                    enterBtn = `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbEnterFolder('${escapedName}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>`;
+                } else {
+                    enterBtn = `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbNavigate('${escapedPath}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>`;
+                }
+            }
             
             html += `
             <div class="fb-folder-item ${isSelected ? 'selected' : ''}" data-name="${folder.name}" data-path="${escapedPath}" onclick="fbToggleFolder('${escapedName}', '${escapedPath}', this)">
                 <div class="fb-folder-checkbox"><i class="fas fa-check"></i></div>
                 <i class="fas fa-folder fb-folder-icon"></i>
                 <span class="fb-folder-name">${folder.name}</span>
-                ${folder.hasSubdirs ? `<button class="fb-folder-enter" onclick="event.stopPropagation(); fbNavigate('${escapedPath}')" title="Open folder"><i class="fas fa-arrow-right"></i></button>` : ''}
+                ${enterBtn}
             </div>`;
         }
         
@@ -47122,45 +47274,89 @@ function toggleTheme() {
     // Update selected count display
     function fbUpdateSelectedCount() {
         const count = fbSelectedFolders.size;
-        document.getElementById('fbSelectedCount').textContent = count + ' selected';
-        document.getElementById('fbAddCount').textContent = count;
-        document.getElementById('fbAddBtn').disabled = count === 0;
+        const countEl = document.getElementById('fbSelectedCount');
+        const addCountEl = document.getElementById('fbAddCount');
+        const addBtn = document.getElementById('fbAddBtn');
+        if (countEl) countEl.textContent = count + ' selected';
+        if (addCountEl) addCountEl.textContent = count;
+        if (addBtn) addBtn.disabled = count === 0;
     }
 
-    // Add selected folders to the main app (routes based on mode)
+    // ════════════════════════════════════════════════════════════════
+    // ADD SELECTED — routes to Prompt Editor or Design Enhancer
+    // ════════════════════════════════════════════════════════════════
+
     window.fbAddSelected = async function() {
         if (fbSelectedFolders.size === 0) return;
         
-        // Build array of {name, path} objects
-        const folderInfos = [];
-        fbSelectedFolders.forEach((path, name) => {
-            folderInfos.push({ name, path });
-        });
-        
-        if (fbMode === 'enhancer') {
-            // Design Enhancer mode — fetch tree for each folder, convert to uf format, send to ufHandleFoldersStructure
-            await fbSendToDesignEnhancer(folderInfos);
+        if (fbClientMode) {
+            // ── Client mode: build trees from FileSystemDirectoryHandles ──
+            await fbAddSelectedClient();
         } else {
-            // Prompt Editor mode — use the existing handleFolders function
-            if (typeof handleFolders === 'function') {
-                handleFolders(folderInfos);
+            // ── PHP mode: use server paths ──
+            const folderInfos = [];
+            fbSelectedFolders.forEach((path, name) => {
+                folderInfos.push({ name, path });
+            });
+            
+            if (fbMode === 'enhancer') {
+                await fbSendToDesignEnhancerPHP(folderInfos);
+            } else {
+                if (typeof handleFolders === 'function') {
+                    handleFolders(folderInfos);
+                }
             }
         }
         
         closeFolderBrowser();
     };
 
-    // Send selected folders to Design Enhancer's Project Structure
-    async function fbSendToDesignEnhancer(folderInfos) {
+    // ── Client mode: add selected folders ──
+    async function fbAddSelectedClient() {
+        const selectedNames = Array.from(fbSelectedFolders.keys());
+        
+        if (fbMode === 'enhancer') {
+            // Design Enhancer: build tree for each, convert to uf format
+            await fbSendToDesignEnhancerClient(selectedNames);
+        } else {
+            // Prompt Editor: build tree for each, cache in window.clientTreeCache/clientHandleCache,
+            // then call handleFolders with empty paths (addFolderToEditor will pick from cache)
+            const folderInfos = [];
+            
+            for (const name of selectedNames) {
+                const handle = fbClientHandles.get(name);
+                if (handle) {
+                    try {
+                        const treeData = await window.buildClientSideTree(handle);
+                        window.clientTreeCache.set(name, treeData);
+                        window.clientHandleCache.set(name, handle);
+                    } catch (err) {
+                        console.warn('Could not build tree for', name, err.message);
+                    }
+                }
+                folderInfos.push({ name, path: '' });
+            }
+            
+            if (typeof handleFolders === 'function') {
+                handleFolders(folderInfos);
+            }
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // DESIGN ENHANCER — Send folder trees
+    // ════════════════════════════════════════════════════════════════
+
+    // PHP mode: fetch trees from server
+    async function fbSendToDesignEnhancerPHP(folderInfos) {
         const folders = [];
         
         for (const info of folderInfos) {
             try {
-                // Fetch tree from PHP
                 const formData = new FormData();
                 formData.append('action', 'get_folder_tree');
                 formData.append('path', info.path);
-                formData.append('max_depth', '0'); // 0 = unlimited depth — traverse all levels
+                formData.append('max_depth', '0');
                 
                 const response = await fetch('', {
                     method: 'POST',
@@ -47169,39 +47365,49 @@ function toggleTheme() {
                 const data = await response.json();
                 
                 if (data.success && data.tree) {
-                    // Convert PHP tree format to uf format {name, type, children, fileCount, folderCount}
                     const converted = fbConvertTreeToUfFormat(info.name, data.tree);
-                    converted._serverPath = info.path; // Store server path for logo detection
+                    converted._serverPath = info.path;
                     folders.push(converted);
                 } else {
-                    // If tree fetch failed, add as empty folder
-                    folders.push({
-                        name: info.name,
-                        type: 'folder',
-                        children: [],
-                        fileCount: 0,
-                        folderCount: 0,
-                        _serverPath: info.path
-                    });
+                    folders.push({ name: info.name, type: 'folder', children: [], fileCount: 0, folderCount: 0, _serverPath: info.path });
                 }
             } catch (err) {
                 console.error('Error fetching tree for', info.name, err);
-                folders.push({
-                    name: info.name,
-                    type: 'folder',
-                    children: [],
-                    fileCount: 0,
-                    folderCount: 0,
-                    _serverPath: info.path
-                });
+                folders.push({ name: info.name, type: 'folder', children: [], fileCount: 0, folderCount: 0, _serverPath: info.path });
             }
         }
         
-        // Send to Design Enhancer's ufHandleFoldersStructure
+        fbSendToDesignEnhancerUI(folders);
+    }
+
+    // Client mode: build trees from FileSystemDirectoryHandles
+    async function fbSendToDesignEnhancerClient(selectedNames) {
+        const folders = [];
+        
+        for (const name of selectedNames) {
+            const handle = fbClientHandles.get(name);
+            if (handle) {
+                try {
+                    const treeData = await window.buildClientSideTree(handle);
+                    const converted = fbConvertClientTreeToUfFormat(name, treeData);
+                    folders.push(converted);
+                } catch (err) {
+                    console.error('Error building tree for', name, err);
+                    folders.push({ name, type: 'folder', children: [], fileCount: 0, folderCount: 0 });
+                }
+            } else {
+                folders.push({ name, type: 'folder', children: [], fileCount: 0, folderCount: 0 });
+            }
+        }
+        
+        fbSendToDesignEnhancerUI(folders);
+    }
+
+    // Shared: push folders to Design Enhancer UI
+    function fbSendToDesignEnhancerUI(folders) {
         if (folders.length > 0 && typeof ufHandleFoldersStructure === 'function') {
             ufHandleFoldersStructure(folders);
             
-            // Also update the root display
             const rootSelectedDiv = document.getElementById('ufRootSelected');
             const rootDropDiv = document.getElementById('ufRootDrop');
             const rootNameSpan = document.getElementById('ufRootName');
@@ -47215,6 +47421,10 @@ function toggleTheme() {
             }
         }
     }
+
+    // ════════════════════════════════════════════════════════════════
+    // TREE FORMAT CONVERTERS
+    // ════════════════════════════════════════════════════════════════
 
     // Convert PHP tree format → uf format (recursive)
     function fbConvertTreeToUfFormat(name, tree) {
@@ -47257,6 +47467,52 @@ function toggleTheme() {
             folderCount: folderCount
         };
     }
+
+    // Convert client-side tree (from buildClientSideTree) → uf format
+    function fbConvertClientTreeToUfFormat(name, tree) {
+        let fileCount = 0;
+        let folderCount = 0;
+        
+        function convertChildren(items, parentPath) {
+            const children = [];
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    folderCount++;
+                    const subChildren = item.children ? convertChildren(item.children, parentPath + '/' + item.name) : [];
+                    children.push({
+                        name: item.name,
+                        type: 'folder',
+                        children: subChildren,
+                        fileCount: subChildren.filter(c => c.type === 'file').length,
+                        folderCount: subChildren.filter(c => c.type === 'folder').length
+                    });
+                } else {
+                    fileCount++;
+                    children.push({
+                        name: item.name,
+                        type: 'file',
+                        size: 0,
+                        path: parentPath + '/' + item.name
+                    });
+                }
+            }
+            return children;
+        }
+        
+        const children = convertChildren(tree, name);
+        
+        return {
+            name: name,
+            type: 'folder',
+            children: children,
+            fileCount: fileCount,
+            folderCount: folderCount
+        };
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // EVENT LISTENERS
+    // ════════════════════════════════════════════════════════════════
 
     // Close on overlay click
     document.getElementById('folderBrowserOverlay').addEventListener('click', function(e) {
