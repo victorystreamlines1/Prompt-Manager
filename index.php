@@ -663,6 +663,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
+    // ============================================
+    // DATABASE RELATIONAL TREE — Fetch tables + foreign keys
+    // ============================================
+    if ($action === 'get_db_tree') {
+        $host = $_POST['host'] ?? 'localhost';
+        $port = $_POST['port'] ?? '3306';
+        $dbName = $_POST['dbName'] ?? '';
+        $username = $_POST['username'] ?? 'root';
+        $password = $_POST['password'] ?? '';
+
+        if (!$dbName) {
+            echo json_encode(['success' => false, 'message' => 'Database name is required']);
+            exit;
+        }
+
+        try {
+            $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
+            $dbConn = new PDO($dsn, $username, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]);
+
+            // 1. Get all tables
+            $tablesStmt = $dbConn->query("SHOW TABLES");
+            $tableNames = $tablesStmt->fetchAll(PDO::FETCH_COLUMN);
+
+            $tables = [];
+            foreach ($tableNames as $tName) {
+                // Get columns
+                $colStmt = $dbConn->prepare("SHOW FULL COLUMNS FROM `{$tName}`");
+                $colStmt->execute();
+                $columns = [];
+                $primaryKey = null;
+                foreach ($colStmt->fetchAll() as $col) {
+                    $columns[] = [
+                        'name' => $col['Field'],
+                        'type' => $col['Type'],
+                        'nullable' => ($col['Null'] === 'YES'),
+                        'key' => $col['Key'],
+                        'default' => $col['Default'],
+                        'extra' => $col['Extra']
+                    ];
+                    if ($col['Key'] === 'PRI') {
+                        $primaryKey = $col['Field'];
+                    }
+                }
+
+                // Get row count
+                $countStmt = $dbConn->query("SELECT COUNT(*) as cnt FROM `{$tName}`");
+                $rowCount = $countStmt->fetch()['cnt'] ?? 0;
+
+                $tables[] = [
+                    'name' => $tName,
+                    'columns' => $columns,
+                    'primaryKey' => $primaryKey,
+                    'rowCount' => (int)$rowCount
+                ];
+            }
+
+            // 2. Get foreign key relationships
+            $fkStmt = $dbConn->prepare("
+                SELECT 
+                    TABLE_NAME as from_table,
+                    COLUMN_NAME as from_column,
+                    REFERENCED_TABLE_NAME as to_table,
+                    REFERENCED_COLUMN_NAME as to_column,
+                    CONSTRAINT_NAME as constraint_name
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = :dbName
+                  AND REFERENCED_TABLE_NAME IS NOT NULL
+                ORDER BY TABLE_NAME, COLUMN_NAME
+            ");
+            $fkStmt->execute([':dbName' => $dbName]);
+            $relationships = $fkStmt->fetchAll();
+
+            echo json_encode([
+                'success' => true,
+                'database' => $dbName,
+                'tables' => $tables,
+                'relationships' => $relationships
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Connection failed: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
     // Save prompt
     if ($action === 'save_prompt') {
         $title = $_POST['title'] ?? '';
@@ -975,6 +1062,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
+    // ============ DATABASE TREE FOR FOLDER TEMPLATE ============
+    
+    if ($action === 'get_db_tree') {
+        $host = $_POST['host'] ?? 'localhost';
+        $port = intval($_POST['port'] ?? 3306);
+        $dbName = trim($_POST['dbName'] ?? '');
+        $username = trim($_POST['username'] ?? 'root');
+        $password = $_POST['password'] ?? '';
+
+        if (empty($dbName)) {
+            echo json_encode(['success' => false, 'message' => 'Database name is required']);
+            exit;
+        }
+
+        try {
+            $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
+            $tmpPdo = new PDO($dsn, $username, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_TIMEOUT => 10
+            ]);
+
+            // 1. Get all tables
+            $stmt = $tmpPdo->query("SHOW TABLES");
+            $tableNames = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            $tables = [];
+            foreach ($tableNames as $tName) {
+                $colStmt = $tmpPdo->query("DESCRIBE `{$tName}`");
+                $cols = $colStmt->fetchAll();
+
+                $countStmt = $tmpPdo->query("SELECT COUNT(*) as c FROM `{$tName}`");
+                $rowCount = intval($countStmt->fetch()['c']);
+
+                $columns = [];
+                $pk = null;
+                foreach ($cols as $c) {
+                    $columns[] = [
+                        'name'  => $c['Field'],
+                        'type'  => $c['Type'],
+                        'key'   => $c['Key'],
+                        'extra' => $c['Extra'],
+                        'nullable' => $c['Null'] === 'YES'
+                    ];
+                    if ($c['Key'] === 'PRI') $pk = $c['Field'];
+                }
+
+                $tables[$tName] = [
+                    'name'       => $tName,
+                    'rowCount'   => $rowCount,
+                    'primaryKey' => $pk,
+                    'columns'    => $columns
+                ];
+            }
+
+            // 2. Get foreign key relationships
+            $fkStmt = $tmpPdo->prepare("
+                SELECT 
+                    TABLE_NAME, COLUMN_NAME,
+                    REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = ? 
+                  AND REFERENCED_TABLE_NAME IS NOT NULL
+            ");
+            $fkStmt->execute([$dbName]);
+            $foreignKeys = $fkStmt->fetchAll();
+
+            $relationships = [];
+            foreach ($foreignKeys as $fk) {
+                $relationships[] = [
+                    'from_table'  => $fk['TABLE_NAME'],
+                    'from_column' => $fk['COLUMN_NAME'],
+                    'to_table'    => $fk['REFERENCED_TABLE_NAME'],
+                    'to_column'   => $fk['REFERENCED_COLUMN_NAME']
+                ];
+            }
+
+            $tmpPdo = null;
+
+            echo json_encode([
+                'success'       => true,
+                'database'      => $dbName,
+                'tables'        => array_values($tables),
+                'relationships' => $relationships,
+                'count'         => count($tables)
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     // ============ PROJECT MANAGEMENT CRUD ============
     
     // Get all projects
@@ -15248,6 +15427,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             height: 28px;
             font-size: 0.75rem;
         }
+
+        /* Database Tree Checkbox */
+        .db-tree-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .db-tree-checkbox input[type="checkbox"] {
+            display: none;
+        }
+        .db-tree-check-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1.5px solid rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.05);
+            color: rgba(251, 191, 36, 0.5);
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+        }
+        .db-tree-checkbox:hover .db-tree-check-icon {
+            border-color: rgba(251, 191, 36, 0.6);
+            background: rgba(251, 191, 36, 0.1);
+            color: rgba(251, 191, 36, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
+        }
+        .db-tree-checkbox input:checked + .db-tree-check-icon {
+            border-color: rgba(251, 191, 36, 0.8);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.2));
+            color: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.3), inset 0 0 8px rgba(251, 191, 36, 0.1);
+            animation: dbTreePulse 0.4s ease;
+        }
+        .db-tree-checkbox.loading .db-tree-check-icon {
+            animation: dbTreeSpin 1s linear infinite;
+            border-color: rgba(251, 191, 36, 0.6);
+            color: #fbbf24;
+        }
+        @keyframes dbTreePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        @keyframes dbTreeSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
         
         .db-cred-row-compact {
             display: flex;
@@ -20186,6 +20419,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="database-section-content">
                                     <div class="db-controls-compact">
                                         <div class="db-dropdown-row">
+                                            <label class="db-tree-checkbox" title="Send database tables as relational tree to Folder Template">
+                                                <input type="checkbox" id="dbTreeCheckbox" onchange="onDbTreeCheckboxChange()">
+                                                <span class="db-tree-check-icon"><i class="fas fa-project-diagram"></i></span>
+                                            </label>
                                             <div class="dash-db-dropdown-wrap">
                                                 <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                                     <option value="">-- Select --</option>
@@ -26890,6 +27127,222 @@ function setLanguage(langCode) {
             }
         }
         
+        // ─── Database Tree Checkbox Handler ───
+        async function onDbTreeCheckboxChange() {
+            const checkbox = document.getElementById('dbTreeCheckbox');
+            const label = checkbox.closest('.db-tree-checkbox');
+
+            if (!checkbox.checked) {
+                // Unchecked — remove the DB tree card if it exists
+                const existingName = window._dbTreeFolderName;
+                if (existingName) {
+                    const sid = ftGetSafeId(existingName);
+                    ftClearNodeMapForSid(sid);
+                    ftFolderStore.delete(existingName);
+                    ftIdToName.delete(sid);
+                    knownFolders.delete(existingName);
+                    const el = document.getElementById('ftCard_' + sid);
+                    if (el) el.remove();
+                    ftUpdateContainer();
+                    window._dbTreeFolderName = null;
+                    showToast('🗑️ Database tree removed', 'info');
+                }
+                return;
+            }
+
+            // Checked — need a selected database
+            const dropdown = document.getElementById('dbDropdown');
+            if (!dropdown.value || !selectedDatabaseConnection) {
+                showToast('⚠️ Please select a database first', 'warning');
+                checkbox.checked = false;
+                return;
+            }
+
+            const conn = selectedDatabaseConnection;
+            label.classList.add('loading');
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_db_tree');
+                formData.append('host', conn.host || 'localhost');
+                formData.append('port', conn.port || '3306');
+                formData.append('dbName', conn.dbName || '');
+                formData.append('username', conn.username || 'root');
+                formData.append('password', conn.password || '');
+
+                const resp = await fetch('', { method: 'POST', body: formData });
+                const data = await resp.json();
+
+                if (!data.success) {
+                    showToast('❌ ' + (data.message || 'Failed to fetch tables'), 'error');
+                    checkbox.checked = false;
+                    label.classList.remove('loading');
+                    return;
+                }
+
+                // Build relational tree from tables + relationships
+                const treeData = buildDbRelationalTree(data.database, data.tables, data.relationships || []);
+                const dbFolderName = '🗄️ DB: ' + data.database;
+
+                // Remove previous DB tree if exists
+                if (window._dbTreeFolderName && window._dbTreeFolderName !== dbFolderName) {
+                    const oldSid = ftGetSafeId(window._dbTreeFolderName);
+                    ftClearNodeMapForSid(oldSid);
+                    ftFolderStore.delete(window._dbTreeFolderName);
+                    ftIdToName.delete(oldSid);
+                    knownFolders.delete(window._dbTreeFolderName);
+                    const oldEl = document.getElementById('ftCard_' + oldSid);
+                    if (oldEl) oldEl.remove();
+                }
+
+                window._dbTreeFolderName = dbFolderName;
+
+                // Store in ftFolderStore — same format as folder tree
+                const treeText = buildTreeDiagram(dbFolderName, treeData);
+                ftFolderStore.set(dbFolderName, {
+                    path: conn.host + '/' + data.database,
+                    treeText: treeText,
+                    treeData: treeData,
+                    addedAt: Date.now(),
+                    _dirty: false
+                });
+                knownFolders.set(dbFolderName, { addedAt: Date.now(), path: conn.host + '/' + data.database });
+
+                // If card already exists, re-render it; otherwise add new
+                const sid = ftGetSafeId(dbFolderName);
+                const existingCard = document.getElementById('ftCard_' + sid);
+                if (existingCard) {
+                    ftClearNodeMapForSid(sid);
+                    existingCard.outerHTML = ftRenderCard(dbFolderName);
+                    requestAnimationFrame(() => ftInitAutoResize(sid));
+                } else {
+                    ftAddFolderCard(dbFolderName);
+                }
+                ftUpdateContainer();
+
+                const tableCount = data.tables ? data.tables.length : 0;
+                const relCount = data.relationships ? data.relationships.length : 0;
+                showToast(`✅ Database tree: ${tableCount} tables, ${relCount} relationships`, 'success');
+
+            } catch (err) {
+                console.error('DB Tree error:', err);
+                showToast('❌ Error fetching database tree', 'error');
+                checkbox.checked = false;
+            } finally {
+                label.classList.remove('loading');
+            }
+        }
+
+        // Build a relational tree structure from flat tables + foreign key relationships
+        function buildDbRelationalTree(dbName, tables, relationships) {
+            if (!tables || tables.length === 0) return [];
+
+            // Map: tableName → table data
+            const tableMap = new Map();
+            tables.forEach(t => tableMap.set(t.name, t));
+
+            // Map: parentTable → [childTables] based on FK (child has FK pointing to parent)
+            const childrenOf = new Map();
+            const hasParent = new Set();
+
+            // 1. Use actual foreign keys
+            for (const rel of relationships) {
+                const parent = rel.to_table;   // referenced table = parent
+                const child = rel.from_table;   // table with FK = child
+                if (parent === child) continue;  // self-referencing — skip
+                if (!tableMap.has(parent) || !tableMap.has(child)) continue;
+                if (!childrenOf.has(parent)) childrenOf.set(parent, new Set());
+                childrenOf.get(parent).add(child);
+                hasParent.add(child);
+            }
+
+            // 2. Heuristic: detect implied relationships by naming convention
+            //    e.g. "user_id" column in "orders" → orders is child of users
+            const tableNames = Array.from(tableMap.keys());
+            for (const t of tables) {
+                for (const col of (t.columns || [])) {
+                    if (!col.name.endsWith('_id')) continue;
+                    const baseName = col.name.slice(0, -3); // remove _id
+                    // Try to find parent table: exact match, plural, or with 's'
+                    let parentName = null;
+                    const candidates = [baseName, baseName + 's', baseName + 'es', baseName.replace(/ie$/, 'y') + 's'];
+                    for (const c of candidates) {
+                        if (tableMap.has(c) && c !== t.name) { parentName = c; break; }
+                    }
+                    if (parentName && !hasParent.has(t.name)) {
+                        if (!childrenOf.has(parentName)) childrenOf.set(parentName, new Set());
+                        if (!childrenOf.get(parentName).has(t.name)) {
+                            childrenOf.get(parentName).add(t.name);
+                            hasParent.add(t.name);
+                        }
+                    }
+                }
+            }
+
+            // 3. Build tree recursively
+            const visited = new Set();
+            function buildNode(tableName) {
+                if (visited.has(tableName)) return null;
+                visited.add(tableName);
+                const tbl = tableMap.get(tableName);
+                if (!tbl) return null;
+
+                const kids = childrenOf.get(tableName);
+                const children = [];
+                if (kids) {
+                    const sorted = Array.from(kids).sort();
+                    for (const kidName of sorted) {
+                        const kidNode = buildNode(kidName);
+                        if (kidNode) children.push(kidNode);
+                    }
+                }
+
+                // Each table is a "folder" so it can have children (sub-tables)
+                // Columns become "file" children with description = type info
+                const colChildren = (tbl.columns || []).map(col => {
+                    let desc = col.type;
+                    if (col.key === 'PRI') desc += ' | PRIMARY KEY';
+                    else if (col.key === 'MUL') desc += ' | FOREIGN KEY';
+                    else if (col.key === 'UNI') desc += ' | UNIQUE';
+                    if (col.nullable) desc += ' | NULL';
+                    if (col.extra) desc += ' | ' + col.extra;
+                    return {
+                        name: col.name,
+                        type: 'file',
+                        description: desc,
+                        children: []
+                    };
+                });
+
+                return {
+                    name: tableName,
+                    type: 'folder',
+                    description: `${tbl.rowCount || 0} rows` + (tbl.primaryKey ? ` | PK: ${tbl.primaryKey}` : ''),
+                    children: [...children, ...colChildren]
+                };
+            }
+
+            // Root tables = tables that have no parent
+            const rootTables = tableNames.filter(t => !hasParent.has(t)).sort();
+            // Also add orphan tables that were skipped
+            const orphans = tableNames.filter(t => hasParent.has(t) && !visited.has(t));
+
+            const tree = [];
+            for (const rt of rootTables) {
+                const node = buildNode(rt);
+                if (node) tree.push(node);
+            }
+            // Add any remaining orphans (circular refs etc.)
+            for (const t of tableNames) {
+                if (!visited.has(t)) {
+                    const node = buildNode(t);
+                    if (node) tree.push(node);
+                }
+            }
+
+            return tree;
+        }
+
         // Reset connection check button to default state
         function resetDbConnCheckBtn() {
             const btn = document.getElementById('dbConnCheckBtn');
@@ -31389,7 +31842,7 @@ in each section carefully and maintain proper connections between components.
                 const nid = ftNextNodeId();
                 const node = {
                     id: nid, name: item.name || '', type: item.type || 'file',
-                    description: '', parentId: parentId, sid: sid, childIds: []
+                    description: item.description || '', parentId: parentId, sid: sid, childIds: []
                 };
                 if (node.type === 'folder' && item.children) {
                     node.childIds = ftBuildNodeMap(item.children, sid, nid);
