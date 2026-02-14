@@ -31879,7 +31879,16 @@ in each section carefully and maintain proper connections between components.
             return { folders, files };
         }
 
-        function ftGetNodeIcon(name, type) {
+        function ftIsDbTreeNode(sid) {
+            const folderName = ftIdToName.get(sid);
+            return folderName && folderName.startsWith('🗄️ DB: ');
+        }
+
+        function ftGetNodeIcon(name, type, sid) {
+            if (sid && ftIsDbTreeNode(sid)) {
+                if (type === 'folder') return 'fas fa-table';
+                return 'fas fa-columns';
+            }
             if (type === 'folder') return 'fas fa-folder';
             const ext = (name.split('.').pop() || '').toLowerCase();
             const m = {
@@ -31896,7 +31905,11 @@ in each section carefully and maintain proper connections between components.
             return m[ext] || 'fas fa-file';
         }
 
-        function ftGetNodeIconColor(name, type) {
+        function ftGetNodeIconColor(name, type, sid) {
+            if (sid && ftIsDbTreeNode(sid)) {
+                if (type === 'folder') return '#06b6d4';
+                return '#a78bfa';
+            }
             if (type === 'folder') return '#fbbf24';
             const ext = (name.split('.').pop() || '').toLowerCase();
             const m = {
@@ -31917,8 +31930,9 @@ in each section carefully and maintain proper connections between components.
             const node = ftNodeMap.get(nid);
             if (!node) return '';
             const isFolder = node.type === 'folder';
-            const iconCls = ftGetNodeIcon(node.name, node.type);
-            const iconColor = ftGetNodeIconColor(node.name, node.type);
+            const isDbTree = ftIsDbTreeNode(node.sid);
+            const iconCls = ftGetNodeIcon(node.name, node.type, node.sid);
+            const iconColor = ftGetNodeIconColor(node.name, node.type, node.sid);
             const iconType = isFolder ? 'folder' : 'file';
 
             const toggleHtml = isFolder
@@ -31931,8 +31945,13 @@ in each section carefully and maintain proper connections between components.
 
             let acts = '<div class="ft-inode-actions">';
             if (isFolder) {
-                acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>`;
-                acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','file')" title="Add file"><i class="fas fa-plus"></i></button>`;
+                if (isDbTree) {
+                    acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','folder')" title="Add subtable"><i class="fas fa-table"></i></button>`;
+                    acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','file')" title="Add field"><i class="fas fa-columns"></i></button>`;
+                } else {
+                    acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>`;
+                    acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','file')" title="Add file"><i class="fas fa-plus"></i></button>`;
+                }
             }
             acts += `<button class="ft-del" onclick="event.stopPropagation();ftDeleteNode('${nid}')" title="Remove"><i class="fas fa-trash-alt"></i></button>`;
             acts += '</div>';
@@ -32374,20 +32393,26 @@ in each section carefully and maintain proper connections between components.
                 stats = ftCountTreeStats(data.treeText);
             }
 
+            const isDbCard = folderName.startsWith('\ud83d\uddc4\ufe0f DB: ');
+            const cardIcon = isDbCard ? 'fas fa-database' : 'fas fa-folder-tree';
+            const statIcon1 = isDbCard ? 'fas fa-table' : 'fas fa-folder';
+            const statIcon2 = isDbCard ? 'fas fa-columns' : 'fas fa-file';
+            const cardIconColor = isDbCard ? 'style="color:#06b6d4"' : '';
+
             return `
                 <div class="ft-folder-card ft-new" id="ftCard_${sid}" data-sid="${sid}">
                     <div class="ft-folder-card-header" onclick="ftToggleCard('${sid}')">
                         <div class="ft-folder-info">
                             <i class="fas fa-chevron-down ft-chevron" id="ftChev_${sid}"></i>
-                            <div class="ft-folder-icon"><i class="fas fa-folder-tree"></i></div>
+                            <div class="ft-folder-icon" ${cardIconColor}><i class="${cardIcon}"></i></div>
                             <div>
                                 <div class="ft-folder-name">${escHtml}</div>
                                 <div class="ft-folder-path">${escPath}</div>
                             </div>
                         </div>
                         <div class="ft-folder-stats">
-                            <span><i class="fas fa-folder"></i> ${stats.folders}</span>
-                            <span><i class="fas fa-file"></i> ${stats.files}</span>
+                            <span><i class="${statIcon1}"></i> ${stats.folders}</span>
+                            <span><i class="${statIcon2}"></i> ${stats.files}</span>
                         </div>
                         <div class="ft-card-actions">
                             <button onclick="event.stopPropagation();ftCopyTree('${sid}')" title="Copy tree">
