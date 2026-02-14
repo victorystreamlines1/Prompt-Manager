@@ -1061,99 +1061,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
-    
-    // ============ DATABASE TREE FOR FOLDER TEMPLATE ============
-    
-    if ($action === 'get_db_tree') {
-        $host = $_POST['host'] ?? 'localhost';
-        $port = intval($_POST['port'] ?? 3306);
-        $dbName = trim($_POST['dbName'] ?? '');
-        $username = trim($_POST['username'] ?? 'root');
-        $password = $_POST['password'] ?? '';
-
-        if (empty($dbName)) {
-            echo json_encode(['success' => false, 'message' => 'Database name is required']);
-            exit;
-        }
-
-        try {
-            $dsn = "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4";
-            $tmpPdo = new PDO($dsn, $username, $password, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_TIMEOUT => 10
-            ]);
-
-            // 1. Get all tables
-            $stmt = $tmpPdo->query("SHOW TABLES");
-            $tableNames = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-            $tables = [];
-            foreach ($tableNames as $tName) {
-                $colStmt = $tmpPdo->query("DESCRIBE `{$tName}`");
-                $cols = $colStmt->fetchAll();
-
-                $countStmt = $tmpPdo->query("SELECT COUNT(*) as c FROM `{$tName}`");
-                $rowCount = intval($countStmt->fetch()['c']);
-
-                $columns = [];
-                $pk = null;
-                foreach ($cols as $c) {
-                    $columns[] = [
-                        'name'  => $c['Field'],
-                        'type'  => $c['Type'],
-                        'key'   => $c['Key'],
-                        'extra' => $c['Extra'],
-                        'nullable' => $c['Null'] === 'YES'
-                    ];
-                    if ($c['Key'] === 'PRI') $pk = $c['Field'];
-                }
-
-                $tables[$tName] = [
-                    'name'       => $tName,
-                    'rowCount'   => $rowCount,
-                    'primaryKey' => $pk,
-                    'columns'    => $columns
-                ];
-            }
-
-            // 2. Get foreign key relationships
-            $fkStmt = $tmpPdo->prepare("
-                SELECT 
-                    TABLE_NAME, COLUMN_NAME,
-                    REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
-                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-                WHERE TABLE_SCHEMA = ? 
-                  AND REFERENCED_TABLE_NAME IS NOT NULL
-            ");
-            $fkStmt->execute([$dbName]);
-            $foreignKeys = $fkStmt->fetchAll();
-
-            $relationships = [];
-            foreach ($foreignKeys as $fk) {
-                $relationships[] = [
-                    'from_table'  => $fk['TABLE_NAME'],
-                    'from_column' => $fk['COLUMN_NAME'],
-                    'to_table'    => $fk['REFERENCED_TABLE_NAME'],
-                    'to_column'   => $fk['REFERENCED_COLUMN_NAME']
-                ];
-            }
-
-            $tmpPdo = null;
-
-            echo json_encode([
-                'success'       => true,
-                'database'      => $dbName,
-                'tables'        => array_values($tables),
-                'relationships' => $relationships,
-                'count'         => count($tables)
-            ]);
-        } catch (PDOException $e) {
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        }
-        exit;
-    }
-
     // ============ PROJECT MANAGEMENT CRUD ============
     
     // Get all projects
@@ -28431,9 +28338,13 @@ ${blockContent}
                 
                 // Add folder trees if present
                 if (hasProjectFolders) {
-                    let folderBlock = `\n════════════════════════════════════════════════════════════════════════════════\n📂 PROJECT STRUCTURE (${folderCount} Folder${folderCount > 1 ? 's' : ''})\n════════════════════════════════════════════════════════════════════════════════\n\nThe following project folder structure(s) provide context about the codebase\narchitecture. Use this to understand the file organization:\n`;
+                    let folderBlock = `\n════════════════════════════════════════════════════════════════════════════════\n📂 PROJECT STRUCTURE & DATABASE SCHEMA\n════════════════════════════════════════════════════════════════════════════════\n\nThe following structure(s) provide context about the codebase architecture\nand database schema. Use this to understand the organization:\n`;
                     ftFolderStore.forEach((data, name) => {
-                        folderBlock += `\n┌─── 📁 ${name} ───────────────────────────────────────────────────┐\n${data.treeText}\n└──────────────────────────────────────────────────────────────────────┘\n`;
+                        const isDbItem = name.startsWith('🗄️ DB: ');
+                        const icon = isDbItem ? '🗄️' : '📁';
+                        const sid = ftGetSafeId(name);
+                        const currentText = ftTreeRoots.has(sid) ? ftSerializeTreeText(sid) : data.treeText;
+                        folderBlock += `\n┌─── ${icon} ${name} ───────────────────────────────────────────────────┐\n${currentText}\n└──────────────────────────────────────────────────────────────────────┘\n`;
                     });
                     earlyParts.push(folderBlock);
                 }
@@ -28495,23 +28406,27 @@ ${hasProjectFolders ? `   • Project Folders: ${folderCount}\n` : ''}   • Bac
                 hasContent = true;
                 let folderSection = `
 ════════════════════════════════════════════════════════════════════════════════
-📂 PROJECT STRUCTURE (${folderCount} Folder${folderCount > 1 ? 's' : ''})
+📂 PROJECT STRUCTURE & DATABASE SCHEMA
 ════════════════════════════════════════════════════════════════════════════════
 
-The following project folder structure(s) provide context about the codebase
-architecture. Use this to understand the file organization and ensure any new
-files or modifications follow the existing project structure.
+The following structure(s) provide context about the codebase architecture
+and database schema. Use this to understand the organization and ensure any
+new files or modifications follow the existing structure.
 `;
                 ftFolderStore.forEach((data, name) => {
+                    const isDbItem = name.startsWith('🗄️ DB: ');
+                    const icon = isDbItem ? '🗄️' : '📁';
+                    const sid = ftGetSafeId(name);
+                    const currentText = ftTreeRoots.has(sid) ? ftSerializeTreeText(sid) : data.treeText;
                     folderSection += `
-┌─── 📁 ${name} ───────────────────────────────────────────────────┐
-${data.treeText}
+┌─── ${icon} ${name} ───────────────────────────────────────────────────┐
+${currentText}
 └──────────────────────────────────────────────────────────────────────┘
 `;
                 });
                 folderSection += `
-💡 NOTE: When creating new files or making changes, respect the existing folder
-structure above. Place files in the appropriate directories.
+💡 NOTE: When creating new files or making changes, respect the existing
+structure above. Place files in the appropriate directories and tables.
 `;
                 promptSections.push(folderSection);
             }
@@ -31760,11 +31675,14 @@ in each section carefully and maintain proper connections between components.
         
         // Build a beautiful ASCII tree diagram from the tree data
         function buildTreeDiagram(folderName, treeData) {
+            const isDb = folderName.startsWith('🗄️ DB: ');
             if (!treeData || treeData.length === 0) {
-                return `📁 ${folderName}/\n    (empty folder)`;
+                return isDb
+                    ? `🗄️ ${folderName}\n    (no tables)`
+                    : `📁 ${folderName}/\n    (empty folder)`;
             }
             
-            let lines = [`📁 ${folderName}/`];
+            let lines = [isDb ? `🗄️ ${folderName}` : `📁 ${folderName}/`];
             
             function renderNode(items, prefix) {
                 for (let i = 0; i < items.length; i++) {
@@ -31774,25 +31692,30 @@ in each section carefully and maintain proper connections between components.
                     const childPrefix = isLast ? '    ' : '│   ';
                     
                     if (item.type === 'folder') {
-                        lines.push(prefix + connector + '📂 ' + item.name + '/');
+                        lines.push(prefix + connector + (isDb ? '📊 ' : '📂 ') + item.name + (isDb ? '' : '/'));
                         if (item.children && Array.isArray(item.children) && item.children.length > 0) {
                             renderNode(item.children, prefix + childPrefix);
                         }
                     } else {
-                        // File — pick icon based on extension
-                        const ext = item.name.split('.').pop().toLowerCase();
-                        let icon = '📄';
-                        if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
-                        else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
-                        else if (['php'].includes(ext)) icon = '🐘';
-                        else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
-                        else if (['html','htm'].includes(ext)) icon = '🌐';
-                        else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
-                        else if (['md','txt','log'].includes(ext)) icon = '📝';
-                        else if (['py'].includes(ext)) icon = '🐍';
-                        else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
-                        else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
-                        else if (['env','gitignore','htaccess'].includes(ext) || item.name.startsWith('.')) icon = '⚙️';
+                        let icon;
+                        if (isDb) {
+                            icon = '🔤';
+                        } else {
+                            // File — pick icon based on extension
+                            const ext = item.name.split('.').pop().toLowerCase();
+                            icon = '📄';
+                            if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                            else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                            else if (['php'].includes(ext)) icon = '🐘';
+                            else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                            else if (['html','htm'].includes(ext)) icon = '🌐';
+                            else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                            else if (['md','txt','log'].includes(ext)) icon = '📝';
+                            else if (['py'].includes(ext)) icon = '🐍';
+                            else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
+                            else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
+                            else if (['env','gitignore','htaccess'].includes(ext) || item.name.startsWith('.')) icon = '⚙️';
+                        }
                         
                         lines.push(prefix + connector + icon + ' ' + item.name);
                     }
@@ -32010,11 +31933,12 @@ in each section carefully and maintain proper connections between components.
             if (!rootIds || rootIds.length === 0) {
                 return '<div class="ft-itree"><div style="padding:10px;color:var(--text-muted);font-size:0.8rem;text-align:center;">Empty tree</div></div>';
             }
+            const isDb = ftIsDbTreeNode(sid);
             let html = `<div class="ft-itree-toolbar">
                 <button onclick="ftExpandAllNodes('${sid}')" title="Expand all"><i class="fas fa-expand-alt"></i> Expand</button>
                 <button onclick="ftCollapseAllNodes('${sid}')" title="Collapse all"><i class="fas fa-compress-alt"></i> Collapse</button>
-                <button onclick="ftAddRootChild('${sid}','folder')" title="Add root folder"><i class="fas fa-folder-plus"></i></button>
-                <button onclick="ftAddRootChild('${sid}','file')" title="Add root file"><i class="fas fa-plus"></i></button>
+                <button onclick="ftAddRootChild('${sid}','folder')" title="${isDb ? 'Add root table' : 'Add root folder'}"><i class="fas ${isDb ? 'fa-table' : 'fa-folder-plus'}"></i></button>
+                <button onclick="ftAddRootChild('${sid}','file')" title="${isDb ? 'Add root field' : 'Add root file'}"><i class="fas ${isDb ? 'fa-columns' : 'fa-plus'}"></i></button>
             </div>`;
             html += '<div class="ft-itree" id="ftITree_' + sid + '">';
             for (const nid of rootIds) html += ftRenderNode(nid);
@@ -32348,7 +32272,8 @@ in each section carefully and maintain proper connections between components.
             const rootIds = ftTreeRoots.get(sid);
             const folderName = ftIdToName.get(sid);
             if (!rootIds || !folderName) return '';
-            let lines = ['📁 ' + folderName + '/'];
+            const isDb = ftIsDbTreeNode(sid);
+            let lines = [(isDb ? '🗄️ ' : '📁 ') + folderName + (isDb ? '' : '/')];
             function renderN(nids, prefix) {
                 for (let i = 0; i < nids.length; i++) {
                     const nd = ftNodeMap.get(nids[i]);
@@ -32357,24 +32282,29 @@ in each section carefully and maintain proper connections between components.
                     const conn = isLast ? '└── ' : '├── ';
                     const childPfx = isLast ? '    ' : '│   ';
                     if (nd.type === 'folder') {
-                        let lbl = '📂 ' + nd.name + '/';
+                        let lbl = (isDb ? '📊 ' : '📂 ') + nd.name + (isDb ? '' : '/');
                         if (nd.description) lbl += ' — ' + nd.description;
                         lines.push(prefix + conn + lbl);
                         if (nd.childIds.length > 0) renderN(nd.childIds, prefix + childPfx);
                     } else {
-                        const ext = (nd.name.split('.').pop() || '').toLowerCase();
-                        let icon = '📄';
-                        if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
-                        else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
-                        else if (['php'].includes(ext)) icon = '🐘';
-                        else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
-                        else if (['html','htm'].includes(ext)) icon = '🌐';
-                        else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
-                        else if (['md','txt','log'].includes(ext)) icon = '📝';
-                        else if (['py'].includes(ext)) icon = '🐍';
-                        else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
-                        else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
-                        else if (['env','gitignore','htaccess'].includes(ext) || nd.name.startsWith('.')) icon = '⚙️';
+                        let icon;
+                        if (isDb) {
+                            icon = '🔤';
+                        } else {
+                            const ext = (nd.name.split('.').pop() || '').toLowerCase();
+                            icon = '📄';
+                            if (['jpg','jpeg','png','gif','svg','webp','ico'].includes(ext)) icon = '🖼️';
+                            else if (['js','ts','jsx','tsx'].includes(ext)) icon = '📜';
+                            else if (['php'].includes(ext)) icon = '🐘';
+                            else if (['css','scss','sass','less'].includes(ext)) icon = '🎨';
+                            else if (['html','htm'].includes(ext)) icon = '🌐';
+                            else if (['json','xml','yaml','yml'].includes(ext)) icon = '📋';
+                            else if (['md','txt','log'].includes(ext)) icon = '📝';
+                            else if (['py'].includes(ext)) icon = '🐍';
+                            else if (['sql','db','sqlite'].includes(ext)) icon = '🗃️';
+                            else if (['zip','rar','tar','gz'].includes(ext)) icon = '📦';
+                            else if (['env','gitignore','htaccess'].includes(ext) || nd.name.startsWith('.')) icon = '⚙️';
+                        }
                         let lbl = icon + ' ' + nd.name;
                         if (nd.description) lbl += ' — ' + nd.description;
                         lines.push(prefix + conn + lbl);
@@ -32500,6 +32430,7 @@ in each section carefully and maintain proper connections between components.
         function ftRemoveFolder(sid) {
             const folderName = ftIdToName.get(sid);
             if (!folderName) return;
+            const isDbCard = folderName.startsWith('🗄️ DB: ');
             ftClearNodeMapForSid(sid);
             ftFolderStore.delete(folderName);
             ftIdToName.delete(sid);
@@ -32517,9 +32448,14 @@ in each section carefully and maintain proper connections between components.
             }
             if (editorFolders.has(folderName)) editorFolders.delete(folderName);
             if (knownFolders.has(folderName)) knownFolders.delete(folderName);
+            // Clean up DB tree tracking and sync checkbox
+            if (isDbCard && window._dbTreeFolderNames) {
+                window._dbTreeFolderNames.delete(folderName);
+                ftSyncDbCheckbox();
+            }
             updateCounts();
             loadUploadedFiles();
-            showToast(`📁 ${folderName} removed`, 'info');
+            showToast(`${isDbCard ? '🗄️' : '📁'} ${folderName} removed`, 'info');
         }
 
         function ftCopyTree(sid) {
@@ -32675,6 +32611,8 @@ in each section carefully and maintain proper connections between components.
             ftIdToName.clear();
             ftNodeMap.clear();
             ftTreeRoots.clear();
+            if (window._dbTreeFolderNames) window._dbTreeFolderNames.clear();
+            ftSyncDbCheckbox();
             ftRenderAll();
             updateCounts();
             loadUploadedFiles();
@@ -32697,7 +32635,7 @@ in each section carefully and maintain proper connections between components.
                     path: data.path || '',
                     treeText: data.treeText || '',
                     treeData: data.treeData || null,
-                    added: data.added || Date.now()
+                    added: data.addedAt || data.added || Date.now()
                 });
             });
             return JSON.stringify(arr);
@@ -32726,6 +32664,9 @@ in each section carefully and maintain proper connections between components.
                     return;
                 }
                 
+                if (!window._dbTreeFolderNames) window._dbTreeFolderNames = new Set();
+                window._dbTreeFolderNames.clear();
+
                 arr.forEach(item => {
                     const name = item.name;
                     const safeId = name.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -32734,9 +32675,14 @@ in each section carefully and maintain proper connections between components.
                         path: item.path || '',
                         treeText: item.treeText || '',
                         treeData: item.treeData || null,
-                        added: item.added || Date.now()
+                        addedAt: item.added || item.addedAt || Date.now()
                     });
                     ftIdToName.set(safeId, name);
+                    
+                    // Restore DB tree tracking
+                    if (name.startsWith('🗄️ DB: ')) {
+                        window._dbTreeFolderNames.add(name);
+                    }
                     
                     // Also register in editorFolders and knownFolders for checkbox sync
                     if (!editorFolders.has(name)) {
@@ -32748,6 +32694,8 @@ in each section carefully and maintain proper connections between components.
                 });
                 
                 ftRenderAll();
+                // Sync DB checkbox after restore
+                if (typeof ftSyncDbCheckbox === 'function') ftSyncDbCheckbox();
                 console.log(`📂 Restored ${arr.length} folder(s) from project data`);
             } catch (e) {
                 console.warn('Could not deserialize folder data:', e);
