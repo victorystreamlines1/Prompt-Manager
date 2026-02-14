@@ -27218,6 +27218,8 @@ function setLanguage(langCode) {
                 } else {
                     ftAddFolderCard(dbFolderName);
                 }
+                // Collapse all nodes by default for DB trees
+                requestAnimationFrame(() => ftCollapseAllNodes(sid));
                 ftUpdateContainer();
 
                 const tableCount = data.tables ? data.tables.length : 0;
@@ -32245,7 +32247,8 @@ in each section carefully and maintain proper connections between components.
             const parent = ftNodeMap.get(parentNid);
             if (!parent || parent.type !== 'folder') return;
             const nid = ftNextNodeId();
-            const name = type === 'folder' ? 'new-folder' : 'new-file.txt';
+            const isDb = ftIsDbTreeNode(parent.sid);
+            const name = type === 'folder' ? (isDb ? 'new_table' : 'new-folder') : (isDb ? 'new_field' : 'new-file.txt');
             ftNodeMap.set(nid, { id: nid, name, type, description: '', parentId: parentNid, sid: parent.sid, childIds: [] });
             parent.childIds.push(nid);
 
@@ -32269,7 +32272,8 @@ in each section carefully and maintain proper connections between components.
             const rootIds = ftTreeRoots.get(sid);
             if (!rootIds) return;
             const nid = ftNextNodeId();
-            const name = type === 'folder' ? 'new-folder' : 'new-file.txt';
+            const isDb = ftIsDbTreeNode(sid);
+            const name = type === 'folder' ? (isDb ? 'new_table' : 'new-folder') : (isDb ? 'new_field' : 'new-file.txt');
             ftNodeMap.set(nid, { id: nid, name, type, description: '', parentId: null, sid, childIds: [] });
             rootIds.push(nid);
 
