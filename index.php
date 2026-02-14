@@ -21373,9 +21373,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     Push to Prompts
                                     <span class="uf-total-badge" id="ufTotalBadge">0</span>
                                 </button>
-                                <button class="uf-btn uf-btn-dashboard" onclick="ufPushToDashboard()" title="Classify files & folders and push to Dashboard (Backend / Pages / Frontend)">
-                                    <i class="fas fa-columns"></i>
-                                    Push to Dashboard
+                                <button class="uf-btn uf-btn-dashboard" onclick="ufPushToDashboard()" title="Push files & folders as interactive tree to Project Folder Template">
+                                    <i class="fas fa-folder-tree"></i>
+                                    Push to Folders
                                 </button>
                                 <button class="uf-btn uf-btn-danger" onclick="ufClearAll()">
                                     <i class="fas fa-trash-alt"></i>
@@ -45876,11 +45876,11 @@ function ufClassifyFolder(folderName) {
     return 'page'; // default folders go to Pages
 }
 
-// Push uploaded files/folders into the Development Dashboard
+// Push uploaded files/folders into the Project Folder Template as interactive tree
 function ufPushToDashboard() {
-    // Check dashboard functions exist
-    if (typeof addDynamicItem !== 'function' || typeof dynamicItems === 'undefined') {
-        showToast('⚠️ Development Dashboard not found', 'error');
+    // Check folder template functions exist
+    if (typeof ftFolderStore === 'undefined' || typeof ftAddFolderCard !== 'function') {
+        showToast('⚠️ Project Folder Template not found', 'error');
         return;
     }
 
@@ -45888,104 +45888,134 @@ function ufPushToDashboard() {
     const totalStandaloneFiles = Object.entries(ufFileStorage).reduce(
         (sum, [cat, arr]) => cat !== 'folders' ? sum + arr.length : sum, 0
     );
-    const notesContent = document.getElementById('ufNotesTextarea')?.value.trim() || '';
 
-    if (totalFolders === 0 && totalStandaloneFiles === 0 && !notesContent) {
-        showToast('⚠️ No files, folders, or notes to push', 'warning');
+    if (totalFolders === 0 && totalStandaloneFiles === 0) {
+        showToast('⚠️ No files or folders to push', 'warning');
         return;
     }
 
-    let totalAdded = 0;
-    const counts = { backend: 0, page: 0, frontend: 0 };
+    // Determine project name from root folder or first folder
+    let projectName = 'Uploaded Project';
+    if (ufRootFolder && ufRootFolder.name) {
+        projectName = ufRootFolder.name;
+    } else if (totalFolders > 0) {
+        projectName = ufFileStorage.folders[0].name;
+    }
+    const folderName = '📁 ' + projectName;
 
-    // ── Folders → classify each folder ──
+    // ── Build unified treeData from all uploaded content ──
+    const treeData = [];
+
+    // 1. Add folders (already have correct {name, type, children} structure)
     ufFileStorage.folders.forEach(folder => {
-        const type = ufClassifyFolder(folder.name);
-        let desc = `📂 Folder: ${folder.name}/`;
-        if (folder.fileCount)   desc += `\n• ${folder.fileCount} file(s)`;
-        if (folder.folderCount) desc += `\n• ${folder.folderCount} subfolder(s)`;
-
-        // Include tree structure in description
-        if (folder.children && folder.children.length > 0) {
-            desc += `\n\n` + ufBuildFolderTreeText(folder.name, folder.children);
-        }
-
-        addDynamicItem(type, folder.name, desc);
-        counts[type]++;
-        totalAdded++;
+        treeData.push({
+            name: folder.name,
+            type: 'folder',
+            description: (folder.fileCount ? folder.fileCount + ' files' : '') +
+                         (folder.folderCount ? (folder.fileCount ? ' · ' : '') + folder.folderCount + ' subfolders' : ''),
+            children: ufNormalizeChildren(folder.children || [])
+        });
     });
 
-    // ── Standalone files → classify by category ──
+    // 2. Add standalone files grouped by category as folders
+    const categories = [
+        { key: 'php',        label: 'PHP',        desc: 'Backend scripts' },
+        { key: 'html',       label: 'HTML',       desc: 'Page templates' },
+        { key: 'css',        label: 'CSS',        desc: 'Stylesheets' },
+        { key: 'javascript', label: 'JavaScript', desc: 'Scripts' },
+        { key: 'images',     label: 'Images',     desc: 'Assets' },
+        { key: 'other',      label: 'Other',      desc: 'Miscellaneous files' }
+    ];
 
-    // PHP files → Backend
-    if (ufFileStorage.php && ufFileStorage.php.length > 0) {
-        const names = ufFileStorage.php.map(f => f.name).join(', ');
-        const desc = `🐘 PHP Files (${ufFileStorage.php.length}):\n` +
-            ufFileStorage.php.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('backend', 'PHP Files', desc);
-        counts.backend++;
-        totalAdded++;
+    let standaloneFiles = [];
+    categories.forEach(cat => {
+        const files = ufFileStorage[cat.key];
+        if (!files || files.length === 0) return;
+        files.forEach(f => {
+            standaloneFiles.push({
+                name: f.name,
+                type: 'file',
+                description: cat.label,
+                children: []
+            });
+        });
+    });
+
+    // If there are standalone files alongside folders, group them under a "Files" folder
+    if (standaloneFiles.length > 0 && treeData.length > 0) {
+        // Sort standalone files alphabetically
+        standaloneFiles.sort((a, b) => a.name.localeCompare(b.name));
+        treeData.push({
+            name: 'Root Files',
+            type: 'folder',
+            description: standaloneFiles.length + ' standalone files',
+            children: standaloneFiles
+        });
+    } else if (standaloneFiles.length > 0) {
+        // Only standalone files, no folders — add them directly at root
+        standaloneFiles.sort((a, b) => a.name.localeCompare(b.name));
+        treeData.push(...standaloneFiles);
     }
 
-    // HTML files → Pages
-    if (ufFileStorage.html && ufFileStorage.html.length > 0) {
-        const desc = `🌐 HTML Files (${ufFileStorage.html.length}):\n` +
-            ufFileStorage.html.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('page', 'HTML Files', desc);
-        counts.page++;
-        totalAdded++;
+    if (treeData.length === 0) {
+        showToast('⚠️ No file structure to push', 'warning');
+        return;
     }
 
-    // CSS files → Frontend
-    if (ufFileStorage.css && ufFileStorage.css.length > 0) {
-        const desc = `🎨 CSS/Style Files (${ufFileStorage.css.length}):\n` +
-            ufFileStorage.css.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('frontend', 'CSS Styles', desc);
-        counts.frontend++;
-        totalAdded++;
+    // ── Store in ftFolderStore and render card ──
+    const treeText = buildTreeDiagram(folderName, treeData);
+    const sid = ftGetSafeId(folderName);
+
+    // If already exists, update it
+    if (ftFolderStore.has(folderName)) {
+        ftClearNodeMapForSid(sid);
     }
 
-    // JavaScript files → Frontend
-    if (ufFileStorage.javascript && ufFileStorage.javascript.length > 0) {
-        const desc = `📜 JavaScript Files (${ufFileStorage.javascript.length}):\n` +
-            ufFileStorage.javascript.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('frontend', 'JavaScript Files', desc);
-        counts.frontend++;
-        totalAdded++;
+    ftFolderStore.set(folderName, {
+        path: projectName,
+        treeText: treeText,
+        treeData: treeData,
+        addedAt: Date.now(),
+        _dirty: false
+    });
+    ftIdToName.set(sid, folderName);
+    knownFolders.set(folderName, { addedAt: Date.now(), path: projectName });
+
+    const existingCard = document.getElementById('ftCard_' + sid);
+    if (existingCard) {
+        existingCard.outerHTML = ftRenderCard(folderName);
+        requestAnimationFrame(() => ftInitAutoResize(sid));
+    } else {
+        ftAddFolderCard(folderName);
     }
+    ftUpdateContainer();
 
-    // Images → Frontend
-    if (ufFileStorage.images && ufFileStorage.images.length > 0) {
-        const desc = `🖼️ Image Assets (${ufFileStorage.images.length}):\n` +
-            ufFileStorage.images.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('frontend', 'Image Assets', desc);
-        counts.frontend++;
-        totalAdded++;
+    // Count stats
+    let folderCount = 0, fileCount = 0;
+    function countNodes(items) {
+        if (!items) return;
+        items.forEach(item => {
+            if (item.type === 'folder') { folderCount++; countNodes(item.children); }
+            else { fileCount++; }
+        });
     }
+    countNodes(treeData);
 
-    // Other files → Pages (general)
-    if (ufFileStorage.other && ufFileStorage.other.length > 0) {
-        const desc = `📄 Other Files (${ufFileStorage.other.length}):\n` +
-            ufFileStorage.other.map(f => `  • ${f.name}`).join('\n');
-        addDynamicItem('page', 'Other Files', desc);
-        counts.page++;
-        totalAdded++;
-    }
+    showToast(`🌳 Project tree pushed: ${folderCount} folders, ${fileCount} files`, 'success');
+}
 
-    // ── Project notes → add as a general item ──
-    if (notesContent) {
-        addDynamicItem('page', 'Project Notes', `📝 Project Notes & Instructions:\n\n${notesContent}`);
-        counts.page++;
-        totalAdded++;
-    }
-
-    // Summary
-    const parts = [];
-    if (counts.backend > 0)  parts.push(`${counts.backend} Backend`);
-    if (counts.page > 0)     parts.push(`${counts.page} Pages`);
-    if (counts.frontend > 0) parts.push(`${counts.frontend} Frontend`);
-
-    showToast(`🚀 ${totalAdded} item${totalAdded > 1 ? 's' : ''} pushed to Dashboard (${parts.join(', ')})`, 'success');
+// Normalize children to ensure consistent {name, type, children, description} structure
+function ufNormalizeChildren(children) {
+    if (!children || !Array.isArray(children)) return [];
+    return children.map(child => {
+        const isFolder = child.type === 'folder' || (child.children && child.children.length > 0);
+        return {
+            name: child.name || 'unnamed',
+            type: isFolder ? 'folder' : 'file',
+            description: child.description || '',
+            children: isFolder ? ufNormalizeChildren(child.children || []) : []
+        };
+    });
 }
 
 // Build a full ASCII tree diagram for a folder and ALL its descendants (unlimited depth)
