@@ -12877,9 +12877,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .ft-folder-card.collapsed .ft-chevron {
             transform: rotate(-90deg);
         }
+        .ft-folder-card.collapsed .ft-card-notes-wrap,
         .ft-folder-card.collapsed .ft-folder-tree-wrap {
             display: none;
         }
+
+        /* Card Notes Textarea */
+        .ft-card-notes-wrap {
+            padding: 8px 8px 0;
+        }
+        .ft-card-notes {
+            width: 100%;
+            min-height: 48px;
+            max-height: 180px;
+            padding: 10px 12px;
+            border: 1px solid rgba(251, 191, 36, 0.15);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.03) 0%, rgba(15, 15, 25, 0.6) 100%);
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', 'Space Grotesk', monospace;
+            font-size: 0.72rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            box-sizing: border-box;
+        }
+        .ft-card-notes::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-style: italic;
+        }
+        .ft-card-notes:focus {
+            border-color: rgba(251, 191, 36, 0.45);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(15, 15, 25, 0.7) 100%);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.08), inset 0 0 20px rgba(251, 191, 36, 0.02);
+        }
+        .ft-card-notes::-webkit-scrollbar {
+            width: 4px;
+        }
+        .ft-card-notes::-webkit-scrollbar-thumb {
+            background: rgba(251, 191, 36, 0.2);
+            border-radius: 2px;
+        }
+
         /* Tree content area */
         .ft-folder-tree-wrap {
             padding: 8px 6px 10px;
@@ -32549,6 +32589,11 @@ in each section carefully and maintain proper connections between components.
                             </button>
                         </div>
                     </div>
+                    <div class="ft-card-notes-wrap">
+                        <textarea class="ft-card-notes" id="ftNotes_${sid}"
+                            placeholder="Write your prompt or notes for this ${isDbCard ? 'database' : 'folder'}..."
+                            oninput="ftOnCardNotesChange('${sid}', this)">${ftEscapeHtml(data.notes || '')}</textarea>
+                    </div>
                     <div class="ft-folder-tree-wrap">
                         ${treeBodyHtml}
                     </div>
@@ -32593,6 +32638,15 @@ in each section carefully and maintain proper connections between components.
         function ftToggleCard(safeId) {
             const card = document.getElementById('ftCard_' + safeId);
             if (card) card.classList.toggle('collapsed');
+        }
+
+        function ftOnCardNotesChange(sid, el) {
+            const folderName = ftIdToName.get(sid);
+            if (!folderName) return;
+            const data = ftFolderStore.get(folderName);
+            if (data) {
+                data.notes = el.value;
+            }
         }
 
         function ftOnTreeEdit(sid, el) {
@@ -32740,6 +32794,10 @@ in each section carefully and maintain proper connections between components.
             let allText = '';
             ftFolderStore.forEach((data, name) => {
                 if (allText) allText += '\n\n';
+                // Include notes if present
+                if (data.notes && data.notes.trim()) {
+                    allText += '/* Notes: ' + data.notes.trim() + ' */\n';
+                }
                 const sid = ftGetSafeId(name);
                 if (ftTreeRoots.has(sid)) {
                     const serialized = ftSerializeTreeText(sid);
@@ -32812,6 +32870,7 @@ in each section carefully and maintain proper connections between components.
                     path: data.path || '',
                     treeText: data.treeText || '',
                     treeData: data.treeData || null,
+                    notes: data.notes || '',
                     added: data.addedAt || data.added || Date.now()
                 });
             });
@@ -32852,6 +32911,7 @@ in each section carefully and maintain proper connections between components.
                         path: item.path || '',
                         treeText: item.treeText || '',
                         treeData: item.treeData || null,
+                        notes: item.notes || '',
                         addedAt: item.added || item.addedAt || Date.now()
                     });
                     ftIdToName.set(safeId, name);
