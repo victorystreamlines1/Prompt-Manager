@@ -12868,6 +12868,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
             margin: 0;
             padding: 0 0 0 20px;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .ft-inode.ft-dragging {
+            opacity: 0.35;
         }
         .ft-inode-row {
             display: flex;
@@ -12875,11 +12879,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 6px;
             padding: 3px 6px;
             border-radius: 7px;
-            transition: background 0.15s ease;
+            transition: background 0.15s ease, box-shadow 0.15s ease;
             position: relative;
+            cursor: grab;
         }
+        .ft-inode-row:active { cursor: grabbing; }
         .ft-inode-row:hover {
             background: rgba(99,102,241,0.07);
+        }
+        /* ── Drag-and-drop indicators ── */
+        .ft-inode-row.ft-drop-before {
+            box-shadow: 0 -2px 0 0 #6366f1;
+        }
+        .ft-inode-row.ft-drop-after {
+            box-shadow: 0 2px 0 0 #6366f1;
+        }
+        .ft-inode-row.ft-drop-inside {
+            background: rgba(99,102,241,0.15);
+            box-shadow: inset 0 0 0 1.5px rgba(99,102,241,0.5);
+            border-radius: 7px;
         }
         .ft-inode-toggle {
             width: 20px;
@@ -12929,6 +12947,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .ft-inode-icon.file {
             background: linear-gradient(135deg, rgba(96,165,250,0.15), rgba(59,130,246,0.08));
             color: #60a5fa;
+        }
+        /* ── Drag handle (grip icon) ── */
+        .ft-inode-grip {
+            width: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            color: var(--text-muted, #555);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            margin-top: 4px;
+            cursor: grab;
+        }
+        .ft-inode-grip:active { cursor: grabbing; }
+        .ft-inode-row:hover .ft-inode-grip { opacity: 0.7; }
+        /* ── Node body: title + description ── */
+        .ft-inode-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .ft-inode-title {
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid transparent;
+            border-radius: 6px 6px 6px 6px;
+            color: var(--text-primary, #e2e8f0);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            line-height: 1.5;
+            outline: none;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .ft-inode-title:hover {
+            border-color: rgba(99,102,241,0.2);
+            background: rgba(99,102,241,0.04);
+        }
+        .ft-inode-title:focus {
+            border-color: rgba(99,102,241,0.4);
+            background: rgba(99,102,241,0.06);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+        }
+        .ft-inode-desc-wrap {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, margin 0.25s ease;
+            margin-top: 0;
+        }
+        .ft-inode-desc-wrap.expanded {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 3px;
+        }
+        .ft-inode-desc {
+            width: 100%;
+            background: rgba(99,102,241,0.03);
+            border: 1px dashed rgba(99,102,241,0.18);
+            border-radius: 0 0 6px 6px;
+            color: var(--text-secondary, #b0b0c0);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 5px 8px;
+            line-height: 1.5;
+            resize: none;
+            overflow: hidden;
+            outline: none;
+            min-height: 28px;
+            max-height: 200px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .ft-inode-desc::placeholder {
+            color: var(--text-muted, #666);
+            font-style: italic;
+            font-size: 0.65rem;
+        }
+        .ft-inode-desc:focus {
+            border-color: rgba(99,102,241,0.35);
+            background: rgba(99,102,241,0.05);
+            box-shadow: 0 0 0 2px rgba(99,102,241,0.08);
+        }
+        /* Show description hint on row hover */
+        .ft-inode-row:hover .ft-inode-desc-wrap,
+        .ft-inode-body:focus-within .ft-inode-desc-wrap {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 3px;
+        }
+        /* If description has content, always show it (slightly transparent when not hovered) */
+        .ft-inode-desc-wrap.has-content {
+            max-height: 300px;
+            opacity: 0.55;
+            margin-top: 3px;
+        }
+        .ft-inode-row:hover .ft-inode-desc-wrap.has-content,
+        .ft-inode-body:focus-within .ft-inode-desc-wrap.has-content {
+            opacity: 1;
         }
         .ft-inode-input {
             flex: 1;
@@ -31346,18 +31469,19 @@ in each section carefully and maintain proper connections between components.
             const iconType = isFolder ? 'folder' : 'file';
 
             const toggleHtml = isFolder
-                ? `<button class="ft-inode-toggle" id="ftToggle_${nid}" onclick="ftNodeToggle('${nid}')" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>`
+                ? `<button class="ft-inode-toggle" id="ftToggle_${nid}" onclick="event.stopPropagation();ftNodeToggle('${nid}')" title="Collapse/Expand"><i class="fas fa-chevron-down"></i></button>`
                 : `<div class="ft-inode-toggle-spacer"></div>`;
 
-            const val = node.description ? node.name + ' — ' + node.description : node.name;
-            const escapedVal = ftEscapeHtml(val);
+            const escapedName = ftEscapeHtml(node.name);
+            const escapedDesc = ftEscapeHtml(node.description || '');
+            const hasDesc = (node.description || '').trim().length > 0;
 
             let acts = '<div class="ft-inode-actions">';
             if (isFolder) {
-                acts += `<button onclick="ftAddChild('${nid}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>`;
-                acts += `<button onclick="ftAddChild('${nid}','file')" title="Add file"><i class="fas fa-plus"></i></button>`;
+                acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','folder')" title="Add subfolder"><i class="fas fa-folder-plus"></i></button>`;
+                acts += `<button onclick="event.stopPropagation();ftAddChild('${nid}','file')" title="Add file"><i class="fas fa-plus"></i></button>`;
             }
-            acts += `<button class="ft-del" onclick="ftDeleteNode('${nid}')" title="Remove"><i class="fas fa-trash-alt"></i></button>`;
+            acts += `<button class="ft-del" onclick="event.stopPropagation();ftDeleteNode('${nid}')" title="Remove"><i class="fas fa-trash-alt"></i></button>`;
             acts += '</div>';
 
             let childrenHtml = '';
@@ -31367,12 +31491,28 @@ in each section carefully and maintain proper connections between components.
                 childrenHtml += '</div>';
             }
 
-            return `<div class="ft-inode" id="ftNode_${nid}" data-nid="${nid}">
-                <div class="ft-inode-row">
+            return `<div class="ft-inode" id="ftNode_${nid}" data-nid="${nid}" draggable="true"
+                        ondragstart="ftDragStart(event,'${nid}')"
+                        ondragend="ftDragEnd(event,'${nid}')">
+                <div class="ft-inode-row" id="ftRow_${nid}"
+                     ondragover="ftDragOver(event,'${nid}')"
+                     ondragleave="ftDragLeave(event,'${nid}')"
+                     ondrop="ftDrop(event,'${nid}')">
+                    <div class="ft-inode-grip" title="Drag to reorder"><i class="fas fa-grip-vertical"></i></div>
                     ${toggleHtml}
                     <div class="ft-inode-icon ${iconType}" style="color:${iconColor}"><i class="${iconCls}"></i></div>
-                    <textarea class="ft-inode-input" rows="1" spellcheck="false" data-nid="${nid}"
-                        oninput="ftAutoResize(this);ftNodeInputChanged('${nid}',this)">${escapedVal}</textarea>
+                    <div class="ft-inode-body">
+                        <input type="text" class="ft-inode-title" value="${escapedName}" spellcheck="false"
+                               data-nid="${nid}" data-field="title"
+                               oninput="ftNodeTitleChanged('${nid}',this)"
+                               onfocus="ftNodeFocus('${nid}')" onblur="ftNodeBlur('${nid}')">
+                        <div class="ft-inode-desc-wrap${hasDesc ? ' has-content' : ''}" id="ftDescWrap_${nid}">
+                            <textarea class="ft-inode-desc" rows="1" spellcheck="false" placeholder="Add description..."
+                                      data-nid="${nid}" data-field="desc"
+                                      oninput="ftAutoResize(this);ftNodeDescChanged('${nid}',this)"
+                                      onfocus="ftNodeFocus('${nid}')" onblur="ftNodeBlur('${nid}')">${escapedDesc}</textarea>
+                        </div>
+                    </div>
                     ${acts}
                 </div>
                 ${childrenHtml}
@@ -31412,26 +31552,221 @@ in each section carefully and maintain proper connections between components.
         function ftInitAutoResize(sid) {
             const card = document.getElementById('ftCard_' + sid);
             if (!card) return;
-            card.querySelectorAll('.ft-inode-input').forEach(ta => ftAutoResize(ta));
+            card.querySelectorAll('.ft-inode-desc').forEach(ta => ftAutoResize(ta));
         }
 
-        function ftNodeInputChanged(nid, el) {
+        function ftMarkDirty(nid) {
             const node = ftNodeMap.get(nid);
             if (!node) return;
-            const val = el.value;
-            const dashIdx = val.indexOf(' — ');
-            if (dashIdx > -1) {
-                node.name = val.substring(0, dashIdx);
-                node.description = val.substring(dashIdx + 3);
-            } else {
-                node.name = val;
-                node.description = '';
-            }
             const folderName = ftIdToName.get(node.sid);
-            if (folderName) {
-                const data = ftFolderStore.get(folderName);
-                if (data) data._dirty = true;
+            if (folderName) { const d = ftFolderStore.get(folderName); if (d) d._dirty = true; }
+        }
+
+        function ftNodeTitleChanged(nid, el) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            node.name = el.value;
+            ftMarkDirty(nid);
+        }
+
+        function ftNodeDescChanged(nid, el) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            node.description = el.value;
+            const wrap = document.getElementById('ftDescWrap_' + nid);
+            if (wrap) {
+                if (el.value.trim()) wrap.classList.add('has-content');
+                else wrap.classList.remove('has-content');
             }
+            ftMarkDirty(nid);
+        }
+
+        function ftNodeFocus(nid) {
+            const wrap = document.getElementById('ftDescWrap_' + nid);
+            if (wrap) wrap.classList.add('expanded');
+            const desc = wrap ? wrap.querySelector('.ft-inode-desc') : null;
+            if (desc) setTimeout(() => ftAutoResize(desc), 50);
+        }
+
+        function ftNodeBlur(nid) {
+            setTimeout(() => {
+                const nodeEl = document.getElementById('ftNode_' + nid);
+                if (!nodeEl) return;
+                const active = document.activeElement;
+                if (nodeEl.contains(active)) return;
+                const wrap = document.getElementById('ftDescWrap_' + nid);
+                if (wrap && !wrap.classList.contains('has-content')) {
+                    wrap.classList.remove('expanded');
+                }
+            }, 150);
+        }
+
+        // ─── Drag-and-Drop State ───
+        let ftDragNid = null;
+        let ftDropMode = null; // 'before' | 'after' | 'inside'
+
+        function ftDragStart(e, nid) {
+            ftDragNid = nid;
+            const nodeEl = document.getElementById('ftNode_' + nid);
+            if (nodeEl) nodeEl.classList.add('ft-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', nid);
+            // Prevent parent .ft-inode from also firing dragstart
+            e.stopPropagation();
+        }
+
+        function ftDragEnd(e, nid) {
+            ftDragNid = null;
+            ftDropMode = null;
+            const nodeEl = document.getElementById('ftNode_' + nid);
+            if (nodeEl) nodeEl.classList.remove('ft-dragging');
+            // Clean all drop indicators
+            document.querySelectorAll('.ft-drop-before,.ft-drop-after,.ft-drop-inside').forEach(el => {
+                el.classList.remove('ft-drop-before', 'ft-drop-after', 'ft-drop-inside');
+            });
+            e.stopPropagation();
+        }
+
+        function ftDragOver(e, targetNid) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!ftDragNid || ftDragNid === targetNid) return;
+
+            // Don't allow dropping onto own descendants
+            if (ftIsDescendant(targetNid, ftDragNid)) return;
+
+            const row = document.getElementById('ftRow_' + targetNid);
+            if (!row) return;
+            const rect = row.getBoundingClientRect();
+            const y = e.clientY - rect.top;
+            const h = rect.height;
+            const targetNode = ftNodeMap.get(targetNid);
+
+            // Clear previous indicators on this row
+            row.classList.remove('ft-drop-before', 'ft-drop-after', 'ft-drop-inside');
+
+            if (targetNode && targetNode.type === 'folder') {
+                // Folder: top 25% = before, middle 50% = inside, bottom 25% = after
+                if (y < h * 0.25) {
+                    row.classList.add('ft-drop-before');
+                    ftDropMode = 'before';
+                } else if (y > h * 0.75) {
+                    row.classList.add('ft-drop-after');
+                    ftDropMode = 'after';
+                } else {
+                    row.classList.add('ft-drop-inside');
+                    ftDropMode = 'inside';
+                }
+            } else {
+                // File: top half = before, bottom half = after
+                if (y < h * 0.5) {
+                    row.classList.add('ft-drop-before');
+                    ftDropMode = 'before';
+                } else {
+                    row.classList.add('ft-drop-after');
+                    ftDropMode = 'after';
+                }
+            }
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function ftDragLeave(e, targetNid) {
+            e.stopPropagation();
+            const row = document.getElementById('ftRow_' + targetNid);
+            if (row) row.classList.remove('ft-drop-before', 'ft-drop-after', 'ft-drop-inside');
+        }
+
+        function ftDrop(e, targetNid) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!ftDragNid || ftDragNid === targetNid || !ftDropMode) { ftDragEnd(e, ftDragNid); return; }
+            if (ftIsDescendant(targetNid, ftDragNid)) { ftDragEnd(e, ftDragNid); return; }
+
+            const dragNode = ftNodeMap.get(ftDragNid);
+            const targetNode = ftNodeMap.get(targetNid);
+            if (!dragNode || !targetNode) { ftDragEnd(e, ftDragNid); return; }
+
+            // 1. Detach dragged node from its current parent/root
+            ftDetachNode(ftDragNid);
+
+            // 2. Insert at new position
+            if (ftDropMode === 'inside' && targetNode.type === 'folder') {
+                // Insert as last child of target folder
+                dragNode.parentId = targetNid;
+                dragNode.sid = targetNode.sid;
+                targetNode.childIds.push(ftDragNid);
+            } else {
+                // Insert before or after target in its parent's child list
+                const parentId = targetNode.parentId;
+                const list = parentId ? ftNodeMap.get(parentId).childIds : ftTreeRoots.get(targetNode.sid);
+                if (!list) { ftDragEnd(e, ftDragNid); return; }
+                const idx = list.indexOf(targetNid);
+                const insertIdx = ftDropMode === 'before' ? idx : idx + 1;
+                list.splice(insertIdx, 0, ftDragNid);
+                dragNode.parentId = parentId;
+                dragNode.sid = targetNode.sid;
+            }
+
+            // Update sid recursively if moved to different tree
+            ftUpdateSidRecursive(ftDragNid, dragNode.sid);
+
+            // 3. Re-render the affected tree
+            const sid = dragNode.sid;
+            ftReRenderTree(sid);
+            ftMarkDirty(ftDragNid);
+
+            // Clean up drag state
+            ftDragNid = null;
+            ftDropMode = null;
+            document.querySelectorAll('.ft-drop-before,.ft-drop-after,.ft-drop-inside,.ft-dragging').forEach(el => {
+                el.classList.remove('ft-drop-before', 'ft-drop-after', 'ft-drop-inside', 'ft-dragging');
+            });
+        }
+
+        function ftIsDescendant(nid, potentialAncestorNid) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return false;
+            let cur = node.parentId;
+            while (cur) {
+                if (cur === potentialAncestorNid) return true;
+                const p = ftNodeMap.get(cur);
+                cur = p ? p.parentId : null;
+            }
+            return false;
+        }
+
+        function ftDetachNode(nid) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            if (node.parentId) {
+                const parent = ftNodeMap.get(node.parentId);
+                if (parent) parent.childIds = parent.childIds.filter(id => id !== nid);
+            } else {
+                const rootIds = ftTreeRoots.get(node.sid);
+                if (rootIds) {
+                    const idx = rootIds.indexOf(nid);
+                    if (idx > -1) rootIds.splice(idx, 1);
+                }
+            }
+            node.parentId = null;
+        }
+
+        function ftUpdateSidRecursive(nid, sid) {
+            const node = ftNodeMap.get(nid);
+            if (!node) return;
+            node.sid = sid;
+            if (node.childIds) node.childIds.forEach(cid => ftUpdateSidRecursive(cid, sid));
+        }
+
+        function ftReRenderTree(sid) {
+            const treeEl = document.getElementById('ftITree_' + sid);
+            if (!treeEl) return;
+            const rootIds = ftTreeRoots.get(sid);
+            if (!rootIds) return;
+            let html = '';
+            for (const nid of rootIds) html += ftRenderNode(nid);
+            treeEl.innerHTML = html;
+            ftInitAutoResize(sid);
         }
 
         function ftAddChild(parentNid, type) {
@@ -31450,8 +31785,8 @@ in each section carefully and maintain proper connections between components.
                 childrenEl.insertAdjacentHTML('beforeend', ftRenderNode(nid));
                 const newNode = document.getElementById('ftNode_' + nid);
                 if (newNode) {
-                    const ta = newNode.querySelector('.ft-inode-input');
-                    if (ta) { ftAutoResize(ta); ta.focus(); ta.select(); }
+                    const inp = newNode.querySelector('.ft-inode-title');
+                    if (inp) { inp.focus(); inp.select(); }
                 }
             }
             const folderName = ftIdToName.get(parent.sid);
@@ -31471,8 +31806,8 @@ in each section carefully and maintain proper connections between components.
                 treeEl.insertAdjacentHTML('beforeend', ftRenderNode(nid));
                 const newNode = document.getElementById('ftNode_' + nid);
                 if (newNode) {
-                    const ta = newNode.querySelector('.ft-inode-input');
-                    if (ta) { ftAutoResize(ta); ta.focus(); ta.select(); }
+                    const inp = newNode.querySelector('.ft-inode-title');
+                    if (inp) { inp.focus(); inp.select(); }
                 }
             }
             const folderName = ftIdToName.get(sid);
