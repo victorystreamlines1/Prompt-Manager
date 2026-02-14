@@ -46040,11 +46040,14 @@ function ufPushToDashboard() {
         ftClearNodeMapForSid(sid);
     }
 
+    // Get notes from the Project File Uploader textarea
+    const ufNotes = (document.getElementById('ufNotesTextarea')?.value || '').trim();
+
     ftFolderStore.set(folderName, {
         path: projectName,
         treeText: treeText,
         treeData: treeData,
-        notes: '',
+        notes: ufNotes,
         addedAt: Date.now(),
         _dirty: false
     });
@@ -46058,6 +46061,10 @@ function ufPushToDashboard() {
     } else {
         ftAddFolderCard(folderName);
     }
+
+    // Sync the notes into the card's textarea
+    const notesEl = document.getElementById('ftNotes_' + sid);
+    if (notesEl && ufNotes) notesEl.value = ufNotes;
     ftUpdateContainer();
 
     // Count stats
