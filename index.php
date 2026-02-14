@@ -15343,6 +15343,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             cursor: pointer;
             position: relative;
             flex-shrink: 0;
+            width: 32px;
+            height: 32px;
         }
         .db-tree-checkbox input[type="checkbox"] {
             display: none;
@@ -15359,6 +15361,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: rgba(251, 191, 36, 0.5);
             font-size: 0.7rem;
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
         }
         .db-tree-checkbox:hover .db-tree-check-icon {
             border-color: rgba(251, 191, 36, 0.6);
@@ -15374,19 +15378,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 12px rgba(251, 191, 36, 0.3), inset 0 0 8px rgba(251, 191, 36, 0.1);
             animation: dbTreePulse 0.4s ease;
         }
-        .db-tree-checkbox.loading .db-tree-check-icon {
-            animation: dbTreeSpin 1s linear infinite;
-            border-color: rgba(251, 191, 36, 0.6);
-            color: #fbbf24;
+
+        /* Progress ring around checkbox (hidden by default) */
+        .db-tree-progress-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 36px;
+            height: 36px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
         }
+        .db-tree-progress-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .db-tree-ring-bg {
+            fill: none;
+            stroke: rgba(251, 191, 36, 0.1);
+            stroke-width: 2.5;
+        }
+        .db-tree-ring-fg {
+            fill: none;
+            stroke: #fbbf24;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-dasharray: 97.4;
+            stroke-dashoffset: 97.4;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* Loading state */
+        .db-tree-checkbox.loading {
+            pointer-events: none;
+        }
+        .db-tree-checkbox.loading .db-tree-check-icon {
+            border-color: transparent;
+            background: rgba(251, 191, 36, 0.12);
+            color: #fbbf24;
+            animation: dbTreeIconBounce 0.8s ease-in-out infinite;
+            box-shadow: 0 0 16px rgba(251, 191, 36, 0.25);
+        }
+        .db-tree-checkbox.loading .db-tree-progress-ring {
+            opacity: 1;
+        }
+        .db-tree-checkbox.loading .db-tree-ring-fg {
+            animation: dbTreeRingOrbit 1.5s linear infinite;
+            stroke-dashoffset: 72;
+        }
+
+        /* Status bar (below the dropdown row) */
+        .db-tree-status-bar {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            min-width: 0;
+            max-width: 220px;
+        }
+        .db-tree-status-bar.active {
+            display: flex;
+            animation: dbTreeStatusFadeIn 0.3s ease;
+        }
+        .db-tree-status-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            min-width: 60px;
+        }
+        .db-tree-status-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+            background-size: 200% 100%;
+            transition: width 0.5s ease;
+            animation: dbTreeShimmer 1.5s ease infinite;
+        }
+        .db-tree-status-text {
+            font-size: 0.6rem;
+            color: rgba(251, 191, 36, 0.85);
+            white-space: nowrap;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 8px rgba(251, 191, 36, 0.15);
+        }
+
+        /* Done state — green flash */
+        .db-tree-status-bar.done .db-tree-status-fill {
+            background: linear-gradient(90deg, #22c55e, #10b981);
+            width: 100% !important;
+        }
+        .db-tree-status-bar.done .db-tree-status-text {
+            color: #22c55e;
+        }
+
         @keyframes dbTreePulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
-        @keyframes dbTreeSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        @keyframes dbTreeIconBounce {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.08) rotate(-5deg); }
+            50% { transform: scale(0.95) rotate(0deg); }
+            75% { transform: scale(1.08) rotate(5deg); }
+        }
+        @keyframes dbTreeRingOrbit {
+            0% { transform: rotate(-90deg); }
+            100% { transform: rotate(270deg); }
+        }
+        @keyframes dbTreeShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        @keyframes dbTreeStatusFadeIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         .db-cred-row-compact {
@@ -20326,10 +20440,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="database-section-content">
                                     <div class="db-controls-compact">
                                         <div class="db-dropdown-row">
-                                            <label class="db-tree-checkbox" title="Send database tables as relational tree to Folder Template">
+                                            <label class="db-tree-checkbox" id="dbTreeCheckboxLabel" title="Send database tables as relational tree to Folder Template">
                                                 <input type="checkbox" id="dbTreeCheckbox" onchange="onDbTreeCheckboxChange()">
                                                 <span class="db-tree-check-icon"><i class="fas fa-project-diagram"></i></span>
+                                                <span class="db-tree-progress-ring">
+                                                    <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" class="db-tree-ring-bg"/><circle cx="18" cy="18" r="15.5" class="db-tree-ring-fg"/></svg>
+                                                </span>
                                             </label>
+                                            <div class="db-tree-status-bar" id="dbTreeStatusBar">
+                                                <div class="db-tree-status-track"><div class="db-tree-status-fill" id="dbTreeStatusFill"></div></div>
+                                                <span class="db-tree-status-text" id="dbTreeStatusText"></span>
+                                            </div>
                                             <div class="dash-db-dropdown-wrap">
                                                 <select class="dash-db-dropdown" id="dbDropdown" onchange="onDatabaseSelect()">
                                                     <option value="">-- Select --</option>
@@ -27052,6 +27173,41 @@ function setLanguage(langCode) {
             }
         }
 
+        // Progress helper for DB tree loading
+        function dbTreeProgress(percent, text) {
+            const bar = document.getElementById('dbTreeStatusBar');
+            const fill = document.getElementById('dbTreeStatusFill');
+            const txt = document.getElementById('dbTreeStatusText');
+            if (!bar) return;
+            bar.classList.add('active');
+            bar.classList.remove('done');
+            if (fill) fill.style.width = percent + '%';
+            if (txt) txt.textContent = text;
+        }
+        function dbTreeProgressDone(text) {
+            const bar = document.getElementById('dbTreeStatusBar');
+            const fill = document.getElementById('dbTreeStatusFill');
+            const txt = document.getElementById('dbTreeStatusText');
+            if (!bar) return;
+            bar.classList.add('done');
+            if (fill) fill.style.width = '100%';
+            if (txt) txt.textContent = text || 'Done!';
+            setTimeout(() => {
+                bar.classList.remove('active', 'done');
+                if (fill) fill.style.width = '0%';
+                if (txt) txt.textContent = '';
+            }, 2500);
+        }
+        function dbTreeProgressHide() {
+            const bar = document.getElementById('dbTreeStatusBar');
+            const fill = document.getElementById('dbTreeStatusFill');
+            const txt = document.getElementById('dbTreeStatusText');
+            if (!bar) return;
+            bar.classList.remove('active', 'done');
+            if (fill) fill.style.width = '0%';
+            if (txt) txt.textContent = '';
+        }
+
         async function onDbTreeCheckboxChange() {
             const checkbox = document.getElementById('dbTreeCheckbox');
             const label = checkbox.closest('.db-tree-checkbox');
@@ -27089,9 +27245,15 @@ function setLanguage(langCode) {
                 return;
             }
 
+            // ── Start loading animation ──
             label.classList.add('loading');
+            dbTreeProgress(5, 'Connecting...');
 
             try {
+                // Step 1: Prepare request
+                await new Promise(r => setTimeout(r, 150));
+                dbTreeProgress(15, 'Connecting to ' + conn.dbName + '...');
+
                 const formData = new FormData();
                 formData.append('action', 'get_db_tree');
                 formData.append('host', conn.host || 'localhost');
@@ -27100,18 +27262,30 @@ function setLanguage(langCode) {
                 formData.append('username', conn.username || 'root');
                 formData.append('password', conn.password || '');
 
+                // Step 2: Fetch tables
+                dbTreeProgress(25, 'Fetching tables...');
                 const resp = await fetch('', { method: 'POST', body: formData });
+
+                dbTreeProgress(50, 'Reading response...');
                 const data = await resp.json();
 
                 if (!data.success) {
                     showToast('❌ ' + (data.message || 'Failed to fetch tables'), 'error');
                     checkbox.checked = false;
                     label.classList.remove('loading');
+                    dbTreeProgressHide();
                     return;
                 }
 
-                // Build relational tree from tables + relationships
+                // Step 3: Analyze relationships
+                const tableCount = data.tables ? data.tables.length : 0;
+                dbTreeProgress(65, 'Analyzing ' + tableCount + ' tables...');
+                await new Promise(r => setTimeout(r, 200));
+
+                // Step 4: Build tree
+                dbTreeProgress(75, 'Building relational tree...');
                 const treeData = buildDbRelationalTree(data.database, data.tables, data.relationships || []);
+                await new Promise(r => setTimeout(r, 150));
 
                 // Track this DB
                 window._dbTreeFolderNames.add(dbFolderName);
@@ -27127,7 +27301,8 @@ function setLanguage(langCode) {
                 });
                 knownFolders.set(dbFolderName, { addedAt: Date.now(), path: conn.host + '/' + data.database });
 
-                // If card already exists, re-render it; otherwise add new
+                // Step 5: Render
+                dbTreeProgress(90, 'Rendering tree...');
                 const sid = ftGetSafeId(dbFolderName);
                 const existingCard = document.getElementById('ftCard_' + sid);
                 if (existingCard) {
@@ -27141,14 +27316,16 @@ function setLanguage(langCode) {
                 requestAnimationFrame(() => ftCollapseAllNodes(sid));
                 ftUpdateContainer();
 
-                const tableCount = data.tables ? data.tables.length : 0;
+                // Step 6: Done
                 const relCount = data.relationships ? data.relationships.length : 0;
+                dbTreeProgressDone(tableCount + ' tables · ' + relCount + ' relations ✓');
                 showToast(`✅ Database tree: ${tableCount} tables, ${relCount} relationships`, 'success');
 
             } catch (err) {
                 console.error('DB Tree error:', err);
                 showToast('❌ Error fetching database tree', 'error');
                 checkbox.checked = false;
+                dbTreeProgressHide();
             } finally {
                 label.classList.remove('loading');
             }
