@@ -28562,7 +28562,11 @@ ${blockContent}
                         const icon = isDbItem ? '🗄️' : '📁';
                         const sid = ftGetSafeId(name);
                         const currentText = ftTreeRoots.has(sid) ? ftSerializeTreeText(sid) : data.treeText;
-                        folderBlock += `\n┌─── ${icon} ${name} ───────────────────────────────────────────────────┐\n${currentText}\n└──────────────────────────────────────────────────────────────────────┘\n`;
+                        const notesEl = document.getElementById('ftNotes_' + sid);
+                        const notesText = notesEl ? notesEl.value.trim() : (data.notes || '').trim();
+                        folderBlock += `\n┌─── ${icon} ${name} ───────────────────────────────────────────────────┐\n`;
+                        if (notesText) folderBlock += `📝 Notes: ${notesText}\n\n`;
+                        folderBlock += `${currentText}\n└──────────────────────────────────────────────────────────────────────┘\n`;
                     });
                     earlyParts.push(folderBlock);
                 }
@@ -28636,9 +28640,13 @@ new files or modifications follow the existing structure.
                     const icon = isDbItem ? '🗄️' : '📁';
                     const sid = ftGetSafeId(name);
                     const currentText = ftTreeRoots.has(sid) ? ftSerializeTreeText(sid) : data.treeText;
+                    const notesEl = document.getElementById('ftNotes_' + sid);
+                    const notesText = notesEl ? notesEl.value.trim() : (data.notes || '').trim();
                     folderSection += `
 ┌─── ${icon} ${name} ───────────────────────────────────────────────────┐
-${currentText}
+`;
+                    if (notesText) folderSection += `📝 Notes: ${notesText}\n\n`;
+                    folderSection += `${currentText}
 └──────────────────────────────────────────────────────────────────────┘
 `;
                 });
@@ -46036,6 +46044,7 @@ function ufPushToDashboard() {
         path: projectName,
         treeText: treeText,
         treeData: treeData,
+        notes: '',
         addedAt: Date.now(),
         _dirty: false
     });
