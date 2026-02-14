@@ -27336,6 +27336,7 @@ function setLanguage(langCode) {
                     path: conn.host + '/' + data.database,
                     treeText: treeText,
                     treeData: treeData,
+                    notes: '',
                     addedAt: Date.now(),
                     _dirty: false
                 });
