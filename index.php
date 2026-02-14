@@ -27122,35 +27122,33 @@ function setLanguage(langCode) {
                 
                 // Auto-test connection when selected
                 testSelectedConnection();
+                // Sync DB tree checkbox state for the newly selected database
+                ftSyncDbCheckbox();
             } else {
                 selectedDatabaseConnection = null;
+                ftSyncDbCheckbox();
             }
         }
         
-        // ─── Database Tree Checkbox Handler ───
+        // ─── Database Tree Checkbox Handler (supports multiple DBs) ───
+        if (!window._dbTreeFolderNames) window._dbTreeFolderNames = new Set();
+
+        function ftSyncDbCheckbox() {
+            const checkbox = document.getElementById('dbTreeCheckbox');
+            if (!checkbox) return;
+            const conn = selectedDatabaseConnection;
+            if (conn && conn.dbName) {
+                const dbFolderName = '🗄️ DB: ' + conn.dbName;
+                checkbox.checked = window._dbTreeFolderNames.has(dbFolderName);
+            } else {
+                checkbox.checked = false;
+            }
+        }
+
         async function onDbTreeCheckboxChange() {
             const checkbox = document.getElementById('dbTreeCheckbox');
             const label = checkbox.closest('.db-tree-checkbox');
 
-            if (!checkbox.checked) {
-                // Unchecked — remove the DB tree card if it exists
-                const existingName = window._dbTreeFolderName;
-                if (existingName) {
-                    const sid = ftGetSafeId(existingName);
-                    ftClearNodeMapForSid(sid);
-                    ftFolderStore.delete(existingName);
-                    ftIdToName.delete(sid);
-                    knownFolders.delete(existingName);
-                    const el = document.getElementById('ftCard_' + sid);
-                    if (el) el.remove();
-                    ftUpdateContainer();
-                    window._dbTreeFolderName = null;
-                    showToast('🗑️ Database tree removed', 'info');
-                }
-                return;
-            }
-
-            // Checked — need a selected database
             const dropdown = document.getElementById('dbDropdown');
             if (!dropdown.value || !selectedDatabaseConnection) {
                 showToast('⚠️ Please select a database first', 'warning');
@@ -27159,6 +27157,31 @@ function setLanguage(langCode) {
             }
 
             const conn = selectedDatabaseConnection;
+            const dbFolderName = '🗄️ DB: ' + conn.dbName;
+
+            if (!checkbox.checked) {
+                // Unchecked — remove only this DB's tree
+                if (window._dbTreeFolderNames.has(dbFolderName)) {
+                    const sid = ftGetSafeId(dbFolderName);
+                    ftClearNodeMapForSid(sid);
+                    ftFolderStore.delete(dbFolderName);
+                    ftIdToName.delete(sid);
+                    knownFolders.delete(dbFolderName);
+                    const el = document.getElementById('ftCard_' + sid);
+                    if (el) el.remove();
+                    window._dbTreeFolderNames.delete(dbFolderName);
+                    ftUpdateContainer();
+                    showToast('🗑️ Database tree removed: ' + conn.dbName, 'info');
+                }
+                return;
+            }
+
+            // Checked — already exists? skip
+            if (window._dbTreeFolderNames.has(dbFolderName)) {
+                showToast('ℹ️ Database already in project folders', 'info');
+                return;
+            }
+
             label.classList.add('loading');
 
             try {
@@ -27182,20 +27205,9 @@ function setLanguage(langCode) {
 
                 // Build relational tree from tables + relationships
                 const treeData = buildDbRelationalTree(data.database, data.tables, data.relationships || []);
-                const dbFolderName = '🗄️ DB: ' + data.database;
 
-                // Remove previous DB tree if exists
-                if (window._dbTreeFolderName && window._dbTreeFolderName !== dbFolderName) {
-                    const oldSid = ftGetSafeId(window._dbTreeFolderName);
-                    ftClearNodeMapForSid(oldSid);
-                    ftFolderStore.delete(window._dbTreeFolderName);
-                    ftIdToName.delete(oldSid);
-                    knownFolders.delete(window._dbTreeFolderName);
-                    const oldEl = document.getElementById('ftCard_' + oldSid);
-                    if (oldEl) oldEl.remove();
-                }
-
-                window._dbTreeFolderName = dbFolderName;
+                // Track this DB
+                window._dbTreeFolderNames.add(dbFolderName);
 
                 // Store in ftFolderStore — same format as folder tree
                 const treeText = buildTreeDiagram(dbFolderName, treeData);
