@@ -42823,6 +42823,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 // Enhancement Level state
 let elSelectedLevel = 'preserve';
+let elVrImages = []; // Array of {name, dataUrl, size}
 
 // Level details for prompt generation
 const elLevelDetails = {
@@ -42884,6 +42885,89 @@ function elSelectLevel(level) {
     
     elUpdateBadge();
     elSaveToStorage();
+
+    // Show/hide visual reference image picker
+    const vrSection = document.getElementById('elVisualRefSection');
+    if (vrSection) {
+        if (level === 'visual_reference') {
+            vrSection.classList.add('visible');
+        } else {
+            vrSection.classList.remove('visible');
+        }
+    }
+}
+
+// ── Visual Reference Image Picker ──
+function elVrDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('elVrDropzone')?.classList.add('dragover');
+}
+function elVrDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('elVrDropzone')?.classList.remove('dragover');
+}
+function elVrDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('elVrDropzone')?.classList.remove('dragover');
+    const files = e.dataTransfer?.files;
+    if (files && files.length) elVrFilesSelected(files);
+}
+
+function elVrFilesSelected(files) {
+    if (!files || !files.length) return;
+    const validTypes = ['image/png','image/jpeg','image/jpg','image/gif','image/webp','image/svg+xml','image/bmp'];
+    let added = 0;
+    Array.from(files).forEach(file => {
+        if (!validTypes.includes(file.type)) return;
+        if (elVrImages.some(img => img.name === file.name && img.size === file.size)) return; // skip duplicates
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            elVrImages.push({ name: file.name, dataUrl: ev.target.result, size: file.size });
+            added++;
+            elVrRenderPreviews();
+            elSaveToStorage();
+        };
+        reader.readAsDataURL(file);
+    });
+    // Reset file input so the same file can be re-selected
+    const input = document.getElementById('elVrFileInput');
+    if (input) input.value = '';
+}
+
+function elVrRenderPreviews() {
+    const grid = document.getElementById('elVrPreviewGrid');
+    const countWrap = document.getElementById('elVrCount');
+    const countText = document.getElementById('elVrCountText');
+    if (!grid) return;
+
+    grid.innerHTML = elVrImages.map((img, i) => `
+        <div class="el-vr-preview-item" title="${img.name}">
+            <img src="${img.dataUrl}" alt="${img.name}">
+            <button type="button" class="el-vr-preview-remove" onclick="event.stopPropagation();elVrRemove(${i})" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="el-vr-preview-name">${img.name}</div>
+        </div>
+    `).join('');
+
+    if (countWrap) countWrap.style.display = elVrImages.length ? 'inline-flex' : 'none';
+    if (countText) countText.textContent = `${elVrImages.length} image${elVrImages.length !== 1 ? 's' : ''}`;
+}
+
+function elVrRemove(index) {
+    elVrImages.splice(index, 1);
+    elVrRenderPreviews();
+    elSaveToStorage();
+}
+
+function elVrClearAll() {
+    elVrImages = [];
+    elVrRenderPreviews();
+    elSaveToStorage();
+    if (typeof showToast === 'function') showToast('🗑️ All reference images removed', 'info');
 }
 
 // Update badge
@@ -42932,6 +43016,17 @@ function elPushToNotes() {
     promptText += `**${details.icon} Level: ${details.name}**\n\n`;
     promptText += `**Description:** ${details.desc}\n\n`;
     promptText += `**Instructions:**\n${details.instructions}\n\n`;
+
+    // Add visual reference images info if applicable
+    if (elSelectedLevel === 'visual_reference' && elVrImages.length > 0) {
+        promptText += `### 🖼️ VISUAL REFERENCE IMAGES:\n\n`;
+        promptText += `**${elVrImages.length} reference image(s) attached.**\n`;
+        promptText += `Use these images as visual inspiration for the new design. Study the layout, colors, typography, and overall aesthetic, then build a fresh modern version.\n\n`;
+        elVrImages.forEach((img, i) => {
+            promptText += `${i + 1}. **${img.name}**\n`;
+        });
+        promptText += `\n`;
+    }
     
     // Add additional notes if present
     if (additionalNotes) {
@@ -42953,9 +43048,10 @@ function elPushToNotes() {
             saveProjectNotesToStorage();
         }
         
+        const imgInfo = (elSelectedLevel === 'visual_reference' && elVrImages.length > 0) ? ` + ${elVrImages.length} image(s)` : '';
         const notesInfo = additionalNotes ? ' + custom notes' : '';
         if (typeof showToast === 'function') {
-            showToast(`📊 Enhancement level (${details.name})${notesInfo} pushed to Project Prompts`, 'success');
+            showToast(`📊 Enhancement level (${details.name})${notesInfo}${imgInfo} pushed to Project Prompts`, 'success');
         }
     } else {
         if (typeof showToast === 'function') showToast('⚠️ Project Prompts not found', 'error');
@@ -42966,9 +43062,17 @@ function elPushToNotes() {
 function elSaveToStorage() {
     const data = {
         level: elSelectedLevel,
-        notes: document.getElementById('elNotesTextarea')?.value || ''
+        notes: document.getElementById('elNotesTextarea')?.value || '',
+        vrImages: elVrImages
     };
-    localStorage.setItem('el_data', JSON.stringify(data));
+    try {
+        localStorage.setItem('el_data', JSON.stringify(data));
+    } catch (e) {
+        // If storage quota exceeded (large images), save without images
+        const fallback = { level: data.level, notes: data.notes, vrImages: [] };
+        localStorage.setItem('el_data', JSON.stringify(fallback));
+        if (typeof showToast === 'function') showToast('⚠️ Images too large for local storage — they will not persist after reload', 'warning');
+    }
 }
 
 // Load from localStorage
@@ -42981,6 +43085,10 @@ function elLoadFromStorage() {
             const textarea = document.getElementById('elNotesTextarea');
             if (textarea && data.notes) {
                 textarea.value = data.notes;
+            }
+            if (Array.isArray(data.vrImages)) {
+                elVrImages = data.vrImages;
+                elVrRenderPreviews();
             }
         } catch (e) {
             elSelectedLevel = 'preserve';
@@ -42995,6 +43103,8 @@ function elResetAll(skipToast = false) {
     if (textarea) {
         textarea.value = '';
     }
+    elVrImages = [];
+    elVrRenderPreviews();
     elUpdateUI();
     localStorage.removeItem('el_data');
     
@@ -43008,6 +43118,8 @@ function elClearAndReset() {
     const textarea = document.getElementById('elNotesTextarea');
     if (textarea) textarea.value = '';
     elSelectedLevel = 'preserve';
+    elVrImages = [];
+    elVrRenderPreviews();
     elUpdateUI();
     elSaveToStorage();
     if (typeof showToast === 'function') {
@@ -43039,7 +43151,8 @@ function getEnhancementLevel() {
     return {
         level: elSelectedLevel,
         details: elLevelDetails[elSelectedLevel],
-        notes: document.getElementById('elNotesTextarea')?.value.trim() || ''
+        notes: document.getElementById('elNotesTextarea')?.value.trim() || '',
+        vrImages: elVrImages
     };
 }
 
