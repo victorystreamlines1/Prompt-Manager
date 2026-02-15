@@ -614,15 +614,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($pdo && $toolOrder) {
             try {
-                // Update the single row (or insert if somehow missing)
-                $stmt = $pdo->prepare("UPDATE reporter_prompt_tool_order SET tool_order = ? WHERE id = 1");
-                $stmt->execute([$toolOrder]);
+                // Clean up any duplicate rows first, keep only id=1
+                $pdo->exec("DELETE FROM reporter_prompt_tool_order WHERE id != 1");
                 
-                if ($stmt->rowCount() == 0) {
-                    // Insert if no row exists
-                    $stmt = $pdo->prepare("INSERT INTO reporter_prompt_tool_order (tool_order) VALUES (?)");
-                    $stmt->execute([$toolOrder]);
-                }
+                // Use REPLACE INTO to reliably upsert the single row
+                $stmt = $pdo->prepare("REPLACE INTO reporter_prompt_tool_order (id, tool_order) VALUES (1, ?)");
+                $stmt->execute([$toolOrder]);
                 
                 echo json_encode(['success' => true, 'message' => 'Tool order saved']);
             } catch (PDOException $e) {
@@ -640,7 +637,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'load_tool_order') {
         if ($pdo) {
             try {
-                $stmt = $pdo->query("SELECT tool_order FROM reporter_prompt_tool_order LIMIT 1");
+                $stmt = $pdo->query("SELECT tool_order FROM reporter_prompt_tool_order WHERE id = 1 LIMIT 1");
                 $row = $stmt->fetch();
                 
                 if ($row) {
@@ -37978,6 +37975,9 @@ async function saveToolOrderToDatabase() {
     
     console.log('Saving order:', order);
     
+    // Save to localStorage immediately as backup
+    try { localStorage.setItem('de_tool_order', JSON.stringify(order)); } catch(e) {}
+    
     // Show saving indicator
     const indicator = document.createElement('div');
     indicator.className = 'de-saving-indicator';
@@ -37991,7 +37991,8 @@ async function saveToolOrderToDatabase() {
         
         const response = await fetch(window.location.href.split('?')[0], {
             method: 'POST',
-            body: formData
+            body: formData,
+            cache: 'no-store'
         });
         
         const result = await response.json();
@@ -38020,13 +38021,27 @@ async function saveToolOrderToDatabase() {
 
 // Load tool order from database
 async function loadToolOrderFromDatabase() {
+    // Apply localStorage order immediately for instant response
+    try {
+        const cached = localStorage.getItem('de_tool_order');
+        if (cached) {
+            const cachedOrder = JSON.parse(cached);
+            if (Array.isArray(cachedOrder) && cachedOrder.length > 0) {
+                applyToolOrder(cachedOrder);
+                console.log('Applied cached order from localStorage');
+            }
+        }
+    } catch(e) {}
+    
+    // Then fetch from database (source of truth) and apply
     try {
         const formData = new FormData();
         formData.append('action', 'load_tool_order');
         
         const response = await fetch(window.location.href.split('?')[0], {
             method: 'POST',
-            body: formData
+            body: formData,
+            cache: 'no-store'
         });
         
         const result = await response.json();
@@ -38034,6 +38049,8 @@ async function loadToolOrderFromDatabase() {
         if (result.success && result.tool_order && Array.isArray(result.tool_order)) {
             console.log('Loaded order from database:', result.tool_order);
             applyToolOrder(result.tool_order);
+            // Update localStorage with DB truth
+            try { localStorage.setItem('de_tool_order', JSON.stringify(result.tool_order)); } catch(e) {}
         }
     } catch (error) {
         console.error('Error loading tool order:', error);
@@ -38065,7 +38082,18 @@ function applyToolOrder(order) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Small delay to ensure all tools are rendered
+    // Apply cached order immediately (no delay) for instant visual response
+    try {
+        const cached = localStorage.getItem('de_tool_order');
+        if (cached) {
+            const cachedOrder = JSON.parse(cached);
+            if (Array.isArray(cachedOrder) && cachedOrder.length > 0) {
+                applyToolOrder(cachedOrder);
+            }
+        }
+    } catch(e) {}
+    
+    // Then initialize drag-drop and load from DB
     setTimeout(initToolDragDrop, 300);
 });
 
