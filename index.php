@@ -42877,6 +42877,7 @@ function hpHandleTargetFile(event) {
     
     hpSaveToStorage();
     hpUpdateBadge();
+    hpSyncToUploader();
     showToast(`📄 Target page selected: ${file.name}`, 'success');
 }
 
@@ -42896,6 +42897,7 @@ function hpClearTargetFile() {
     
     hpSaveToStorage();
     hpUpdateBadge();
+    hpSyncToUploader();
 }
 
 // Save new page name
@@ -43200,6 +43202,55 @@ function hpSyncToUploader() {
         }
         
         console.log('🔄 HP → UF sync: Homepage cleared');
+    }
+    
+    // ─── Target page → Featured page sync ───
+    const featuredSelect = document.getElementById('ufFeaturedSelect');
+    if (!featuredSelect) return;
+    
+    if (hpTargetFileName) {
+        const featOptions = Array.from(featuredSelect.options);
+        const matchFeat = featOptions.find(opt => opt.value === hpTargetFileName);
+        
+        if (matchFeat) {
+            featuredSelect.value = hpTargetFileName;
+        } else {
+            const newOpt = document.createElement('option');
+            newOpt.value = hpTargetFileName;
+            newOpt.textContent = hpTargetFileName + ' (from Homepage Config)';
+            featuredSelect.appendChild(newOpt);
+            featuredSelect.value = hpTargetFileName;
+        }
+        
+        if (typeof ufDetectedFeatured !== 'undefined') {
+            ufDetectedFeatured = hpTargetFileName;
+            
+            const featuredBadge = document.getElementById('ufFeaturedBadge');
+            if (featuredBadge) {
+                featuredBadge.textContent = 'Set';
+                featuredBadge.className = 'uf-page-badge set';
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 HP → UF sync: Featured/Target set to', hpTargetFileName);
+    } else {
+        featuredSelect.value = '';
+        
+        if (typeof ufDetectedFeatured !== 'undefined') {
+            ufDetectedFeatured = '';
+            
+            const featuredBadge = document.getElementById('ufFeaturedBadge');
+            if (featuredBadge) {
+                featuredBadge.textContent = 'Not Set';
+                featuredBadge.className = 'uf-page-badge not-set';
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 HP → UF sync: Featured/Target cleared');
     }
 }
 
@@ -45426,6 +45477,18 @@ function ufSyncToHomepageConfig() {
         if (targetClearBtn) targetClearBtn.classList.add('show');
         
         console.log('🔄 Synced Target Page →', ufDetectedFeatured);
+    } else {
+        hpTargetFileName = null;
+        
+        const targetFileDisplay = document.getElementById('hpFileDisplay');
+        const targetFileNameSpan = document.getElementById('hpTargetFileName');
+        const targetClearBtn = document.getElementById('hpClearBtn');
+        
+        if (targetFileNameSpan) targetFileNameSpan.textContent = 'No file selected (will use current homepage)';
+        if (targetFileDisplay) targetFileDisplay.classList.remove('has-file');
+        if (targetClearBtn) targetClearBtn.classList.remove('show');
+        
+        console.log('🔄 Synced Target Page → cleared');
     }
     
     // Save and update badge
