@@ -7300,6 +7300,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(239, 68, 68, 0.4);
         }
         
+        .el-radio-item[data-level="visual_reference"] {
+            border-color: rgba(168, 85, 247, 0.15);
+        }
+        .el-radio-item[data-level="visual_reference"]:hover {
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+        .el-radio-item[data-level="visual_reference"].selected {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        
         /* Enhancement Level Notes */
         .el-notes-section {
             margin-top: 0.75rem;
@@ -7485,6 +7496,191 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(245, 158, 11, 0.35);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           🎨 VISUAL REFERENCE IMAGE PICKER
+           ═══════════════════════════════════════════════════════════════════ */
+        .el-visual-ref-section {
+            margin-top: 0.75rem;
+            display: none;
+            animation: elVrFadeIn 0.35s ease;
+        }
+        .el-visual-ref-section.visible {
+            display: block;
+        }
+        @keyframes elVrFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .el-vr-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 0.5rem;
+        }
+        .el-vr-label i { font-size: 0.6rem; }
+
+        .el-vr-dropzone {
+            position: relative;
+            border: 2px dashed rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 1.2rem 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.04) 0%, rgba(139, 92, 246, 0.02) 100%);
+        }
+        .el-vr-dropzone:hover,
+        .el-vr-dropzone.dragover {
+            border-color: rgba(168, 85, 247, 0.6);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.06) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.15);
+        }
+        .el-vr-dropzone-icon {
+            font-size: 1.6rem;
+            color: rgba(168, 85, 247, 0.5);
+            margin-bottom: 0.4rem;
+            transition: color 0.3s ease;
+        }
+        .el-vr-dropzone:hover .el-vr-dropzone-icon {
+            color: rgba(168, 85, 247, 0.8);
+        }
+        .el-vr-dropzone-text {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .el-vr-dropzone-text strong {
+            color: #a855f7;
+            cursor: pointer;
+        }
+        .el-vr-dropzone-hint {
+            font-size: 0.55rem;
+            color: rgba(168, 85, 247, 0.4);
+            margin-top: 0.3rem;
+        }
+        .el-vr-file-input {
+            display: none;
+        }
+
+        /* Preview Grid */
+        .el-vr-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.6rem;
+        }
+        .el-vr-preview-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(30, 41, 59, 0.5);
+            aspect-ratio: 1;
+            transition: all 0.25s ease;
+            animation: elVrThumbIn 0.3s ease;
+        }
+        @keyframes elVrThumbIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .el-vr-preview-item:hover {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+            transform: translateY(-2px);
+        }
+        .el-vr-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .el-vr-preview-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.85);
+            border: none;
+            color: #fff;
+            font-size: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+        .el-vr-preview-item:hover .el-vr-preview-remove {
+            opacity: 1;
+        }
+        .el-vr-preview-remove:hover {
+            background: rgba(239, 68, 68, 1);
+            transform: scale(1.15);
+        }
+        .el-vr-preview-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.2rem 0.3rem;
+            font-size: 0.45rem;
+            color: #fff;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Counter badge */
+        .el-vr-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.6rem;
+            color: rgba(168, 85, 247, 0.6);
+            margin-top: 0.4rem;
+        }
+        .el-vr-clear-all {
+            padding: 0.15rem 0.45rem;
+            font-size: 0.5rem;
+            font-weight: 600;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 5px;
+            background: rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 0.3rem;
+        }
+        .el-vr-clear-all:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        /* Light theme */
+        [data-theme="light"] .el-vr-label { color: #7c3aed; }
+        [data-theme="light"] .el-vr-dropzone {
+            border-color: rgba(168, 85, 247, 0.25);
+            background: rgba(168, 85, 247, 0.03);
+        }
+        [data-theme="light"] .el-vr-dropzone:hover,
+        [data-theme="light"] .el-vr-dropzone.dragover {
+            border-color: rgba(168, 85, 247, 0.5);
+            background: rgba(168, 85, 247, 0.08);
+        }
+        [data-theme="light"] .el-vr-preview-item {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(168, 85, 247, 0.15);
+        }
+
         /* ═══════════════════════════════════════════════════════════════════
            📋 TASK BREAKDOWN TOOL
            ═══════════════════════════════════════════════════════════════════ */
@@ -22867,8 +23063,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <p>Complete design overhaul with cutting-edge modern CSS</p>
                                 </div>
                             </label>
+                            <label class="el-radio-item" data-level="visual_reference" onclick="elSelectLevel('visual_reference')">
+                                <input type="radio" name="el_level" id="el_visual_reference" value="visual_reference">
+                                <div class="el-radio-content">
+                                    <strong>🎨 Take Visual Reference</strong>
+                                    <p>Use the current design as a visual reference and rebuild with a fresh modern approach</p>
+                                </div>
+                            </label>
                         </div>
                         
+                        <!-- 🎨 Visual Reference Image Picker (shown only for visual_reference level) -->
+                        <div class="el-visual-ref-section" id="elVisualRefSection">
+                            <label class="el-vr-label">
+                                <i class="fas fa-images"></i>
+                                <span>Upload Visual Reference Images</span>
+                            </label>
+                            <div class="el-vr-dropzone" id="elVrDropzone"
+                                 onclick="document.getElementById('elVrFileInput').click()"
+                                 ondragover="elVrDragOver(event)"
+                                 ondragleave="elVrDragLeave(event)"
+                                 ondrop="elVrDrop(event)">
+                                <div class="el-vr-dropzone-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <div class="el-vr-dropzone-text">
+                                    Drag & drop images here or <strong>browse files</strong>
+                                </div>
+                                <div class="el-vr-dropzone-hint">PNG, JPG, WEBP, GIF — multiple files supported</div>
+                            </div>
+                            <input type="file" id="elVrFileInput" class="el-vr-file-input"
+                                   accept="image/*" multiple onchange="elVrFilesSelected(this.files)">
+                            <div class="el-vr-preview-grid" id="elVrPreviewGrid"></div>
+                            <div class="el-vr-count" id="elVrCount" style="display:none;">
+                                <i class="fas fa-image"></i>
+                                <span id="elVrCountText">0 images</span>
+                                <button type="button" class="el-vr-clear-all" onclick="elVrClearAll()">
+                                    <i class="fas fa-trash-alt"></i> Clear All
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Notes Textarea -->
                         <div class="el-notes-section">
                             <label class="el-notes-label">
@@ -42617,6 +42849,12 @@ const elLevelDetails = {
         icon: '🚀',
         desc: 'Complete design overhaul with cutting-edge modern CSS',
         instructions: 'Perform a complete design overhaul using cutting-edge modern CSS. Reimagine the visual design with bold new styles, advanced animations, glassmorphism, gradients, and the latest CSS features. Be creative and dramatic.'
+    },
+    visual_reference: {
+        name: 'Take Visual Reference',
+        icon: '🎨',
+        desc: 'Use the current design as a visual reference and rebuild with a fresh modern approach',
+        instructions: 'Use the existing design only as a visual reference — do not replicate it. Study the layout, color palette, and overall vibe, then rebuild the UI from scratch with a fresh, modern approach. Apply best practices in UX/UI, use contemporary frameworks and design patterns, and aim for a polished, production-ready result that feels inspired by the original but clearly elevated.'
     }
 };
 
@@ -42661,7 +42899,8 @@ function elUpdateBadge() {
         preserve: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
         subtle: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
         moderate: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-        aggressive: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
+        aggressive: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+        visual_reference: 'linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%)'
     };
     badge.style.background = colors[elSelectedLevel] || colors.moderate;
 }
