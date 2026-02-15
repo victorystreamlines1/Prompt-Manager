@@ -43396,13 +43396,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- ═══════════════════════════════════════════════════════════════════
 
-// Initialize Visual Reference
-function vrInit() {
-    vrLoadFromStorage();
-    vrSetupDropZone();
-    vrUpdateUI();
-}
-
 // Setup Drop Zone events
 function vrSetupDropZone() {
     const dropZone = document.getElementById('vrDropZone');
