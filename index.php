@@ -43395,12 +43395,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     📷 VISUAL DESIGN REFERENCE JAVASCRIPT
-     ═══════════════════════════════════════════════════════════════════ -->
-<script>
-// Visual Reference state
-let vrImages = [];
-let vrMode = 'ai-inspiration';
 
 // Initialize Visual Reference
 function vrInit() {
