@@ -21821,7 +21821,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="de-tool-reset-btn" onclick="event.stopPropagation(); confirmResetBranding();" title="Reset to default">
                             <i class="fas fa-times"></i>
                         </button>
-                        <div class="de-tool-badge branding-badge" id="brandingBadge">3</div>
+                        <div class="de-tool-badge branding-badge" id="brandingBadge" style="opacity:0.5">0</div>
                         <i class="fas fa-chevron-down de-tool-arrow" id="brandingArrow"></i>
                     </div>
                     
@@ -21870,8 +21870,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span>Application Options</span>
                             </div>
                             
-                            <div class="branding-option-item checked" data-option="favicon" onclick="toggleBrandingOptionItem(this)">
-                                <input type="checkbox" id="brandingFavicon" checked>
+                            <div class="branding-option-item" data-option="favicon" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingFavicon">
                                 <div class="branding-option-check"><i class="fas fa-check"></i></div>
                                 <div class="branding-option-content">
                                     <strong><i class="fas fa-bookmark"></i> Favicon</strong>
@@ -21879,8 +21879,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             
-                            <div class="branding-option-item checked" data-option="logo-pages" onclick="toggleBrandingOptionItem(this)">
-                                <input type="checkbox" id="brandingLogoPages" checked>
+                            <div class="branding-option-item" data-option="logo-pages" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingLogoPages">
                                 <div class="branding-option-check"><i class="fas fa-check"></i></div>
                                 <div class="branding-option-content">
                                     <strong><i class="fas fa-images"></i> Logo in Header</strong>
@@ -21888,8 +21888,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             
-                            <div class="branding-option-item checked" data-option="title-pages" onclick="toggleBrandingOptionItem(this)">
-                                <input type="checkbox" id="brandingTitlePages" checked>
+                            <div class="branding-option-item" data-option="title-pages" onclick="toggleBrandingOptionItem(this)">
+                                <input type="checkbox" id="brandingTitlePages">
                                 <div class="branding-option-check"><i class="fas fa-check"></i></div>
                                 <div class="branding-option-content">
                                     <strong><i class="fas fa-font"></i> Page Titles</strong>
@@ -37664,9 +37664,9 @@ function saveBrandingState() {
         logoDataUrl: brandingLogoDataUrl,
         logoFileName: brandingLogoFileName || brandingLogoFile?.name || '',
         title: document.getElementById('brandingTitleInput')?.value || '',
-        favicon: document.getElementById('brandingFavicon')?.checked ?? true,
-        logoPages: document.getElementById('brandingLogoPages')?.checked ?? true,
-        titlePages: document.getElementById('brandingTitlePages')?.checked ?? true,
+        favicon: document.getElementById('brandingFavicon')?.checked ?? false,
+        logoPages: document.getElementById('brandingLogoPages')?.checked ?? false,
+        titlePages: document.getElementById('brandingTitlePages')?.checked ?? false,
         customInstructions: document.getElementById('brandingCustomPrompt')?.value || ''
     };
     localStorage.setItem('branding_state', JSON.stringify(state));
@@ -37712,15 +37712,15 @@ function loadBrandingState() {
         const titlePagesChk = document.getElementById('brandingTitlePages');
         
         if (faviconChk) {
-            faviconChk.checked = state.favicon ?? true;
+            faviconChk.checked = state.favicon ?? false;
             faviconChk.closest('.branding-option-item')?.classList.toggle('checked', faviconChk.checked);
         }
         if (logoPagesChk) {
-            logoPagesChk.checked = state.logoPages ?? true;
+            logoPagesChk.checked = state.logoPages ?? false;
             logoPagesChk.closest('.branding-option-item')?.classList.toggle('checked', logoPagesChk.checked);
         }
         if (titlePagesChk) {
-            titlePagesChk.checked = state.titlePages ?? true;
+            titlePagesChk.checked = state.titlePages ?? false;
             titlePagesChk.closest('.branding-option-item')?.classList.toggle('checked', titlePagesChk.checked);
         }
         
@@ -37818,11 +37818,11 @@ function resetBranding(skipToast = false) {
     if (titleInput) titleInput.value = '';
     updateBrandingTitlePreview();
     
-    // Reset checkboxes to checked (default)
+    // Reset checkboxes to unchecked (default)
     const options = [
-        { id: 'brandingFavicon', default: true },
-        { id: 'brandingLogoPages', default: true },
-        { id: 'brandingTitlePages', default: true }
+        { id: 'brandingFavicon', default: false },
+        { id: 'brandingLogoPages', default: false },
+        { id: 'brandingTitlePages', default: false }
     ];
     
     options.forEach(opt => {

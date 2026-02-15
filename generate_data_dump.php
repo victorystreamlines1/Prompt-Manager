@@ -29,7 +29,7 @@
 
 $outputFile = __DIR__ . '/data_migration.sql';
 
-// Database 1: Prompt Manager Hub (report_prompt_databases + reporter_prompt_table)
+// Database 1: Prompt Manager Hub (all reporter_prompt_* tables)
 $db1 = [
     'host'     => 'srv1788.hstgr.io',
     'port'     => 3306,
@@ -37,12 +37,18 @@ $db1 = [
     'username' => 'u419999707_prompt_manager',
     'password' => 'P@master5007',
     'tables'   => [
+        // Standalone tables first (no FK dependencies)
         'report_prompt_databases',
-        'reporter_prompt_table',
+        'reporter_prompt_design_templates',
+        'reporter_prompt_projects',
+        'reporter_prompt_saved_prompts',
+        'reporter_prompt_templates',
+        'reporter_prompt_tool_order',
+        'reporter_prompt_uploaded_files',
     ]
 ];
 
-// Database 2: Visual Prompter (all visual_prompter_* tables)
+// Database 2: Visual Prompter + duplicate reporter tables (all visual_prompter_* tables)
 $db2 = [
     'host'     => 'srv1788.hstgr.io',
     'port'     => 3306,
@@ -50,7 +56,11 @@ $db2 = [
     'username' => 'u419999707_Abuammar',
     'password' => 'P@master5007',
     'tables'   => [
-        // ORDER MATTERS: parent tables first (FK dependencies)
+        // Existing reporter tables (duplicates, currently empty)
+        'reporter_prompt_saved_prompts',
+        'reporter_prompt_templates',
+        'reporter_prompt_uploaded_files',
+        // Visual Prompter tables - ORDER MATTERS: parent tables first (FK dependencies)
         'visual_prompter_projects',
         'visual_prompter_nodes',
         'visual_prompter_connections',

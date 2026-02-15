@@ -1,8 +1,8 @@
 -- ============================================================
 -- PROMPT MANAGER - COMPLETE DATABASE SCHEMA (Structure Only)
 -- ============================================================
--- Generated: 2026-02-15
--- Source: Prompt-Manager Application
+-- Generated: 2026-02-16
+-- Source: Prompt-Manager Application (LIVE DATABASE VERIFIED)
 -- Engine: MySQL / InnoDB
 -- Charset: utf8mb4 / utf8mb4_unicode_ci
 --
@@ -10,18 +10,37 @@
 -- the entire Prompt Manager application. No data is inserted
 -- except default preference values required for operation.
 --
--- TABLES (11 total):
---   1.  report_prompt_databases          (Connection Registry Hub)
---   2.  reporter_prompt_table            (Prompt Manager CRUD)
---   3.  visual_prompter_projects         (Visual Prompter - Root Entity)
---   4.  visual_prompter_nodes            (Visual Prompter - Graph Nodes)
---   5.  visual_prompter_connections      (Visual Prompter - Node Links)
---   6.  visual_prompter_node_tables      (Visual Prompter - DB Schema Defs)
---   7.  visual_prompter_table_columns    (Visual Prompter - Column Metadata)
---   8.  visual_prompter_project_history  (Visual Prompter - Version Snapshots)
---   9.  visual_prompter_templates        (Visual Prompter - Reusable Templates)
---   10. visual_prompter_generated_prompts(Visual Prompter - AI Prompt Output)
---   11. visual_prompter_preferences      (Visual Prompter - App Settings)
+-- Verified against live databases on 2026-02-15 via
+-- SHOW CREATE TABLE on every table in both databases.
+--
+-- SOURCE DATABASES:
+--   DB1: u419999707_prompt_manager (7 tables with data)
+--   DB2: u419999707_Mohamed        (3 tables, empty + 9 Visual Prompter pending)
+--
+-- TABLES (16 total):
+--
+--   --- DB1: u419999707_prompt_manager ---
+--   1.  report_prompt_databases             (Connection Registry Hub)
+--   2.  reporter_prompt_design_templates    (Page Design Templates)
+--   3.  reporter_prompt_projects            (Prompt Reporter Projects)
+--   4.  reporter_prompt_saved_prompts       (Saved Generated Prompts)
+--   5.  reporter_prompt_templates           (Prompt Section Templates)
+--   6.  reporter_prompt_tool_order          (Tool Ordering Config)
+--   7.  reporter_prompt_uploaded_files      (Uploaded File Tracking)
+--
+--   --- DB2: u419999707_Mohamed (also in DB1) ---
+--   (Tables 4,5,7 also exist in DB2 as empty copies)
+--
+--   --- Visual Prompter (defined in code, ready to deploy) ---
+--   8.  visual_prompter_projects            (Root Entity)
+--   9.  visual_prompter_nodes               (Graph Nodes)
+--   10. visual_prompter_connections         (Node Links)
+--   11. visual_prompter_node_tables         (DB Schema Defs)
+--   12. visual_prompter_table_columns       (Column Metadata)
+--   13. visual_prompter_project_history     (Version Snapshots)
+--   14. visual_prompter_templates           (Reusable Templates)
+--   15. visual_prompter_generated_prompts   (AI Prompt Output)
+--   16. visual_prompter_preferences         (App Settings)
 --
 -- EXECUTION ORDER MATTERS: Foreign keys require parent tables
 -- to exist first. Run this file top-to-bottom as-is.
@@ -35,57 +54,167 @@
 --          for all managed database connections. Every module
 --          in the system reads from this table to discover
 --          available databases.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (10 rows)
 -- USED BY: report-prompt-databases.php, prompt-manager.php,
 --          visual-prompter/api/get-databases.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `report_prompt_databases` (
-    `id` VARCHAR(50) PRIMARY KEY,
-    `name` VARCHAR(255) NOT NULL,
-    `type` VARCHAR(50) DEFAULT 'shared',
-    `host` VARCHAR(255) NOT NULL,
-    `dbName` VARCHAR(255) NOT NULL,
-    `username` VARCHAR(255) NOT NULL,
-    `password` VARCHAR(255) NOT NULL,
-    `port` VARCHAR(10) DEFAULT '3306',
-    `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `id` varchar(50) NOT NULL,
+    `name` varchar(255) NOT NULL,
+    `type` varchar(50) DEFAULT 'shared',
+    `host` varchar(255) NOT NULL,
+    `dbName` varchar(255) NOT NULL,
+    `username` varchar(255) NOT NULL,
+    `password` varchar(255) NOT NULL,
+    `port` varchar(10) DEFAULT '3306',
+    `createdAt` datetime DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 
 -- ============================================================
--- TABLE 2: reporter_prompt_table
+-- TABLE 2: reporter_prompt_design_templates
 -- ============================================================
--- PURPOSE: Stores prompts with CRUD operations, categories,
---          favorites, usage tracking, and full-text search.
--- USED BY: src/Modules/PromptManager/PromptService.php
+-- PURPOSE: Stores page design templates (HTML/CSS layouts)
+--          used by the prompt report generator UI.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (3 rows)
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS `reporter_prompt_table` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `title` VARCHAR(255) NOT NULL,
-    `content` TEXT NOT NULL,
-    `category` VARCHAR(100) DEFAULT 'general',
-    `tags` VARCHAR(500) DEFAULT '',
-    `is_favorite` TINYINT(1) DEFAULT 0,
-    `usage_count` INT DEFAULT 0,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX `idx_category` (`category`),
-    INDEX `idx_favorite` (`is_favorite`),
-    FULLTEXT `idx_search` (`title`, `content`, `tags`)
+CREATE TABLE IF NOT EXISTS `reporter_prompt_design_templates` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `content` text NOT NULL,
+    `sort_order` int(11) DEFAULT 0,
+    `is_active` tinyint(1) DEFAULT 1,
+    `created_at` timestamp NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ============================================================
--- TABLE 3: visual_prompter_projects
+-- TABLE 3: reporter_prompt_projects
+-- ============================================================
+-- PURPOSE: Stores prompt reporter projects with their full
+--          configuration: target database credentials, backend
+--          definitions, page layouts, frontend configs,
+--          language settings, folder structure, and the
+--          final generated prompt content.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (6 rows)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `reporter_prompt_projects` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `description` text DEFAULT NULL,
+    `database_id` int(11) DEFAULT NULL,
+    `database_name` varchar(255) DEFAULT NULL,
+    `database_host` varchar(255) DEFAULT NULL,
+    `database_user` varchar(255) DEFAULT NULL,
+    `database_pass` varchar(255) DEFAULT NULL,
+    `database_port` varchar(10) DEFAULT '3306',
+    `include_remote` tinyint(1) DEFAULT 0,
+    `include_localhost` tinyint(1) DEFAULT 0,
+    `backends` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`backends`)),
+    `pages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`pages`)),
+    `frontends` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`frontends`)),
+    `project_notes` text DEFAULT NULL,
+    `language_settings` text DEFAULT NULL,
+    `folder_data` longtext DEFAULT NULL,
+    `prompt_content` text DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- TABLE 4: reporter_prompt_saved_prompts
+-- ============================================================
+-- PURPOSE: Stores saved/generated prompt outputs for later
+--          retrieval and reuse.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (5 rows)
+--         Also exists in u419999707_Mohamed (empty)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `reporter_prompt_saved_prompts` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `title` varchar(255) NOT NULL,
+    `content` text NOT NULL,
+    `created_at` timestamp NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- TABLE 5: reporter_prompt_templates
+-- ============================================================
+-- PURPOSE: Stores prompt section templates (reusable prompt
+--          building blocks) with ordering and active status.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (1 row)
+--         Also exists in u419999707_Mohamed (empty)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `reporter_prompt_templates` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `content` text NOT NULL,
+    `sort_order` int(11) DEFAULT 0,
+    `is_active` tinyint(1) DEFAULT 1,
+    `created_at` timestamp NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- TABLE 6: reporter_prompt_tool_order
+-- ============================================================
+-- PURPOSE: Stores the ordering/arrangement of tools in the
+--          prompt reporter UI sidebar.
+-- SOURCE: LIVE DB - u419999707_prompt_manager (1 row)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `reporter_prompt_tool_order` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `tool_order` text NOT NULL,
+    `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- TABLE 7: reporter_prompt_uploaded_files
+-- ============================================================
+-- PURPOSE: Tracks files uploaded through the prompt reporter
+--          interface (filename, path, size, MIME type).
+-- SOURCE: LIVE DB - u419999707_prompt_manager (0 rows)
+--         Also exists in u419999707_Mohamed (empty)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `reporter_prompt_uploaded_files` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `filename` varchar(255) NOT NULL,
+    `filepath` varchar(500) NOT NULL,
+    `filesize` int(11) DEFAULT NULL,
+    `filetype` varchar(100) DEFAULT NULL,
+    `uploaded_at` timestamp NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- TABLE 8: visual_prompter_projects
 -- ============================================================
 -- PURPOSE: Root entity for Visual Prompter projects. Holds
 --          project metadata, canvas config (JSON), base64
 --          thumbnails, and version tracking.
 -- NOTE:    Uses dual identity: auto-increment `id` for internal
 --          FK efficiency + `uuid` for external/API references.
--- USED BY: visual-prompter/api/projects.php,
---          visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
+-- USED BY: visual-prompter/api/projects.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_projects` (
@@ -110,14 +239,14 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_projects` (
 
 
 -- ============================================================
--- TABLE 4: visual_prompter_nodes
+-- TABLE 9: visual_prompter_nodes
 -- ============================================================
 -- PURPOSE: All graph nodes within projects. Each node has a
 --          LiteGraph internal ID, type, position, size, and
 --          a JSON blob for flexible properties.
 -- FK:      project_id → visual_prompter_projects(id) CASCADE
 -- UNIQUE:  (project_id, node_id) - one LiteGraph ID per project
--- USED BY: visual-prompter/api/projects.php (save/get actions)
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_nodes` (
@@ -145,12 +274,12 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_nodes` (
 
 
 -- ============================================================
--- TABLE 5: visual_prompter_connections
+-- TABLE 10: visual_prompter_connections
 -- ============================================================
 -- PURPOSE: Edge definitions for the node graph. Links a source
 --          node's output slot to a target node's input slot.
 -- FK:      project_id → visual_prompter_projects(id) CASCADE
--- USED BY: visual-prompter/api/projects.php (save/get actions)
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_connections` (
@@ -170,14 +299,14 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_connections` (
 
 
 -- ============================================================
--- TABLE 6: visual_prompter_node_tables
+-- TABLE 11: visual_prompter_node_tables
 -- ============================================================
 -- PURPOSE: Table definitions attached to DatabaseNode types.
 --          Stores the schema design (table name, engine,
 --          charset, collation) for each table a user defines
 --          inside a database node.
 -- FK:      node_db_id → visual_prompter_nodes(id) CASCADE
--- USED BY: visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_node_tables` (
@@ -197,14 +326,14 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_node_tables` (
 
 
 -- ============================================================
--- TABLE 7: visual_prompter_table_columns
+-- TABLE 12: visual_prompter_table_columns
 -- ============================================================
 -- PURPOSE: Full column metadata within tables. Stores column
 --          name, type, length, constraints (PK, AI, UNIQUE,
 --          INDEX, NULLABLE), defaults, comments, ordering,
 --          and foreign key references.
 -- FK:      table_id → visual_prompter_node_tables(id) CASCADE
--- USED BY: visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_table_columns` (
@@ -230,13 +359,13 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_table_columns` (
 
 
 -- ============================================================
--- TABLE 8: visual_prompter_project_history
+-- TABLE 13: visual_prompter_project_history
 -- ============================================================
 -- PURPOSE: Version snapshots for projects. Stores a full JSON
 --          snapshot of the project state on every save.
 --          Capped at 50 snapshots per project (pruned by app).
 -- FK:      project_id → visual_prompter_projects(id) CASCADE
--- USED BY: visual-prompter/api/projects.php (save action)
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_project_history` (
@@ -253,12 +382,12 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_project_history` (
 
 
 -- ============================================================
--- TABLE 9: visual_prompter_templates
+-- TABLE 14: visual_prompter_templates
 -- ============================================================
 -- PURPOSE: Reusable node, project, or snippet templates.
 --          System templates (is_system=1) are protected from
 --          deletion. Tracks usage count.
--- USED BY: visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_templates` (
@@ -279,13 +408,13 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_templates` (
 
 
 -- ============================================================
--- TABLE 10: visual_prompter_generated_prompts
+-- TABLE 15: visual_prompter_generated_prompts
 -- ============================================================
 -- PURPOSE: Stores AI-generated prompt output from projects.
 --          Records the prompt text, format, and counts of
 --          nodes/connections used to generate it.
 -- FK:      project_id → visual_prompter_projects(id) CASCADE
--- USED BY: visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_generated_prompts` (
@@ -303,12 +432,12 @@ CREATE TABLE IF NOT EXISTS `visual_prompter_generated_prompts` (
 
 
 -- ============================================================
--- TABLE 11: visual_prompter_preferences
+-- TABLE 16: visual_prompter_preferences
 -- ============================================================
 -- PURPOSE: Application-level key-value settings store.
 --          Each key is unique. Stores value, type hint,
 --          and human-readable description.
--- USED BY: visual-prompter/api/database-setup.php
+-- SOURCE: DEFINED IN CODE - visual-prompter/api/database-setup.php
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `visual_prompter_preferences` (
@@ -344,9 +473,20 @@ VALUES
 -- ============================================================
 -- SCHEMA COMPLETE
 -- ============================================================
--- Total: 11 tables created
--- Foreign Key Cascade Chain:
+-- Total: 16 tables created
 --
+-- Standalone Tables (no FK dependencies):
+--   report_prompt_databases        (Connection Registry Hub)
+--   reporter_prompt_design_templates (Page Design Templates)
+--   reporter_prompt_projects        (Prompt Reporter Projects)
+--   reporter_prompt_saved_prompts   (Saved Generated Prompts)
+--   reporter_prompt_templates       (Prompt Section Templates)
+--   reporter_prompt_tool_order      (Tool Ordering Config)
+--   reporter_prompt_uploaded_files  (Uploaded File Tracking)
+--   visual_prompter_templates       (Reusable Templates)
+--   visual_prompter_preferences     (App Settings)
+--
+-- Foreign Key Cascade Chain:
 --   visual_prompter_projects
 --     ├── visual_prompter_nodes (CASCADE)
 --     │     └── visual_prompter_node_tables (CASCADE)
@@ -354,9 +494,4 @@ VALUES
 --     ├── visual_prompter_connections (CASCADE)
 --     ├── visual_prompter_project_history (CASCADE)
 --     └── visual_prompter_generated_prompts (CASCADE)
---
---   report_prompt_databases        (standalone)
---   reporter_prompt_table          (standalone)
---   visual_prompter_templates      (standalone)
---   visual_prompter_preferences    (standalone)
 -- ============================================================
