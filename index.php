@@ -4791,6 +4791,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.1);
         }
         
+        /* File Extension Selector */
+        .pc-ext-section {
+            margin-top: 0.75rem;
+            padding: 0.6rem 0.7rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(5, 150, 105, 0.03) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+            border-radius: 10px;
+        }
+        .pc-ext-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #6ee7b7;
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.02em;
+        }
+        .pc-ext-label i {
+            font-size: 0.6rem;
+            opacity: 0.85;
+        }
+        .pc-ext-select {
+            width: 100%;
+            padding: 0.45rem 0.6rem;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236ee7b7' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            padding-right: 1.8rem;
+        }
+        .pc-ext-select:hover {
+            border-color: rgba(16, 185, 129, 0.45);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.12);
+        }
+        .pc-ext-select:focus {
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1), 0 0 16px rgba(16, 185, 129, 0.15);
+        }
+        .pc-ext-select option {
+            background: #1e1e2e;
+            color: #e2e8f0;
+            padding: 0.3rem;
+        }
+
         /* Push Section */
         .pc-push-section {
             margin-top: 0.75rem;
@@ -21699,6 +21755,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </div>
                         
+                        <!-- File Extension Selector -->
+                        <div class="pc-ext-section">
+                            <label class="pc-ext-label" for="pcFileExtension">
+                                <i class="fas fa-file-code"></i> File Extension
+                            </label>
+                            <select id="pcFileExtension" class="pc-ext-select" onchange="pcSaveExtension()">
+                                <option value=".html" selected>.html</option>
+                                <option value=".php">.php</option>
+                                <option value=".jsx">.jsx</option>
+                                <option value=".tsx">.tsx</option>
+                                <option value=".vue">.vue</option>
+                                <option value=".svelte">.svelte</option>
+                                <option value=".astro">.astro</option>
+                                <option value=".py">.py</option>
+                                <option value=".erb">.erb</option>
+                                <option value=".blade.php">.blade.php</option>
+                                <option value=".aspx">.aspx</option>
+                                <option value=".jsp">.jsp</option>
+                                <option value=".cshtml">.cshtml</option>
+                                <option value=".ejs">.ejs</option>
+                                <option value=".hbs">.hbs</option>
+                                <option value=".twig">.twig</option>
+                            </select>
+                        </div>
+
                         <!-- Push Buttons -->
                         <div class="pc-push-section">
                             <div class="pc-push-buttons-row">
@@ -37611,6 +37692,28 @@ function initPagesCreator() {
     renderPredefinedPages();
     renderCustomPages();
     updatePCCounts();
+    pcLoadExtension();
+}
+
+// Get currently selected file extension
+function pcGetExtension() {
+    const sel = document.getElementById('pcFileExtension');
+    return sel ? sel.value : '.html';
+}
+
+// Save extension to localStorage
+function pcSaveExtension() {
+    const ext = pcGetExtension();
+    localStorage.setItem('pc_file_extension', ext);
+}
+
+// Load extension from localStorage
+function pcLoadExtension() {
+    const saved = localStorage.getItem('pc_file_extension');
+    if (saved) {
+        const sel = document.getElementById('pcFileExtension');
+        if (sel) sel.value = saved;
+    }
 }
 
 // Render Predefined Pages Grid
@@ -38546,7 +38649,7 @@ function pcPushToNotes() {
     let promptText = `📄 PAGES TO CREATE:\n${'═'.repeat(50)}\n\n`;
     
     allSelected.forEach((page, idx) => {
-        promptText += `${idx + 1}. **${page.name}** (${page.id}.php)\n`;
+        promptText += `${idx + 1}. **${page.name}** (${page.id}${pcGetExtension()})\n`;
         
         // Generate page-specific instructions
         const pagePrompt = generatePagePrompt(page);
@@ -38806,11 +38909,12 @@ function pcPushToDashboard() {
         targetFolderName = '📁 Project Pages';
     }
 
-    // ── Build page nodes ──
+    // ── Build page nodes using selected file extension ──
+    const pcExt = pcGetExtension();
     const pageNodes = allSelected.map(page => {
         const desc = generatePagePrompt(page);
         return {
-            name: page.name + '.html',
+            name: page.name + pcExt,
             type: 'file',
             description: '🆕 New Page — ' + desc,
             children: []
