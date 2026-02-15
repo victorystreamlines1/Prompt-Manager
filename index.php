@@ -4847,6 +4847,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0.3rem;
         }
 
+        /* Pages Creator General Notes Textarea */
+        .pc-notes-section {
+            margin-top: 0.75rem;
+            padding: 0.6rem 0.7rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(79, 70, 229, 0.03) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            border-radius: 10px;
+        }
+        .pc-notes-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #a5b4fc;
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.02em;
+        }
+        .pc-notes-label i {
+            font-size: 0.6rem;
+            opacity: 0.85;
+        }
+        .pc-notes-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 200px;
+            padding: 0.5rem 0.6rem;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.5;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .pc-notes-textarea::placeholder {
+            color: rgba(148, 163, 184, 0.45);
+            font-style: italic;
+        }
+        .pc-notes-textarea:hover {
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.12);
+        }
+        .pc-notes-textarea:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 0 16px rgba(99, 102, 241, 0.15);
+        }
+
         /* Push Section */
         .pc-push-section {
             margin-top: 0.75rem;
@@ -21764,6 +21816,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value=".html" selected>.html</option>
                                 <option value=".php">.php</option>
                                 <option value=".jsx">.jsx</option>
+                                <option value="">No Extension</option>
                                 <option value=".tsx">.tsx</option>
                                 <option value=".vue">.vue</option>
                                 <option value=".svelte">.svelte</option>
@@ -21778,6 +21831,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value=".hbs">.hbs</option>
                                 <option value=".twig">.twig</option>
                             </select>
+                        </div>
+
+                        <!-- General Notes Textarea -->
+                        <div class="pc-notes-section">
+                            <label class="pc-notes-label" for="pcGeneralNotes">
+                                <i class="fas fa-sticky-note"></i> General Page Notes
+                            </label>
+                            <textarea id="pcGeneralNotes" class="pc-notes-textarea"
+                                placeholder="Add general notes or instructions for all pages..."
+                                oninput="pcSaveGeneralNotes()"></textarea>
                         </div>
 
                         <!-- Push Buttons -->
@@ -37693,6 +37756,7 @@ function initPagesCreator() {
     renderCustomPages();
     updatePCCounts();
     pcLoadExtension();
+    pcLoadGeneralNotes();
 }
 
 // Get currently selected file extension
@@ -37714,6 +37778,19 @@ function pcLoadExtension() {
         const sel = document.getElementById('pcFileExtension');
         if (sel) sel.value = saved;
     }
+}
+
+// Save general notes to localStorage
+function pcSaveGeneralNotes() {
+    const ta = document.getElementById('pcGeneralNotes');
+    if (ta) localStorage.setItem('pc_general_notes', ta.value);
+}
+
+// Load general notes from localStorage
+function pcLoadGeneralNotes() {
+    const saved = localStorage.getItem('pc_general_notes');
+    const ta = document.getElementById('pcGeneralNotes');
+    if (ta && saved) ta.value = saved;
 }
 
 // Render Predefined Pages Grid
@@ -38909,6 +38986,10 @@ function pcPushToDashboard() {
         targetFolderName = '📁 Project Pages';
     }
 
+    // ── Get general notes from Pages Creator textarea ──
+    const pcNotesTA = document.getElementById('pcGeneralNotes');
+    const pcNotesContent = pcNotesTA ? pcNotesTA.value.trim() : '';
+
     // ── Build page nodes using selected file extension ──
     const pcExt = pcGetExtension();
     const pageNodes = allSelected.map(page => {
@@ -38938,6 +39019,12 @@ function pcPushToDashboard() {
             data.treeData = [...pageNodes];
         }
 
+        // Append general notes to folder card notes
+        if (pcNotesContent) {
+            const existing = (data.notes || '').trim();
+            data.notes = existing ? existing + '\n\n' + pcNotesContent : pcNotesContent;
+        }
+
         // Update tree text
         data.treeText = buildTreeDiagram(targetFolderName, data.treeData);
         data._dirty = false;
@@ -38947,7 +39034,12 @@ function pcPushToDashboard() {
         const cardEl = document.getElementById('ftCard_' + sid);
         if (cardEl) {
             cardEl.outerHTML = ftRenderCard(targetFolderName);
-            requestAnimationFrame(() => ftInitAutoResize(sid));
+            requestAnimationFrame(() => {
+                ftInitAutoResize(sid);
+                // Sync notes textarea in the rendered card
+                const notesEl = document.getElementById('ftNotes_' + sid);
+                if (notesEl) notesEl.value = data.notes || '';
+            });
         } else {
             ftAddFolderCard(targetFolderName);
         }
@@ -38960,7 +39052,7 @@ function pcPushToDashboard() {
             path: 'Pages Creator',
             treeText: treeText,
             treeData: treeData,
-            notes: '',
+            notes: pcNotesContent,
             addedAt: Date.now(),
             _dirty: false
         });
