@@ -38748,7 +38748,7 @@ function pcClassifyPage(pageId, pageName) {
     return 'page';
 }
 
-// Push selected pages into the Development Dashboard containers
+// Push selected pages into the Project Folder Template under the root of the detected folder
 function pcPushToDashboard() {
     // Gather all selected pages
     const selectedPredefined = pcSelectedPredefined.map(id => {
@@ -38770,41 +38770,107 @@ function pcPushToDashboard() {
         return;
     }
 
-    // Check that dashboard functions exist
-    if (typeof addDynamicItem !== 'function' || typeof dynamicItems === 'undefined') {
-        if (typeof showToast === 'function') showToast('⚠️ Development Dashboard not found', 'error');
+    // Check folder template functions exist
+    if (typeof ftFolderStore === 'undefined' || typeof ftAddFolderCard !== 'function') {
+        if (typeof showToast === 'function') showToast('⚠️ Project Folder Template not found', 'error');
         return;
     }
 
-    // Classify pages into the three buckets
-    const buckets = { backend: [], page: [], frontend: [] };
+    // ── Detect target folder from Project File Uploader ──
+    let targetFolderName = null;
 
-    allSelected.forEach(page => {
-        const type = pcClassifyPage(page.id, page.name);
-        buckets[type].push(page);
-    });
+    // 1. Try root folder from Project File Uploader
+    if (typeof ufRootFolder !== 'undefined' && ufRootFolder && ufRootFolder.name) {
+        targetFolderName = '📁 ' + ufRootFolder.name;
+    }
+    // 2. Try first folder in ufFileStorage
+    else if (typeof ufFileStorage !== 'undefined' && ufFileStorage.folders && ufFileStorage.folders.length > 0) {
+        targetFolderName = '📁 ' + ufFileStorage.folders[0].name;
+    }
 
-    // Inject into dashboard containers
-    let totalAdded = 0;
-    const summary = [];
-
-    ['backend', 'page', 'frontend'].forEach(type => {
-        const pages = buckets[type];
-        if (pages.length === 0) return;
-
-        pages.forEach(page => {
-            const description = generatePagePrompt(page);
-            addDynamicItem(type, page.name, description);
-            totalAdded++;
+    // 3. If not found in ftFolderStore, try any existing folder card (not DB)
+    if (!targetFolderName || !ftFolderStore.has(targetFolderName)) {
+        let foundFolder = null;
+        ftFolderStore.forEach((data, name) => {
+            if (!foundFolder && !name.startsWith('🗄️ DB: ')) {
+                foundFolder = name;
+            }
         });
+        if (foundFolder) {
+            targetFolderName = foundFolder;
+        }
+    }
 
-        const label = type === 'backend' ? 'Backend' : type === 'page' ? 'Pages' : 'Frontend';
-        summary.push(`${pages.length} ${label}`);
+    // 4. If still no folder found, create a new one
+    if (!targetFolderName || !ftFolderStore.has(targetFolderName)) {
+        targetFolderName = '📁 Project Pages';
+    }
+
+    // ── Build page nodes ──
+    const pageNodes = allSelected.map(page => {
+        const desc = generatePagePrompt(page);
+        return {
+            name: page.name + '.html',
+            type: 'file',
+            description: '🆕 New Page — ' + desc,
+            children: []
+        };
     });
+
+    // ── Add pages under root of existing folder or create new card ──
+    const sid = ftGetSafeId(targetFolderName);
+
+    if (ftFolderStore.has(targetFolderName)) {
+        const data = ftFolderStore.get(targetFolderName);
+
+        if (data.treeData && Array.isArray(data.treeData)) {
+            // Add page nodes directly under root, avoiding duplicates
+            pageNodes.forEach(pn => {
+                if (!data.treeData.some(existing => existing.name === pn.name && existing.type === 'file')) {
+                    data.treeData.push(pn);
+                }
+            });
+        } else {
+            data.treeData = [...pageNodes];
+        }
+
+        // Update tree text
+        data.treeText = buildTreeDiagram(targetFolderName, data.treeData);
+        data._dirty = false;
+
+        // Re-render the card
+        ftClearNodeMapForSid(sid);
+        const cardEl = document.getElementById('ftCard_' + sid);
+        if (cardEl) {
+            cardEl.outerHTML = ftRenderCard(targetFolderName);
+            requestAnimationFrame(() => ftInitAutoResize(sid));
+        } else {
+            ftAddFolderCard(targetFolderName);
+        }
+    } else {
+        // No folder exists — create a new card with just the pages
+        const treeData = [...pageNodes];
+        const treeText = buildTreeDiagram(targetFolderName, treeData);
+
+        ftFolderStore.set(targetFolderName, {
+            path: 'Pages Creator',
+            treeText: treeText,
+            treeData: treeData,
+            notes: '',
+            addedAt: Date.now(),
+            _dirty: false
+        });
+        ftIdToName.set(sid, targetFolderName);
+        knownFolders.set(targetFolderName, { addedAt: Date.now(), path: 'Pages Creator' });
+        ftAddFolderCard(targetFolderName);
+    }
+
+    ftUpdateContainer();
 
     // Success feedback
+    const shortName = targetFolderName.replace('📁 ', '');
     if (typeof showToast === 'function') {
-        showToast(`🚀 ${totalAdded} page${totalAdded > 1 ? 's' : ''} pushed to Dashboard (${summary.join(', ')})`, 'success');
+        showToast(`🚀 ${allSelected.length} page${allSelected.length > 1 ? 's' : ''} pushed under "${shortName}" folder`, 'success');
     }
 }
 
