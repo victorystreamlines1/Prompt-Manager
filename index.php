@@ -42926,6 +42926,7 @@ function hpHandleExistingFile(event) {
     
     hpSaveToStorage();
     hpUpdateBadge();
+    hpSyncToUploader();
     showToast(`📄 Existing page selected: ${file.name}`, 'success');
 }
 
@@ -42945,6 +42946,7 @@ function hpClearExistingFile() {
     
     hpSaveToStorage();
     hpUpdateBadge();
+    hpSyncToUploader();
 }
 
 // Update badge
@@ -43124,6 +43126,83 @@ function hpLoadNotesFromStorage() {
 }
 
 // Save to localStorage
+// Reverse sync: Homepage Configuration → Project File Uploader
+function hpSyncToUploader() {
+    const homepageSelect = document.getElementById('ufHomepageSelect');
+    if (!homepageSelect) return;
+    
+    if (hpExistingFileName) {
+        // Check if the filename exists as an option in the UF dropdown
+        const options = Array.from(homepageSelect.options);
+        const matchingOption = options.find(opt => opt.value === hpExistingFileName);
+        
+        if (matchingOption) {
+            // Select it in the dropdown
+            homepageSelect.value = hpExistingFileName;
+        } else {
+            // Add it as a new option and select it
+            const newOpt = document.createElement('option');
+            newOpt.value = hpExistingFileName;
+            newOpt.textContent = hpExistingFileName + ' (from Homepage Config)';
+            homepageSelect.appendChild(newOpt);
+            homepageSelect.value = hpExistingFileName;
+        }
+        
+        // Update UF state without triggering reverse sync back
+        if (typeof ufDetectedHomepage !== 'undefined') {
+            ufDetectedHomepage = hpExistingFileName;
+            
+            const homepageBadge = document.getElementById('ufHomepageBadge');
+            if (homepageBadge) {
+                homepageBadge.textContent = 'Set';
+                homepageBadge.className = 'uf-page-badge set';
+            }
+            
+            // Enable featured select and disable the homepage option in it
+            const featuredSelect = document.getElementById('ufFeaturedSelect');
+            if (featuredSelect) {
+                featuredSelect.disabled = false;
+                Array.from(featuredSelect.options).forEach(option => {
+                    option.disabled = (option.value === hpExistingFileName);
+                });
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 HP → UF sync: Homepage set to', hpExistingFileName);
+    } else {
+        // Clear UF homepage selection
+        homepageSelect.value = '';
+        
+        if (typeof ufDetectedHomepage !== 'undefined') {
+            ufDetectedHomepage = '';
+            
+            const homepageBadge = document.getElementById('ufHomepageBadge');
+            if (homepageBadge) {
+                homepageBadge.textContent = 'Not Set';
+                homepageBadge.className = 'uf-page-badge not-set';
+            }
+            
+            const featuredSelect = document.getElementById('ufFeaturedSelect');
+            if (featuredSelect) {
+                featuredSelect.disabled = true;
+                featuredSelect.value = '';
+            }
+            
+            const featuredBadge = document.getElementById('ufFeaturedBadge');
+            if (featuredBadge) {
+                featuredBadge.textContent = 'Not Set';
+                featuredBadge.className = 'uf-page-badge not-set';
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 HP → UF sync: Homepage cleared');
+    }
+}
+
 function hpSaveToStorage() {
     localStorage.setItem('hpCreateNew', hpCreateNew);
     localStorage.setItem('hpNewPageName', hpNewPageName || 'index');
@@ -43223,6 +43302,7 @@ function hpResetAll(skipToast = false) {
     localStorage.removeItem('hpNotes');
     
     hpUpdateBadge();
+    hpSyncToUploader();
     
     if (!skipToast) {
         showToast('🏠 Homepage settings reset', 'info');
