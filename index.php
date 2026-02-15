@@ -37016,6 +37016,15 @@ function loadBrandingState() {
     try {
         const state = JSON.parse(saved);
         
+        // One-time migration: reset checkboxes to unchecked default
+        if (!state._checkboxMigrated) {
+            state.favicon = false;
+            state.logoPages = false;
+            state.titlePages = false;
+            state._checkboxMigrated = true;
+            localStorage.setItem('branding_state', JSON.stringify(state));
+        }
+        
         // Restore logo
         if (state.logoDataUrl) {
             brandingLogoDataUrl = state.logoDataUrl;
