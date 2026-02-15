@@ -37223,7 +37223,6 @@ function initCollapsedArrows() {
 
 // Predefined Pages List
 const pcPredefinedPages = [
-    { id: 'home', name: 'Home', icon: 'fa-home' },
     { id: 'about', name: 'About', icon: 'fa-info-circle' },
     { id: 'contact', name: 'Contact', icon: 'fa-envelope' },
     { id: 'services', name: 'Services', icon: 'fa-cogs' },
