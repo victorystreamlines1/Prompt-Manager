@@ -44789,6 +44789,32 @@ function ufHandleDocDetection() {
     // Sync with Documentation Integration tool
     if (ufDetectedDoc) {
         setTimeout(() => { ufSyncToDocumentationTool(); }, 200);
+    } else {
+        // Clear Documentation Integration tool when doc is deselected
+        if (typeof diFileName !== 'undefined' && diFileName) {
+            diFileContent = null;
+            diFileName = null;
+            diEnableDoc = false;
+            
+            const docCheckbox = document.getElementById('diEnableDoc');
+            if (docCheckbox) {
+                docCheckbox.checked = false;
+                const label = docCheckbox.closest('.di-checkbox-item');
+                if (label) label.classList.remove('checked');
+            }
+            
+            document.getElementById('diUploadSection')?.classList.remove('show');
+            document.getElementById('diFileInfo')?.classList.remove('show');
+            document.getElementById('diModeSection')?.classList.remove('show');
+            
+            const fileInput = document.getElementById('diFileInput');
+            if (fileInput) fileInput.value = '';
+            
+            if (typeof diSaveToStorage === 'function') diSaveToStorage();
+            if (typeof diUpdateBadge === 'function') diUpdateBadge();
+            
+            console.log('🔄 UF → DI sync: Documentation cleared');
+        }
     }
 }
 
@@ -46493,6 +46519,7 @@ function diHandleFile(event) {
         
         diSaveToStorage();
         diUpdateBadge();
+        diSyncToUploader();
         showToast('📄 Documentation file loaded!', 'success');
     };
     
@@ -46519,6 +46546,7 @@ function diRemoveFile() {
     
     diSaveToStorage();
     diUpdateBadge();
+    diSyncToUploader();
 }
 
 // Select integration mode (called from radio onchange)
@@ -46832,6 +46860,61 @@ function diLoadNotesFromStorage() {
     }
 }
 
+// Reverse sync: Documentation Integration → Project File Uploader
+function diSyncToUploader() {
+    const docSelect = document.getElementById('ufDocSelect');
+    if (!docSelect) return;
+    
+    if (diFileName && diEnableDoc) {
+        // Check if the filename exists as an option in the UF dropdown
+        const options = Array.from(docSelect.options);
+        const matchingOption = options.find(opt => opt.value === diFileName);
+        
+        if (matchingOption) {
+            docSelect.value = diFileName;
+        } else {
+            // Add it as a new option and select it
+            const newOpt = document.createElement('option');
+            newOpt.value = diFileName;
+            newOpt.textContent = diFileName + ' (from Documentation tool)';
+            docSelect.appendChild(newOpt);
+            docSelect.value = diFileName;
+        }
+        
+        // Update UF state
+        if (typeof ufDetectedDoc !== 'undefined') {
+            ufDetectedDoc = diFileName;
+            
+            const docBadge = document.getElementById('ufDocBadge');
+            if (docBadge) {
+                docBadge.textContent = 'Set';
+                docBadge.className = 'uf-page-badge set';
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 DI → UF sync: Documentation set to', diFileName);
+    } else {
+        // Clear UF doc selection
+        docSelect.value = '';
+        
+        if (typeof ufDetectedDoc !== 'undefined') {
+            ufDetectedDoc = '';
+            
+            const docBadge = document.getElementById('ufDocBadge');
+            if (docBadge) {
+                docBadge.textContent = 'Not Set';
+                docBadge.className = 'uf-page-badge not-set';
+            }
+            
+            if (typeof ufSaveToStorage === 'function') ufSaveToStorage();
+        }
+        
+        console.log('🔄 DI → UF sync: Documentation cleared');
+    }
+}
+
 // Save to localStorage
 function diSaveToStorage() {
     localStorage.setItem('diEnableDoc', diEnableDoc);
@@ -46954,6 +47037,7 @@ function diResetAll(skipToast = false) {
     localStorage.removeItem('diInjectionFiles');
     
     diUpdateBadge();
+    diSyncToUploader();
     
     if (!skipToast) {
         showToast('📚 Documentation settings reset', 'info');
