@@ -9860,67 +9860,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             line-height: 1.3;
         }
         
-        /* FormSubmit Section */
-        .di-formsubmit-box {
-            padding: 0.5rem;
-            background: rgba(59, 130, 246, 0.05);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-        }
-        
-        .di-email-section {
-            display: none;
-            margin-top: 0.4rem;
-            padding: 0.4rem;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 4px;
-        }
-        
-        .di-email-section.show {
-            display: block;
-        }
-        
-        .di-email-label {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
-        
-        .di-email-label i {
-            color: #3b82f6;
-        }
-        
-        .di-email-input {
-            width: 100%;
-            padding: 0.4rem;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 4px;
-            color: var(--text-primary);
-            font-size: 0.7rem;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-        
-        .di-email-input:focus {
-            outline: none;
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
-        }
-        
-        .di-email-hint {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-            font-size: 0.48rem;
-            color: var(--text-muted);
-            margin-top: 0.2rem;
-        }
         
         /* Documentation Upload Section */
         .di-upload-section {
@@ -10491,18 +10430,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
         }
         
-        [data-theme="light"] .di-formsubmit-box {
-            background: rgba(59, 130, 246, 0.03);
-        }
-        
-        [data-theme="light"] .di-email-section {
-            background: rgba(255, 255, 255, 0.8);
-        }
-        
-        [data-theme="light"] .di-email-input {
-            background: rgba(255, 255, 255, 0.9);
-            border-color: rgba(59, 130, 246, 0.2);
-        }
         
         [data-theme="light"] .di-upload-zone {
             background: rgba(255, 255, 255, 0.8);
@@ -23017,35 +22944,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </div>
                                         </label>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- FormSubmit.co Integration -->
-                        <div class="di-formsubmit-box">
-                            <label class="di-checkbox-item" onclick="diToggleFormSubmit(event)">
-                                <input type="checkbox" id="diEnableFormSubmit">
-                                <div class="di-label">
-                                    <strong><i class="fas fa-envelope"></i> Include FormSubmit.co</strong>
-                                    <span>Configure contact forms to send emails using FormSubmit.co</span>
-                                </div>
-                            </label>
-                            
-                            <!-- Email Input Section -->
-                            <div class="di-email-section" id="diEmailSection">
-                                <label class="di-email-label">
-                                    <i class="fas fa-at"></i>
-                                    <span>Email Address for Contact Forms</span>
-                                </label>
-                                <input 
-                                    type="email" 
-                                    id="diContactEmail" 
-                                    class="di-email-input"
-                                    placeholder="your-email@example.com"
-                                    oninput="diSaveEmail()">
-                                <div class="di-email-hint">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span>Form submissions will be sent to this email</span>
                                 </div>
                             </div>
                         </div>
@@ -37749,7 +37647,7 @@ async function deResetAll() {
         'hpCreateNew', 'hpNewPageName', 'hpTargetFileName', 'hpExistingFileName', 'hpNotes',
         'ufFileStorage', 'ufDetectedHomepage', 'ufDetectedFeatured', 'ufDetectedDoc', 'ufNotes', 'ufRootFolder',
         'exExcludedFiles', 'exNotes',
-        'diEnableDoc', 'diEnableFormSubmit', 'diContactEmail', 'diIntegrationMode',
+        'diEnableDoc', 'diIntegrationMode',
         'diFileContent', 'diFileName', 'diNotes', 'diPageName', 'diInjectionFiles'
     ];
     deStorageKeys.forEach(key => localStorage.removeItem(key));
@@ -46414,8 +46312,6 @@ let diFileContent = null;
 let diFileName = null;
 let diIntegrationMode = 'ai-decision';
 let diEnableDoc = false;
-let diEnableFormSubmit = false;
-let diContactEmail = '';
 let diPageName = 'documentation';
 let diInjectionFiles = [];
 
@@ -46451,44 +46347,6 @@ function diToggleDocCheckbox(event) {
     
     diSaveToStorage();
     diUpdateBadge();
-}
-
-// Toggle FormSubmit checkbox
-function diToggleFormSubmit(event) {
-    const checkbox = document.getElementById('diEnableFormSubmit');
-    
-    // If click was NOT on the checkbox itself, toggle it manually
-    if (event.target.tagName !== 'INPUT') {
-        event.preventDefault();
-        checkbox.checked = !checkbox.checked;
-    }
-    
-    // Update state
-    diEnableFormSubmit = checkbox.checked;
-    
-    const label = checkbox.closest('.di-checkbox-item');
-    label.classList.toggle('checked', checkbox.checked);
-    
-    const emailSection = document.getElementById('diEmailSection');
-    if (checkbox.checked) {
-        emailSection.classList.add('show');
-        setTimeout(() => {
-            document.getElementById('diContactEmail').focus();
-        }, 100);
-    } else {
-        emailSection.classList.remove('show');
-    }
-    
-    diSaveToStorage();
-    diUpdateBadge();
-    showToast(checkbox.checked ? '✅ FormSubmit.co enabled' : '❌ FormSubmit.co disabled', 'info');
-}
-
-// Save email
-function diSaveEmail() {
-    const email = document.getElementById('diContactEmail').value.trim();
-    diContactEmail = email;
-    localStorage.setItem('diContactEmail', email);
 }
 
 // Handle file upload
@@ -46667,13 +46525,9 @@ function diUpdateBadge() {
     const badge = document.getElementById('diBadge');
     if (badge) {
         const hasDoc = diEnableDoc && diFileContent;
-        const hasEmail = diEnableFormSubmit && diContactEmail;
         
-        if (hasDoc || hasEmail) {
-            let text = [];
-            if (hasDoc) text.push('Doc');
-            if (hasEmail) text.push('Form');
-            badge.textContent = text.join(' + ');
+        if (hasDoc) {
+            badge.textContent = 'Doc';
             badge.style.display = 'flex';
         } else {
             badge.style.display = 'none';
@@ -46695,26 +46549,6 @@ function diUpdateUI() {
     const uploadSection = document.getElementById('diUploadSection');
     if (uploadSection) {
         uploadSection.classList.toggle('show', diEnableDoc);
-    }
-    
-    // FormSubmit checkbox
-    const formCheckbox = document.getElementById('diEnableFormSubmit');
-    if (formCheckbox) {
-        formCheckbox.checked = diEnableFormSubmit;
-        const formLabel = formCheckbox.closest('.di-checkbox-item');
-        if (formLabel) formLabel.classList.toggle('checked', diEnableFormSubmit);
-    }
-    
-    // Email section visibility
-    const emailSection = document.getElementById('diEmailSection');
-    if (emailSection) {
-        emailSection.classList.toggle('show', diEnableFormSubmit);
-    }
-    
-    // Email input
-    const emailInput = document.getElementById('diContactEmail');
-    if (emailInput) {
-        emailInput.value = diContactEmail;
     }
     
     // File info display (name only)
@@ -46786,16 +46620,6 @@ function diPushToNotes() {
         } else {
             promptContent += `\nINSTRUCTIONS: Analyze the situation and choose the best approach (create, inject, or integrate) automatically based on the existing project structure.\n`;
         }
-    }
-    
-    // FormSubmit Integration
-    if (diEnableFormSubmit && diContactEmail) {
-        promptContent += `\n\n📧 FORMSUBMIT.CO INTEGRATION\n`;
-        promptContent += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        promptContent += `• Email: ${diContactEmail}\n\n`;
-        promptContent += `INSTRUCTIONS: Configure all contact forms to use FormSubmit.co for email delivery.\n`;
-        promptContent += `Form action should be: https://formsubmit.co/${diContactEmail}\n`;
-        promptContent += `Include hidden fields for _subject, _captcha, _next as needed.\n`;
     }
     
     // Additional notes
@@ -46918,8 +46742,6 @@ function diSyncToUploader() {
 // Save to localStorage
 function diSaveToStorage() {
     localStorage.setItem('diEnableDoc', diEnableDoc);
-    localStorage.setItem('diEnableFormSubmit', diEnableFormSubmit);
-    localStorage.setItem('diContactEmail', diContactEmail);
     localStorage.setItem('diIntegrationMode', diIntegrationMode);
     
     if (diFileContent && diFileName) {
@@ -46941,8 +46763,6 @@ function diSaveToStorage() {
 // Load from localStorage
 function diLoadFromStorage() {
     diEnableDoc = localStorage.getItem('diEnableDoc') === 'true';
-    diEnableFormSubmit = localStorage.getItem('diEnableFormSubmit') === 'true';
-    diContactEmail = localStorage.getItem('diContactEmail') || '';
     diIntegrationMode = localStorage.getItem('diIntegrationMode') || 'ai-decision';
     diPageName = localStorage.getItem('diPageName') || 'documentation';
     
@@ -46971,8 +46791,6 @@ function diResetAll(skipToast = false) {
     diFileName = null;
     diIntegrationMode = 'ai-decision';
     diEnableDoc = false;
-    diEnableFormSubmit = false;
-    diContactEmail = '';
     diPageName = 'documentation';
     diInjectionFiles = [];
     
@@ -46984,16 +46802,6 @@ function diResetAll(skipToast = false) {
         if (label) label.classList.remove('checked');
     }
     
-    const formCheckbox = document.getElementById('diEnableFormSubmit');
-    if (formCheckbox) {
-        formCheckbox.checked = false;
-        const label = formCheckbox.closest('.di-checkbox-item');
-        if (label) label.classList.remove('checked');
-    }
-    
-    const emailInput = document.getElementById('diContactEmail');
-    if (emailInput) emailInput.value = '';
-    
     // Reset page name input
     const pageNameInput = document.getElementById('diPageName');
     if (pageNameInput) pageNameInput.value = 'documentation';
@@ -47003,7 +46811,6 @@ function diResetAll(skipToast = false) {
     if (injectionList) injectionList.innerHTML = '';
     
     document.getElementById('diUploadSection')?.classList.remove('show');
-    document.getElementById('diEmailSection')?.classList.remove('show');
     document.getElementById('diFileInfo')?.classList.remove('show');
     document.getElementById('diModeSection')?.classList.remove('show');
     document.getElementById('diCreatePageInput')?.classList.remove('show');
@@ -47027,8 +46834,6 @@ function diResetAll(skipToast = false) {
     
     // Clear storage
     localStorage.removeItem('diEnableDoc');
-    localStorage.removeItem('diEnableFormSubmit');
-    localStorage.removeItem('diContactEmail');
     localStorage.removeItem('diIntegrationMode');
     localStorage.removeItem('diFileContent');
     localStorage.removeItem('diFileName');
@@ -47079,8 +46884,6 @@ function getDocumentation() {
         fileContent: diFileContent,
         fileName: diFileName,
         mode: diIntegrationMode,
-        formSubmit: diEnableFormSubmit,
-        email: diContactEmail,
         notes: document.getElementById('diNotesTextarea')?.value.trim() || ''
     };
 }
