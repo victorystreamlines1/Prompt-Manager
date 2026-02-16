@@ -13482,6 +13482,180 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             opacity: 0.8;
         }
 
+        /* ═══════════════════════════════════════════════════════════════
+           🎯 DASHBOARD SECTION CHECKBOXES
+           ═══════════════════════════════════════════════════════════════ */
+        .dash-section-check {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            z-index: 2;
+        }
+        .dash-section-check input[type="checkbox"] {
+            display: none;
+        }
+        .dash-section-check .dash-check-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid rgba(99, 102, 241, 0.35);
+            background: rgba(15, 23, 42, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .dash-section-check .dash-check-box i {
+            font-size: 10px;
+            color: transparent;
+            transition: all 0.2s ease;
+            transform: scale(0);
+        }
+        .dash-section-check:hover .dash-check-box {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(99, 102, 241, 0.08);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+        .dash-section-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #818cf8;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35), 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+        .dash-section-check input:checked + .dash-check-box i {
+            color: #fff;
+            transform: scale(1);
+        }
+        /* Master checkbox - slightly larger */
+        .dash-master-check {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 7px;
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            transition: all 0.25s ease;
+        }
+        .dash-master-check:hover {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        .dash-master-check input[type="checkbox"] {
+            display: none;
+        }
+        .dash-master-check .dash-master-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            background: rgba(15, 23, 42, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .dash-master-check .dash-master-box i {
+            font-size: 11px;
+            color: transparent;
+            transition: all 0.2s ease;
+            transform: scale(0);
+        }
+        .dash-master-check:hover .dash-master-box {
+            border-color: rgba(99, 102, 241, 0.65);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+        .dash-master-check input:checked + .dash-master-box {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #818cf8;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4), 0 0 0 2px rgba(99, 102, 241, 0.12);
+        }
+        .dash-master-check input:checked + .dash-master-box i {
+            color: #fff;
+            transform: scale(1);
+        }
+        .dash-master-check input:indeterminate + .dash-master-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.3) 100%);
+            border-color: rgba(99, 102, 241, 0.6);
+        }
+        .dash-master-check input:indeterminate + .dash-master-box i {
+            color: #fff;
+            transform: scale(1);
+        }
+        .dash-master-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+            transition: color 0.2s ease;
+        }
+        .dash-master-check:hover .dash-master-label {
+            color: #a5b4fc;
+        }
+        .dash-master-count {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.12);
+            padding: 0.1rem 0.4rem;
+            border-radius: 8px;
+            min-width: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        /* Section-specific checkbox colors */
+        .dash-section-check.db-check .dash-check-box { border-color: rgba(59, 130, 246, 0.4); }
+        .dash-section-check.db-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #60a5fa;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+        }
+        .dash-section-check.backend-check .dash-check-box { border-color: rgba(34, 197, 94, 0.4); }
+        .dash-section-check.backend-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-color: #4ade80;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
+        }
+        .dash-section-check.page-check .dash-check-box { border-color: rgba(245, 158, 11, 0.4); }
+        .dash-section-check.page-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-color: #fbbf24;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+        }
+        .dash-section-check.frontend-check .dash-check-box { border-color: rgba(236, 72, 153, 0.4); }
+        .dash-section-check.frontend-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+            border-color: #f472b6;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.35);
+        }
+        .dash-section-check.notes-check .dash-check-box { border-color: rgba(168, 85, 247, 0.4); }
+        .dash-section-check.notes-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+            border-color: #c084fc;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.35);
+        }
+        .dash-section-check.lang-check .dash-check-box { border-color: rgba(20, 184, 166, 0.4); }
+        .dash-section-check.lang-check input:checked + .dash-check-box {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            border-color: #2dd4bf;
+            box-shadow: 0 2px 8px rgba(20, 184, 166, 0.35);
+        }
+        /* Light theme overrides */
+        [data-theme="light"] .dash-section-check .dash-check-box {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        [data-theme="light"] .dash-master-check .dash-master-box {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        [data-theme="light"] .dash-master-check {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
         .dev-dashboard-header {
             display: flex;
             align-items: center;
@@ -20311,6 +20485,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="dev-dashboard-actions">
+                        <label class="dash-master-check" title="Select/Deselect All Sections" onclick="toggleDashMasterCheck()">
+                            <input type="checkbox" id="dashMasterCheckbox">
+                            <span class="dash-master-box"><i class="fas fa-check"></i></span>
+                            <span class="dash-master-label">All</span>
+                            <span class="dash-master-count" id="dashMasterCount">0/6</span>
+                        </label>
                         <div class="dev-dashboard-status">
                             <span class="status-dot"></span>
                             <span class="status-text">Ready</span>
@@ -20324,6 +20504,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Database Section -->
                             <div class="database-section" id="databaseSection">
                                 <div class="database-section-header">
+                                    <label class="dash-section-check db-check" onclick="event.stopPropagation();" title="Include Database">
+                                        <input type="checkbox" class="dash-sec-cb" data-section="database" onchange="onDashSectionCheckChange()">
+                                        <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                    </label>
                                     <div class="database-section-title">
                                         <i class="fas fa-database"></i>
                                         <span>Database</span>
@@ -20388,6 +20572,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Backend Section -->
                             <div class="dynamic-section" id="backendSection">
                                 <div class="dynamic-section-header">
+                                    <label class="dash-section-check backend-check" onclick="event.stopPropagation();" title="Include Backend">
+                                        <input type="checkbox" class="dash-sec-cb" data-section="backend" onchange="onDashSectionCheckChange()">
+                                        <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                    </label>
                                     <div class="dynamic-section-title backend-title">
                                         <i class="fas fa-server"></i>
                                         <span>Backend</span>
@@ -20417,6 +20605,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Pages Section -->
                             <div class="dynamic-section" id="pageSection">
                                 <div class="dynamic-section-header">
+                                    <label class="dash-section-check page-check" onclick="event.stopPropagation();" title="Include Pages">
+                                        <input type="checkbox" class="dash-sec-cb" data-section="page" onchange="onDashSectionCheckChange()">
+                                        <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                    </label>
                                     <div class="dynamic-section-title page-title">
                                         <i class="fas fa-layer-group"></i>
                                         <span>Pages</span>
@@ -20446,6 +20638,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <!-- Frontend Section -->
                             <div class="dynamic-section" id="frontendSection">
                                 <div class="dynamic-section-header">
+                                    <label class="dash-section-check frontend-check" onclick="event.stopPropagation();" title="Include Frontend">
+                                        <input type="checkbox" class="dash-sec-cb" data-section="frontend" onchange="onDashSectionCheckChange()">
+                                        <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                    </label>
                                     <div class="dynamic-section-title frontend-title">
                                         <i class="fas fa-paint-brush"></i>
                                         <span>Frontend</span>
@@ -20504,6 +20700,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Project Prompts Section (Resizable) -->
                         <div class="project-notes-section" id="projectNotesSection">
                             <div class="project-notes-header">
+                                <label class="dash-section-check notes-check" onclick="event.stopPropagation();" title="Include Project Prompts">
+                                    <input type="checkbox" class="dash-sec-cb" data-section="prompts" onchange="onDashSectionCheckChange()">
+                                    <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                </label>
                                 <div class="project-notes-title">
                                     <i class="fas fa-terminal"></i>
                                     <span>Project Prompts</span>
@@ -20611,6 +20811,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             
                             <!-- Language Toggle Section -->
                             <div class="language-toggle-group" id="languageToggleGroup">
+                                <label class="dash-section-check lang-check" onclick="event.stopPropagation();" title="Include Language">
+                                    <input type="checkbox" class="dash-sec-cb" data-section="language" onchange="onDashSectionCheckChange()">
+                                    <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                </label>
                                 <div class="language-toggle-label">
                                     <i class="fas fa-language"></i>
                                     <span>Lang</span>
@@ -36361,6 +36565,31 @@ function resetDashboardProject() {
     resetDashboardItems();
     clearProjectNotes();
     showToast('Dashboard reset to empty state', 'info');
+}
+
+// ── Dashboard Section Checkboxes ──────────────────────────────
+function toggleDashMasterCheck() {
+    const master = document.getElementById('dashMasterCheckbox');
+    master.checked = !master.checked;
+    const all = document.querySelectorAll('.dash-sec-cb');
+    all.forEach(cb => { cb.checked = master.checked; });
+    updateDashMasterCount();
+}
+
+function onDashSectionCheckChange() {
+    updateDashMasterCount();
+}
+
+function updateDashMasterCount() {
+    const all = document.querySelectorAll('.dash-sec-cb');
+    const checked = document.querySelectorAll('.dash-sec-cb:checked');
+    const master = document.getElementById('dashMasterCheckbox');
+    const countEl = document.getElementById('dashMasterCount');
+    if (countEl) countEl.textContent = checked.length + '/' + all.length;
+    if (master) {
+        master.checked = checked.length === all.length;
+        master.indeterminate = checked.length > 0 && checked.length < all.length;
+    }
 }
 
 // Project Notes Functions
