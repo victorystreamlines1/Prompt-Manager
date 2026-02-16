@@ -547,6 +547,15 @@ if ($pdo) {
         // Note: No auto-insertion of default templates
         // User will add templates manually via the UI
         
+        // Create Design Enhancer Presets table (save/load full DE configurations)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_de_presets (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            state_data LONGTEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )");
+        
     } catch(PDOException $e) {
         $dbError = $e->getMessage();
     }
@@ -608,6 +617,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'No database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Get all presets
+    // ============================================
+    if ($action === 'get_de_presets') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT id, name, created_at, updated_at FROM reporter_prompt_de_presets ORDER BY updated_at DESC");
+                $presets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'presets' => $presets]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Load single preset
+    // ============================================
+    if ($action === 'load_de_preset') {
+        $presetId = intval($_POST['preset_id'] ?? 0);
+        if ($pdo && $presetId > 0) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_de_presets WHERE id = ?");
+                $stmt->execute([$presetId]);
+                $preset = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($preset) {
+                    echo json_encode(['success' => true, 'preset' => $preset]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Preset not found']);
+                }
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid preset ID']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Save new preset
+    // ============================================
+    if ($action === 'save_de_preset') {
+        $name = trim($_POST['preset_name'] ?? '');
+        $stateData = $_POST['state_data'] ?? '';
+        if ($pdo && $name && $stateData) {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_de_presets (name, state_data) VALUES (?, ?)");
+                $stmt->execute([$name, $stateData]);
+                $newId = $pdo->lastInsertId();
+                echo json_encode(['success' => true, 'id' => intval($newId), 'message' => 'Preset saved']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Name and state data are required']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Update existing preset
+    // ============================================
+    if ($action === 'update_de_preset') {
+        $presetId = intval($_POST['preset_id'] ?? 0);
+        $stateData = $_POST['state_data'] ?? '';
+        $name = trim($_POST['preset_name'] ?? '');
+        if ($pdo && $presetId > 0 && $stateData) {
+            try {
+                if ($name) {
+                    $stmt = $pdo->prepare("UPDATE reporter_prompt_de_presets SET name = ?, state_data = ? WHERE id = ?");
+                    $stmt->execute([$name, $stateData, $presetId]);
+                } else {
+                    $stmt = $pdo->prepare("UPDATE reporter_prompt_de_presets SET state_data = ? WHERE id = ?");
+                    $stmt->execute([$stateData, $presetId]);
+                }
+                echo json_encode(['success' => true, 'message' => 'Preset updated']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Delete preset
+    // ============================================
+    if ($action === 'delete_de_preset') {
+        $presetId = intval($_POST['preset_id'] ?? 0);
+        if ($pdo && $presetId > 0) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_de_presets WHERE id = ?");
+                $stmt->execute([$presetId]);
+                echo json_encode(['success' => true, 'message' => 'Preset deleted']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid preset ID']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // DESIGN ENHANCER PRESETS - Rename preset
+    // ============================================
+    if ($action === 'rename_de_preset') {
+        $presetId = intval($_POST['preset_id'] ?? 0);
+        $name = trim($_POST['preset_name'] ?? '');
+        if ($pdo && $presetId > 0 && $name) {
+            try {
+                $stmt = $pdo->prepare("UPDATE reporter_prompt_de_presets SET name = ? WHERE id = ?");
+                $stmt->execute([$name, $presetId]);
+                echo json_encode(['success' => true, 'message' => 'Preset renamed']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid data']);
         }
         exit;
     }
@@ -3463,6 +3600,209 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 500;
             position: relative;
             z-index: 1;
+        }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           💾 DESIGN ENHANCER PRESETS - Dropdown & Actions
+           ═══════════════════════════════════════════════════════════════════ */
+        .dep-container {
+            margin-bottom: 0.5rem;
+            padding: 0.6rem 0.7rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(99, 102, 241, 0.06) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .dep-container:hover {
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
+        }
+        
+        .dep-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .dep-select-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .dep-select-icon {
+            position: absolute;
+            left: 8px;
+            font-size: 0.65rem;
+            color: #10b981;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .dep-arrow-icon {
+            position: absolute;
+            right: 8px;
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            z-index: 2;
+            pointer-events: none;
+            transition: transform 0.2s;
+        }
+        
+        .dep-select-wrapper select {
+            width: 100%;
+            padding: 0.4rem 1.6rem 0.4rem 1.6rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.7rem;
+            font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: all 0.2s;
+            text-overflow: ellipsis;
+        }
+        
+        .dep-select-wrapper select:hover {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(15, 23, 42, 0.8);
+        }
+        
+        .dep-select-wrapper select:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+        }
+        
+        .dep-select-wrapper select option {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 0.3rem;
+        }
+        
+        .dep-actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+        
+        .dep-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dep-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .dep-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .dep-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .dep-btn:disabled:hover::before {
+            opacity: 0;
+        }
+        
+        /* Save button - green */
+        .dep-btn.dep-save {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #10b981;
+        }
+        .dep-btn.dep-save:hover:not(:disabled) {
+            background: rgba(16, 185, 129, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        }
+        
+        /* Save As button - indigo */
+        .dep-btn.dep-save-as {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: #818cf8;
+        }
+        .dep-btn.dep-save-as:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Rename button - amber */
+        .dep-btn.dep-rename {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.25);
+            color: #f59e0b;
+        }
+        .dep-btn.dep-rename:hover:not(:disabled) {
+            background: rgba(245, 158, 11, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+        
+        /* Delete button - red */
+        .dep-btn.dep-delete {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #ef4444;
+        }
+        .dep-btn.dep-delete:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+        
+        /* Active preset indicator on dropdown */
+        .dep-select-wrapper.has-preset select {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        
+        .dep-select-wrapper.has-preset .dep-select-icon {
+            color: #10b981;
+            animation: depIconPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes depIconPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        /* Saving animation */
+        .dep-btn.dep-saving {
+            pointer-events: none;
+        }
+        .dep-btn.dep-saving i {
+            animation: depSpin 0.8s linear infinite;
+        }
+        @keyframes depSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         /* ═══════════════════════════════════════════════════════════════════
@@ -11747,6 +12087,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 rgba(241, 245, 249, 0.9) 50%,
                 rgba(255, 255, 255, 0.95) 100%);
             border-color: rgba(99, 102, 241, 0.25);
+        }
+        
+        [data-theme="light"] .dep-container {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        
+        [data-theme="light"] .dep-select-wrapper select {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(99, 102, 241, 0.2);
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dep-select-wrapper select option {
+            background: #ffffff;
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dep-btn.dep-save {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        [data-theme="light"] .dep-btn.dep-save-as {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        [data-theme="light"] .dep-btn.dep-rename {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        [data-theme="light"] .dep-btn.dep-delete {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
         }
         
         [data-theme="light"] .panel-collapse-btn {
@@ -20108,6 +20481,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h2>🎨 Design Enhancer</h2>
                     <p class="de-subtitle">AI-Powered Web Design</p>
                 </header>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
+                     💾 DESIGN ENHANCER PRESETS - Save/Load Configurations
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="dep-container">
+                    <div class="dep-row">
+                        <div class="dep-select-wrapper">
+                            <i class="fas fa-layer-group dep-select-icon"></i>
+                            <select id="depSelect" onchange="depOnSelectChange()" title="Load a saved preset">
+                                <option value="">-- No Preset --</option>
+                            </select>
+                            <i class="fas fa-chevron-down dep-arrow-icon"></i>
+                        </div>
+                        <div class="dep-actions">
+                            <button type="button" class="dep-btn dep-save" id="depSaveBtn" onclick="depSave()" title="Save changes to current preset" disabled>
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button type="button" class="dep-btn dep-save-as" onclick="depSaveAs()" title="Save as new preset">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button type="button" class="dep-btn dep-rename" id="depRenameBtn" onclick="depRename()" title="Rename current preset" disabled>
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="dep-btn dep-delete" id="depDeleteBtn" onclick="depDelete()" title="Delete current preset" disabled>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Design Enhancer Control Buttons -->
                 <div class="de-control-buttons">
@@ -36528,7 +36930,454 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Then initialize drag-drop and load from DB
     setTimeout(initToolDragDrop, 300);
+    
+    // Load DE presets dropdown
+    setTimeout(depLoadPresets, 500);
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// 💾 DESIGN ENHANCER PRESETS SYSTEM
+// Save/Load full DE configuration presets
+// ═══════════════════════════════════════════════════════════════════
+
+let depCurrentPresetId = null;
+let depCurrentPresetName = '';
+
+// All localStorage keys that represent DE tool state
+const DEP_STORAGE_KEYS = [
+    'branding_state',
+    'pcSelectedPages', 'pcCustomPages', 'pc_predefined_pages', 'pc_custom_pages',
+    'pc_file_extension', 'pc_general_notes',
+    'ci_content',
+    'st_data', 'st_notes', 'st_selected_styles',
+    'dtSelectedThemes', 'dtNotes',
+    'plSelectedLayouts', 'plNotes',
+    'em_data',
+    'df_data',
+    'el_data',
+    'tb_data',
+    'hpCreateNew', 'hpNewPageName', 'hpTargetFileName', 'hpExistingFileName', 'hpNotes',
+    'ufFileStorage', 'ufDetectedHomepage', 'ufDetectedFeatured', 'ufDetectedDoc', 'ufNotes', 'ufRootFolder',
+    'exExcludedFiles', 'exNotes',
+    'diEnableDoc', 'diIntegrationMode',
+    'diFileContent', 'diFileName', 'diNotes', 'diPageName', 'diInjectionFiles',
+    'de_tool_order'
+];
+
+// ─── Capture the full DE state ───
+function depCaptureState() {
+    const state = {};
+    
+    // 1) localStorage data for each tool
+    state.localStorage = {};
+    DEP_STORAGE_KEYS.forEach(key => {
+        const val = localStorage.getItem(key);
+        if (val !== null) state.localStorage[key] = val;
+    });
+    
+    // 2) Tool order from DOM
+    const container = document.getElementById('deToolsContainer');
+    if (container) {
+        const tools = container.querySelectorAll('.de-tool-section[draggable="true"]');
+        state.toolOrder = Array.from(tools).map(t => t.id);
+    }
+    
+    // 3) Checkbox states for each tool
+    state.checkboxes = {};
+    const allChecks = document.querySelectorAll('.de-tool-check input[type="checkbox"]');
+    allChecks.forEach(cb => {
+        state.checkboxes[cb.id] = cb.checked;
+    });
+    
+    // 4) Active design templates
+    if (typeof activeDesignTemplates !== 'undefined') {
+        state.activeDesignTemplates = Array.from(activeDesignTemplates);
+    }
+    
+    // 5) Collapsed/expanded state of tool sections
+    state.collapsed = {};
+    const sections = document.querySelectorAll('.de-tool-section[draggable="true"]');
+    sections.forEach(sec => {
+        const body = sec.querySelector('.de-tool-body');
+        if (body) {
+            state.collapsed[sec.id] = (body.style.display === 'none');
+        }
+    });
+    
+    return state;
+}
+
+// ─── Restore full DE state from preset data ───
+async function depRestoreState(stateData) {
+    let state;
+    try {
+        state = typeof stateData === 'string' ? JSON.parse(stateData) : stateData;
+    } catch (e) {
+        showToast('Failed to parse preset data', 'error');
+        return false;
+    }
+    
+    // Suppress toasts during restore
+    const _origShowToast = window.showToast;
+    const _origDeConfirm = window.deConfirm;
+    window.showToast = function() {};
+    window.deConfirm = function() { return Promise.resolve(true); };
+    
+    // ── STEP 1: Reset all tools to default first ──
+    if (typeof ufResetAll === 'function') ufResetAll(true);
+    if (typeof exResetAll === 'function') exResetAll(true);
+    if (typeof brandingClearAndReset === 'function') brandingClearAndReset();
+    if (typeof pcCustomPages !== 'undefined') {
+        pcCustomPages = [];
+        const _pcList = document.getElementById('pcCustomPagesList');
+        if (_pcList) _pcList.innerHTML = '';
+    }
+    const _ciTextarea = document.getElementById('ciTextarea');
+    if (_ciTextarea) _ciTextarea.value = '';
+    if (typeof stResetAll === 'function') stResetAll();
+    if (typeof dtResetSelection === 'function') dtResetSelection();
+    if (typeof plResetAll === 'function') plResetAll();
+    if (typeof emResetAll === 'function') emResetAll(true);
+    if (typeof dfResetAll === 'function') dfResetAll(true);
+    if (typeof elResetAll === 'function') elResetAll(true);
+    if (typeof tbResetAll === 'function') tbResetAll(true);
+    if (typeof hpResetAll === 'function') hpResetAll(true);
+    if (typeof diResetAll === 'function') diResetAll(true);
+    if (typeof dtTemplateResetAll === 'function') dtTemplateResetAll(true);
+    
+    // Clear all DE storage keys
+    DEP_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+    
+    // ── STEP 2: Restore localStorage keys from preset ──
+    if (state.localStorage) {
+        Object.entries(state.localStorage).forEach(([key, val]) => {
+            localStorage.setItem(key, val);
+        });
+    }
+    
+    // ── STEP 3: Reload each tool's state from localStorage ──
+    if (typeof loadBrandingState === 'function') loadBrandingState();
+    if (typeof initPagesCreator === 'function') initPagesCreator();
+    if (typeof pcLoadExtension === 'function') pcLoadExtension();
+    if (typeof pcLoadGeneralNotes === 'function') pcLoadGeneralNotes();
+    if (typeof ciLoadFromStorage === 'function') ciLoadFromStorage();
+    if (typeof stLoadFromStorage === 'function') stLoadFromStorage();
+    if (typeof stLoadNotesFromStorage === 'function') stLoadNotesFromStorage();
+    if (typeof dtLoadFromStorage === 'function') dtLoadFromStorage();
+    if (typeof dtLoadNotesFromStorage === 'function') dtLoadNotesFromStorage();
+    if (typeof plLoadFromStorage === 'function') plLoadFromStorage();
+    if (typeof plLoadNotesFromStorage === 'function') plLoadNotesFromStorage();
+    if (typeof emLoadFromStorage === 'function') emLoadFromStorage();
+    if (typeof dfLoadFromStorage === 'function') dfLoadFromStorage();
+    if (typeof elLoadFromStorage === 'function') elLoadFromStorage();
+    if (typeof tbLoadFromStorage === 'function') tbLoadFromStorage();
+    if (typeof hpLoadFromStorage === 'function') hpLoadFromStorage();
+    if (typeof hpLoadNotesFromStorage === 'function') hpLoadNotesFromStorage();
+    if (typeof ufLoadFromStorage === 'function') ufLoadFromStorage();
+    if (typeof exLoadFromStorage === 'function') exLoadFromStorage();
+    if (typeof diLoadFromStorage === 'function') diLoadFromStorage();
+    if (typeof diLoadNotesFromStorage === 'function') diLoadNotesFromStorage();
+    
+    // ── STEP 4: Apply tool order ──
+    if (state.toolOrder && Array.isArray(state.toolOrder)) {
+        if (typeof applyToolOrder === 'function') applyToolOrder(state.toolOrder);
+    }
+    
+    // ── STEP 5: Restore checkbox states ──
+    if (state.checkboxes) {
+        Object.entries(state.checkboxes).forEach(([id, checked]) => {
+            const cb = document.getElementById(id);
+            if (cb) cb.checked = checked;
+        });
+        if (typeof deUpdateMasterCheck === 'function') deUpdateMasterCheck();
+    }
+    
+    // ── STEP 6: Restore active design templates ──
+    if (state.activeDesignTemplates && typeof activeDesignTemplates !== 'undefined') {
+        activeDesignTemplates.clear();
+        state.activeDesignTemplates.forEach(id => activeDesignTemplates.add(id));
+        if (typeof dtRenderList === 'function') dtRenderList();
+    }
+    
+    // ── STEP 7: Restore collapsed state ──
+    if (state.collapsed) {
+        Object.entries(state.collapsed).forEach(([secId, isCollapsed]) => {
+            const sec = document.getElementById(secId);
+            if (!sec) return;
+            const body = sec.querySelector('.de-tool-body');
+            const arrow = sec.querySelector('.de-tool-arrow');
+            if (body) body.style.display = isCollapsed ? 'none' : '';
+            if (arrow) arrow.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0)';
+        });
+    }
+    
+    // Restore toast & confirm
+    window.showToast = _origShowToast;
+    window.deConfirm = _origDeConfirm;
+    
+    return true;
+}
+
+// ─── API helper ───
+async function depApi(action, data = {}) {
+    const formData = new FormData();
+    formData.append('action', action);
+    Object.entries(data).forEach(([k, v]) => formData.append(k, v));
+    
+    const response = await fetch(window.location.href.split('?')[0], {
+        method: 'POST',
+        body: formData,
+        cache: 'no-store'
+    });
+    return response.json();
+}
+
+// ─── Load presets list into dropdown ───
+async function depLoadPresets() {
+    try {
+        const result = await depApi('get_de_presets');
+        const select = document.getElementById('depSelect');
+        if (!select) return;
+        
+        // Save current value
+        const prevVal = select.value;
+        
+        // Rebuild options
+        select.innerHTML = '<option value="">-- No Preset --</option>';
+        if (result.success && result.presets) {
+            result.presets.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.name;
+                opt.title = 'Updated: ' + (p.updated_at || p.created_at || '');
+                select.appendChild(opt);
+            });
+        }
+        
+        // Restore previous selection if still exists
+        if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) {
+            select.value = prevVal;
+        }
+        
+        depUpdateUI();
+    } catch (e) {
+        console.error('Failed to load DE presets:', e);
+    }
+}
+
+// ─── Update button states based on selection ───
+function depUpdateUI() {
+    const select = document.getElementById('depSelect');
+    const saveBtn = document.getElementById('depSaveBtn');
+    const renameBtn = document.getElementById('depRenameBtn');
+    const deleteBtn = document.getElementById('depDeleteBtn');
+    const wrapper = select?.closest('.dep-select-wrapper');
+    
+    const hasPreset = select && select.value !== '';
+    
+    if (saveBtn) saveBtn.disabled = !hasPreset;
+    if (renameBtn) renameBtn.disabled = !hasPreset;
+    if (deleteBtn) deleteBtn.disabled = !hasPreset;
+    
+    if (wrapper) {
+        wrapper.classList.toggle('has-preset', hasPreset);
+    }
+    
+    if (hasPreset) {
+        depCurrentPresetId = select.value;
+        depCurrentPresetName = select.options[select.selectedIndex]?.textContent || '';
+    } else {
+        depCurrentPresetId = null;
+        depCurrentPresetName = '';
+    }
+}
+
+// ─── On dropdown selection change — load the preset ───
+async function depOnSelectChange() {
+    const select = document.getElementById('depSelect');
+    depUpdateUI();
+    
+    if (!select || !select.value) return;
+    
+    const presetId = select.value;
+    
+    try {
+        depSetLoading(true);
+        const result = await depApi('load_de_preset', { preset_id: presetId });
+        
+        if (result.success && result.preset) {
+            const ok = await depRestoreState(result.preset.state_data);
+            if (ok) {
+                showToast(`Preset "${result.preset.name}" loaded`, 'success');
+            }
+        } else {
+            showToast(result.message || 'Failed to load preset', 'error');
+        }
+    } catch (e) {
+        showToast('Error loading preset', 'error');
+        console.error(e);
+    } finally {
+        depSetLoading(false);
+    }
+}
+
+// ─── Save (overwrite current preset) ───
+async function depSave() {
+    if (!depCurrentPresetId) return;
+    
+    const confirmed = await deConfirm({
+        title: 'Overwrite Preset',
+        subtitle: depCurrentPresetName,
+        message: `Save current DE state to "${depCurrentPresetName}"?`,
+        warning: 'This will overwrite the existing preset data.',
+        confirmText: 'Save',
+        icon: 'fa-save'
+    });
+    if (!confirmed) return;
+    
+    const btn = document.getElementById('depSaveBtn');
+    try {
+        depBtnSaving(btn, true);
+        const stateData = JSON.stringify(depCaptureState());
+        const result = await depApi('update_de_preset', {
+            preset_id: depCurrentPresetId,
+            state_data: stateData
+        });
+        
+        if (result.success) {
+            showToast(`Preset "${depCurrentPresetName}" saved`, 'success');
+        } else {
+            showToast(result.message || 'Save failed', 'error');
+        }
+    } catch (e) {
+        showToast('Error saving preset', 'error');
+        console.error(e);
+    } finally {
+        depBtnSaving(btn, false);
+    }
+}
+
+// ─── Save As (new preset) ───
+async function depSaveAs() {
+    const name = prompt('Enter a name for the new preset:');
+    if (!name || !name.trim()) return;
+    
+    const btn = document.querySelector('.dep-btn.dep-save-as');
+    try {
+        depBtnSaving(btn, true);
+        const stateData = JSON.stringify(depCaptureState());
+        const result = await depApi('save_de_preset', {
+            preset_name: name.trim(),
+            state_data: stateData
+        });
+        
+        if (result.success) {
+            showToast(`Preset "${name.trim()}" created`, 'success');
+            await depLoadPresets();
+            // Select the newly created preset
+            const select = document.getElementById('depSelect');
+            if (select && result.id) {
+                select.value = result.id;
+                depUpdateUI();
+            }
+        } else {
+            showToast(result.message || 'Save failed', 'error');
+        }
+    } catch (e) {
+        showToast('Error creating preset', 'error');
+        console.error(e);
+    } finally {
+        depBtnSaving(btn, false);
+    }
+}
+
+// ─── Rename current preset ───
+async function depRename() {
+    if (!depCurrentPresetId) return;
+    
+    const newName = prompt('Rename preset:', depCurrentPresetName);
+    if (!newName || !newName.trim() || newName.trim() === depCurrentPresetName) return;
+    
+    try {
+        const result = await depApi('rename_de_preset', {
+            preset_id: depCurrentPresetId,
+            preset_name: newName.trim()
+        });
+        
+        if (result.success) {
+            showToast(`Preset renamed to "${newName.trim()}"`, 'success');
+            await depLoadPresets();
+            const select = document.getElementById('depSelect');
+            if (select) {
+                select.value = depCurrentPresetId;
+                depUpdateUI();
+            }
+        } else {
+            showToast(result.message || 'Rename failed', 'error');
+        }
+    } catch (e) {
+        showToast('Error renaming preset', 'error');
+        console.error(e);
+    }
+}
+
+// ─── Delete current preset ───
+async function depDelete() {
+    if (!depCurrentPresetId) return;
+    
+    const confirmed = await deConfirm({
+        title: 'Delete Preset',
+        subtitle: depCurrentPresetName,
+        message: `Are you sure you want to delete "${depCurrentPresetName}"?`,
+        warning: 'This action cannot be undone.',
+        confirmText: 'Delete',
+        icon: 'fa-trash-alt'
+    });
+    if (!confirmed) return;
+    
+    try {
+        const result = await depApi('delete_de_preset', {
+            preset_id: depCurrentPresetId
+        });
+        
+        if (result.success) {
+            showToast(`Preset "${depCurrentPresetName}" deleted`, 'success');
+            depCurrentPresetId = null;
+            depCurrentPresetName = '';
+            await depLoadPresets();
+            const select = document.getElementById('depSelect');
+            if (select) select.value = '';
+            depUpdateUI();
+        } else {
+            showToast(result.message || 'Delete failed', 'error');
+        }
+    } catch (e) {
+        showToast('Error deleting preset', 'error');
+        console.error(e);
+    }
+}
+
+// ─── UI helpers ───
+function depSetLoading(loading) {
+    const select = document.getElementById('depSelect');
+    if (select) select.disabled = loading;
+}
+
+function depBtnSaving(btn, saving) {
+    if (!btn) return;
+    if (saving) {
+        btn.classList.add('dep-saving');
+        btn.querySelector('i').className = 'fas fa-spinner';
+    } else {
+        btn.classList.remove('dep-saving');
+        // Restore original icon
+        if (btn.classList.contains('dep-save')) {
+            btn.querySelector('i').className = 'fas fa-save';
+        } else if (btn.classList.contains('dep-save-as')) {
+            btn.querySelector('i').className = 'fas fa-copy';
+        }
+    }
+}
 
 // Reset Pages Creator to Default
 function resetPagesCreator(skipToast = false) {
