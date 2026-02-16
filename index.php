@@ -45430,8 +45430,307 @@ let activeDesignTemplates = new Set();
 const DT_STATIC_TEMPLATES = [
     {
         id: 'static_1',
-        name: 'Example Design Template',
-        content: 'This is a static example template. The content will be updated soon.',
+        name: 'Registration System Prompt',
+        content: `🔐 COMPLETE USER REGISTRATION & AUTHENTICATION SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build a full-featured, secure user registration, login, and role-based access control system. The implementation must cover database schema, backend logic, frontend pages, session management, and admin controls.
+
+═══════════════════════════════════════
+1. DATABASE SCHEMA
+═══════════════════════════════════════
+
+▶ TABLE: users
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- username (VARCHAR 50, UNIQUE, NOT NULL)
+- email (VARCHAR 100, UNIQUE, NOT NULL)
+- password_hash (VARCHAR 255, NOT NULL) — use bcrypt or argon2
+- first_name (VARCHAR 50, NOT NULL)
+- last_name (VARCHAR 50, NOT NULL)
+- phone (VARCHAR 20, NULLABLE)
+- avatar_url (VARCHAR 255, NULLABLE)
+- date_of_birth (DATE, NULLABLE)
+- gender (ENUM: 'male','female','other','prefer_not_to_say', NULLABLE)
+- bio (TEXT, NULLABLE)
+- address (VARCHAR 255, NULLABLE)
+- city (VARCHAR 100, NULLABLE)
+- country (VARCHAR 100, NULLABLE)
+- postal_code (VARCHAR 20, NULLABLE)
+- email_verified (BOOLEAN, DEFAULT FALSE)
+- email_verification_token (VARCHAR 255, NULLABLE)
+- email_verified_at (DATETIME, NULLABLE)
+- phone_verified (BOOLEAN, DEFAULT FALSE)
+- is_active (BOOLEAN, DEFAULT TRUE)
+- is_banned (BOOLEAN, DEFAULT FALSE)
+- ban_reason (TEXT, NULLABLE)
+- last_login_at (DATETIME, NULLABLE)
+- last_login_ip (VARCHAR 45, NULLABLE)
+- login_count (INT, DEFAULT 0)
+- failed_login_attempts (INT, DEFAULT 0)
+- locked_until (DATETIME, NULLABLE)
+- password_reset_token (VARCHAR 255, NULLABLE)
+- password_reset_expires (DATETIME, NULLABLE)
+- two_factor_enabled (BOOLEAN, DEFAULT FALSE)
+- two_factor_secret (VARCHAR 255, NULLABLE)
+- remember_token (VARCHAR 255, NULLABLE)
+- timezone (VARCHAR 50, DEFAULT 'UTC')
+- language (VARCHAR 10, DEFAULT 'en')
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+- updated_at (DATETIME, ON UPDATE CURRENT_TIMESTAMP)
+- deleted_at (DATETIME, NULLABLE) — soft delete
+
+▶ TABLE: roles
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- name (VARCHAR 50, UNIQUE, NOT NULL) — e.g. 'super_admin','admin','moderator','editor','user','guest'
+- display_name (VARCHAR 100, NOT NULL)
+- description (TEXT, NULLABLE)
+- is_default (BOOLEAN, DEFAULT FALSE) — assigned to new users automatically
+- priority (INT, DEFAULT 0) — higher = more authority
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+▶ TABLE: permissions
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- name (VARCHAR 100, UNIQUE, NOT NULL) — e.g. 'users.view','users.create','users.edit','users.delete','dashboard.access','settings.manage'
+- display_name (VARCHAR 150, NOT NULL)
+- description (TEXT, NULLABLE)
+- module (VARCHAR 50, NOT NULL) — grouping: 'users','pages','settings','reports'
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+▶ TABLE: role_permissions (pivot)
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- role_id (INT, FK → roles.id, ON DELETE CASCADE)
+- permission_id (INT, FK → permissions.id, ON DELETE CASCADE)
+- UNIQUE(role_id, permission_id)
+
+▶ TABLE: user_roles (pivot)
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- user_id (INT, FK → users.id, ON DELETE CASCADE)
+- role_id (INT, FK → roles.id, ON DELETE CASCADE)
+- assigned_by (INT, FK → users.id, NULLABLE)
+- assigned_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+- UNIQUE(user_id, role_id)
+
+▶ TABLE: page_access_control
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- page_slug (VARCHAR 100, NOT NULL) — e.g. '/dashboard','/admin','/settings','/reports'
+- page_name (VARCHAR 150, NOT NULL)
+- required_permission (VARCHAR 100, NULLABLE, FK → permissions.name)
+- min_role_priority (INT, DEFAULT 0)
+- is_public (BOOLEAN, DEFAULT FALSE) — accessible without login
+- require_email_verified (BOOLEAN, DEFAULT FALSE)
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+▶ TABLE: user_sessions
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- user_id (INT, FK → users.id, ON DELETE CASCADE)
+- session_token (VARCHAR 255, UNIQUE, NOT NULL)
+- ip_address (VARCHAR 45)
+- user_agent (TEXT)
+- device_type (VARCHAR 20) — 'desktop','mobile','tablet'
+- is_active (BOOLEAN, DEFAULT TRUE)
+- expires_at (DATETIME, NOT NULL)
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+▶ TABLE: login_logs
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- user_id (INT, FK → users.id, NULLABLE)
+- email_attempted (VARCHAR 100)
+- ip_address (VARCHAR 45)
+- user_agent (TEXT)
+- status (ENUM: 'success','failed','blocked','locked')
+- failure_reason (VARCHAR 100, NULLABLE) — 'wrong_password','user_not_found','account_locked','account_banned'
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+▶ TABLE: password_reset_requests
+- id (INT, PRIMARY KEY, AUTO_INCREMENT)
+- user_id (INT, FK → users.id, ON DELETE CASCADE)
+- token (VARCHAR 255, UNIQUE, NOT NULL)
+- ip_address (VARCHAR 45)
+- used (BOOLEAN, DEFAULT FALSE)
+- expires_at (DATETIME, NOT NULL)
+- created_at (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+═══════════════════════════════════════
+2. REGISTRATION PAGE (Sign Up)
+═══════════════════════════════════════
+
+Create a modern, responsive registration page with:
+- Form fields: first name, last name, username, email, phone (optional), password, confirm password
+- Real-time client-side validation (email format, password strength meter, username availability via AJAX)
+- Password requirements: minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 number, 1 special character
+- Show/hide password toggle
+- Terms & conditions checkbox (required)
+- Privacy policy link
+- "Already have an account? Sign In" link
+- CAPTCHA or honeypot anti-bot protection
+- CSRF token protection
+- Rate limiting on form submission (prevent spam)
+- On successful registration: send email verification link, redirect to "check your email" page
+- Auto-assign default role ('user') upon registration
+- Store hashed password only (bcrypt cost 12 or argon2id)
+- Sanitize and validate all inputs server-side
+- Prevent duplicate email/username registration with clear error messages
+
+═══════════════════════════════════════
+3. LOGIN PAGE (Sign In)
+═══════════════════════════════════════
+
+Create a modern, responsive login page with:
+- Form fields: email or username, password
+- "Remember Me" checkbox (extends session, stores remember_token)
+- Show/hide password toggle
+- "Forgot Password?" link
+- "Don't have an account? Sign Up" link
+- CSRF token protection
+- Rate limiting: after 5 failed attempts, lock account for 15 minutes
+- Log all login attempts (success and failure) to login_logs table
+- On successful login: update last_login_at, last_login_ip, increment login_count, reset failed_login_attempts, create session in user_sessions
+- If email not verified: show warning with option to resend verification email
+- If account is banned: show ban reason
+- If account is locked: show remaining lock time
+- Support "Login with Email" or "Login with Username" (detect automatically)
+- Optional: social login buttons (Google, GitHub, Facebook) — prepare the UI placeholders
+
+═══════════════════════════════════════
+4. PASSWORD RESET (Forgot Password)
+═══════════════════════════════════════
+
+- "Forgot Password" page: email input form
+- Send password reset email with secure token (expires in 1 hour)
+- "Reset Password" page: new password + confirm password fields
+- Validate token, check expiry, mark as used after successful reset
+- Log the reset action
+- Invalidate all existing sessions after password reset
+- Rate limit: max 3 reset requests per hour per email
+
+═══════════════════════════════════════
+5. EMAIL VERIFICATION
+═══════════════════════════════════════
+
+- Generate unique verification token on registration
+- Send verification email with clickable link
+- Verification endpoint: validate token, set email_verified=true, record email_verified_at
+- "Resend Verification Email" functionality with rate limiting
+- Expire verification tokens after 24 hours
+- Restrict access to certain pages/features until email is verified
+
+═══════════════════════════════════════
+6. USER PROFILE PAGE
+═══════════════════════════════════════
+
+- Display and edit: first name, last name, phone, avatar, date of birth, gender, bio, address, city, country, postal code, timezone, language
+- Avatar upload with image cropping/resizing
+- Change email (requires re-verification)
+- Change password (requires current password)
+- Enable/disable two-factor authentication
+- View active sessions with option to revoke specific sessions or all others
+- View login history (last 20 entries from login_logs)
+- Account deletion option (soft delete with 30-day grace period)
+
+═══════════════════════════════════════
+7. ROLE-BASED ACCESS CONTROL (RBAC)
+═══════════════════════════════════════
+
+Implement middleware/guard system:
+- Check user permissions before granting access to any page or API endpoint
+- Use page_access_control table to map pages to required permissions/roles
+- Hierarchy: super_admin > admin > moderator > editor > user > guest
+- A user can have multiple roles; effective permissions = union of all role permissions
+- Admin panel to manage:
+  • Create/edit/delete roles
+  • Assign/revoke permissions to roles
+  • Assign/revoke roles to users
+  • View all users with filters (role, status, date range, search)
+  • Activate/deactivate user accounts
+  • Ban/unban users with reason
+  • Force password reset for any user
+  • Impersonate user (admin only, with logging)
+
+═══════════════════════════════════════
+8. ADMIN USER MANAGEMENT PAGE
+═══════════════════════════════════════
+
+- Paginated user list with columns: avatar, name, email, roles (badges), status (active/banned/unverified), last login, actions
+- Search by name, email, username
+- Filter by role, status, registration date
+- Bulk actions: activate, deactivate, delete, assign role
+- User detail modal/page: full profile info, role assignments, login history, session management
+- Create user manually (admin bypass — no email verification required)
+- Export users list (CSV)
+
+═══════════════════════════════════════
+9. SESSION MANAGEMENT & SECURITY
+═══════════════════════════════════════
+
+- Server-side session storage (database-backed via user_sessions table)
+- Session expiry: 2 hours for normal, 30 days for "Remember Me"
+- Regenerate session ID after login to prevent session fixation
+- Invalidate session on logout
+- Detect concurrent sessions (optional: limit to N active sessions)
+- Secure cookie flags: HttpOnly, Secure, SameSite=Strict
+- IP-based anomaly detection: alert user if login from new IP/device
+- Auto-logout on password change
+- CSRF protection on all state-changing endpoints
+
+═══════════════════════════════════════
+10. UI/UX REQUIREMENTS
+═══════════════════════════════════════
+
+- Fully responsive design (mobile-first)
+- Modern, clean aesthetic with smooth animations and transitions
+- Loading states and skeleton loaders for async operations
+- Toast notifications for success/error/warning feedback
+- Form validation feedback: inline errors, green checkmarks for valid fields
+- Accessible (ARIA labels, keyboard navigation, sufficient color contrast)
+- Dark mode / light mode support
+- Consistent styling across all auth pages (login, register, forgot password, reset password, verify email)
+- Branded header/footer on auth pages
+- Redirect authenticated users away from login/register pages
+- Redirect unauthenticated users to login with "return to" URL preservation
+
+═══════════════════════════════════════
+11. SEED DATA
+═══════════════════════════════════════
+
+Insert default data on first setup:
+- Roles: super_admin, admin, moderator, editor, user, guest
+- Permissions: full CRUD for users, pages, settings, reports modules
+- Assign all permissions to super_admin role
+- Set 'user' role as default for new registrations
+- Create initial super_admin account (admin@site.com / ChangeMe123!)
+- Define page_access_control entries for: /dashboard (user+), /admin (admin+), /settings (admin+), /users (moderator+), /reports (editor+), /profile (user+), /login (public), /register (public)
+
+═══════════════════════════════════════
+12. API ENDPOINTS SUMMARY
+═══════════════════════════════════════
+
+POST /auth/register — Create new account
+POST /auth/login — Authenticate user
+POST /auth/logout — End session
+POST /auth/forgot-password — Request password reset
+POST /auth/reset-password — Reset password with token
+GET  /auth/verify-email?token=xxx — Verify email address
+POST /auth/resend-verification — Resend verification email
+GET  /user/profile — Get current user profile
+PUT  /user/profile — Update profile
+PUT  /user/change-password — Change password
+POST /user/avatar — Upload avatar
+GET  /user/sessions — List active sessions
+DELETE /user/sessions/:id — Revoke a session
+GET  /admin/users — List all users (paginated)
+POST /admin/users — Create user (admin)
+PUT  /admin/users/:id — Update user
+DELETE /admin/users/:id — Soft delete user
+PUT  /admin/users/:id/ban — Ban user
+PUT  /admin/users/:id/unban — Unban user
+GET  /admin/roles — List roles
+POST /admin/roles — Create role
+PUT  /admin/roles/:id — Update role with permissions
+DELETE /admin/roles/:id — Delete role
+POST /admin/users/:id/roles — Assign role to user
+DELETE /admin/users/:id/roles/:roleId — Revoke role
+
+IMPORTANT: Implement all of the above in clean, modular, well-documented code. Use prepared statements for all database queries. Never store plain-text passwords. Follow OWASP security best practices throughout.`,
         isStatic: true
     }
 ];
