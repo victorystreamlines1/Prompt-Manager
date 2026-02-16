@@ -20489,7 +20489,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="checkbox" id="dashMasterCheckbox">
                             <span class="dash-master-box"><i class="fas fa-check"></i></span>
                             <span class="dash-master-label">All</span>
-                            <span class="dash-master-count" id="dashMasterCount">0/6</span>
+                            <span class="dash-master-count" id="dashMasterCount">1/6</span>
                         </label>
                         <div class="dev-dashboard-status">
                             <span class="status-dot"></span>
@@ -20701,7 +20701,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="project-notes-section" id="projectNotesSection">
                             <div class="project-notes-header">
                                 <label class="dash-section-check notes-check" onclick="event.stopPropagation();" title="Include Project Prompts">
-                                    <input type="checkbox" class="dash-sec-cb" data-section="prompts" onchange="onDashSectionCheckChange()">
+                                    <input type="checkbox" class="dash-sec-cb" data-section="prompts" checked onchange="onDashSectionCheckChange()">
                                     <span class="dash-check-box"><i class="fas fa-check"></i></span>
                                 </label>
                                 <div class="project-notes-title">
@@ -28558,6 +28558,15 @@ ${blockContent}
         function generateComprehensivePrompt() {
             const editor = document.getElementById('promptEditor');
             
+            // ── Read dashboard section checkbox states ──
+            const secChecked = (s) => { const cb = document.querySelector(`.dash-sec-cb[data-section="${s}"]`); return cb ? cb.checked : true; };
+            const cbDatabase  = secChecked('database');
+            const cbBackend   = secChecked('backend');
+            const cbPage      = secChecked('page');
+            const cbFrontend  = secChecked('frontend');
+            const cbPrompts   = secChecked('prompts');
+            const cbLanguage  = secChecked('language');
+            
             // Check if database is selected from dropdown (not just checkbox)
             const dropdown = document.getElementById('dbDropdown');
             const hasDatabaseSelected = dropdown && dropdown.value && dropdown.value !== '';
@@ -28567,36 +28576,39 @@ ${blockContent}
             const earlyLocalhostChecked = document.getElementById('dbLocalhostCheckbox')?.checked || false;
             const hasAnyCredentialSelected = earlyRemoteChecked || earlyLocalhostChecked;
             
-            // Database is only considered "active" if dropdown has value AND at least one credential is checked
-            const hasDatabaseActive = hasDatabaseSelected && hasAnyCredentialSelected;
+            // Database is only considered "active" if dropdown has value AND at least one credential is checked AND section checkbox is on
+            const hasDatabaseActive = cbDatabase && hasDatabaseSelected && hasAnyCredentialSelected;
             
-            // Check if we have any dynamic items or database selected
-            const hasBackendItems = dynamicItems.backend.length > 0;
-            const hasPageItems = dynamicItems.page.length > 0;
-            const hasFrontendItems = dynamicItems.frontend.length > 0;
+            // Check if we have any dynamic items or database selected (gated by checkboxes)
+            const hasBackendItems = cbBackend && dynamicItems.backend.length > 0;
+            const hasPageItems = cbPage && dynamicItems.page.length > 0;
+            const hasFrontendItems = cbFrontend && dynamicItems.frontend.length > 0;
             
-            // Get Project Prompts content
-            const projectPromptsContent = getProjectNotes();
+            // Get Project Prompts content (gated by checkbox)
+            const projectPromptsContent = cbPrompts ? getProjectNotes() : '';
             const hasProjectPrompts = projectPromptsContent.length > 0;
             
             // Check if we have project folders in the template
             const hasProjectFolders = ftFolderStore.size > 0;
             const folderCount = ftFolderStore.size;
             
-            // If nothing at all is selected/available, still add the language directive
+            // If nothing at all is selected/available
             if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && !hasProjectPrompts && !hasProjectFolders) {
-                // Add language directive even with no other content
-                const languageDirectiveOnly = generateLanguageDirective();
-                if (editor) {
-                    if (editor.value.trim()) {
-                        editor.value = editor.value.trimEnd() + '\n\n' + languageDirectiveOnly;
-                    } else {
-                        editor.value = languageDirectiveOnly;
+                if (cbLanguage) {
+                    const languageDirectiveOnly = generateLanguageDirective();
+                    if (editor) {
+                        if (editor.value.trim()) {
+                            editor.value = editor.value.trimEnd() + '\n\n' + languageDirectiveOnly;
+                        } else {
+                            editor.value = languageDirectiveOnly;
+                        }
+                        updateCounts();
+                        recordHistoryState(true);
                     }
-                    updateCounts();
-                    recordHistoryState(true);
+                    showToast('🌐 Language requirements added to Editor', 'success');
+                } else {
+                    showToast('⚠️ No sections are checked — please check at least one section', 'warning');
                 }
-                showToast('🌐 Language requirements added to Editor', 'success');
                 saveDashboardSettings();
                 return;
             }
@@ -28604,8 +28616,10 @@ ${blockContent}
             // EARLY CHECK: If ONLY Project Prompts/Folders have content (no dashboard items selected)
             // Include language directive + folders + project prompts
             if (!hasDatabaseActive && !hasBackendItems && !hasPageItems && !hasFrontendItems && (hasProjectPrompts || hasProjectFolders)) {
-                const languageDirectiveOnly = generateLanguageDirective();
-                let earlyParts = [languageDirectiveOnly];
+                let earlyParts = [];
+                if (cbLanguage) {
+                    earlyParts.push(generateLanguageDirective());
+                }
                 
                 // Add folder trees if present
                 if (hasProjectFolders) {
@@ -28639,7 +28653,7 @@ ${blockContent}
                     recordHistoryState(true);
                 }
                 const earlyLabel = hasProjectFolders && hasProjectPrompts ? 'Folders + Project Prompts' : hasProjectFolders ? 'Project Folders' : 'Project Prompts';
-                showToast(`✨ Language + ${earlyLabel} sent to Editor`, 'success');
+                showToast(`✨ ${cbLanguage ? 'Language + ' : ''}${earlyLabel} sent to Editor`, 'success');
                 saveDashboardSettings();
                 saveDynamicItems();
                 return;
@@ -28654,11 +28668,13 @@ ${blockContent}
             const frontendCount = dynamicItems.frontend.length;
             
             // ═══════════════════════════════════════════════════════════════════
-            // LANGUAGE REQUIREMENTS SECTION - FIRST (Always included)
+            // LANGUAGE REQUIREMENTS SECTION - FIRST (only if language checkbox is on)
             // ═══════════════════════════════════════════════════════════════════
-            const languageDirective = generateLanguageDirective();
-            promptSections.push(languageDirective);
-            hasContent = true;
+            if (cbLanguage) {
+                const languageDirective = generateLanguageDirective();
+                promptSections.push(languageDirective);
+                hasContent = true;
+            }
             
             // Header (only added when we have dashboard items)
             promptSections.push(`
@@ -28710,12 +28726,12 @@ structure above. Place files in the appropriate directories and tables.
                 promptSections.push(folderSection);
             }
 
-            // 1. DATABASE SECTION (if database is selected from dropdown AND at least one credential checkbox is checked)
+            // 1. DATABASE SECTION (if checkbox on + database selected + at least one credential checked)
             const isRemoteChecked = document.getElementById('dbCredentialsCheckbox')?.checked || false;
             const isLocalhostChecked = document.getElementById('dbLocalhostCheckbox')?.checked || false;
             const hasCredentialSelected = isRemoteChecked || isLocalhostChecked;
             
-            if (hasDatabaseSelected && hasCredentialSelected) {
+            if (cbDatabase && hasDatabaseSelected && hasCredentialSelected) {
                 const selectedOption = dropdown.options[dropdown.selectedIndex];
                 
                 if (selectedOption && selectedOption.dataset) {
