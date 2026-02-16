@@ -47878,12 +47878,17 @@ async function dePushAll() {
     
     toolElements.forEach(el => {
         const entry = dePushMap[el.id];
-        if (entry) {
-            pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
-        }
+        if (!entry) return;
+        // Skip unchecked tools
+        const cb = document.getElementById('deCheck_' + el.id);
+        if (cb && !cb.checked) return;
+        pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
     });
     
-    if (pushQueue.length === 0) return;
+    if (pushQueue.length === 0) {
+        if (typeof showToast === 'function') showToast('No tools selected — check at least one tool', 'warning');
+        return;
+    }
     
     // Enter pushing state
     const originalHTML = btn.innerHTML;
@@ -47961,12 +47966,17 @@ async function dePushAllDashboard() {
     toolElements.forEach(el => {
         // Use dashboard override if available, otherwise use default map
         const entry = dePushMapDashboardOverrides[el.id] || dePushMap[el.id];
-        if (entry) {
-            pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
-        }
+        if (!entry) return;
+        // Skip unchecked tools
+        const cb = document.getElementById('deCheck_' + el.id);
+        if (cb && !cb.checked) return;
+        pushQueue.push({ id: el.id, name: entry.name, fn: entry.fn });
     });
     
-    if (pushQueue.length === 0) return;
+    if (pushQueue.length === 0) {
+        if (typeof showToast === 'function') showToast('No tools selected — check at least one tool', 'warning');
+        return;
+    }
     
     const originalHTML = btn.innerHTML;
     btn.classList.add('pushing');
