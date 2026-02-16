@@ -4372,6 +4372,171 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow: hidden;
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           ✅ TOOL SELECTION CHECKBOXES
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-select-all-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.55rem 1rem;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.08) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .de-select-all-bar:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(16, 185, 129, 0.12) 100%);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.15);
+        }
+        
+        .de-select-all-bar .de-master-check {
+            position: relative;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        
+        .de-select-all-bar .de-master-check input[type="checkbox"] {
+            display: none;
+        }
+        
+        .de-select-all-bar .de-master-check .de-check-visual {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid rgba(99, 102, 241, 0.5);
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .de-select-all-bar .de-master-check .de-check-visual i {
+            font-size: 0.55rem;
+            color: white;
+            opacity: 0;
+            transform: scale(0) rotate(-45deg);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .de-select-all-bar .de-master-check input:checked + .de-check-visual {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        
+        .de-select-all-bar .de-master-check input:checked + .de-check-visual i {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+        
+        .de-select-all-bar .de-master-check input:indeterminate + .de-check-visual {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .de-select-all-bar .de-master-check input:indeterminate + .de-check-visual i {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+        
+        .de-select-all-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+        
+        .de-select-all-count {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Individual tool checkbox */
+        .de-tool-check {
+            position: relative;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+        
+        .de-tool-check input[type="checkbox"] {
+            display: none;
+        }
+        
+        .de-tool-check .de-check-visual {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid rgba(99, 102, 241, 0.4);
+            background: rgba(15, 23, 42, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .de-tool-check .de-check-visual:hover {
+            border-color: rgba(99, 102, 241, 0.7);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        }
+        
+        .de-tool-check .de-check-visual i {
+            font-size: 0.5rem;
+            color: white;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .de-tool-check input:checked + .de-check-visual {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-color: #6366f1;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.35);
+        }
+        
+        .de-tool-check input:checked + .de-check-visual i {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .de-tool-section.de-tool-unchecked {
+            opacity: 0.45;
+            filter: grayscale(0.3);
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+        
+        .de-tool-section.de-tool-unchecked .de-tool-body {
+            pointer-events: none;
+        }
+        
+        /* Light theme overrides */
+        [data-theme="light"] .de-select-all-bar {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(16, 185, 129, 0.04) 100%);
+        }
+        
+        [data-theme="light"] .de-select-all-bar .de-master-check .de-check-visual,
+        [data-theme="light"] .de-tool-check .de-check-visual {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+        
         /* Quick Actions */
         .pc-quick-actions {
             display: flex;
@@ -20946,6 +21111,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <!-- ═══════════════════════════════════════════════════════════════════
+                     ✅ SELECT ALL TOOLS CHECKBOX
+                     ═══════════════════════════════════════════════════════════════════ -->
+                <div class="de-select-all-bar" onclick="deToggleMasterCheck(event)">
+                    <div class="de-master-check">
+                        <input type="checkbox" id="deMasterCheckbox" checked>
+                        <div class="de-check-visual">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <span class="de-select-all-label">Select All Tools</span>
+                    <span class="de-select-all-count" id="deSelectCount">15 / 15</span>
+                </div>
+                
+                <!-- ═══════════════════════════════════════════════════════════════════
                      🎯 TOOLS CONTAINER (Drag & Drop Sortable)
                      ═══════════════════════════════════════════════════════════════════ -->
                 <div class="de-tools-container" id="deToolsContainer">
@@ -20957,6 +21136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('fileUpload')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('fileUploadTool')">
+                            <input type="checkbox" id="deCheck_fileUploadTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-cloud-upload-alt"></i>
@@ -21126,6 +21309,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
                         </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('exclusionTool')">
+                            <input type="checkbox" id="deCheck_exclusionTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-ban"></i>
                             <span>File Exclusion</span>
@@ -21201,6 +21388,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('branding')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('brandingTool')">
+                            <input type="checkbox" id="deCheck_brandingTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-crown"></i>
@@ -21315,6 +21506,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('pagesCreator')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('pagesCreatorTool')">
+                            <input type="checkbox" id="deCheck_pagesCreatorTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-file-alt"></i>
@@ -21451,6 +21646,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
                         </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('customInstructionsTool')">
+                            <input type="checkbox" id="deCheck_customInstructionsTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-pen-fancy"></i>
                             <span>Custom Instructions</span>
@@ -21529,6 +21728,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('styleTypes')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('styleTypesTool')">
+                            <input type="checkbox" id="deCheck_styleTypesTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-wand-magic-sparkles"></i>
@@ -21622,6 +21825,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('designTheme')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('designThemeTool')">
+                            <input type="checkbox" id="deCheck_designThemeTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-palette"></i>
@@ -21922,6 +22129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
                         </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('layoutTool')">
+                            <input type="checkbox" id="deCheck_layoutTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-th-large"></i>
                             <span>Page Layout Structure</span>
@@ -22216,6 +22427,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
                         </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('executionModeTool')">
+                            <input type="checkbox" id="deCheck_executionModeTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
+                        </div>
                         <div class="de-tool-title">
                             <i class="fas fa-rocket"></i>
                             <span>Execution Mode</span>
@@ -22300,6 +22515,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('designFocus')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('designFocusTool')">
+                            <input type="checkbox" id="deCheck_designFocusTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-palette"></i>
@@ -22407,6 +22626,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('enhancementLevel')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('enhancementLevelTool')">
+                            <input type="checkbox" id="deCheck_enhancementLevelTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-sliders-h"></i>
@@ -22524,6 +22747,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('taskBreakdown')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('taskBreakdownTool')">
+                            <input type="checkbox" id="deCheck_taskBreakdownTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-tasks"></i>
@@ -22658,6 +22885,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('homepage')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('homepageTool')">
+                            <input type="checkbox" id="deCheck_homepageTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-home"></i>
@@ -22821,6 +23052,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('documentation')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('documentationTool')">
+                            <input type="checkbox" id="deCheck_documentationTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-book"></i>
@@ -22989,6 +23224,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="de-tool-header" onclick="toggleToolSection('designTemplate')">
                         <div class="de-drag-handle" title="Drag to reorder">
                             <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="de-tool-check" onclick="event.stopPropagation(); deToggleToolCheck('designTemplateTool')">
+                            <input type="checkbox" id="deCheck_designTemplateTool" checked>
+                            <div class="de-check-visual"><i class="fas fa-check"></i></div>
                         </div>
                         <div class="de-tool-title">
                             <i class="fas fa-palette"></i>
@@ -37666,6 +37905,42 @@ async function deResetAll() {
     
     showToast('✨ All tools reset to default!', 'success');
     console.log('✅ Design Enhancer: All 16 tools fully reset');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ✅ DESIGN ENHANCER TOOL CHECKBOXES
+// ═══════════════════════════════════════════════════════════════════
+
+function deToggleToolCheck(toolId) {
+    const checkbox = document.getElementById('deCheck_' + toolId);
+    if (!checkbox) return;
+    checkbox.checked = !checkbox.checked;
+    deUpdateMasterCheck();
+}
+
+function deToggleMasterCheck(event) {
+    if (event) event.stopPropagation();
+    const master = document.getElementById('deMasterCheckbox');
+    if (!master) return;
+    master.checked = !master.checked;
+    const allChecks = document.querySelectorAll('.de-tool-check input[type="checkbox"]');
+    allChecks.forEach(cb => { cb.checked = master.checked; });
+    deUpdateMasterCheck();
+}
+
+function deUpdateMasterCheck() {
+    const allChecks = document.querySelectorAll('.de-tool-check input[type="checkbox"]');
+    const total = allChecks.length;
+    const checked = Array.from(allChecks).filter(cb => cb.checked).length;
+    const master = document.getElementById('deMasterCheckbox');
+    const countSpan = document.getElementById('deSelectCount');
+    if (master) {
+        master.checked = (checked === total);
+        master.indeterminate = (checked > 0 && checked < total);
+    }
+    if (countSpan) {
+        countSpan.textContent = checked + ' / ' + total;
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
