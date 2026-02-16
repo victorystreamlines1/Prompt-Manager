@@ -10896,6 +10896,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #f87171;
         }
         
+        /* Static Template Node */
+        .dt-static-item {
+            border: 1px solid rgba(245, 158, 11, 0.25) !important;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(217, 119, 6, 0.03) 100%) !important;
+            position: relative;
+        }
+        
+        .dt-static-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+            border-radius: 6px 0 0 6px;
+        }
+        
+        .dt-static-item:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%) !important;
+            border-color: rgba(245, 158, 11, 0.4) !important;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.08);
+        }
+        
+        .dt-static-item.checked {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
+            border-color: rgba(245, 158, 11, 0.45) !important;
+            box-shadow: 0 0 14px rgba(245, 158, 11, 0.12);
+        }
+        
+        .dt-static-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            color: #fbbf24;
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            padding: 1px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        
+        .dt-static-badge i {
+            font-size: 0.4rem;
+        }
+        
+        .dt-static-icon {
+            font-size: 0.55rem;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        
+        .dt-static-item .dt-item-actions {
+            opacity: 1;
+        }
+        
+        [data-theme="light"] .dt-static-item {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.04) 100%) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+        
+        [data-theme="light"] .dt-static-item:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
+        }
+        
+        [data-theme="light"] .dt-static-badge {
+            color: #b45309;
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
         .dt-no-results,
         .dt-empty {
             text-align: center;
@@ -45351,6 +45426,16 @@ document.addEventListener('DOMContentLoaded', function() {
 let designTemplates = [];
 let activeDesignTemplates = new Set();
 
+// Static template (not in DB - available to all users, cannot be edited/deleted)
+const DT_STATIC_TEMPLATES = [
+    {
+        id: 'static_1',
+        name: 'Example Design Template',
+        content: 'This is a static example template. The content will be updated soon.',
+        isStatic: true
+    }
+];
+
 // Load design templates from database
 async function dtLoadTemplates() {
     const loading = document.getElementById('dtLoading');
@@ -45374,8 +45459,13 @@ async function dtLoadTemplates() {
             designTemplates = data.templates.map(t => ({
                 id: parseInt(t.id),
                 name: t.name,
-                content: t.content
+                content: t.content,
+                isStatic: false
             }));
+            // Inject static templates at the end
+            DT_STATIC_TEMPLATES.forEach(st => {
+                designTemplates.push({...st});
+            });
             dtRenderList();
         } else {
             showToast('Failed to load design templates: ' + data.message, 'error');
@@ -45421,6 +45511,8 @@ function dtRenderList(searchTerm = '') {
     filtered.forEach(template => {
         const isChecked = activeDesignTemplates.has(template.id);
         const preview = template.content.substring(0, 60).replace(/\n/g, ' ');
+        const isStatic = template.isStatic === true;
+        const idArg = isStatic ? `'${template.id}'` : template.id;
         
         let displayName = template.name;
         if (searchTerm) {
@@ -45428,31 +45520,42 @@ function dtRenderList(searchTerm = '') {
         }
         
         const item = document.createElement('div');
-        item.className = `dt-item${isChecked ? ' checked' : ''}`;
+        item.className = `dt-item${isChecked ? ' checked' : ''}${isStatic ? ' dt-static-item' : ''}`;
         item.setAttribute('data-id', template.id);
+        
+        // Static templates: checkbox + copy only, no edit/delete/pull
+        const actionsHtml = isStatic 
+            ? `<div class="dt-item-actions">
+                    <span class="dt-static-badge"><i class="fas fa-lock"></i> Static</span>
+                    <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${idArg})" title="Copy">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>`
+            : `<div class="dt-item-actions">
+                    <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${idArg})" title="Copy">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button type="button" class="dt-action-icon pull" onclick="event.stopPropagation(); dtPullToTemplate(${idArg})" title="Pull from Editor">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                    <button type="button" class="dt-action-icon edit" onclick="event.stopPropagation(); dtOpenEditModal(${idArg})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="dt-action-icon delete" onclick="event.stopPropagation(); dtConfirmDelete(${idArg})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>`;
+        
         item.innerHTML = `
-            <div class="dt-item-checkbox" onclick="dtToggleTemplate(${template.id})">
+            <div class="dt-item-checkbox" onclick="dtToggleTemplate(${idArg})">
                 <input type="checkbox" ${isChecked ? 'checked' : ''}>
                 <span class="checkbox-box"><i class="fas fa-check"></i></span>
             </div>
-            <div class="dt-item-content" onclick="dtOpenPreview(${template.id})">
-                <div class="dt-item-name">${displayName}</div>
+            <div class="dt-item-content" onclick="dtOpenPreview(${idArg})">
+                <div class="dt-item-name">${displayName}${isStatic ? ' <span class="dt-static-icon" title="Built-in template">📌</span>' : ''}</div>
                 <div class="dt-item-preview">${dtEscapeHtml(preview)}...</div>
             </div>
-            <div class="dt-item-actions">
-                <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${template.id})" title="Copy">
-                    <i class="fas fa-copy"></i>
-                </button>
-                <button type="button" class="dt-action-icon pull" onclick="event.stopPropagation(); dtPullToTemplate(${template.id})" title="Pull from Editor">
-                    <i class="fas fa-arrow-down"></i>
-                </button>
-                <button type="button" class="dt-action-icon edit" onclick="event.stopPropagation(); dtOpenEditModal(${template.id})" title="Edit">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button type="button" class="dt-action-icon delete" onclick="event.stopPropagation(); dtConfirmDelete(${template.id})" title="Delete">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
+            ${actionsHtml}
         `;
         dtList.appendChild(item);
     });
@@ -45870,11 +45973,17 @@ function dtOpenPreview(id) {
     if (nameEl) nameEl.textContent = template.name;
     if (contentEl) contentEl.textContent = template.content;
     
+    // Hide edit button for static templates
     if (editBtn) {
-        editBtn.onclick = () => {
-            dtClosePreview();
-            dtOpenEditModal(id);
-        };
+        if (template.isStatic) {
+            editBtn.style.display = 'none';
+        } else {
+            editBtn.style.display = '';
+            editBtn.onclick = () => {
+                dtClosePreview();
+                dtOpenEditModal(id);
+            };
+        }
     }
     
     if (useBtn) {
@@ -45989,7 +46098,7 @@ function dtTemplateResetAll(skipToast = false) {
     dtUpdateBadge();
     
     // Re-render without filter
-    dtRenderTemplates();
+    dtRenderList();
     
     if (!skipToast) {
         showToast('🔄 Design Templates reset', 'info');
