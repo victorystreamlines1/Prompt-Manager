@@ -1353,6 +1353,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
+    // Static template file upload (Read the Application)
+    if ($action === 'spt_upload_files') {
+        $uploadDir = 'uploads/static_read/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $uploadedFiles = [];
+        
+        if (isset($_FILES['files'])) {
+            $files = $_FILES['files'];
+            $fileCount = count($files['name']);
+            
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $filename = basename($files['name'][$i]);
+                    $uniqueName = time() . '_' . mt_rand(1000, 9999) . '_' . $filename;
+                    $filepath = $uploadDir . $uniqueName;
+                    
+                    if (move_uploaded_file($files['tmp_name'][$i], $filepath)) {
+                        // Read file content for immediate use
+                        $content = file_get_contents($filepath);
+                        
+                        $uploadedFiles[] = [
+                            'name' => $filename,
+                            'storedName' => $uniqueName,
+                            'path' => $filepath,
+                            'size' => $files['size'][$i],
+                            'type' => $files['type'][$i],
+                            'content' => $content
+                        ];
+                    }
+                }
+            }
+        }
+        
+        echo json_encode(['success' => true, 'files' => $uploadedFiles]);
+        exit;
+    }
+    
+    // Get static template files
+    if ($action === 'spt_get_files') {
+        $uploadDir = 'uploads/static_read/';
+        $files = [];
+        
+        if (is_dir($uploadDir)) {
+            $items = scandir($uploadDir);
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                $filepath = $uploadDir . $item;
+                if (is_file($filepath)) {
+                    // Extract original filename (remove timestamp_rand_ prefix)
+                    $originalName = preg_replace('/^\d+_\d+_/', '', $item);
+                    $files[] = [
+                        'name' => $originalName,
+                        'storedName' => $item,
+                        'path' => $filepath,
+                        'size' => filesize($filepath),
+                        'content' => file_get_contents($filepath)
+                    ];
+                }
+            }
+        }
+        
+        echo json_encode(['success' => true, 'files' => $files]);
+        exit;
+    }
+    
+    // Delete static template file
+    if ($action === 'spt_delete_file') {
+        $storedName = $_POST['storedName'] ?? '';
+        $uploadDir = 'uploads/static_read/';
+        $filepath = $uploadDir . basename($storedName);
+        
+        if ($storedName && file_exists($filepath)) {
+            unlink($filepath);
+            echo json_encode(['success' => true, 'message' => 'File removed']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'File not found']);
+        }
+        exit;
+    }
+    
     // Get uploaded files
     if ($action === 'get_files') {
         if ($pdo) {
@@ -3076,6 +3159,220 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .prompt-action-icon.pull:hover {
             background: rgba(251, 191, 36, 0.2);
             color: #fbbf24;
+        }
+
+        /* ═══════ Static Prompt Template (Read the Application) ═══════ */
+        .spt-container {
+            margin-bottom: 0.75rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), rgba(217, 119, 6, 0.03));
+            border: 1.5px solid rgba(245, 158, 11, 0.25);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .spt-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f59e0b, #d97706, #b45309, #d97706, #f59e0b);
+            background-size: 200% 100%;
+            animation: sptShimmer 3s linear infinite;
+        }
+        @keyframes sptShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .spt-container:hover {
+            border-color: rgba(245, 158, 11, 0.45);
+            box-shadow: 0 2px 12px rgba(245, 158, 11, 0.1);
+        }
+        .spt-container.checked {
+            border-color: rgba(245, 158, 11, 0.6);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.06));
+            box-shadow: 0 2px 16px rgba(245, 158, 11, 0.15);
+        }
+
+        .spt-main-row {
+            display: flex;
+            align-items: center;
+            padding: 0.7rem 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .spt-checkbox {
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .spt-checkbox input { display: none; }
+        .spt-checkbox .checkbox-box {
+            width: 22px; height: 22px;
+            border: 2px solid rgba(245, 158, 11, 0.4);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .spt-checkbox .checkbox-box i {
+            font-size: 0.7rem; color: white;
+            opacity: 0; transform: scale(0);
+            transition: all 0.2s;
+        }
+        .spt-container.checked .spt-checkbox .checkbox-box {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+        }
+        .spt-container.checked .spt-checkbox .checkbox-box i {
+            opacity: 1; transform: scale(1);
+        }
+
+        .spt-content {
+            flex: 1; min-width: 0;
+            cursor: pointer;
+        }
+        .spt-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.12);
+            padding: 1px 7px; border-radius: 4px;
+            margin-bottom: 3px;
+        }
+        .spt-name {
+            font-size: 0.85rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .spt-preview {
+            font-size: 0.7rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .spt-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.6; transition: opacity 0.2s;
+        }
+        .spt-container:hover .spt-actions { opacity: 1; }
+        .spt-action-btn {
+            width: 28px; height: 28px;
+            border-radius: 6px; border: none;
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.72rem;
+            position: relative;
+        }
+        .spt-action-btn.copy:hover {
+            background: rgba(16, 185, 129, 0.2); color: var(--success);
+            transform: scale(1.1);
+        }
+        .spt-action-btn.files {
+            position: relative;
+        }
+        .spt-action-btn.files:hover {
+            background: rgba(245, 158, 11, 0.25); color: #f59e0b;
+            transform: scale(1.1);
+        }
+        .spt-action-btn.files.has-files {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.18);
+        }
+        .spt-file-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; font-size: 0.55rem; font-weight: 700;
+            min-width: 14px; height: 14px;
+            border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 3px;
+        }
+
+        /* File upload section */
+        .spt-files-section {
+            border-top: 1px solid rgba(245, 158, 11, 0.15);
+            padding: 0.6rem 0.75rem;
+            background: rgba(0, 0, 0, 0.08);
+            animation: sptSlideDown 0.25s ease;
+        }
+        @keyframes sptSlideDown {
+            from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+        .spt-drop-zone {
+            border: 2px dashed rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(245, 158, 11, 0.03);
+        }
+        .spt-drop-zone:hover, .spt-drop-zone.dragover {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.08);
+            color: #f59e0b;
+        }
+        .spt-drop-zone i {
+            font-size: 1.2rem; margin-bottom: 4px;
+            display: block; color: rgba(245, 158, 11, 0.5);
+        }
+        .spt-browse {
+            color: #f59e0b; cursor: pointer;
+            text-decoration: underline; font-weight: 600;
+        }
+        .spt-browse:hover { color: #d97706; }
+
+        .spt-file-list {
+            margin-top: 0.5rem;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .spt-file-item {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.72rem;
+            animation: sptFadeIn 0.2s ease;
+        }
+        @keyframes sptFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spt-file-item i.fa-file-code { color: #f59e0b; }
+        .spt-file-item-name {
+            flex: 1; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; color: var(--text-primary);
+        }
+        .spt-file-item-size {
+            color: var(--text-muted); font-size: 0.65rem;
+        }
+        .spt-file-item-remove {
+            width: 18px; height: 18px;
+            border-radius: 4px; border: none;
+            background: transparent; color: var(--text-muted);
+            cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 0.65rem; transition: all 0.2s;
+        }
+        .spt-file-item-remove:hover {
+            background: rgba(239, 68, 68, 0.15); color: var(--danger);
+        }
+        .spt-file-mode {
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 0.5rem; font-size: 0.7rem; color: var(--text-muted);
+        }
+        .spt-file-mode select {
+            padding: 2px 6px; border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary);
+            font-size: 0.68rem; cursor: pointer;
         }
 
         /* Template Modal */
@@ -21162,6 +21459,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span>Loading templates...</span>
                 </div>
                 
+                <!-- Static Template: Read the Application -->
+                <div class="spt-container" id="sptContainer">
+                    <div class="spt-main-row">
+                        <div class="spt-checkbox" onclick="sptToggle()">
+                            <input type="checkbox" id="sptCheckbox">
+                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="spt-content" onclick="sptPreview()">
+                            <div class="spt-badge"><i class="fas fa-thumbtack"></i> Static</div>
+                            <div class="spt-name">Read the Application</div>
+                            <div class="spt-preview">Please take the time to carefully and thoroughly r...</div>
+                        </div>
+                        <div class="spt-actions">
+                            <button type="button" class="spt-action-btn copy" onclick="event.stopPropagation(); sptCopy()" title="Copy">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button type="button" class="spt-action-btn files" id="sptFilesBtn" onclick="event.stopPropagation(); sptToggleFiles()" title="Attach Files">
+                                <i class="fas fa-paperclip"></i>
+                                <span class="spt-file-badge" id="sptFileBadge" style="display:none;">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="spt-files-section" id="sptFilesSection" style="display: none;">
+                        <div class="spt-file-mode">
+                            <i class="fas fa-cog"></i>
+                            <span>Mode:</span>
+                            <select id="sptFileMode" onchange="sptSaveFileMode()">
+                                <option value="content">Full Content</option>
+                                <option value="reference" selected>Reference Only</option>
+                            </select>
+                        </div>
+                        <div class="spt-drop-zone" id="sptDropZone"
+                             ondragover="event.preventDefault(); this.classList.add('dragover')"
+                             ondragleave="this.classList.remove('dragover')"
+                             ondrop="event.preventDefault(); this.classList.remove('dragover'); sptHandleFiles(event.dataTransfer.files)"
+                             onclick="document.getElementById('sptFileInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Drop files here or <span class="spt-browse">browse</span></span>
+                            <input type="file" id="sptFileInput" multiple style="display:none;" onchange="sptHandleFiles(this.files); this.value='';">
+                        </div>
+                        <div class="spt-file-list" id="sptFileList"></div>
+                    </div>
+                </div>
+
                 <div class="prompt-list" id="promptList">
                     <!-- Prompts will be generated here -->
                 </div>
@@ -29051,6 +29392,7 @@ in each section carefully and maintain proper connections between components.
             initDistributionSlider(); // Initialize distribution slider
             initHistory(); // Initialize history system
             setupHistoryKeyboardShortcuts(); // Setup keyboard shortcuts
+            sptLoadFiles(); // Load static template files
             await loadHostingerDatabases(); // Load database connections from Hub
         });
         
@@ -29305,11 +29647,11 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Update prompt counter
+        // Update prompt counter (includes static template)
         function updatePromptCounter() {
             const counter = document.getElementById('promptCounter');
-            const total = promptTemplates.length;
-            const selected = activePrompts.size;
+            const total = promptTemplates.length + 1; // +1 for static "Read the Application"
+            const selected = activePrompts.size + (sptActive ? 1 : 0);
             counter.textContent = `${selected}/${total}`;
             
             // Change color based on selection
@@ -29552,6 +29894,319 @@ in each section carefully and maintain proper connections between components.
             });
         }
         
+        // ════════════════════════════════════════════════════════════
+        // STATIC TEMPLATE: Read the Application (SPT)
+        // ════════════════════════════════════════════════════════════
+        
+        const SPT_PROMPT_TEXT = `Please take the time to carefully and thoroughly review this particular application in order to gain a comprehensive understanding of its main objectives, core functionality, key features, and the intended goals it aims to achieve. Additionally, make sure to read through all of the related files that are associated with this application, which include JavaScript files, PHP files, CSS files, and HTML files. Once you have completed your thorough and comprehensive review of the application and all of its associated files, please return to provide your findings and insights.`;
+        
+        let sptActive = false;
+        let sptFiles = []; // {name, storedName, size, content}
+        let sptFilesOpen = false;
+        const SPT_MARKER_START = '<!-- SPT:READ_APP -->';
+        const SPT_MARKER_END = '<!-- /SPT:READ_APP -->';
+        
+        // Build the full content (prompt + files)
+        function sptBuildContent() {
+            let content = SPT_PROMPT_TEXT;
+            
+            if (sptFiles.length > 0) {
+                const mode = document.getElementById('sptFileMode')?.value || 'reference';
+                content += '\n\n────────────────────────────────────\n';
+                content += `📎 ATTACHED FILES (${sptFiles.length})\n`;
+                content += '────────────────────────────────────\n';
+                
+                sptFiles.forEach((f, i) => {
+                    if (mode === 'content' && f.content) {
+                        content += `\n── 📄 FILE #${i + 1}: ${f.name} ──\n`;
+                        content += f.content;
+                        content += '\n';
+                    } else {
+                        content += `  📄 ${f.name}`;
+                        if (f.size) content += ` (${sptFormatSize(f.size)})`;
+                        content += '\n';
+                    }
+                });
+            }
+            
+            return content;
+        }
+        
+        // Toggle static template on/off
+        function sptToggle() {
+            const container = document.getElementById('sptContainer');
+            const editor = document.getElementById('promptEditor');
+            
+            sptActive = !sptActive;
+            container.classList.toggle('checked', sptActive);
+            
+            if (sptActive) {
+                // Append marked content to editor
+                const fullContent = sptBuildContent();
+                const markedContent = `${SPT_MARKER_START}\n${fullContent}\n${SPT_MARKER_END}`;
+                
+                if (editor.value.trim()) {
+                    editor.value = editor.value.trimEnd() + '\n\n' + markedContent;
+                } else {
+                    editor.value = markedContent;
+                }
+                
+                showToast('📖 "Read the Application" pushed to editor', 'success');
+            } else {
+                // Remove marked content from editor
+                sptRemoveFromEditor();
+                showToast('📖 "Read the Application" removed from editor', 'info');
+            }
+            
+            updateCounts();
+            updatePromptCounter();
+            recordHistoryState(true);
+        }
+        
+        // Remove SPT content from editor
+        function sptRemoveFromEditor() {
+            const editor = document.getElementById('promptEditor');
+            const content = editor.value;
+            const startIdx = content.indexOf(SPT_MARKER_START);
+            
+            if (startIdx !== -1) {
+                const endIdx = content.indexOf(SPT_MARKER_END, startIdx);
+                if (endIdx !== -1) {
+                    const before = content.substring(0, startIdx).trimEnd();
+                    const after = content.substring(endIdx + SPT_MARKER_END.length).trimStart();
+                    editor.value = before + (before && after ? '\n\n' : '') + after;
+                }
+            }
+        }
+        
+        // Refresh editor content when files change (only if active)
+        function sptRefreshEditor() {
+            if (!sptActive) return;
+            sptRemoveFromEditor();
+            
+            const editor = document.getElementById('promptEditor');
+            const fullContent = sptBuildContent();
+            const markedContent = `${SPT_MARKER_START}\n${fullContent}\n${SPT_MARKER_END}`;
+            
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + markedContent;
+            } else {
+                editor.value = markedContent;
+            }
+            
+            updateCounts();
+            recordHistoryState(true);
+        }
+        
+        // Copy static template content
+        function sptCopy() {
+            const content = sptBuildContent();
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('📖 "Read the Application" copied!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy', 'error');
+            });
+        }
+        
+        // Preview static template
+        function sptPreview() {
+            const modal = document.getElementById('templatePreviewModal');
+            const previewName = document.getElementById('previewName');
+            const previewContent = document.getElementById('previewContent');
+            
+            if (!modal || !previewName || !previewContent) return;
+            
+            previewName.textContent = '📌 Read the Application (Static)';
+            previewContent.textContent = sptBuildContent();
+            
+            // Hide edit/use buttons for static template
+            const editBtn = document.getElementById('previewEditBtn');
+            const useBtn = document.getElementById('previewUseBtn');
+            if (editBtn) editBtn.style.display = 'none';
+            if (useBtn) useBtn.style.display = 'none';
+            
+            modal.classList.add('active');
+        }
+        
+        // Toggle file upload section
+        function sptToggleFiles() {
+            sptFilesOpen = !sptFilesOpen;
+            document.getElementById('sptFilesSection').style.display = sptFilesOpen ? 'block' : 'none';
+        }
+        
+        // Handle file upload via PHP
+        async function sptHandleFiles(fileList) {
+            if (!fileList || fileList.length === 0) return;
+            
+            const dropZone = document.getElementById('sptDropZone');
+            dropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'spt_upload_files');
+                for (const file of Array.from(fileList)) {
+                    formData.append('files[]', file);
+                }
+                
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success && data.files.length > 0) {
+                    data.files.forEach(f => {
+                        sptFiles.push({
+                            name: f.name,
+                            storedName: f.storedName,
+                            size: f.size,
+                            content: f.content || ''
+                        });
+                    });
+                    
+                    sptRenderFileList();
+                    sptUpdateFileBadge();
+                    sptRefreshEditor();
+                    showToast(`📎 ${data.files.length} file(s) attached`, 'success');
+                } else {
+                    showToast('Failed to upload files', 'error');
+                }
+            } catch (err) {
+                console.error('SPT upload error:', err);
+                showToast('Upload failed', 'error');
+            }
+            
+            // Restore drop zone
+            dropZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Drop files here or <span class="spt-browse">browse</span></span>';
+        }
+        
+        // Remove a file
+        async function sptRemoveFile(index) {
+            const file = sptFiles[index];
+            if (!file) return;
+            
+            // Delete from server
+            try {
+                const formData = new FormData();
+                formData.append('action', 'spt_delete_file');
+                formData.append('storedName', file.storedName);
+                await fetch(window.location.href, { method: 'POST', body: formData });
+            } catch (e) {
+                console.warn('Failed to delete from server:', e);
+            }
+            
+            sptFiles.splice(index, 1);
+            sptRenderFileList();
+            sptUpdateFileBadge();
+            sptRefreshEditor();
+            showToast(`📄 ${file.name} removed`, 'info');
+        }
+        
+        // Render file list UI
+        function sptRenderFileList() {
+            const container = document.getElementById('sptFileList');
+            if (sptFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = sptFiles.map((f, i) => `
+                <div class="spt-file-item">
+                    <i class="fas fa-file-code"></i>
+                    <span class="spt-file-item-name" title="${f.name}">${f.name}</span>
+                    <span class="spt-file-item-size">${sptFormatSize(f.size)}</span>
+                    <button class="spt-file-item-remove" onclick="sptRemoveFile(${i})" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // Update file badge count
+        function sptUpdateFileBadge() {
+            const badge = document.getElementById('sptFileBadge');
+            const btn = document.getElementById('sptFilesBtn');
+            
+            if (sptFiles.length > 0) {
+                badge.textContent = sptFiles.length;
+                badge.style.display = 'flex';
+                btn.classList.add('has-files');
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-files');
+            }
+        }
+        
+        // Format file size
+        function sptFormatSize(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Save file mode preference
+        function sptSaveFileMode() {
+            const mode = document.getElementById('sptFileMode').value;
+            localStorage.setItem('sptFileMode', mode);
+            sptRefreshEditor();
+        }
+        
+        // Update prompt counter to include static template
+        function sptUpdateCounter() {
+            const counter = document.getElementById('promptCounter');
+            const total = promptTemplates.length + 1; // +1 for static
+            const selected = activePrompts.size + (sptActive ? 1 : 0);
+            counter.textContent = `${selected}/${total}`;
+            
+            if (selected === 0) {
+                counter.style.background = 'rgba(100, 100, 100, 0.15)';
+                counter.style.color = 'var(--text-muted)';
+            } else if (selected === total) {
+                counter.style.background = 'rgba(16, 185, 129, 0.15)';
+                counter.style.color = 'var(--success)';
+            } else {
+                counter.style.background = 'rgba(99, 102, 241, 0.15)';
+                counter.style.color = 'var(--accent-primary)';
+            }
+        }
+        
+        // Load existing files from server on page load
+        async function sptLoadFiles() {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'spt_get_files');
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success && data.files.length > 0) {
+                    sptFiles = data.files.map(f => ({
+                        name: f.name,
+                        storedName: f.storedName,
+                        size: f.size,
+                        content: f.content || ''
+                    }));
+                    sptRenderFileList();
+                    sptUpdateFileBadge();
+                }
+            } catch (e) {
+                console.warn('Failed to load SPT files:', e);
+            }
+            
+            // Restore file mode
+            const savedMode = localStorage.getItem('sptFileMode');
+            if (savedMode) {
+                const modeSelect = document.getElementById('sptFileMode');
+                if (modeSelect) modeSelect.value = savedMode;
+            }
+        }
+        
+        // ════════════════════════════════════════════════════════════
+        
         // Open Template Preview Modal
         function openTemplatePreview(id) {
             const template = promptTemplates.find(t => t.id === id);
@@ -29699,7 +30354,14 @@ in each section carefully and maintain proper connections between components.
                 }
             });
             
+            // Preserve SPT static template content if active
+            if (sptActive) {
+                const sptContent = sptBuildContent();
+                contents.push(`${SPT_MARKER_START}\n${sptContent}\n${SPT_MARKER_END}`);
+            }
+            
             editor.value = contents.join('\n\n');
+            updateCounts();
             recordHistoryState(true); // Record rebuild in history
         }
 
@@ -29730,6 +30392,11 @@ in each section carefully and maintain proper connections between components.
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 if (checkbox) checkbox.checked = false;
             });
+            
+            // Reset static template (Read the Application)
+            sptActive = false;
+            const sptEl = document.getElementById('sptContainer');
+            if (sptEl) sptEl.classList.remove('checked');
             
             updateCounts();
             updatePromptCounter();
