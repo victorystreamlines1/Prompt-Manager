@@ -11503,6 +11503,155 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #0284c7;
         }
         
+        /* TTS Speaker Button */
+        .dt-tts-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            background: rgba(192, 132, 252, 0.08);
+            border-radius: 6px;
+            color: #c084fc;
+            cursor: pointer;
+            font-size: 0.55rem;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+        }
+        
+        .dt-tts-btn:hover {
+            background: rgba(192, 132, 252, 0.2);
+            border-color: rgba(192, 132, 252, 0.45);
+            color: #d8b4fe;
+            transform: scale(1.12);
+            box-shadow: 0 0 10px rgba(192, 132, 252, 0.15);
+        }
+        
+        .dt-tts-btn.speaking {
+            background: rgba(192, 132, 252, 0.22);
+            border-color: rgba(192, 132, 252, 0.55);
+            color: #e9d5ff;
+            animation: dtTtsPulse 1.2s ease-in-out infinite;
+        }
+        
+        @keyframes dtTtsPulse {
+            0%, 100% { box-shadow: 0 0 6px rgba(192, 132, 252, 0.15); }
+            50% { box-shadow: 0 0 16px rgba(192, 132, 252, 0.4); }
+        }
+        
+        /* Summary with speaker */
+        .dt-explain-summary {
+            position: relative;
+        }
+        
+        .dt-explain-summary-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .dt-explain-summary-wrap .dt-tts-btn {
+            margin-top: 1px;
+        }
+        
+        .dt-explain-summary-text {
+            flex: 1;
+        }
+        
+        /* Feature with speaker */
+        .dt-explain-feature {
+            position: relative;
+        }
+        
+        .dt-explain-feature .dt-tts-btn {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            font-size: 0.45rem;
+            border-radius: 5px;
+            margin-top: 0px;
+        }
+        
+        /* Note with speaker */
+        .dt-explain-note-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        
+        .dt-explain-note-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        /* Read All button in header */
+        .dt-tts-all-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.08);
+            border: 1px solid rgba(192, 132, 252, 0.2);
+            padding: 3px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+        
+        .dt-tts-all-btn:hover {
+            background: rgba(192, 132, 252, 0.18);
+            border-color: rgba(192, 132, 252, 0.4);
+            color: #d8b4fe;
+            transform: scale(1.05);
+        }
+        
+        .dt-tts-all-btn.speaking {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-tts-all-btn.speaking:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        /* Light theme TTS */
+        [data-theme="light"] .dt-tts-btn {
+            color: #7c3aed;
+            background: rgba(124, 58, 237, 0.06);
+            border-color: rgba(124, 58, 237, 0.18);
+        }
+        
+        [data-theme="light"] .dt-tts-btn:hover {
+            background: rgba(124, 58, 237, 0.14);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+        
+        [data-theme="light"] .dt-tts-all-btn {
+            color: #7c3aed;
+            background: rgba(124, 58, 237, 0.06);
+            border-color: rgba(124, 58, 237, 0.18);
+        }
+        
+        [data-theme="light"] .dt-tts-all-btn:hover {
+            background: rgba(124, 58, 237, 0.14);
+        }
+        
+        [data-theme="light"] .dt-tts-all-btn.speaking {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
         /* Input Button for Static Template */
         .dt-input-btn {
             display: inline-flex;
@@ -47952,12 +48101,18 @@ function dtOpenExplainModal(templateId) {
         return;
     }
     
+    // Stop any ongoing TTS when reopening
+    dtStopAllTTS();
+    
     // Create modal if it doesn't exist yet
     let overlay = document.getElementById('dtExplainOverlay');
     if (!overlay) {
         dtCreateExplainModal();
         overlay = document.getElementById('dtExplainOverlay');
     }
+    
+    // Store current explanation for TTS Read All
+    window._dtCurrentExplanation = explanation;
     
     // Populate content
     const titleEl = overlay.querySelector('.dt-explain-title span');
@@ -47966,19 +48121,50 @@ function dtOpenExplainModal(templateId) {
     const noteEl = overlay.querySelector('.dt-explain-note');
     
     if (titleEl) titleEl.innerHTML = explanation.title;
-    if (summaryEl) summaryEl.innerHTML = explanation.summary;
+    
+    if (summaryEl) {
+        const plainSummary = explanation.summary.replace(/<[^>]*>/g, '');
+        summaryEl.innerHTML = `
+            <div class="dt-explain-summary-wrap">
+                <button type="button" class="dt-tts-btn" onclick="event.stopPropagation(); dtSpeakText('${dtEscapeForAttr(plainSummary)}', this)" title="Read aloud">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div class="dt-explain-summary-text">${explanation.summary}</div>
+            </div>`;
+    }
     
     if (featuresEl) {
-        featuresEl.innerHTML = explanation.features.map(f => 
-            `<div class="dt-explain-feature">
+        featuresEl.innerHTML = explanation.features.map(f => {
+            const plainText = f.text.replace(/<[^>]*>/g, '');
+            return `<div class="dt-explain-feature">
+                <button type="button" class="dt-tts-btn" onclick="event.stopPropagation(); dtSpeakText('${dtEscapeForAttr(plainText)}', this)" title="Read aloud">
+                    <i class="fas fa-volume-up"></i>
+                </button>
                 <i class="fas ${f.icon}"></i>
                 <span>${f.text}</span>
-            </div>`
-        ).join('');
+            </div>`;
+        }).join('');
     }
     
     if (noteEl) {
-        noteEl.innerHTML = `<i class="fas fa-lightbulb"></i> <span>${explanation.note}</span>`;
+        const plainNote = explanation.note.replace(/<[^>]*>/g, '');
+        noteEl.innerHTML = `
+            <div class="dt-explain-note-wrap">
+                <button type="button" class="dt-tts-btn" onclick="event.stopPropagation(); dtSpeakText('${dtEscapeForAttr(plainNote)}', this)" title="Read aloud">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div class="dt-explain-note-content">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>${explanation.note}</span>
+                </div>
+            </div>`;
+    }
+    
+    // Reset Read All button
+    const readAllBtn = overlay.querySelector('.dt-tts-all-btn');
+    if (readAllBtn) {
+        readAllBtn.classList.remove('speaking');
+        readAllBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read All';
     }
     
     overlay.classList.add('show');
@@ -47986,8 +48172,201 @@ function dtOpenExplainModal(templateId) {
 
 // Close explain modal
 function dtCloseExplainModal() {
+    dtStopAllTTS();
     const overlay = document.getElementById('dtExplainOverlay');
     if (overlay) overlay.classList.remove('show');
+}
+
+// ============ TTS ENGINE (British Female Voice) ============
+
+// Escape text for safe use in onclick attributes
+function dtEscapeForAttr(text) {
+    return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+}
+
+// Get the best British female voice
+function dtGetBritishFemaleVoice() {
+    const voices = speechSynthesis.getVoices();
+    
+    // Priority list for British female voices
+    const preferred = [
+        'Google UK English Female',
+        'Microsoft Hazel',
+        'Microsoft Susan',
+        'en-GB',
+        'Fiona',
+        'Kate',
+        'Serena',
+        'Martha'
+    ];
+    
+    // First try: exact name match for known female voices
+    for (const name of preferred) {
+        const voice = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+        if (voice) return voice;
+    }
+    
+    // Second try: any en-GB voice (prefer female if we can detect from name)
+    const gbVoices = voices.filter(v => v.lang === 'en-GB');
+    if (gbVoices.length > 0) {
+        // Try to find a female one
+        const female = gbVoices.find(v => /female|woman|fiona|kate|serena|hazel|susan|martha|zira/i.test(v.name));
+        if (female) return female;
+        return gbVoices[0]; // Fallback to any GB voice
+    }
+    
+    // Third try: any English voice
+    const enVoices = voices.filter(v => v.lang.startsWith('en'));
+    if (enVoices.length > 0) {
+        const female = enVoices.find(v => /female|woman|zira|samantha|karen|moira|tessa/i.test(v.name));
+        if (female) return female;
+        return enVoices[0];
+    }
+    
+    return null;
+}
+
+// Speak a single text, highlight the button
+function dtSpeakText(text, btnElement) {
+    // If this button is already speaking, stop it
+    if (btnElement && btnElement.classList.contains('speaking')) {
+        dtStopAllTTS();
+        return;
+    }
+    
+    // Stop any current speech
+    dtStopAllTTS();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.92;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+    
+    const voice = dtGetBritishFemaleVoice();
+    if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+    } else {
+        utterance.lang = 'en-GB';
+    }
+    
+    // Highlight
+    if (btnElement) btnElement.classList.add('speaking');
+    
+    utterance.onend = () => {
+        if (btnElement) btnElement.classList.remove('speaking');
+    };
+    utterance.onerror = () => {
+        if (btnElement) btnElement.classList.remove('speaking');
+    };
+    
+    window._dtCurrentUtterance = utterance;
+    speechSynthesis.speak(utterance);
+}
+
+// Stop all TTS
+function dtStopAllTTS() {
+    speechSynthesis.cancel();
+    window._dtReadAllQueue = null;
+    
+    // Remove all speaking classes
+    document.querySelectorAll('.dt-tts-btn.speaking, .dt-tts-all-btn.speaking').forEach(btn => {
+        btn.classList.remove('speaking');
+    });
+    
+    // Reset Read All button
+    const readAllBtn = document.querySelector('.dt-tts-all-btn');
+    if (readAllBtn) {
+        readAllBtn.innerHTML = '<i class="fas fa-volume-up"></i> Read All';
+    }
+}
+
+// Read All - sequential reading of every section
+function dtReadAll(btnElement) {
+    // If already reading, stop
+    if (btnElement.classList.contains('speaking')) {
+        dtStopAllTTS();
+        return;
+    }
+    
+    dtStopAllTTS();
+    
+    const explanation = window._dtCurrentExplanation;
+    if (!explanation) return;
+    
+    // Build the full queue of texts
+    const queue = [];
+    
+    // Summary
+    const plainSummary = explanation.summary.replace(/<[^>]*>/g, '');
+    queue.push({ text: plainSummary, selector: '.dt-explain-summary .dt-tts-btn' });
+    
+    // Features
+    explanation.features.forEach((f, i) => {
+        const plainText = f.text.replace(/<[^>]*>/g, '');
+        queue.push({ text: plainText, selector: `.dt-explain-feature:nth-child(${i + 1}) .dt-tts-btn` });
+    });
+    
+    // Note
+    const plainNote = explanation.note.replace(/<[^>]*>/g, '');
+    queue.push({ text: plainNote, selector: '.dt-explain-note .dt-tts-btn' });
+    
+    // Update button to Stop mode
+    btnElement.classList.add('speaking');
+    btnElement.innerHTML = '<i class="fas fa-stop"></i> Stop';
+    
+    // Start sequential playback
+    window._dtReadAllQueue = queue;
+    dtPlayNextInQueue(0, btnElement);
+}
+
+// Play next item in the Read All queue
+function dtPlayNextInQueue(index, readAllBtn) {
+    const queue = window._dtReadAllQueue;
+    if (!queue || index >= queue.length) {
+        // Done
+        dtStopAllTTS();
+        return;
+    }
+    
+    const item = queue[index];
+    const overlay = document.getElementById('dtExplainOverlay');
+    const itemBtn = overlay ? overlay.querySelector(item.selector) : null;
+    
+    const utterance = new SpeechSynthesisUtterance(item.text);
+    utterance.rate = 0.92;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
+    
+    const voice = dtGetBritishFemaleVoice();
+    if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+    } else {
+        utterance.lang = 'en-GB';
+    }
+    
+    // Highlight current item button
+    if (itemBtn) itemBtn.classList.add('speaking');
+    
+    utterance.onend = () => {
+        if (itemBtn) itemBtn.classList.remove('speaking');
+        // Small pause between sections
+        setTimeout(() => dtPlayNextInQueue(index + 1, readAllBtn), 250);
+    };
+    
+    utterance.onerror = () => {
+        if (itemBtn) itemBtn.classList.remove('speaking');
+        dtStopAllTTS();
+    };
+    
+    speechSynthesis.speak(utterance);
+}
+
+// Preload voices
+if (typeof speechSynthesis !== 'undefined') {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
 }
 
 // Create the explain modal HTML dynamically
@@ -48004,9 +48383,14 @@ function dtCreateExplainModal() {
                     <i class="fas fa-lightbulb"></i>
                     <span></span>
                 </div>
-                <button class="dt-explain-close" onclick="dtCloseExplainModal()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" class="dt-tts-all-btn" onclick="event.stopPropagation(); dtReadAll(this)" title="Read all sections aloud">
+                        <i class="fas fa-volume-up"></i> Read All
+                    </button>
+                    <button class="dt-explain-close" onclick="dtCloseExplainModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="dt-explain-summary"></div>
