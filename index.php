@@ -11460,6 +11460,272 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex-shrink: 0;
         }
         
+        /* Instructions Button for Static Template */
+        .dt-instructions-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            color: #2dd4bf;
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid rgba(45, 212, 191, 0.25);
+            padding: 1px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        
+        .dt-instructions-btn:hover {
+            background: rgba(45, 212, 191, 0.22);
+            border-color: rgba(45, 212, 191, 0.5);
+            color: #5eead4;
+            transform: scale(1.04);
+        }
+        
+        .dt-instructions-btn.has-data::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 5px;
+            height: 5px;
+            background: #2dd4bf;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(45, 212, 191, 0.6);
+        }
+        
+        .dt-instructions-btn i {
+            font-size: 0.45rem;
+        }
+        
+        /* Instructions Modal */
+        .dt-instr-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 100003;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: dtInstrFadeIn 0.2s ease;
+        }
+        
+        .dt-instr-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes dtInstrFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dtInstrSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .dt-instr-modal {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(45, 212, 191, 0.18);
+            border-radius: 18px;
+            padding: 24px;
+            width: 92%;
+            max-width: 480px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(45, 212, 191, 0.06);
+            animation: dtInstrSlideIn 0.3s ease;
+        }
+        
+        .dt-instr-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .dt-instr-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        
+        .dt-instr-title i {
+            color: #2dd4bf;
+            font-size: 0.8rem;
+        }
+        
+        .dt-instr-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.65rem;
+        }
+        
+        .dt-instr-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-instr-desc {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            background: rgba(45, 212, 191, 0.04);
+            border: 1px solid rgba(45, 212, 191, 0.08);
+            border-radius: 8px;
+        }
+        
+        .dt-instr-textarea {
+            width: 100%;
+            min-height: 160px;
+            max-height: 300px;
+            resize: vertical;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(45, 212, 191, 0.15);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #e2e8f0;
+            font-size: 0.65rem;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .dt-instr-textarea:focus {
+            border-color: rgba(45, 212, 191, 0.4);
+            box-shadow: 0 0 12px rgba(45, 212, 191, 0.08);
+        }
+        
+        .dt-instr-textarea::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+        
+        .dt-instr-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+        }
+        
+        .dt-instr-char-count {
+            font-size: 0.5rem;
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .dt-instr-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .dt-instr-clear-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dt-instr-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .dt-instr-save-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 16px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #2dd4bf;
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid rgba(45, 212, 191, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dt-instr-save-btn:hover {
+            background: rgba(45, 212, 191, 0.22);
+            border-color: rgba(45, 212, 191, 0.5);
+            color: #5eead4;
+        }
+        
+        /* Light theme overrides for Instructions */
+        [data-theme="light"] .dt-instructions-btn {
+            color: #0d9488;
+            background: rgba(13, 148, 136, 0.08);
+            border-color: rgba(13, 148, 136, 0.2);
+        }
+        
+        [data-theme="light"] .dt-instructions-btn:hover {
+            background: rgba(13, 148, 136, 0.15);
+            border-color: rgba(13, 148, 136, 0.35);
+        }
+        
+        [data-theme="light"] .dt-instructions-btn.has-data::after {
+            background: #0d9488;
+        }
+        
+        [data-theme="light"] .dt-instr-modal {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%);
+            border-color: rgba(13, 148, 136, 0.15);
+        }
+        
+        [data-theme="light"] .dt-instr-title {
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dt-instr-title i {
+            color: #0d9488;
+        }
+        
+        [data-theme="light"] .dt-instr-desc {
+            background: rgba(13, 148, 136, 0.04);
+            border-color: rgba(13, 148, 136, 0.1);
+            color: #475569;
+        }
+        
+        [data-theme="light"] .dt-instr-textarea {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(13, 148, 136, 0.15);
+            color: #334155;
+        }
+        
+        [data-theme="light"] .dt-instr-save-btn {
+            color: #0d9488;
+            background: rgba(13, 148, 136, 0.08);
+            border-color: rgba(13, 148, 136, 0.2);
+        }
+
         /* Light theme overrides */
         [data-theme="light"] .dt-explain-btn {
             color: #7c3aed;
@@ -11885,6 +12151,256 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(148, 163, 184, 0.08);
             border-color: rgba(148, 163, 184, 0.15);
             color: #94a3b8;
+        }
+
+        /* Instructions Button for Static Template */
+        .dt-instructions-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            color: #a78bfa;
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.25);
+            padding: 1px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dt-instructions-btn:hover {
+            background: rgba(167, 139, 250, 0.2);
+            border-color: rgba(167, 139, 250, 0.45);
+            color: #c4b5fd;
+            transform: scale(1.08);
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.15);
+        }
+        
+        .dt-instructions-btn i {
+            font-size: 0.4rem;
+        }
+        
+        .dt-instructions-btn.has-data {
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+        
+        .dt-instructions-btn.has-data:hover {
+            background: rgba(52, 211, 153, 0.2);
+            border-color: rgba(52, 211, 153, 0.45);
+            color: #6ee7b7;
+        }
+
+        /* Instructions Modal */
+        .dt-instr-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: dtInstrFadeIn 0.25s ease;
+        }
+        
+        .dt-instr-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes dtInstrFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dtInstrSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .dt-instr-modal {
+            background: linear-gradient(145deg, #1e1b2e 0%, #151320 100%);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            border-radius: 14px;
+            padding: 16px 18px;
+            width: 440px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(167, 139, 250, 0.1);
+            animation: dtInstrSlideIn 0.3s ease;
+        }
+        
+        .dt-instr-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dt-instr-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .dt-instr-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+        }
+        
+        .dt-instr-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-instr-desc {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            line-height: 1.55;
+            padding: 8px 10px;
+            background: rgba(167, 139, 250, 0.05);
+            border: 1px solid rgba(167, 139, 250, 0.1);
+            border-radius: 8px;
+        }
+        
+        .dt-instr-textarea {
+            width: 100%;
+            min-height: 150px;
+            max-height: 300px;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-size: 0.65rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .dt-instr-textarea:focus {
+            outline: none;
+            border-color: rgba(167, 139, 250, 0.4);
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.08);
+        }
+        
+        .dt-instr-textarea::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+        
+        .dt-instr-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .dt-instr-char-count {
+            font-size: 0.55rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .dt-instr-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .dt-instr-clear-btn,
+        .dt-instr-save-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            border-radius: 7px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .dt-instr-save-btn {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            color: white;
+        }
+        
+        .dt-instr-save-btn:hover {
+            background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
+        }
+        
+        .dt-instr-clear-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .dt-instr-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        /* Light theme for Instructions */
+        [data-theme="light"] .dt-instr-modal {
+            background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 100%);
+            border-color: rgba(167, 139, 250, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 30px rgba(167, 139, 250, 0.08);
+        }
+        
+        [data-theme="light"] .dt-instr-textarea {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(167, 139, 250, 0.2);
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dt-instr-desc {
+            background: rgba(167, 139, 250, 0.06);
+            border-color: rgba(167, 139, 250, 0.15);
+            color: #475569;
+        }
+        
+        [data-theme="light"] .dt-instructions-btn {
+            color: #7c3aed;
+            background: rgba(124, 58, 237, 0.08);
+            border-color: rgba(124, 58, 237, 0.2);
+        }
+        
+        [data-theme="light"] .dt-instructions-btn:hover {
+            background: rgba(124, 58, 237, 0.14);
+        }
+        
+        [data-theme="light"] .dt-instructions-btn.has-data {
+            color: #059669;
+            background: rgba(5, 150, 105, 0.08);
+            border-color: rgba(5, 150, 105, 0.2);
         }
 
         .dt-static-icon {
@@ -47267,12 +47783,16 @@ function dtRenderList(searchTerm = '') {
         item.className = `dt-item${isChecked ? ' checked' : ''}${isStatic ? ' dt-static-item' : ''}`;
         item.setAttribute('data-id', template.id);
         
-        // Static templates: checkbox + copy + input, no edit/delete/pull
+        // Static templates: checkbox + copy + input + instructions, no edit/delete/pull
         const hasCredData = localStorage.getItem('dtAdminCredentials') ? true : false;
+        const hasInstrData = localStorage.getItem('dtExtraInstructions') ? true : false;
         const actionsHtml = isStatic 
             ? `<div class="dt-item-actions">
                     <button type="button" class="dt-explain-btn" onclick="event.stopPropagation(); dtOpenExplainModal(${idArg})" title="What does this prompt do?">
                         <i class="fas fa-lightbulb"></i> Explain
+                    </button>
+                    <button type="button" class="dt-instructions-btn${hasInstrData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenInstructionsModal()" title="Add extra instructions to attach with the prompt">
+                        <i class="fas fa-scroll"></i> Instructions
                     </button>
                     <button type="button" class="dt-input-btn${hasCredData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenCredentialsModal()" title="Set Admin Credentials">
                         <i class="fas fa-keyboard"></i> Input
@@ -47811,6 +48331,14 @@ function dtTemplatePushToNotes() {
         }
     });
     
+    // Attach extra instructions if saved
+    const extraInstructions = localStorage.getItem('dtExtraInstructions');
+    if (extraInstructions) {
+        content += '\n\n📝 EXTRA INSTRUCTIONS\n';
+        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+        content += extraInstructions + '\n';
+    }
+    
     const currentContent = projectNotesTextarea.value;
     projectNotesTextarea.value = currentContent + content;
     
@@ -47820,7 +48348,8 @@ function dtTemplatePushToNotes() {
     
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts`, 'success');
+    const instrNote = extraInstructions ? ' (+ extra instructions)' : '';
+    showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts${instrNote}`, 'success');
 }
 
 // Reset Design Templates tool
@@ -48055,6 +48584,140 @@ function dtCreateCredentialsModal() {
                         <i class="fas fa-trash-alt"></i> Clear
                     </button>
                     <button class="dt-cred-btn save" onclick="dtSaveCredentials()">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+// ============ INSTRUCTIONS MODAL SYSTEM ============
+
+// Open instructions modal
+function dtOpenInstructionsModal() {
+    let overlay = document.getElementById('dtInstrOverlay');
+    if (!overlay) {
+        dtCreateInstructionsModal();
+        overlay = document.getElementById('dtInstrOverlay');
+    }
+    
+    // Load saved instructions
+    const textarea = document.getElementById('dtInstrTextarea');
+    const saved = localStorage.getItem('dtExtraInstructions');
+    if (textarea) {
+        textarea.value = saved || '';
+    }
+    
+    dtUpdateInstrCharCount();
+    overlay.classList.add('show');
+    
+    // Focus textarea
+    setTimeout(() => {
+        if (textarea) textarea.focus();
+    }, 200);
+}
+
+// Close instructions modal
+function dtCloseInstructionsModal() {
+    const overlay = document.getElementById('dtInstrOverlay');
+    if (overlay) overlay.classList.remove('show');
+}
+
+// Save instructions
+function dtSaveInstructions() {
+    const textarea = document.getElementById('dtInstrTextarea');
+    if (!textarea) return;
+    
+    const text = textarea.value.trim();
+    
+    if (!text) {
+        showToast('⚠️ Please enter some instructions to save', 'warning');
+        return;
+    }
+    
+    localStorage.setItem('dtExtraInstructions', text);
+    dtUpdateInstructionsButtons();
+    dtCloseInstructionsModal();
+    showToast('✅ Extra instructions saved — will be attached with the prompt', 'success');
+}
+
+// Clear instructions
+function dtClearInstructions() {
+    localStorage.removeItem('dtExtraInstructions');
+    
+    const textarea = document.getElementById('dtInstrTextarea');
+    if (textarea) textarea.value = '';
+    
+    dtUpdateInstrCharCount();
+    dtUpdateInstructionsButtons();
+    showToast('🗑️ Extra instructions cleared', 'info');
+}
+
+// Update character counter
+function dtUpdateInstrCharCount() {
+    const textarea = document.getElementById('dtInstrTextarea');
+    const counter = document.getElementById('dtInstrCharCount');
+    if (!textarea || !counter) return;
+    
+    const len = textarea.value.length;
+    counter.textContent = len > 0 ? `${len.toLocaleString()} characters` : 'No content';
+}
+
+// Update Instructions button appearance across all static templates
+function dtUpdateInstructionsButtons() {
+    const hasData = localStorage.getItem('dtExtraInstructions') ? true : false;
+    document.querySelectorAll('.dt-instructions-btn').forEach(btn => {
+        if (hasData) {
+            btn.classList.add('has-data');
+        } else {
+            btn.classList.remove('has-data');
+        }
+    });
+}
+
+// Create the instructions modal HTML dynamically
+function dtCreateInstructionsModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'dtInstrOverlay';
+    overlay.className = 'dt-instr-overlay';
+    overlay.onclick = function(e) { if (e.target === this) dtCloseInstructionsModal(); };
+    
+    overlay.innerHTML = `
+        <div class="dt-instr-modal">
+            <div class="dt-instr-header">
+                <div class="dt-instr-title">
+                    <i class="fas fa-scroll"></i>
+                    <span>Extra Instructions</span>
+                </div>
+                <button class="dt-instr-close" onclick="dtCloseInstructionsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="dt-instr-desc">
+                <i class="fas fa-info-circle" style="margin-right: 5px; color: #2dd4bf;"></i>
+                Write any additional instructions or context you want to include with the prompt. These will be 
+                automatically attached whenever the template is pushed or generated — perfect for project-specific 
+                requirements, custom rules, or extra context the AI needs to know.
+            </div>
+            
+            <textarea 
+                id="dtInstrTextarea" 
+                class="dt-instr-textarea" 
+                placeholder="e.g. Use Bootstrap 5 for styling. The project name is 'MyApp'. Include Arabic RTL support. The database name should be 'myapp_db'..."
+                oninput="dtUpdateInstrCharCount()"
+            ></textarea>
+            
+            <div class="dt-instr-footer">
+                <span id="dtInstrCharCount" class="dt-instr-char-count">No content</span>
+                <div class="dt-instr-actions">
+                    <button type="button" class="dt-instr-clear-btn" onclick="dtClearInstructions()">
+                        <i class="fas fa-trash-alt"></i> Clear
+                    </button>
+                    <button type="button" class="dt-instr-save-btn" onclick="dtSaveInstructions()">
                         <i class="fas fa-save"></i> Save
                     </button>
                 </div>
