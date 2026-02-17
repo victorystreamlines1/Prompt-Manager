@@ -12403,6 +12403,358 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(5, 150, 105, 0.2);
         }
 
+        /* Calibrate Button for Static Template */
+        .dt-calibrate-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            padding: 1px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dt-calibrate-btn:hover {
+            background: rgba(52, 211, 153, 0.2);
+            border-color: rgba(52, 211, 153, 0.45);
+            color: #6ee7b7;
+            transform: scale(1.08);
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.15);
+        }
+        
+        .dt-calibrate-btn i {
+            font-size: 0.4rem;
+        }
+        
+        .dt-calibrate-btn.has-data {
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.25);
+        }
+        
+        .dt-calibrate-btn.has-data:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.45);
+            color: #7dd3fc;
+        }
+        
+        [data-theme="light"] .dt-calibrate-btn {
+            color: #059669;
+            background: rgba(5, 150, 105, 0.08);
+            border-color: rgba(5, 150, 105, 0.2);
+        }
+        
+        [data-theme="light"] .dt-calibrate-btn:hover {
+            background: rgba(5, 150, 105, 0.14);
+        }
+
+        /* Tree Calibration Modal */
+        .dt-calib-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: dtCalibFadeIn 0.25s ease;
+        }
+        
+        .dt-calib-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes dtCalibFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dtCalibSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .dt-calib-modal {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(52, 211, 153, 0.08);
+            animation: dtCalibSlideIn 0.3s ease;
+        }
+        
+        .dt-calib-modal::-webkit-scrollbar {
+            width: 4px;
+        }
+        .dt-calib-modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dt-calib-modal::-webkit-scrollbar-thumb {
+            background: rgba(52, 211, 153, 0.3);
+            border-radius: 4px;
+        }
+        
+        .dt-calib-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .dt-calib-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        
+        .dt-calib-title i {
+            color: #34d399;
+            font-size: 1rem;
+        }
+        
+        .dt-calib-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-calib-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-calib-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 8px;
+            font-size: 0.65rem;
+            color: #34d399;
+            margin-bottom: 16px;
+        }
+        
+        .dt-calib-status.empty {
+            background: rgba(148, 163, 184, 0.08);
+            border-color: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+        
+        .dt-calib-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .dt-calib-section-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .dt-calib-section-label i {
+            font-size: 0.6rem;
+        }
+        
+        .dt-calib-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .dt-calib-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .dt-calib-field.full {
+            grid-column: 1 / -1;
+        }
+        
+        .dt-calib-field label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .dt-calib-field label small {
+            font-weight: 400;
+            text-transform: none;
+            color: rgba(148, 163, 184, 0.6);
+        }
+        
+        .dt-calib-field input,
+        .dt-calib-field select {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #e2e8f0;
+            font-size: 0.78rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        
+        .dt-calib-field input:focus,
+        .dt-calib-field select:focus {
+            border-color: rgba(52, 211, 153, 0.5);
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.1);
+        }
+        
+        .dt-calib-field input::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+        
+        .dt-calib-field select option {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        
+        .dt-calib-toggle-row {
+            padding: 4px 0;
+        }
+        
+        .dt-calib-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+        
+        .dt-calib-toggle:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        .dt-calib-toggle input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #34d399;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .dt-calib-toggle span {
+            font-size: 0.72rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .dt-calib-toggle span i {
+            font-size: 0.6rem;
+            color: #64748b;
+            width: 14px;
+            text-align: center;
+        }
+        
+        .dt-calib-features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        
+        .dt-calib-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .dt-calib-btn {
+            flex: 1;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .dt-calib-btn.save {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: white;
+        }
+        
+        .dt-calib-btn.save:hover {
+            background: linear-gradient(135deg, #6ee7b7, #34d399);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+        }
+        
+        .dt-calib-btn.clear {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .dt-calib-btn.clear:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        [data-theme="light"] .dt-calib-modal {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(241, 245, 249, 0.98) 100%);
+            border-color: rgba(5, 150, 105, 0.2);
+        }
+        
+        [data-theme="light"] .dt-calib-title { color: #1e293b; }
+        [data-theme="light"] .dt-calib-title i { color: #059669; }
+        [data-theme="light"] .dt-calib-section-label { color: #059669; border-top-color: rgba(0,0,0,0.06); }
+        [data-theme="light"] .dt-calib-field label { color: #475569; }
+        [data-theme="light"] .dt-calib-field input,
+        [data-theme="light"] .dt-calib-field select { background: rgba(241, 245, 249, 0.8); border-color: rgba(0,0,0,0.1); color: #1e293b; }
+        [data-theme="light"] .dt-calib-toggle span { color: #334155; }
+        [data-theme="light"] .dt-calib-status { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.15); color: #059669; }
+        [data-theme="light"] .dt-calib-status.empty { background: rgba(100,116,139,0.06); border-color: rgba(100,116,139,0.15); color: #64748b; }
+
         .dt-static-icon {
             font-size: 0.55rem;
             vertical-align: middle;
@@ -47693,6 +48045,12 @@ DELETE /admin/users/:id/roles/:roleId — Revoke role
 
 IMPORTANT: Implement all of the above in clean, modular, well-documented code. Use prepared statements for all database queries. Never store plain-text passwords. Follow OWASP security best practices throughout.`,
         isStatic: true
+    },
+    {
+        id: 'static_2',
+        name: 'Multi-Level Tree Node System',
+        content: '__TREE_DYNAMIC__',
+        isStatic: true
     }
 ];
 
@@ -47783,25 +48141,39 @@ function dtRenderList(searchTerm = '') {
         item.className = `dt-item${isChecked ? ' checked' : ''}${isStatic ? ' dt-static-item' : ''}`;
         item.setAttribute('data-id', template.id);
         
-        // Static templates: checkbox + copy + input + instructions, no edit/delete/pull
+        // Static templates: checkbox + copy + explain + instructions + custom input, no edit/delete/pull
         const hasCredData = localStorage.getItem('dtAdminCredentials') ? true : false;
-        const hasInstrData = localStorage.getItem('dtExtraInstructions') ? true : false;
-        const actionsHtml = isStatic 
-            ? `<div class="dt-item-actions">
+        const hasInstrData_this = localStorage.getItem(dtInstrKey(template.id)) ? true : false;
+        const hasCalibData = localStorage.getItem('dtTreeCalibration') ? true : false;
+        
+        let actionsHtml = '';
+        if (isStatic) {
+            // Build per-template input button
+            let inputBtnHtml = '';
+            if (template.id === 'static_1') {
+                inputBtnHtml = `<button type="button" class="dt-input-btn${hasCredData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenCredentialsModal()" title="Set Admin Credentials">
+                        <i class="fas fa-keyboard"></i> Input
+                    </button>`;
+            } else if (template.id === 'static_2') {
+                inputBtnHtml = `<button type="button" class="dt-calibrate-btn${hasCalibData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenTreeCalibrationModal()" title="Calibrate Tree Features">
+                        <i class="fas fa-sliders-h"></i> Calibrate
+                    </button>`;
+            }
+            
+            actionsHtml = `<div class="dt-item-actions">
                     <button type="button" class="dt-explain-btn" onclick="event.stopPropagation(); dtOpenExplainModal(${idArg})" title="What does this prompt do?">
                         <i class="fas fa-lightbulb"></i> Explain
                     </button>
-                    <button type="button" class="dt-instructions-btn${hasInstrData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenInstructionsModal()" title="Add extra instructions to attach with the prompt">
+                    <button type="button" class="dt-instructions-btn${hasInstrData_this ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenInstructionsModal(${idArg})" title="Add extra instructions to attach with the prompt">
                         <i class="fas fa-scroll"></i> Instructions
                     </button>
-                    <button type="button" class="dt-input-btn${hasCredData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenCredentialsModal()" title="Set Admin Credentials">
-                        <i class="fas fa-keyboard"></i> Input
-                    </button>
+                    ${inputBtnHtml}
                     <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${idArg})" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
-                </div>`
-            : `<div class="dt-item-actions">
+                </div>`;
+        } else {
+            actionsHtml = `<div class="dt-item-actions">
                     <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${idArg})" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
@@ -47815,6 +48187,7 @@ function dtRenderList(searchTerm = '') {
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>`;
+        }
         
         item.innerHTML = `
             <div class="dt-item-checkbox" onclick="dtToggleTemplate(${idArg})">
@@ -47884,7 +48257,7 @@ function dtRebuildEditor() {
     activeDesignTemplates.forEach(id => {
         const dt = designTemplates.find(t => t.id === id);
         if (dt) {
-            content += (content ? '\n\n' : '') + dtGetProcessedContent(dt.content);
+            content += (content ? '\n\n' : '') + dtGetProcessedContent(dt.content, dt.id);
         }
     });
     
@@ -48162,7 +48535,7 @@ function dtCopyTemplate(id) {
     const template = designTemplates.find(t => t.id === id);
     if (!template) return;
     
-    const processedContent = dtGetProcessedContent(template.content);
+    const processedContent = dtGetProcessedContent(template.content, template.id);
     
     navigator.clipboard.writeText(processedContent).then(() => {
         showToast(`"${template.name}" copied!`, 'success');
@@ -48326,18 +48699,10 @@ function dtTemplatePushToNotes() {
     activeDesignTemplates.forEach(id => {
         const template = designTemplates.find(t => t.id === id);
         if (template) {
-            const processedContent = dtGetProcessedContent(template.content);
+            const processedContent = dtGetProcessedContent(template.content, template.id);
             content += `\n📋 ${template.name}:\n${processedContent}\n`;
         }
     });
-    
-    // Attach extra instructions if saved
-    const extraInstructions = localStorage.getItem('dtExtraInstructions');
-    if (extraInstructions) {
-        content += '\n\n📝 EXTRA INSTRUCTIONS\n';
-        content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-        content += extraInstructions + '\n';
-    }
     
     const currentContent = projectNotesTextarea.value;
     projectNotesTextarea.value = currentContent + content;
@@ -48348,8 +48713,7 @@ function dtTemplatePushToNotes() {
     
     localStorage.setItem('projectPrompts', projectNotesTextarea.value);
     
-    const instrNote = extraInstructions ? ' (+ extra instructions)' : '';
-    showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts${instrNote}`, 'success');
+    showToast(`🎨 ${activeDesignTemplates.size} design template(s) pushed to Project Prompts`, 'success');
 }
 
 // Reset Design Templates tool
@@ -48405,35 +48769,256 @@ function dtHighlightText(text, searchTerm) {
 // ============ ADMIN CREDENTIALS SYSTEM ============
 
 // Get processed content with admin credentials replaced
-function dtGetProcessedContent(content) {
-    const savedCreds = localStorage.getItem('dtAdminCredentials');
-    if (!savedCreds) return content;
+function dtGetProcessedContent(content, templateId) {
+    let processed = content;
     
-    try {
-        const creds = JSON.parse(savedCreds);
-        let processed = content;
-        
-        // First: replace the full seed data line with all three credentials (most specific match)
-        if (creds.username && creds.email && creds.password) {
-            processed = processed.replace(
-                /Create initial super_admin account \([^)]+\)/g,
-                `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
-            );
-        }
-        
-        // Then: replace individual default values throughout the prompt
-        if (creds.email) {
-            processed = processed.replace(/admin@site\.com/g, creds.email);
-        }
-        if (creds.password) {
-            processed = processed.replace(/ChangeMe123!/g, creds.password);
-        }
-        
-        return processed;
-    } catch (e) {
-        console.warn('Failed to parse admin credentials:', e);
-        return content;
+    // Handle static_2: Multi-Level Tree Node System (dynamic content)
+    if (templateId === 'static_2' && content === '__TREE_DYNAMIC__') {
+        processed = dtBuildTreePrompt();
     }
+    // Handle static_1: Registration System (credential replacement)
+    else {
+        const savedCreds = localStorage.getItem('dtAdminCredentials');
+        if (savedCreds) {
+            try {
+                const creds = JSON.parse(savedCreds);
+                
+                // First: replace the full seed data line with all three credentials (most specific match)
+                if (creds.username && creds.email && creds.password) {
+                    processed = processed.replace(
+                        /Create initial super_admin account \([^)]+\)/g,
+                        `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
+                    );
+                }
+                
+                // Then: replace individual default values throughout the prompt
+                if (creds.email) {
+                    processed = processed.replace(/admin@site\.com/g, creds.email);
+                }
+                if (creds.password) {
+                    processed = processed.replace(/ChangeMe123!/g, creds.password);
+                }
+            } catch (e) {
+                console.warn('Failed to parse admin credentials:', e);
+            }
+        }
+    }
+    
+    // Append per-template extra instructions (works for ALL templates)
+    if (templateId) {
+        const extraInstr = localStorage.getItem(dtInstrKey(templateId));
+        if (extraInstr) {
+            processed += `\n\n📝 ADDITIONAL INSTRUCTIONS\n──────────────────────────\n${extraInstr}`;
+        }
+    }
+    
+    return processed;
+}
+
+// ============ TREE NODE SYSTEM - DYNAMIC PROMPT BUILDER ============
+
+// Default calibration settings
+const DT_TREE_DEFAULTS = {
+    maxDepth: 5,
+    infiniteDepth: false,
+    nodeTypes: 'folder,file,category,tag,bookmark',
+    dbTable: 'tree_nodes',
+    rootLabel: 'Root',
+    features: {
+        dragDrop: true,
+        search: true,
+        contextMenu: true,
+        lazyLoad: true,
+        multiSelect: true,
+        breadcrumb: true,
+        icons: true,
+        badges: true
+    },
+    uiStyle: 'modern',
+    expandBehavior: 'click',
+    sortable: true,
+    apiPrefix: '/api/tree'
+};
+
+// Build the full tree prompt dynamically from calibration data
+function dtBuildTreePrompt() {
+    let cfg = {...DT_TREE_DEFAULTS, features: {...DT_TREE_DEFAULTS.features}};
+    
+    const saved = localStorage.getItem('dtTreeCalibration');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            cfg = {
+                ...cfg,
+                ...parsed,
+                features: {...cfg.features, ...(parsed.features || {})}
+            };
+        } catch(e) {
+            console.warn('Failed to parse tree calibration:', e);
+        }
+    }
+    
+    const nodeTypesArr = cfg.nodeTypes.split(',').map(s => s.trim()).filter(Boolean);
+    const featuresList = Object.entries(cfg.features).filter(([k,v]) => v).map(([k]) => k);
+    
+    let prompt = `🌳 MULTI-LEVEL TREE NODE SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build a complete, production-ready multi-level tree node system with full CRUD operations, drag-and-drop reordering, and a rich interactive UI. The system must support unlimited nesting depth with optimized database queries and a responsive, accessible frontend.
+
+📋 CONFIGURATION
+─────────────────
+- Maximum Depth: ${cfg.infiniteDepth ? 'Unlimited (no restriction)' : cfg.maxDepth + ' levels'}
+- Node Types: ${nodeTypesArr.join(', ')}
+- Database Table: ${cfg.dbTable}
+- Root Label: "${cfg.rootLabel}"
+- UI Style: ${cfg.uiStyle}
+- Expand Behavior: ${cfg.expandBehavior}
+- Sortable: ${cfg.sortable ? 'Yes' : 'No'}
+- API Prefix: ${cfg.apiPrefix}
+
+📊 DATABASE SCHEMA
+─────────────────
+CREATE TABLE \`${cfg.dbTable}\` (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    parent_id       INT UNSIGNED NULL DEFAULT NULL,
+    node_type       ENUM('${nodeTypesArr.join("','")}') NOT NULL DEFAULT '${nodeTypesArr[0]}',
+    name            VARCHAR(255) NOT NULL,
+    slug            VARCHAR(255) NOT NULL,
+    description     TEXT NULL,
+    icon            VARCHAR(100) NULL DEFAULT NULL,
+    color           VARCHAR(7) NULL DEFAULT NULL,
+    sort_order      INT NOT NULL DEFAULT 0,
+    depth           TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    path            VARCHAR(1000) NOT NULL DEFAULT '',
+    is_expanded     TINYINT(1) NOT NULL DEFAULT 0,
+    is_locked       TINYINT(1) NOT NULL DEFAULT 0,
+    metadata        JSON NULL DEFAULT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (parent_id) REFERENCES \`${cfg.dbTable}\`(id) ON DELETE CASCADE,
+    INDEX idx_parent (parent_id),
+    INDEX idx_depth (depth),
+    INDEX idx_path (path(255)),
+    INDEX idx_sort (parent_id, sort_order),
+    UNIQUE INDEX idx_slug_parent (parent_id, slug)
+);
+
+-- Seed root node
+INSERT INTO \`${cfg.dbTable}\` (parent_id, node_type, name, slug, depth, path)
+VALUES (NULL, '${nodeTypesArr[0]}', '${cfg.rootLabel}', '${cfg.rootLabel.toLowerCase().replace(/\s+/g, '-')}', 0, '/');
+
+🖥️ BACKEND API ENDPOINTS
+─────────────────────────
+Build RESTful API endpoints with the prefix: ${cfg.apiPrefix}
+
+| Method | Endpoint                          | Description                              |
+|--------|-----------------------------------|------------------------------------------|
+| GET    | ${cfg.apiPrefix}/nodes            | Get all nodes (flat or nested)           |
+| GET    | ${cfg.apiPrefix}/nodes/:id        | Get single node with children            |
+| GET    | ${cfg.apiPrefix}/nodes/:id/path   | Get breadcrumb path to node              |
+| POST   | ${cfg.apiPrefix}/nodes            | Create new node                          |
+| PUT    | ${cfg.apiPrefix}/nodes/:id        | Update node (name, type, icon, etc.)     |
+| DELETE | ${cfg.apiPrefix}/nodes/:id        | Delete node and all descendants          |
+| PATCH  | ${cfg.apiPrefix}/nodes/:id/move   | Move node to new parent                  |
+| PATCH  | ${cfg.apiPrefix}/nodes/reorder    | Reorder sibling nodes                    |
+| GET    | ${cfg.apiPrefix}/nodes/search     | Search nodes by name/type                |
+| GET    | ${cfg.apiPrefix}/nodes/:id/descendants | Get all descendants count/list     |`;
+
+    // Conditional features section
+    prompt += `
+
+🎨 FRONTEND REQUIREMENTS
+─────────────────────────
+UI Style: ${cfg.uiStyle === 'modern' ? 'Modern glassmorphism with smooth animations, rounded corners, and subtle shadows' : cfg.uiStyle === 'minimal' ? 'Clean minimal design with simple lines and flat colors' : 'Classic tree view with traditional expand/collapse arrows'}
+
+Enabled Features:`;
+
+    if (cfg.features.dragDrop) {
+        prompt += `
+  ✅ Drag & Drop — Allow nodes to be dragged and dropped to reorder or reparent. Show visual drop indicators (above, below, inside). Enforce max depth of ${cfg.maxDepth}. Prevent dropping a parent into its own children.`;
+    }
+    if (cfg.features.search) {
+        prompt += `
+  ✅ Search & Filter — Real-time search with highlighting. Filter by node type. Show matching nodes with their parent path expanded. Debounced input (300ms).`;
+    }
+    if (cfg.features.contextMenu) {
+        prompt += `
+  ✅ Context Menu — Right-click any node to show options: Add Child, Rename, Duplicate, Move To, Change Type, Change Icon, Delete. Use a floating menu with icons and keyboard shortcuts.`;
+    }
+    if (cfg.features.lazyLoad) {
+        prompt += `
+  ✅ Lazy Loading — Only load children when a node is expanded. Show loading spinner during fetch. Cache loaded children to avoid redundant requests.`;
+    }
+    if (cfg.features.multiSelect) {
+        prompt += `
+  ✅ Multi-Select — Hold Ctrl/Cmd to select multiple nodes. Hold Shift for range selection. Show a bulk actions toolbar (move, delete, change type). Highlight selected nodes with a distinct color.`;
+    }
+    if (cfg.features.breadcrumb) {
+        prompt += `
+  ✅ Breadcrumb Navigation — Show the full path from root to the currently focused node. Each breadcrumb segment is clickable to navigate to that level.`;
+    }
+    if (cfg.features.icons) {
+        prompt += `
+  ✅ Custom Icons — Each node type has a default icon. Users can override the icon per node. Support Font Awesome or emoji icons. Show icons in the tree and breadcrumb.`;
+    }
+    if (cfg.features.badges) {
+        prompt += `
+  ✅ Badges & Counts — Show children count badge on each parent node. Show node type indicator. Optional status badges (locked, new, etc.).`;
+    }
+
+    prompt += `
+
+⚙️ CORE BEHAVIORS
+──────────────────
+1. **Expand/Collapse**: Trigger on ${cfg.expandBehavior === 'click' ? 'single click on the node row' : cfg.expandBehavior === 'arrow' ? 'clicking the expand arrow icon only' : 'double-clicking the node row'}
+2. **Auto Path Update**: When a node is moved, automatically recalculate the \`path\` and \`depth\` columns for the moved node and ALL its descendants recursively
+3. **Slug Generation**: Auto-generate URL-safe slugs from node names. Ensure uniqueness within the same parent
+4. **Sort Order**: Maintain sort_order for sibling nodes. When reordering, update all affected siblings in a single transaction
+5. **Depth Enforcement**: ${cfg.infiniteDepth ? 'No depth restriction — allow unlimited nesting levels. Do NOT enforce any maximum depth limit.' : `Never allow nesting beyond ${cfg.maxDepth} levels. Show a warning if a drag-drop or move operation would exceed the max depth`}
+6. **Optimistic UI**: Update the frontend immediately on user action, then sync with the backend. Roll back on failure with an error toast
+
+🔒 VALIDATION RULES
+────────────────────
+- Node name: Required, 1-255 characters, no special characters except: - _ . ( )
+- Node type: Must be one of: ${nodeTypesArr.join(', ')}
+- Parent: Must exist and be a valid node (or NULL for root)
+- Depth: ${cfg.infiniteDepth ? 'No limit (infinite nesting allowed)' : `Must not exceed ${cfg.maxDepth}`}
+- Slug: Auto-generated, unique per parent, URL-safe
+- Sort order: Non-negative integer
+- Prevent circular references (a node cannot be moved into its own subtree)
+
+🎯 TREE NODE UI COMPONENT
+──────────────────────────
+Each tree node row must display:
+  - Expand/collapse indicator (▶/▼) for parent nodes
+  - Node type icon (customizable)
+  - Node name (editable on double-click for inline rename)
+  - Children count badge (for parent nodes)
+  - Action buttons on hover: Add Child, Edit, Delete
+  - Drag handle (if drag & drop is enabled)
+  - Checkbox (if multi-select is enabled)
+  - Indentation: ${cfg.uiStyle === 'modern' ? '24px' : '20px'} per level with connecting lines
+
+📱 RESPONSIVE DESIGN
+─────────────────────
+- Collapse tree into a hamburger-style panel on mobile (< 768px)
+- Touch-friendly: larger tap targets, long-press for context menu
+- Swipe gestures for expand/collapse on mobile
+- Horizontal scroll with sticky node names for deep trees
+
+♿ ACCESSIBILITY
+────────────────
+- Full keyboard navigation: Arrow keys to navigate, Enter to expand/collapse, Space to select
+- ARIA attributes: role="tree", role="treeitem", aria-expanded, aria-level, aria-selected
+- Screen reader announcements for state changes
+- Focus management after add/delete/move operations
+- High contrast mode support
+
+IMPORTANT: Implement all of the above in clean, modular, well-documented code. Use prepared statements for all database queries. Follow recursive tree algorithms with proper cycle detection. Ensure all move/reorder operations are wrapped in database transactions for data integrity.`;
+
+    return prompt;
 }
 
 // Open credentials modal
@@ -48596,17 +49181,34 @@ function dtCreateCredentialsModal() {
 
 // ============ INSTRUCTIONS MODAL SYSTEM ============
 
-// Open instructions modal
-function dtOpenInstructionsModal() {
+// Track which template's instructions are currently being edited
+let dtCurrentInstrTemplateId = null;
+
+// Helper: get the localStorage key for a template's instructions
+function dtInstrKey(templateId) {
+    return 'dtExtraInstructions_' + (templateId || 'global');
+}
+
+// Open instructions modal for a specific template
+function dtOpenInstructionsModal(templateId) {
+    dtCurrentInstrTemplateId = templateId || null;
+    
     let overlay = document.getElementById('dtInstrOverlay');
     if (!overlay) {
         dtCreateInstructionsModal();
         overlay = document.getElementById('dtInstrOverlay');
     }
     
-    // Load saved instructions
+    // Update modal title to show which template
+    const titleSpan = document.getElementById('dtInstrTitleText');
+    if (titleSpan) {
+        const tpl = designTemplates.find(t => t.id === templateId);
+        titleSpan.textContent = tpl ? `Instructions — ${tpl.name}` : 'Extra Instructions';
+    }
+    
+    // Load saved instructions for THIS template
     const textarea = document.getElementById('dtInstrTextarea');
-    const saved = localStorage.getItem('dtExtraInstructions');
+    const saved = localStorage.getItem(dtInstrKey(templateId));
     if (textarea) {
         textarea.value = saved || '';
     }
@@ -48626,7 +49228,7 @@ function dtCloseInstructionsModal() {
     if (overlay) overlay.classList.remove('show');
 }
 
-// Save instructions
+// Save instructions (for the currently open template)
 function dtSaveInstructions() {
     const textarea = document.getElementById('dtInstrTextarea');
     if (!textarea) return;
@@ -48638,15 +49240,15 @@ function dtSaveInstructions() {
         return;
     }
     
-    localStorage.setItem('dtExtraInstructions', text);
+    localStorage.setItem(dtInstrKey(dtCurrentInstrTemplateId), text);
     dtUpdateInstructionsButtons();
     dtCloseInstructionsModal();
     showToast('✅ Extra instructions saved — will be attached with the prompt', 'success');
 }
 
-// Clear instructions
+// Clear instructions (for the currently open template)
 function dtClearInstructions() {
-    localStorage.removeItem('dtExtraInstructions');
+    localStorage.removeItem(dtInstrKey(dtCurrentInstrTemplateId));
     
     const textarea = document.getElementById('dtInstrTextarea');
     if (textarea) textarea.value = '';
@@ -48666,10 +49268,13 @@ function dtUpdateInstrCharCount() {
     counter.textContent = len > 0 ? `${len.toLocaleString()} characters` : 'No content';
 }
 
-// Update Instructions button appearance across all static templates
+// Update Instructions button appearance — check each template's own key
 function dtUpdateInstructionsButtons() {
-    const hasData = localStorage.getItem('dtExtraInstructions') ? true : false;
     document.querySelectorAll('.dt-instructions-btn').forEach(btn => {
+        const item = btn.closest('.dt-item');
+        if (!item) return;
+        const templateId = item.getAttribute('data-id');
+        const hasData = localStorage.getItem(dtInstrKey(templateId)) ? true : false;
         if (hasData) {
             btn.classList.add('has-data');
         } else {
@@ -48690,7 +49295,7 @@ function dtCreateInstructionsModal() {
             <div class="dt-instr-header">
                 <div class="dt-instr-title">
                     <i class="fas fa-scroll"></i>
-                    <span>Extra Instructions</span>
+                    <span id="dtInstrTitleText">Extra Instructions</span>
                 </div>
                 <button class="dt-instr-close" onclick="dtCloseInstructionsModal()">
                     <i class="fas fa-times"></i>
@@ -48728,6 +49333,315 @@ function dtCreateInstructionsModal() {
     document.body.appendChild(overlay);
 }
 
+// ============ TREE CALIBRATION MODAL SYSTEM ============
+
+// Toggle max depth number input visibility based on infinite checkbox
+function dtToggleDepthInput(isInfinite) {
+    const depthInput = document.getElementById('dtCalibMaxDepth');
+    if (!depthInput) return;
+    if (isInfinite) {
+        depthInput.style.display = 'none';
+    } else {
+        depthInput.style.display = '';
+        if (!depthInput.value || depthInput.value === '') {
+            depthInput.value = DT_TREE_DEFAULTS.maxDepth;
+        }
+    }
+}
+
+// Open tree calibration modal
+function dtOpenTreeCalibrationModal() {
+    let overlay = document.getElementById('dtTreeCalibOverlay');
+    if (!overlay) {
+        dtCreateTreeCalibrationModal();
+        overlay = document.getElementById('dtTreeCalibOverlay');
+    }
+    
+    // Load saved or default calibration data into fields
+    let cfg = {...DT_TREE_DEFAULTS, features: {...DT_TREE_DEFAULTS.features}};
+    const saved = localStorage.getItem('dtTreeCalibration');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            cfg = {...cfg, ...parsed, features: {...cfg.features, ...(parsed.features || {})}};
+        } catch(e) {}
+    }
+    
+    document.getElementById('dtCalibMaxDepth').value = cfg.maxDepth;
+    document.getElementById('dtCalibInfiniteDepth').checked = cfg.infiniteDepth;
+    dtToggleDepthInput(cfg.infiniteDepth);
+    document.getElementById('dtCalibNodeTypes').value = cfg.nodeTypes;
+    document.getElementById('dtCalibDbTable').value = cfg.dbTable;
+    document.getElementById('dtCalibRootLabel').value = cfg.rootLabel;
+    document.getElementById('dtCalibApiPrefix').value = cfg.apiPrefix;
+    document.getElementById('dtCalibUiStyle').value = cfg.uiStyle;
+    document.getElementById('dtCalibExpandBehavior').value = cfg.expandBehavior;
+    document.getElementById('dtCalibSortable').checked = cfg.sortable;
+    
+    // Feature toggles
+    document.getElementById('dtCalibFeatDragDrop').checked = cfg.features.dragDrop;
+    document.getElementById('dtCalibFeatSearch').checked = cfg.features.search;
+    document.getElementById('dtCalibFeatContextMenu').checked = cfg.features.contextMenu;
+    document.getElementById('dtCalibFeatLazyLoad').checked = cfg.features.lazyLoad;
+    document.getElementById('dtCalibFeatMultiSelect').checked = cfg.features.multiSelect;
+    document.getElementById('dtCalibFeatBreadcrumb').checked = cfg.features.breadcrumb;
+    document.getElementById('dtCalibFeatIcons').checked = cfg.features.icons;
+    document.getElementById('dtCalibFeatBadges').checked = cfg.features.badges;
+    
+    dtUpdateCalibStatus();
+    overlay.classList.add('show');
+}
+
+// Close tree calibration modal
+function dtCloseTreeCalibrationModal() {
+    const overlay = document.getElementById('dtTreeCalibOverlay');
+    if (overlay) overlay.classList.remove('show');
+}
+
+// Save tree calibration
+function dtSaveTreeCalibration() {
+    const isInfinite = document.getElementById('dtCalibInfiniteDepth').checked;
+    const cfg = {
+        maxDepth: parseInt(document.getElementById('dtCalibMaxDepth').value) || 5,
+        infiniteDepth: isInfinite,
+        nodeTypes: document.getElementById('dtCalibNodeTypes').value.trim() || 'folder,file',
+        dbTable: document.getElementById('dtCalibDbTable').value.trim() || 'tree_nodes',
+        rootLabel: document.getElementById('dtCalibRootLabel').value.trim() || 'Root',
+        apiPrefix: document.getElementById('dtCalibApiPrefix').value.trim() || '/api/tree',
+        uiStyle: document.getElementById('dtCalibUiStyle').value,
+        expandBehavior: document.getElementById('dtCalibExpandBehavior').value,
+        sortable: document.getElementById('dtCalibSortable').checked,
+        features: {
+            dragDrop: document.getElementById('dtCalibFeatDragDrop').checked,
+            search: document.getElementById('dtCalibFeatSearch').checked,
+            contextMenu: document.getElementById('dtCalibFeatContextMenu').checked,
+            lazyLoad: document.getElementById('dtCalibFeatLazyLoad').checked,
+            multiSelect: document.getElementById('dtCalibFeatMultiSelect').checked,
+            breadcrumb: document.getElementById('dtCalibFeatBreadcrumb').checked,
+            icons: document.getElementById('dtCalibFeatIcons').checked,
+            badges: document.getElementById('dtCalibFeatBadges').checked
+        }
+    };
+    
+    // Validate max depth (only when not infinite)
+    if (!isInfinite && (cfg.maxDepth < 1 || cfg.maxDepth > 20)) {
+        showToast('⚠️ Max depth must be between 1 and 20', 'warning');
+        return;
+    }
+    
+    // Validate node types
+    const types = cfg.nodeTypes.split(',').map(s => s.trim()).filter(Boolean);
+    if (types.length === 0) {
+        showToast('⚠️ At least one node type is required', 'warning');
+        return;
+    }
+    
+    localStorage.setItem('dtTreeCalibration', JSON.stringify(cfg));
+    dtUpdateCalibButtons();
+    dtUpdateCalibStatus();
+    dtCloseTreeCalibrationModal();
+    showToast('✅ Tree calibration saved — prompt will use these settings', 'success');
+}
+
+// Clear tree calibration (remove saved, revert to defaults)
+function dtClearTreeCalibration() {
+    localStorage.removeItem('dtTreeCalibration');
+    
+    // Reset form to defaults
+    document.getElementById('dtCalibMaxDepth').value = DT_TREE_DEFAULTS.maxDepth;
+    document.getElementById('dtCalibInfiniteDepth').checked = DT_TREE_DEFAULTS.infiniteDepth;
+    dtToggleDepthInput(DT_TREE_DEFAULTS.infiniteDepth);
+    document.getElementById('dtCalibNodeTypes').value = DT_TREE_DEFAULTS.nodeTypes;
+    document.getElementById('dtCalibDbTable').value = DT_TREE_DEFAULTS.dbTable;
+    document.getElementById('dtCalibRootLabel').value = DT_TREE_DEFAULTS.rootLabel;
+    document.getElementById('dtCalibApiPrefix').value = DT_TREE_DEFAULTS.apiPrefix;
+    document.getElementById('dtCalibUiStyle').value = DT_TREE_DEFAULTS.uiStyle;
+    document.getElementById('dtCalibExpandBehavior').value = DT_TREE_DEFAULTS.expandBehavior;
+    document.getElementById('dtCalibSortable').checked = DT_TREE_DEFAULTS.sortable;
+    
+    Object.entries(DT_TREE_DEFAULTS.features).forEach(([key, val]) => {
+        const el = document.getElementById('dtCalibFeat' + key.charAt(0).toUpperCase() + key.slice(1));
+        if (el) el.checked = val;
+    });
+    
+    dtUpdateCalibButtons();
+    dtUpdateCalibStatus();
+    showToast('🗑️ Tree calibration cleared — using defaults', 'info');
+}
+
+// Update calibration status indicator
+function dtUpdateCalibStatus() {
+    const statusEl = document.getElementById('dtCalibStatus');
+    if (!statusEl) return;
+    
+    const saved = localStorage.getItem('dtTreeCalibration');
+    if (saved) {
+        try {
+            const cfg = JSON.parse(saved);
+            const types = cfg.nodeTypes.split(',').map(s => s.trim()).filter(Boolean);
+            const featCount = Object.values(cfg.features || {}).filter(v => v).length;
+            statusEl.className = 'dt-calib-status';
+            const depthLabel = cfg.infiniteDepth ? '∞ Infinite' : cfg.maxDepth + ' levels';
+            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Calibrated: <strong>${depthLabel}</strong> · ${types.length} types · ${featCount} features · ${cfg.uiStyle}`;
+        } catch(e) {
+            statusEl.className = 'dt-calib-status empty';
+            statusEl.innerHTML = '<i class="fas fa-info-circle"></i> Using default settings';
+        }
+    } else {
+        statusEl.className = 'dt-calib-status empty';
+        statusEl.innerHTML = '<i class="fas fa-info-circle"></i> Using default settings — customize to match your project';
+    }
+}
+
+// Update Calibrate button appearance
+function dtUpdateCalibButtons() {
+    const hasData = localStorage.getItem('dtTreeCalibration') ? true : false;
+    document.querySelectorAll('.dt-calibrate-btn').forEach(btn => {
+        if (hasData) {
+            btn.classList.add('has-data');
+        } else {
+            btn.classList.remove('has-data');
+        }
+    });
+}
+
+// Create the tree calibration modal HTML
+function dtCreateTreeCalibrationModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'dtTreeCalibOverlay';
+    overlay.className = 'dt-calib-overlay';
+    overlay.onclick = function(e) { if (e.target === this) dtCloseTreeCalibrationModal(); };
+    
+    overlay.innerHTML = `
+        <div class="dt-calib-modal">
+            <div class="dt-calib-header">
+                <div class="dt-calib-title">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Tree Calibration</span>
+                </div>
+                <button class="dt-calib-close" onclick="dtCloseTreeCalibrationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="dtCalibStatus" class="dt-calib-status empty">
+                <i class="fas fa-info-circle"></i> Using default settings — customize to match your project
+            </div>
+            
+            <div class="dt-calib-form">
+                <div class="dt-calib-section-label"><i class="fas fa-cog"></i> General Settings</div>
+                
+                <div class="dt-calib-row">
+                    <div class="dt-calib-field">
+                        <label>Max Depth</label>
+                        <div id="dtCalibDepthWrapper" style="display:flex; flex-direction:column; gap:6px;">
+                            <label class="dt-calib-toggle" style="margin:0; padding:3px 0;">
+                                <input type="checkbox" id="dtCalibInfiniteDepth" onchange="dtToggleDepthInput(this.checked)">
+                                <span><i class="fas fa-infinity" style="color:#34d399;"></i> Infinite</span>
+                            </label>
+                            <input type="number" id="dtCalibMaxDepth" min="1" max="20" value="5">
+                        </div>
+                    </div>
+                    <div class="dt-calib-field">
+                        <label>Root Label</label>
+                        <input type="text" id="dtCalibRootLabel" placeholder="Root" autocomplete="off">
+                    </div>
+                </div>
+                
+                <div class="dt-calib-field full">
+                    <label>Node Types <small>(comma-separated)</small></label>
+                    <input type="text" id="dtCalibNodeTypes" placeholder="folder,file,category,tag,bookmark" autocomplete="off">
+                </div>
+                
+                <div class="dt-calib-row">
+                    <div class="dt-calib-field">
+                        <label>Database Table</label>
+                        <input type="text" id="dtCalibDbTable" placeholder="tree_nodes" autocomplete="off">
+                    </div>
+                    <div class="dt-calib-field">
+                        <label>API Prefix</label>
+                        <input type="text" id="dtCalibApiPrefix" placeholder="/api/tree" autocomplete="off">
+                    </div>
+                </div>
+                
+                <div class="dt-calib-row">
+                    <div class="dt-calib-field">
+                        <label>UI Style</label>
+                        <select id="dtCalibUiStyle">
+                            <option value="modern">Modern (Glassmorphism)</option>
+                            <option value="minimal">Minimal (Flat)</option>
+                            <option value="classic">Classic (Traditional)</option>
+                        </select>
+                    </div>
+                    <div class="dt-calib-field">
+                        <label>Expand Behavior</label>
+                        <select id="dtCalibExpandBehavior">
+                            <option value="click">Single Click</option>
+                            <option value="arrow">Arrow Click Only</option>
+                            <option value="dblclick">Double Click</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="dt-calib-toggle-row">
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibSortable">
+                        <span>Sortable Nodes</span>
+                    </label>
+                </div>
+                
+                <div class="dt-calib-section-label"><i class="fas fa-puzzle-piece"></i> Features</div>
+                
+                <div class="dt-calib-features-grid">
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatDragDrop">
+                        <span><i class="fas fa-arrows-alt"></i> Drag & Drop</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatSearch">
+                        <span><i class="fas fa-search"></i> Search</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatContextMenu">
+                        <span><i class="fas fa-mouse-pointer"></i> Context Menu</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatLazyLoad">
+                        <span><i class="fas fa-spinner"></i> Lazy Load</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatMultiSelect">
+                        <span><i class="fas fa-check-double"></i> Multi-Select</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatBreadcrumb">
+                        <span><i class="fas fa-bread-slice"></i> Breadcrumb</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatIcons">
+                        <span><i class="fas fa-icons"></i> Custom Icons</span>
+                    </label>
+                    <label class="dt-calib-toggle">
+                        <input type="checkbox" id="dtCalibFeatBadges">
+                        <span><i class="fas fa-certificate"></i> Badges</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="dt-calib-actions">
+                <button class="dt-calib-btn clear" onclick="dtClearTreeCalibration()">
+                    <i class="fas fa-undo"></i> Reset Defaults
+                </button>
+                <button class="dt-calib-btn save" onclick="dtSaveTreeCalibration()">
+                    <i class="fas fa-save"></i> Save Calibration
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
 // ============ EXPLAIN MODAL SYSTEM ============
 
 // Explanation data for each static template
@@ -48750,6 +49664,25 @@ const DT_TEMPLATE_EXPLANATIONS = {
             { icon: 'fa-code', text: '16 RESTful API endpoints for auth, users, roles & sessions' }
         ],
         note: 'Use the <strong>Input</strong> button to set your own admin credentials instead of the defaults (admin@site.com / ChangeMe123!).'
+    },
+    'static_2': {
+        title: 'Multi-Level Tree Node System',
+        summary: 'This prompt generates a <strong>complete, production-ready hierarchical tree node system</strong> — covering database schema, RESTful API, drag-and-drop UI, and accessibility. Calibrate the prompt to match your project needs before generating.',
+        features: [
+            { icon: 'fa-database', text: 'Database schema with parent-child relationships, path tracking & metadata JSON' },
+            { icon: 'fa-sitemap', text: 'Unlimited nesting depth with configurable maximum level enforcement' },
+            { icon: 'fa-arrows-alt', text: 'Drag & Drop reordering with visual drop indicators and depth validation' },
+            { icon: 'fa-search', text: 'Real-time search with type filtering, highlighting & path expansion' },
+            { icon: 'fa-mouse-pointer', text: 'Context menu with Add, Rename, Duplicate, Move, Delete & more' },
+            { icon: 'fa-spinner', text: 'Lazy loading for performance — children loaded on demand with caching' },
+            { icon: 'fa-check-double', text: 'Multi-select with Ctrl/Shift support and bulk operations toolbar' },
+            { icon: 'fa-bread-slice', text: 'Breadcrumb navigation showing full path from root to focused node' },
+            { icon: 'fa-code', text: '10 RESTful API endpoints for CRUD, move, reorder & search operations' },
+            { icon: 'fa-paint-brush', text: 'Three UI styles: Modern glassmorphism, Minimal flat, or Classic tree' },
+            { icon: 'fa-mobile-alt', text: 'Responsive design with touch gestures, swipe & long-press support' },
+            { icon: 'fa-universal-access', text: 'Full accessibility: keyboard navigation, ARIA roles & screen reader support' }
+        ],
+        note: 'Use the <strong>Calibrate</strong> button to customize tree depth, node types, database table name, API prefix, UI style, and toggle features on/off.'
     }
 };
 
