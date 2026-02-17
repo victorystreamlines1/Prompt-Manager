@@ -11266,26 +11266,478 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 14px rgba(245, 158, 11, 0.12);
         }
         
-        .dt-static-badge {
+        /* Explain Button for Static Template */
+        .dt-explain-btn {
             display: inline-flex;
             align-items: center;
             gap: 3px;
             font-size: 0.45rem;
             font-weight: 600;
-            color: #fbbf24;
-            background: rgba(245, 158, 11, 0.12);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            padding: 1px 5px;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.1);
+            border: 1px solid rgba(192, 132, 252, 0.25);
+            padding: 1px 6px;
             border-radius: 3px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
         }
         
-        .dt-static-badge i {
+        .dt-explain-btn:hover {
+            background: rgba(192, 132, 252, 0.22);
+            border-color: rgba(192, 132, 252, 0.5);
+            color: #d8b4fe;
+            transform: scale(1.08);
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.18);
+        }
+        
+        .dt-explain-btn i {
+            font-size: 0.4rem;
+            color: #e9d5ff;
+        }
+
+        /* Explain Modal Overlay */
+        .dt-explain-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: dtExplainFadeIn 0.2s ease;
+        }
+        
+        .dt-explain-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes dtExplainFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dtExplainSlideIn {
+            from { opacity: 0; transform: translateY(-24px) scale(0.94); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .dt-explain-modal {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(192, 132, 252, 0.18);
+            border-radius: 18px;
+            padding: 26px;
+            width: 92%;
+            max-width: 440px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(192, 132, 252, 0.06);
+            animation: dtExplainSlideIn 0.3s ease;
+        }
+        
+        .dt-explain-modal::-webkit-scrollbar {
+            width: 4px;
+        }
+        .dt-explain-modal::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dt-explain-modal::-webkit-scrollbar-thumb {
+            background: rgba(192, 132, 252, 0.2);
+            border-radius: 4px;
+        }
+        
+        .dt-explain-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(192, 132, 252, 0.1);
+        }
+        
+        .dt-explain-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        
+        .dt-explain-title i {
+            color: #c084fc;
+            font-size: 1.05rem;
+        }
+        
+        .dt-explain-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-explain-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-explain-summary {
+            background: rgba(192, 132, 252, 0.06);
+            border: 1px solid rgba(192, 132, 252, 0.12);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+        
+        .dt-explain-summary strong {
+            color: #e2e8f0;
+        }
+        
+        .dt-explain-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .dt-explain-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            padding: 9px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            line-height: 1.4;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-explain-feature:hover {
+            background: rgba(192, 132, 252, 0.06);
+            border-color: rgba(192, 132, 252, 0.15);
+        }
+        
+        .dt-explain-feature i {
+            color: #c084fc;
+            font-size: 0.55rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        .dt-explain-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 13px;
+            background: rgba(56, 189, 248, 0.06);
+            border: 1px solid rgba(56, 189, 248, 0.12);
+            border-radius: 8px;
+            font-size: 0.65rem;
+            color: #7dd3fc;
+            line-height: 1.5;
+        }
+        
+        .dt-explain-note i {
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+        
+        /* Light theme overrides */
+        [data-theme="light"] .dt-explain-btn {
+            color: #7c3aed;
+            background: rgba(124, 58, 237, 0.08);
+            border-color: rgba(124, 58, 237, 0.2);
+        }
+        
+        [data-theme="light"] .dt-explain-btn:hover {
+            background: rgba(124, 58, 237, 0.15);
+            border-color: rgba(124, 58, 237, 0.35);
+        }
+        
+        [data-theme="light"] .dt-explain-modal {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%);
+            border-color: rgba(124, 58, 237, 0.15);
+        }
+        
+        [data-theme="light"] .dt-explain-title {
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dt-explain-summary {
+            background: rgba(124, 58, 237, 0.04);
+            border-color: rgba(124, 58, 237, 0.1);
+            color: #475569;
+        }
+        
+        [data-theme="light"] .dt-explain-summary strong {
+            color: #1e293b;
+        }
+        
+        [data-theme="light"] .dt-explain-feature {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.06);
+            color: #64748b;
+        }
+        
+        [data-theme="light"] .dt-explain-note {
+            background: rgba(14, 165, 233, 0.05);
+            border-color: rgba(14, 165, 233, 0.12);
+            color: #0284c7;
+        }
+        
+        /* Input Button for Static Template */
+        .dt-input-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 1px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        
+        .dt-input-btn:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.45);
+            color: #7dd3fc;
+            transform: scale(1.08);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+        }
+        
+        .dt-input-btn i {
             font-size: 0.4rem;
         }
         
+        .dt-input-btn.has-data {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            border-color: rgba(74, 222, 128, 0.25);
+        }
+        
+        .dt-input-btn.has-data:hover {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: rgba(74, 222, 128, 0.45);
+            color: #86efac;
+        }
+        
+        /* Admin Credentials Modal */
+        .dt-cred-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100000;
+            align-items: center;
+            justify-content: center;
+            animation: dtCredFadeIn 0.25s ease;
+        }
+        
+        .dt-cred-overlay.show {
+            display: flex;
+        }
+        
+        @keyframes dtCredFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes dtCredSlideIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .dt-cred-modal {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(56, 189, 248, 0.08);
+            animation: dtCredSlideIn 0.3s ease;
+        }
+        
+        .dt-cred-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .dt-cred-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        
+        .dt-cred-title i {
+            color: #38bdf8;
+            font-size: 1rem;
+        }
+        
+        .dt-cred-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dt-cred-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        .dt-cred-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .dt-cred-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .dt-cred-field label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .dt-cred-field label i {
+            font-size: 0.6rem;
+            color: #38bdf8;
+        }
+        
+        .dt-cred-field input {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        
+        .dt-cred-field input:focus {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.1);
+        }
+        
+        .dt-cred-field input::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+        
+        .dt-cred-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        
+        .dt-cred-btn {
+            flex: 1;
+            padding: 9px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .dt-cred-btn.save {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            color: white;
+        }
+        
+        .dt-cred-btn.save:hover {
+            background: linear-gradient(135deg, #7dd3fc, #38bdf8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+        
+        .dt-cred-btn.clear {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .dt-cred-btn.clear:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .dt-cred-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(74, 222, 128, 0.08);
+            border: 1px solid rgba(74, 222, 128, 0.15);
+            border-radius: 6px;
+            font-size: 0.6rem;
+            color: #4ade80;
+            margin-bottom: 4px;
+        }
+        
+        .dt-cred-status.empty {
+            background: rgba(148, 163, 184, 0.08);
+            border-color: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
         .dt-static-icon {
             font-size: 0.55rem;
             vertical-align: middle;
@@ -11304,12 +11756,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         [data-theme="light"] .dt-static-item:hover {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
         }
-        
-        [data-theme="light"] .dt-static-badge {
-            color: #b45309;
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.3);
-        }
+
         
         .dt-no-results,
         .dt-empty {
@@ -46671,10 +47118,16 @@ function dtRenderList(searchTerm = '') {
         item.className = `dt-item${isChecked ? ' checked' : ''}${isStatic ? ' dt-static-item' : ''}`;
         item.setAttribute('data-id', template.id);
         
-        // Static templates: checkbox + copy only, no edit/delete/pull
+        // Static templates: checkbox + copy + input, no edit/delete/pull
+        const hasCredData = localStorage.getItem('dtAdminCredentials') ? true : false;
         const actionsHtml = isStatic 
             ? `<div class="dt-item-actions">
-                    <span class="dt-static-badge"><i class="fas fa-lock"></i> Static</span>
+                    <button type="button" class="dt-explain-btn" onclick="event.stopPropagation(); dtOpenExplainModal(${idArg})" title="What does this prompt do?">
+                        <i class="fas fa-lightbulb"></i> Explain
+                    </button>
+                    <button type="button" class="dt-input-btn${hasCredData ? ' has-data' : ''}" onclick="event.stopPropagation(); dtOpenCredentialsModal()" title="Set Admin Credentials">
+                        <i class="fas fa-keyboard"></i> Input
+                    </button>
                     <button type="button" class="dt-action-icon copy" onclick="event.stopPropagation(); dtCopyTemplate(${idArg})" title="Copy">
                         <i class="fas fa-copy"></i>
                     </button>
@@ -46762,7 +47215,7 @@ function dtRebuildEditor() {
     activeDesignTemplates.forEach(id => {
         const dt = designTemplates.find(t => t.id === id);
         if (dt) {
-            content += (content ? '\n\n' : '') + dt.content;
+            content += (content ? '\n\n' : '') + dtGetProcessedContent(dt.content);
         }
     });
     
@@ -47040,12 +47493,14 @@ function dtCopyTemplate(id) {
     const template = designTemplates.find(t => t.id === id);
     if (!template) return;
     
-    navigator.clipboard.writeText(template.content).then(() => {
+    const processedContent = dtGetProcessedContent(template.content);
+    
+    navigator.clipboard.writeText(processedContent).then(() => {
         showToast(`"${template.name}" copied!`, 'success');
     }).catch(() => {
         // Fallback
         const textarea = document.createElement('textarea');
-        textarea.value = template.content;
+        textarea.value = processedContent;
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand('copy');
@@ -47119,7 +47574,7 @@ function dtOpenPreview(id) {
     const useBtn = document.getElementById('dtPreviewUseBtn');
     
     if (nameEl) nameEl.textContent = template.name;
-    if (contentEl) contentEl.textContent = template.content;
+    if (contentEl) contentEl.textContent = dtGetProcessedContent(template.content);
     
     // Hide edit button for static templates
     if (editBtn) {
@@ -47202,7 +47657,8 @@ function dtTemplatePushToNotes() {
     activeDesignTemplates.forEach(id => {
         const template = designTemplates.find(t => t.id === id);
         if (template) {
-            content += `\n📋 ${template.name}:\n${template.content}\n`;
+            const processedContent = dtGetProcessedContent(template.content);
+            content += `\n📋 ${template.name}:\n${processedContent}\n`;
         }
     });
     
@@ -47266,6 +47722,302 @@ function dtHighlightText(text, searchTerm) {
     const escaped = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escaped})`, 'gi');
     return dtEscapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
+}
+
+// ============ ADMIN CREDENTIALS SYSTEM ============
+
+// Get processed content with admin credentials replaced
+function dtGetProcessedContent(content) {
+    const savedCreds = localStorage.getItem('dtAdminCredentials');
+    if (!savedCreds) return content;
+    
+    try {
+        const creds = JSON.parse(savedCreds);
+        let processed = content;
+        
+        // First: replace the full seed data line with all three credentials (most specific match)
+        if (creds.username && creds.email && creds.password) {
+            processed = processed.replace(
+                /Create initial super_admin account \([^)]+\)/g,
+                `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
+            );
+        }
+        
+        // Then: replace individual default values throughout the prompt
+        if (creds.email) {
+            processed = processed.replace(/admin@site\.com/g, creds.email);
+        }
+        if (creds.password) {
+            processed = processed.replace(/ChangeMe123!/g, creds.password);
+        }
+        
+        return processed;
+    } catch (e) {
+        console.warn('Failed to parse admin credentials:', e);
+        return content;
+    }
+}
+
+// Open credentials modal
+function dtOpenCredentialsModal() {
+    // Create modal if it doesn't exist yet
+    let overlay = document.getElementById('dtCredOverlay');
+    if (!overlay) {
+        dtCreateCredentialsModal();
+        overlay = document.getElementById('dtCredOverlay');
+    }
+    
+    // Load saved data into fields
+    const savedCreds = localStorage.getItem('dtAdminCredentials');
+    if (savedCreds) {
+        try {
+            const creds = JSON.parse(savedCreds);
+            document.getElementById('dtCredUsername').value = creds.username || '';
+            document.getElementById('dtCredEmail').value = creds.email || '';
+            document.getElementById('dtCredPassword').value = creds.password || '';
+        } catch (e) {
+            console.warn('Failed to load credentials:', e);
+        }
+    }
+    
+    dtUpdateCredStatus();
+    overlay.classList.add('show');
+    
+    // Focus first empty field
+    setTimeout(() => {
+        const usernameField = document.getElementById('dtCredUsername');
+        const emailField = document.getElementById('dtCredEmail');
+        if (!usernameField.value) usernameField.focus();
+        else if (!emailField.value) emailField.focus();
+        else document.getElementById('dtCredPassword').focus();
+    }, 100);
+}
+
+// Close credentials modal
+function dtCloseCredentialsModal() {
+    const overlay = document.getElementById('dtCredOverlay');
+    if (overlay) overlay.classList.remove('show');
+}
+
+// Save credentials
+function dtSaveCredentials() {
+    const username = document.getElementById('dtCredUsername').value.trim();
+    const email = document.getElementById('dtCredEmail').value.trim();
+    const password = document.getElementById('dtCredPassword').value.trim();
+    
+    if (!username && !email && !password) {
+        showToast('⚠️ Please enter at least one credential field', 'warning');
+        return;
+    }
+    
+    const creds = { username, email, password };
+    localStorage.setItem('dtAdminCredentials', JSON.stringify(creds));
+    
+    dtUpdateCredStatus();
+    dtUpdateInputButtons();
+    dtCloseCredentialsModal();
+    showToast('✅ Admin credentials saved successfully', 'success');
+}
+
+// Clear credentials
+function dtClearCredentials() {
+    localStorage.removeItem('dtAdminCredentials');
+    
+    document.getElementById('dtCredUsername').value = '';
+    document.getElementById('dtCredEmail').value = '';
+    document.getElementById('dtCredPassword').value = '';
+    
+    dtUpdateCredStatus();
+    dtUpdateInputButtons();
+    showToast('🗑️ Admin credentials cleared', 'info');
+}
+
+// Update status indicator in modal
+function dtUpdateCredStatus() {
+    const statusEl = document.getElementById('dtCredStatus');
+    if (!statusEl) return;
+    
+    const savedCreds = localStorage.getItem('dtAdminCredentials');
+    if (savedCreds) {
+        try {
+            const creds = JSON.parse(savedCreds);
+            statusEl.className = 'dt-cred-status';
+            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Saved: <strong>${creds.username || '—'}</strong> · ${creds.email || '—'}`;
+        } catch (e) {
+            statusEl.className = 'dt-cred-status empty';
+            statusEl.innerHTML = '<i class="fas fa-info-circle"></i> No credentials set — using defaults';
+        }
+    } else {
+        statusEl.className = 'dt-cred-status empty';
+        statusEl.innerHTML = '<i class="fas fa-info-circle"></i> No credentials set — using defaults';
+    }
+}
+
+// Update Input button appearance across all static templates
+function dtUpdateInputButtons() {
+    const hasData = localStorage.getItem('dtAdminCredentials') ? true : false;
+    document.querySelectorAll('.dt-input-btn').forEach(btn => {
+        if (hasData) {
+            btn.classList.add('has-data');
+        } else {
+            btn.classList.remove('has-data');
+        }
+    });
+}
+
+// Create the credentials modal HTML dynamically
+function dtCreateCredentialsModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'dtCredOverlay';
+    overlay.className = 'dt-cred-overlay';
+    overlay.onclick = function(e) { if (e.target === this) dtCloseCredentialsModal(); };
+    
+    overlay.innerHTML = `
+        <div class="dt-cred-modal">
+            <div class="dt-cred-header">
+                <div class="dt-cred-title">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Credentials</span>
+                </div>
+                <button class="dt-cred-close" onclick="dtCloseCredentialsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="dtCredStatus" class="dt-cred-status empty">
+                <i class="fas fa-info-circle"></i> No credentials set — using defaults
+            </div>
+            
+            <div class="dt-cred-form">
+                <div class="dt-cred-field">
+                    <label><i class="fas fa-user"></i> Username</label>
+                    <input type="text" id="dtCredUsername" placeholder="e.g. super_admin" autocomplete="off">
+                </div>
+                <div class="dt-cred-field">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="dtCredEmail" placeholder="e.g. admin@yoursite.com" autocomplete="off">
+                </div>
+                <div class="dt-cred-field">
+                    <label><i class="fas fa-key"></i> Password</label>
+                    <input type="text" id="dtCredPassword" placeholder="e.g. MySecureP@ss123" autocomplete="off">
+                </div>
+                <div class="dt-cred-actions">
+                    <button class="dt-cred-btn clear" onclick="dtClearCredentials()">
+                        <i class="fas fa-trash-alt"></i> Clear
+                    </button>
+                    <button class="dt-cred-btn save" onclick="dtSaveCredentials()">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+// ============ EXPLAIN MODAL SYSTEM ============
+
+// Explanation data for each static template
+const DT_TEMPLATE_EXPLANATIONS = {
+    'static_1': {
+        title: 'Registration System Prompt',
+        summary: 'This prompt generates a <strong>complete, production-ready user authentication system</strong> — covering everything from database tables to API endpoints. Just paste it into your AI tool and it will build the entire registration and login infrastructure for your project.',
+        features: [
+            { icon: 'fa-database', text: 'Database schema with 8 tables (users, roles, permissions, sessions, logs)' },
+            { icon: 'fa-user-plus', text: 'Registration page with real-time validation & anti-bot protection' },
+            { icon: 'fa-sign-in-alt', text: 'Login page with rate limiting, account locking & remember me' },
+            { icon: 'fa-unlock-alt', text: 'Password reset flow with secure tokens & email verification' },
+            { icon: 'fa-user-shield', text: 'Role-Based Access Control (RBAC) with 6 default roles' },
+            { icon: 'fa-users-cog', text: 'Admin panel for user management, banning & role assignment' },
+            { icon: 'fa-shield-alt', text: 'Session security with IP detection & concurrent session control' },
+            { icon: 'fa-paint-brush', text: 'Responsive UI with dark/light mode, animations & accessibility' },
+            { icon: 'fa-envelope-open-text', text: 'Email verification & resend functionality with rate limits' },
+            { icon: 'fa-id-card', text: 'User profiles with avatar upload, 2FA & login history' },
+            { icon: 'fa-seedling', text: 'Seed data with default roles, permissions & super admin account' },
+            { icon: 'fa-code', text: '16 RESTful API endpoints for auth, users, roles & sessions' }
+        ],
+        note: 'Use the <strong>Input</strong> button to set your own admin credentials instead of the defaults (admin@site.com / ChangeMe123!).'
+    }
+};
+
+// Open explain modal
+function dtOpenExplainModal(templateId) {
+    const template = designTemplates.find(t => t.id === templateId);
+    if (!template) return;
+    
+    const explanation = DT_TEMPLATE_EXPLANATIONS[templateId];
+    if (!explanation) {
+        showToast('ℹ️ No explanation available for this template', 'info');
+        return;
+    }
+    
+    // Create modal if it doesn't exist yet
+    let overlay = document.getElementById('dtExplainOverlay');
+    if (!overlay) {
+        dtCreateExplainModal();
+        overlay = document.getElementById('dtExplainOverlay');
+    }
+    
+    // Populate content
+    const titleEl = overlay.querySelector('.dt-explain-title span');
+    const summaryEl = overlay.querySelector('.dt-explain-summary');
+    const featuresEl = overlay.querySelector('.dt-explain-features');
+    const noteEl = overlay.querySelector('.dt-explain-note');
+    
+    if (titleEl) titleEl.innerHTML = explanation.title;
+    if (summaryEl) summaryEl.innerHTML = explanation.summary;
+    
+    if (featuresEl) {
+        featuresEl.innerHTML = explanation.features.map(f => 
+            `<div class="dt-explain-feature">
+                <i class="fas ${f.icon}"></i>
+                <span>${f.text}</span>
+            </div>`
+        ).join('');
+    }
+    
+    if (noteEl) {
+        noteEl.innerHTML = `<i class="fas fa-lightbulb"></i> <span>${explanation.note}</span>`;
+    }
+    
+    overlay.classList.add('show');
+}
+
+// Close explain modal
+function dtCloseExplainModal() {
+    const overlay = document.getElementById('dtExplainOverlay');
+    if (overlay) overlay.classList.remove('show');
+}
+
+// Create the explain modal HTML dynamically
+function dtCreateExplainModal() {
+    const overlay = document.createElement('div');
+    overlay.id = 'dtExplainOverlay';
+    overlay.className = 'dt-explain-overlay';
+    overlay.onclick = function(e) { if (e.target === this) dtCloseExplainModal(); };
+    
+    overlay.innerHTML = `
+        <div class="dt-explain-modal">
+            <div class="dt-explain-header">
+                <div class="dt-explain-title">
+                    <i class="fas fa-lightbulb"></i>
+                    <span></span>
+                </div>
+                <button class="dt-explain-close" onclick="dtCloseExplainModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="dt-explain-summary"></div>
+            
+            <div class="dt-explain-features"></div>
+            
+            <div class="dt-explain-note"></div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
 }
 
 // Initialize on DOM ready
