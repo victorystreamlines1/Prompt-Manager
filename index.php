@@ -37940,7 +37940,8 @@ function saveBrandingState() {
         favicon: document.getElementById('brandingFavicon')?.checked ?? false,
         logoPages: document.getElementById('brandingLogoPages')?.checked ?? false,
         titlePages: document.getElementById('brandingTitlePages')?.checked ?? false,
-        customInstructions: document.getElementById('brandingCustomPrompt')?.value || ''
+        customInstructions: document.getElementById('brandingCustomPrompt')?.value || '',
+        _checkboxMigrated: true
     };
     localStorage.setItem('branding_state', JSON.stringify(state));
 }
@@ -37952,15 +37953,6 @@ function loadBrandingState() {
     
     try {
         const state = JSON.parse(saved);
-        
-        // One-time migration: reset checkboxes to unchecked default
-        if (!state._checkboxMigrated) {
-            state.favicon = false;
-            state.logoPages = false;
-            state.titlePages = false;
-            state._checkboxMigrated = true;
-            localStorage.setItem('branding_state', JSON.stringify(state));
-        }
         
         // Restore logo
         if (state.logoDataUrl) {
