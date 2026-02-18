@@ -39648,6 +39648,14 @@ function depCaptureState() {
         notes: (document.getElementById('hpNotesTextarea') || {}).value || ''
     };
     
+    // 7) Page Creator state (explicit capture from JS variables + DOM)
+    state.pageCreator = {
+        selectedPredefined: (typeof pcSelectedPredefined !== 'undefined') ? [...pcSelectedPredefined] : [],
+        customPages: (typeof pcCustomPages !== 'undefined') ? JSON.parse(JSON.stringify(pcCustomPages)) : [],
+        fileExtension: (document.getElementById('pcFileExtension') || {}).value || '.html',
+        generalNotes: (document.getElementById('pcGeneralNotes') || {}).value || ''
+    };
+    
     return state;
 }
 
@@ -39671,11 +39679,15 @@ async function depRestoreState(stateData) {
     if (typeof ufResetAll === 'function') ufResetAll(true);
     if (typeof exResetAll === 'function') exResetAll(true);
     if (typeof brandingClearAndReset === 'function') brandingClearAndReset();
-    if (typeof pcCustomPages !== 'undefined') {
-        pcCustomPages = [];
-        const _pcList = document.getElementById('pcCustomPagesList');
-        if (_pcList) _pcList.innerHTML = '';
-    }
+    if (typeof pcSelectedPredefined !== 'undefined') pcSelectedPredefined = [];
+    if (typeof pcCustomPages !== 'undefined') pcCustomPages = [];
+    if (typeof renderPredefinedPages === 'function') renderPredefinedPages();
+    if (typeof renderCustomPages === 'function') renderCustomPages();
+    if (typeof updatePCCounts === 'function') updatePCCounts();
+    const _pcExtSel = document.getElementById('pcFileExtension');
+    if (_pcExtSel) _pcExtSel.value = '.html';
+    const _pcNotesTA = document.getElementById('pcGeneralNotes');
+    if (_pcNotesTA) _pcNotesTA.value = '';
     const _ciTextarea = document.getElementById('ciTextarea');
     if (_ciTextarea) _ciTextarea.value = '';
     if (typeof stResetAll === 'function') stResetAll();
@@ -39701,9 +39713,32 @@ async function depRestoreState(stateData) {
     
     // ── STEP 3: Reload each tool's state from localStorage ──
     if (typeof loadBrandingState === 'function') loadBrandingState();
-    if (typeof initPagesCreator === 'function') initPagesCreator();
-    if (typeof pcLoadExtension === 'function') pcLoadExtension();
-    if (typeof pcLoadGeneralNotes === 'function') pcLoadGeneralNotes();
+    
+    // ── Page Creator: Explicit restore from saved state ──
+    if (state.pageCreator) {
+        if (typeof pcSelectedPredefined !== 'undefined') pcSelectedPredefined = state.pageCreator.selectedPredefined || [];
+        if (typeof pcCustomPages !== 'undefined') pcCustomPages = state.pageCreator.customPages || [];
+        const _pcExtRestore = document.getElementById('pcFileExtension');
+        if (_pcExtRestore) _pcExtRestore.value = state.pageCreator.fileExtension || '.html';
+        const _pcNotesRestore = document.getElementById('pcGeneralNotes');
+        if (_pcNotesRestore) _pcNotesRestore.value = state.pageCreator.generalNotes || '';
+        // Sync to localStorage for consistency
+        if (typeof savePCState === 'function') savePCState();
+        localStorage.setItem('pc_file_extension', state.pageCreator.fileExtension || '.html');
+        localStorage.setItem('pc_general_notes', state.pageCreator.generalNotes || '');
+        // Render UI
+        if (typeof renderPredefinedPages === 'function') renderPredefinedPages();
+        if (typeof renderCustomPages === 'function') renderCustomPages();
+        if (typeof updatePCCounts === 'function') updatePCCounts();
+    } else {
+        // Fallback for older presets without explicit pageCreator data
+        if (typeof pcSelectedPredefined !== 'undefined') pcSelectedPredefined = [];
+        if (typeof pcCustomPages !== 'undefined') pcCustomPages = [];
+        if (typeof initPagesCreator === 'function') initPagesCreator();
+        if (typeof pcLoadExtension === 'function') pcLoadExtension();
+        if (typeof pcLoadGeneralNotes === 'function') pcLoadGeneralNotes();
+    }
+    
     if (typeof ciLoadFromStorage === 'function') ciLoadFromStorage();
     if (typeof stLoadFromStorage === 'function') stLoadFromStorage();
     if (typeof stLoadNotesFromStorage === 'function') stLoadNotesFromStorage();
@@ -44987,25 +45022,35 @@ function hpUpdateUI() {
     if (infoChecked) infoChecked.classList.toggle('show', hpCreateNew);
     
     // Target file display (for new landing)
-    if (hpTargetFileName) {
+    {
         const fileDisplay = document.getElementById('hpFileDisplay');
         const fileNameSpan = document.getElementById('hpTargetFileName');
         const clearBtn = document.getElementById('hpClearBtn');
-        
-        if (fileNameSpan) fileNameSpan.textContent = hpTargetFileName;
-        if (fileDisplay) fileDisplay.classList.add('has-file');
-        if (clearBtn) clearBtn.classList.add('show');
+        if (hpTargetFileName) {
+            if (fileNameSpan) fileNameSpan.textContent = hpTargetFileName;
+            if (fileDisplay) fileDisplay.classList.add('has-file');
+            if (clearBtn) clearBtn.classList.add('show');
+        } else {
+            if (fileNameSpan) fileNameSpan.textContent = 'No file selected (will use current homepage)';
+            if (fileDisplay) fileDisplay.classList.remove('has-file');
+            if (clearBtn) clearBtn.classList.remove('show');
+        }
     }
     
     // Existing file display (for enhancement)
-    if (hpExistingFileName) {
+    {
         const fileDisplay = document.getElementById('hpExistingFileDisplay');
         const fileNameSpan = document.getElementById('hpExistingFileName');
         const clearBtn = document.getElementById('hpExistingClearBtn');
-        
-        if (fileNameSpan) fileNameSpan.textContent = hpExistingFileName;
-        if (fileDisplay) fileDisplay.classList.add('has-file');
-        if (clearBtn) clearBtn.classList.add('show');
+        if (hpExistingFileName) {
+            if (fileNameSpan) fileNameSpan.textContent = hpExistingFileName;
+            if (fileDisplay) fileDisplay.classList.add('has-file');
+            if (clearBtn) clearBtn.classList.add('show');
+        } else {
+            if (fileNameSpan) fileNameSpan.textContent = 'No file selected (will enhance default homepage)';
+            if (fileDisplay) fileDisplay.classList.remove('has-file');
+            if (clearBtn) clearBtn.classList.remove('show');
+        }
     }
     
     // Load notes
