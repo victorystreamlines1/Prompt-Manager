@@ -22736,7 +22736,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-eraser"></i> Clear & Reset
                                 </button>
                             </div>
-                            <textarea id="brandingCustomPrompt" class="branding-custom-textarea" placeholder="Specify custom instructions for unchecked options...&#10;&#10;Example:&#10;• Apply logo only to: index.html, about.html&#10;• Set favicon for homepage only&#10;• Use logo in footer instead of header"></textarea>
+                            <textarea id="brandingCustomPrompt" class="branding-custom-textarea" oninput="saveBrandingState()" placeholder="Specify custom instructions for unchecked options...&#10;&#10;Example:&#10;• Apply logo only to: index.html, about.html&#10;• Set favicon for homepage only&#10;• Use logo in footer instead of header"></textarea>
                         </div>
                         
                         <!-- Push to Project Prompts -->
