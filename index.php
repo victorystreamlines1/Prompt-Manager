@@ -47514,6 +47514,10 @@ function ufLoadFromStorage() {
         setTimeout(() => {
             if (ufDetectedDoc) ufSyncToDocumentationTool();
         }, 500);
+        
+        // Re-render the file/folder tree UI and update badge after restoring data
+        ufDisplayCategories();
+        ufUpdateBadge();
     } catch (e) {
         console.error('Error loading file upload state:', e);
     }
