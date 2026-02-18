@@ -39639,6 +39639,15 @@ function depCaptureState() {
         }
     });
     
+    // 6) Homepage Configuration state (explicit capture from JS variables + DOM)
+    state.homepageConfig = {
+        createNew: (typeof hpCreateNew !== 'undefined') ? !!hpCreateNew : false,
+        newPageName: (typeof hpNewPageName !== 'undefined') ? (hpNewPageName || 'index') : 'index',
+        targetFileName: (typeof hpTargetFileName !== 'undefined') ? (hpTargetFileName || null) : null,
+        existingFileName: (typeof hpExistingFileName !== 'undefined') ? (hpExistingFileName || null) : null,
+        notes: (document.getElementById('hpNotesTextarea') || {}).value || ''
+    };
+    
     return state;
 }
 
@@ -39706,8 +39715,23 @@ async function depRestoreState(stateData) {
     if (typeof dfLoadFromStorage === 'function') dfLoadFromStorage();
     if (typeof elLoadFromStorage === 'function') elLoadFromStorage();
     if (typeof tbLoadFromStorage === 'function') tbLoadFromStorage();
-    if (typeof hpLoadFromStorage === 'function') hpLoadFromStorage();
-    if (typeof hpLoadNotesFromStorage === 'function') hpLoadNotesFromStorage();
+    // ── Homepage Configuration: Explicit restore from saved state ──
+    if (state.homepageConfig) {
+        if (typeof hpCreateNew !== 'undefined') hpCreateNew = !!state.homepageConfig.createNew;
+        if (typeof hpNewPageName !== 'undefined') hpNewPageName = state.homepageConfig.newPageName || 'index';
+        if (typeof hpTargetFileName !== 'undefined') hpTargetFileName = state.homepageConfig.targetFileName || null;
+        if (typeof hpExistingFileName !== 'undefined') hpExistingFileName = state.homepageConfig.existingFileName || null;
+        const _hpNotes = document.getElementById('hpNotesTextarea');
+        if (_hpNotes) {
+            _hpNotes.value = state.homepageConfig.notes || '';
+            localStorage.setItem('hpNotes', _hpNotes.value);
+        }
+        if (typeof hpSaveToStorage === 'function') hpSaveToStorage();
+    } else {
+        if (typeof hpLoadFromStorage === 'function') hpLoadFromStorage();
+        if (typeof hpLoadNotesFromStorage === 'function') hpLoadNotesFromStorage();
+    }
+    if (typeof hpUpdateUI === 'function') hpUpdateUI();
     if (typeof ufLoadFromStorage === 'function') ufLoadFromStorage();
     if (typeof exLoadFromStorage === 'function') exLoadFromStorage();
     if (typeof diLoadFromStorage === 'function') diLoadFromStorage();
