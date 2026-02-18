@@ -13761,6 +13761,314 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 rgba(234, 88, 12, 0.05) 100%);
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           ✏️ DESIGN ENHANCER INPUT PROMPT MODAL
+           ═══════════════════════════════════════════════════════════════════ */
+        .de-prompt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .de-prompt-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .de-prompt-modal {
+            background: linear-gradient(145deg, 
+                rgba(30, 41, 59, 0.98) 0%, 
+                rgba(15, 23, 42, 0.98) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 0;
+            min-width: 360px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: scale(0.9) translateY(-20px);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+        }
+        
+        .de-prompt-overlay.active .de-prompt-modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .de-prompt-header {
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.15) 0%, 
+                rgba(16, 185, 129, 0.1) 100%);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+        }
+        
+        .de-prompt-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            animation: de-prompt-icon-glow 2.5s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+        
+        @keyframes de-prompt-icon-glow {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 25px rgba(99, 102, 241, 0.6); }
+        }
+        
+        .de-prompt-header-text {
+            flex: 1;
+        }
+        
+        .de-prompt-header-text h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .de-prompt-header-text p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .de-prompt-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        
+        .de-prompt-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+        
+        .de-prompt-body {
+            padding: 1.5rem;
+        }
+        
+        .de-prompt-message {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0 0 1rem 0;
+        }
+        
+        .de-prompt-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .de-prompt-input-icon {
+            position: absolute;
+            left: 12px;
+            font-size: 0.75rem;
+            color: rgba(99, 102, 241, 0.5);
+            z-index: 2;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+        
+        .de-prompt-input-wrapper:focus-within .de-prompt-input-icon {
+            color: #6366f1;
+        }
+        
+        .de-prompt-input {
+            width: 100%;
+            padding: 0.75rem 2.2rem 0.75rem 2.2rem;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .de-prompt-input::placeholder {
+            color: var(--text-muted, rgba(148, 163, 184, 0.4));
+            font-style: italic;
+        }
+        
+        .de-prompt-input:focus {
+            border-color: #6366f1;
+            box-shadow: 
+                0 0 0 3px rgba(99, 102, 241, 0.15),
+                0 4px 20px rgba(99, 102, 241, 0.1);
+            background: rgba(15, 23, 42, 1);
+        }
+        
+        .de-prompt-input-clear {
+            position: absolute;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted, rgba(148, 163, 184, 0.4));
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            opacity: 0.5;
+        }
+        
+        .de-prompt-input-clear:hover {
+            opacity: 1;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .de-prompt-hint {
+            margin-top: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .de-prompt-hint i {
+            color: #818cf8;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .de-prompt-hint span {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        
+        .de-prompt-actions {
+            padding: 1rem 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .de-prompt-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        .de-prompt-btn.cancel {
+            background: rgba(100, 116, 139, 0.2);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: var(--text-secondary);
+        }
+        
+        .de-prompt-btn.cancel:hover {
+            background: rgba(100, 116, 139, 0.3);
+            border-color: rgba(100, 116, 139, 0.5);
+            color: var(--text-primary);
+        }
+        
+        .de-prompt-btn.confirm {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .de-prompt-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.45);
+        }
+        
+        .de-prompt-btn.confirm:active {
+            transform: translateY(0);
+        }
+        
+        .de-prompt-btn.confirm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none;
+        }
+        
+        /* Light theme adjustments */
+        [data-theme="light"] .de-prompt-modal {
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.98) 0%, 
+                rgba(248, 250, 252, 0.98) 100%);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        
+        [data-theme="light"] .de-prompt-header {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.08) 0%, 
+                rgba(16, 185, 129, 0.05) 100%);
+        }
+        
+        [data-theme="light"] .de-prompt-input {
+            background: rgba(248, 250, 252, 0.9);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        
+        [data-theme="light"] .de-prompt-input:focus {
+            background: #fff;
+        }
+
         /* Tools Placeholder */
         .de-tools-placeholder {
             margin-top: 1rem;
@@ -24586,6 +24894,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
+    <!-- Design Enhancer Input Prompt Modal (replaces native prompt()) -->
+    <div class="de-prompt-overlay" id="dePromptOverlay">
+        <div class="de-prompt-modal">
+            <div class="de-prompt-header">
+                <div class="de-prompt-icon">
+                    <i class="fas fa-pen-fancy" id="dePromptIcon"></i>
+                </div>
+                <div class="de-prompt-header-text">
+                    <h3 id="dePromptTitle">Enter Name</h3>
+                    <p id="dePromptSubtitle">Design Enhancer Presets</p>
+                </div>
+                <button type="button" class="de-prompt-close" onclick="dePromptCancel()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="de-prompt-body">
+                <p class="de-prompt-message" id="dePromptMessage">Enter a name for the preset:</p>
+                <div class="de-prompt-input-wrapper">
+                    <i class="fas fa-tag de-prompt-input-icon"></i>
+                    <input type="text" id="dePromptInput" class="de-prompt-input" placeholder="Type here..." autocomplete="off" spellcheck="false">
+                    <button type="button" class="de-prompt-input-clear" id="dePromptInputClear" onclick="document.getElementById('dePromptInput').value=''; document.getElementById('dePromptInput').focus();" title="Clear">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                </div>
+                <div class="de-prompt-hint" id="dePromptHint" style="display:none;">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="dePromptHintText"></span>
+                </div>
+            </div>
+            <div class="de-prompt-actions">
+                <button type="button" class="de-prompt-btn cancel" onclick="dePromptCancel()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="button" class="de-prompt-btn confirm" id="dePromptConfirmBtn" onclick="dePromptAccept()">
+                    <i class="fas fa-check" id="dePromptConfirmIcon"></i>
+                    <span id="dePromptConfirmText">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Theme Toggle Button -->
     <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
         <i class="fas fa-sun" id="themeIcon"></i>
@@ -38485,6 +38835,152 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// ✏️ DESIGN ENHANCER CUSTOM INPUT PROMPT MODAL
+// Replaces native prompt() with a beautiful custom modal
+// ═══════════════════════════════════════════════════════════════════
+
+let dePromptResolve = null;
+
+/**
+ * Show custom input prompt modal (returns Promise<string|null>)
+ * @param {Object} options - Configuration options
+ * @param {string} options.title - Modal title
+ * @param {string} options.subtitle - Subtitle text
+ * @param {string} options.message - Description message
+ * @param {string} options.placeholder - Input placeholder
+ * @param {string} options.defaultValue - Pre-filled input value
+ * @param {string} options.confirmText - Confirm button text
+ * @param {string} options.icon - FontAwesome icon class (e.g. 'fa-save')
+ * @param {string} options.hint - Optional hint text below input
+ * @returns {Promise<string|null>} The input value or null if cancelled
+ */
+function dePrompt(options = {}) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('dePromptOverlay');
+        const titleEl = document.getElementById('dePromptTitle');
+        const subtitleEl = document.getElementById('dePromptSubtitle');
+        const messageEl = document.getElementById('dePromptMessage');
+        const inputEl = document.getElementById('dePromptInput');
+        const confirmTextEl = document.getElementById('dePromptConfirmText');
+        const confirmIconEl = document.getElementById('dePromptConfirmIcon');
+        const confirmBtn = document.getElementById('dePromptConfirmBtn');
+        const iconEl = document.getElementById('dePromptIcon');
+        const hintEl = document.getElementById('dePromptHint');
+        const hintTextEl = document.getElementById('dePromptHintText');
+        
+        // Set content
+        titleEl.textContent = options.title || 'Enter Name';
+        subtitleEl.textContent = options.subtitle || 'Design Enhancer Presets';
+        messageEl.textContent = options.message || 'Enter a name:';
+        inputEl.placeholder = options.placeholder || 'Type here...';
+        inputEl.value = options.defaultValue || '';
+        confirmTextEl.textContent = options.confirmText || 'Confirm';
+        
+        // Set icon
+        if (options.icon) {
+            iconEl.className = 'fas ' + options.icon;
+            confirmIconEl.className = 'fas ' + options.icon;
+        } else {
+            iconEl.className = 'fas fa-pen-fancy';
+            confirmIconEl.className = 'fas fa-check';
+        }
+        
+        // Set hint
+        if (options.hint) {
+            hintTextEl.textContent = options.hint;
+            hintEl.style.display = '';
+        } else {
+            hintEl.style.display = 'none';
+        }
+        
+        // Update confirm button state based on input
+        const updateBtnState = () => {
+            confirmBtn.disabled = !inputEl.value.trim();
+        };
+        updateBtnState();
+        
+        // Store resolve and attach input listener
+        dePromptResolve = resolve;
+        inputEl.oninput = updateBtnState;
+        
+        // Handle Enter key on input
+        inputEl.onkeydown = function(e) {
+            if (e.key === 'Enter' && inputEl.value.trim()) {
+                e.preventDefault();
+                dePromptAccept();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                dePromptCancel();
+            }
+        };
+        
+        // Show modal
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus input after animation
+        setTimeout(() => {
+            inputEl.focus();
+            inputEl.select();
+        }, 150);
+    });
+}
+
+// Cancel input prompt
+function dePromptCancel() {
+    const overlay = document.getElementById('dePromptOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    const inputEl = document.getElementById('dePromptInput');
+    inputEl.oninput = null;
+    inputEl.onkeydown = null;
+    
+    if (dePromptResolve) {
+        dePromptResolve(null);
+        dePromptResolve = null;
+    }
+}
+
+// Accept input prompt
+function dePromptAccept() {
+    const overlay = document.getElementById('dePromptOverlay');
+    const inputEl = document.getElementById('dePromptInput');
+    const value = inputEl.value.trim();
+    
+    if (!value) return;
+    
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    inputEl.oninput = null;
+    inputEl.onkeydown = null;
+    
+    if (dePromptResolve) {
+        dePromptResolve(value);
+        dePromptResolve = null;
+    }
+}
+
+// Close prompt on Escape key (if confirm overlay is not active)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('dePromptOverlay');
+        if (overlay && overlay.classList.contains('active')) {
+            dePromptCancel();
+        }
+    }
+});
+
+// Close prompt on overlay click (outside modal)
+document.addEventListener('click', function(e) {
+    const overlay = document.getElementById('dePromptOverlay');
+    if (e.target === overlay) {
+        dePromptCancel();
+    }
+});
+
 // Individual confirm functions for each tool
 async function confirmResetBranding() {
     const confirmed = await deConfirm({
@@ -39437,8 +39933,16 @@ async function depSave() {
 
 // ─── Save As (new preset) ───
 async function depSaveAs() {
-    const name = prompt('Enter a name for the new preset:');
-    if (!name || !name.trim()) return;
+    const name = await dePrompt({
+        title: 'Save New Preset',
+        subtitle: 'Design Enhancer Presets',
+        message: 'Choose a name for your new preset configuration:',
+        placeholder: 'e.g. My Portfolio Theme',
+        confirmText: 'Save Preset',
+        icon: 'fa-copy',
+        hint: 'This will save all current Design Enhancer settings as a new reusable preset.'
+    });
+    if (!name) return;
     
     const btn = document.querySelector('.dep-btn.dep-save-as');
     try {
@@ -39473,8 +39977,17 @@ async function depSaveAs() {
 async function depRename() {
     if (!depCurrentPresetId) return;
     
-    const newName = prompt('Rename preset:', depCurrentPresetName);
-    if (!newName || !newName.trim() || newName.trim() === depCurrentPresetName) return;
+    const newName = await dePrompt({
+        title: 'Rename Preset',
+        subtitle: 'Design Enhancer Presets',
+        message: 'Enter a new name for this preset:',
+        placeholder: 'New preset name...',
+        defaultValue: depCurrentPresetName,
+        confirmText: 'Rename',
+        icon: 'fa-pen',
+        hint: 'The preset configuration will remain unchanged — only the name will be updated.'
+    });
+    if (!newName || newName === depCurrentPresetName) return;
     
     try {
         const result = await depApi('rename_de_preset', {
