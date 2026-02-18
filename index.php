@@ -4090,6 +4090,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 1; }
         }
         
+        /* Load button - cyan */
+        .dep-btn.dep-load {
+            background: rgba(6, 182, 212, 0.12);
+            border-color: rgba(6, 182, 212, 0.25);
+            color: #06b6d4;
+            flex-shrink: 0;
+        }
+        .dep-btn.dep-load:hover:not(:disabled) {
+            background: rgba(6, 182, 212, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+        
         /* Saving animation */
         .dep-btn.dep-saving {
             pointer-events: none;
@@ -22299,6 +22312,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                             <i class="fas fa-chevron-down dep-arrow-icon"></i>
                         </div>
+                        <button type="button" class="dep-btn dep-load" id="depLoadBtn" onclick="depLoad()" title="Re-load selected preset (restore saved state)" disabled>
+                            <i class="fas fa-download"></i>
+                        </button>
                         <div class="dep-actions">
                             <button type="button" class="dep-btn dep-save" id="depSaveBtn" onclick="depSave()" title="Save changes to current preset" disabled>
                                 <i class="fas fa-save"></i>
@@ -39300,6 +39316,7 @@ async function depLoadPresets() {
 function depUpdateUI() {
     const select = document.getElementById('depSelect');
     const saveBtn = document.getElementById('depSaveBtn');
+    const loadBtn = document.getElementById('depLoadBtn');
     const renameBtn = document.getElementById('depRenameBtn');
     const deleteBtn = document.getElementById('depDeleteBtn');
     const wrapper = select?.closest('.dep-select-wrapper');
@@ -39307,6 +39324,7 @@ function depUpdateUI() {
     const hasPreset = select && select.value !== '';
     
     if (saveBtn) saveBtn.disabled = !hasPreset;
+    if (loadBtn) loadBtn.disabled = !hasPreset;
     if (renameBtn) renameBtn.disabled = !hasPreset;
     if (deleteBtn) deleteBtn.disabled = !hasPreset;
     
@@ -39348,6 +39366,43 @@ async function depOnSelectChange() {
         showToast('Error loading preset', 'error');
         console.error(e);
     } finally {
+        depSetLoading(false);
+    }
+}
+
+// ─── Load (re-load currently selected preset) ───
+async function depLoad() {
+    if (!depCurrentPresetId) return;
+    
+    const confirmed = await deConfirm({
+        title: 'Re-load Preset',
+        subtitle: depCurrentPresetName,
+        message: `Restore all settings from "${depCurrentPresetName}"?`,
+        warning: 'Any unsaved changes will be lost.',
+        confirmText: 'Load',
+        icon: 'fa-download'
+    });
+    if (!confirmed) return;
+    
+    const btn = document.getElementById('depLoadBtn');
+    try {
+        depBtnSaving(btn, true);
+        depSetLoading(true);
+        const result = await depApi('load_de_preset', { preset_id: depCurrentPresetId });
+        
+        if (result.success && result.preset) {
+            const ok = await depRestoreState(result.preset.state_data);
+            if (ok) {
+                showToast(`Preset "${result.preset.name}" re-loaded`, 'success');
+            }
+        } else {
+            showToast(result.message || 'Failed to load preset', 'error');
+        }
+    } catch (e) {
+        showToast('Error loading preset', 'error');
+        console.error(e);
+    } finally {
+        depBtnSaving(btn, false);
         depSetLoading(false);
     }
 }
