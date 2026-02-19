@@ -15131,6 +15131,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 0;
         }
 
+        /* STT Voice Recognizer Button */
+        .btn-stt {
+            background: linear-gradient(135deg, #34d399, #059669);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-stt:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+        }
+        .btn-stt.listening {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            animation: sttPulse 1s ease-in-out infinite;
+            box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+        }
+        .btn-stt.listening i {
+            animation: sttBlink 0.7s ease-in-out infinite alternate;
+        }
+        @keyframes sttPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
+            50% { box-shadow: 0 0 22px rgba(248, 113, 113, 0.6); }
+        }
+        @keyframes sttBlink {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.25); opacity: 0.7; }
+        }
+        .btn-stt .stt-dot {
+            display: none;
+            width: 6px; height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: sttDotPulse 0.8s ease-in-out infinite;
+            margin-left: 2px;
+        }
+        .btn-stt.listening .stt-dot { display: inline-block; }
+        @keyframes sttDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.6); }
+        }
+
         /* History Navigation (Undo/Redo) */
         .history-navigation {
             display: flex;
@@ -23116,6 +23158,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
                             <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
                             <div class="tts-progress" id="ttsProgress"></div>
+                        </button>
+                        <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
+                            <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
+                            <span class="stt-dot"></span>
                         </button>
                         <button class="btn btn-success" onclick="openSaveModal()">
                             <i class="fas fa-save"></i> Save
@@ -31658,6 +31704,181 @@ in each section carefully and maintain proper connections between components.
                 showToast('Unable to paste. Please use Ctrl+V', 'error');
             }
         }
+
+        // ═══════ STT Voice Recognizer (Speech-to-Text) ═══════
+        let _sttRecognition = null;
+        let _sttListening = false;
+        let _sttFinalTranscript = '';
+        let _sttInterimTimeout = null;
+
+        function sttToggle() {
+            if (_sttListening) { sttStop(); return; }
+            sttStart();
+        }
+
+        function sttStart() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('Speech recognition is not supported in this browser. Please use Chrome or Edge.', 'error');
+                return;
+            }
+
+            // Stop any active TTS to avoid feedback
+            if (typeof ttsStop === 'function' && typeof _ttsSpeaking !== 'undefined' && _ttsSpeaking) ttsStop();
+
+            _sttRecognition = new SpeechRecognition();
+            _sttRecognition.lang = 'en-US';
+            _sttRecognition.continuous = true;
+            _sttRecognition.interimResults = true;
+            _sttRecognition.maxAlternatives = 1;
+
+            _sttFinalTranscript = '';
+
+            _sttRecognition.onstart = () => {
+                _sttListening = true;
+                const btn = document.getElementById('btnSttDictate');
+                const label = document.getElementById('sttLabel');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; btn.title = 'Stop dictation'; }
+                if (label) label.textContent = 'Stop';
+                showToast('🎤 Listening… Speak now!', 'success');
+            };
+
+            _sttRecognition.onresult = (event) => {
+                const editor = document.getElementById('promptEditor');
+                if (!editor) return;
+
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        // Smart capitalize after sentence-ending punctuation or at the start
+                        let finalText = transcript.trim();
+                        if (_sttFinalTranscript === '' || /[.!?]\s*$/.test(_sttFinalTranscript)) {
+                            finalText = finalText.charAt(0).toUpperCase() + finalText.slice(1);
+                        }
+                        // Add space before if there's already text
+                        if (_sttFinalTranscript.length > 0 && !/\s$/.test(_sttFinalTranscript)) {
+                            _sttFinalTranscript += ' ';
+                        }
+                        _sttFinalTranscript += finalText;
+
+                        // Insert final text into editor at cursor
+                        _sttInsertText(editor, (_sttFinalTranscript.length > finalText.length + 1 ? '' : '') + (_sttFinalTranscript.endsWith(finalText) ? ((_sttFinalTranscript.length > finalText.length) ? ' ' : '') + finalText : finalText), true);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Reset silence timer – auto-stop after 8 seconds of no final result
+                if (_sttInterimTimeout) clearTimeout(_sttInterimTimeout);
+                _sttInterimTimeout = setTimeout(() => {
+                    if (_sttListening && interimTranscript === '') {
+                        // No speech detected for a while, keep going (continuous mode)
+                    }
+                }, 8000);
+            };
+
+            _sttRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showToast('No speech detected. Try again.', 'error');
+                } else if (event.error === 'audio-capture') {
+                    showToast('No microphone found. Please check your mic.', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied. Please allow mic access in browser settings.', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('Speech recognition error: ' + event.error, 'error');
+                }
+                sttReset();
+            };
+
+            _sttRecognition.onend = () => {
+                // In continuous mode, the recognition can end unexpectedly (e.g. silence).
+                // Restart if user hasn't manually stopped.
+                if (_sttListening) {
+                    try { _sttRecognition.start(); } catch (e) { sttReset(); }
+                } else {
+                    sttReset();
+                }
+            };
+
+            try {
+                _sttRecognition.start();
+            } catch (e) {
+                showToast('Could not start speech recognition: ' + e.message, 'error');
+                sttReset();
+            }
+        }
+
+        function sttStop() {
+            _sttListening = false;
+            if (_sttRecognition) {
+                try { _sttRecognition.stop(); } catch (e) {}
+            }
+            if (_sttInterimTimeout) { clearTimeout(_sttInterimTimeout); _sttInterimTimeout = null; }
+            if (_sttFinalTranscript.trim()) {
+                updateCounts();
+                recordHistoryState(true);
+                showToast('✅ Dictation saved! (' + _sttFinalTranscript.trim().split(/\s+/).length + ' words)', 'success');
+            } else {
+                showToast('Dictation stopped.', 'info');
+            }
+            _sttFinalTranscript = '';
+            sttReset();
+        }
+
+        function sttReset() {
+            _sttListening = false;
+            const btn = document.getElementById('btnSttDictate');
+            const label = document.getElementById('sttLabel');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; btn.title = 'Voice dictation – speak to type'; }
+            if (label) label.textContent = 'Dictate';
+        }
+
+        // Insert text at cursor position in the editor (append mode for STT)
+        let _sttInsertedLength = 0;
+        function _sttInsertText(editor, text, isFinal) {
+            if (!text.trim()) return;
+            const curVal = editor.value;
+            const cursorPos = editor.selectionStart;
+
+            // If first insertion in this session, determine insert point
+            if (_sttInsertedLength === 0) {
+                // Add spacing if editor has existing text
+                let prefix = '';
+                if (curVal.trim().length > 0) {
+                    // If cursor is at end, add newline separator
+                    if (cursorPos >= curVal.length) {
+                        prefix = curVal.endsWith('\n') ? '' : '\n';
+                    } else {
+                        prefix = ' ';
+                    }
+                }
+                const insertText = prefix + text;
+                editor.value = curVal.substring(0, cursorPos) + insertText + curVal.substring(cursorPos);
+                const newPos = cursorPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttInsertedLength = insertText.length;
+            } else {
+                // Subsequent inserts: append at the last inserted position
+                const insertPos = cursorPos;
+                const insertText = ' ' + text;
+                editor.value = curVal.substring(0, insertPos) + insertText + curVal.substring(insertPos);
+                const newPos = insertPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttInsertedLength += insertText.length;
+            }
+            editor.focus();
+            // Scroll to bottom
+            editor.scrollTop = editor.scrollHeight;
+        }
+
+        // Reset insert tracker when STT stops
+        const _origSttReset = sttReset;
+        sttReset = function() {
+            _sttInsertedLength = 0;
+            _origSttReset();
+        };
+        // ═══════ End STT Voice Recognizer ═══════
 
         // ============================================
         // FOLDER PICKER & PROMPT.TXT SYSTEM
