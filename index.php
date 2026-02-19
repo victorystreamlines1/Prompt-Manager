@@ -17262,6 +17262,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.05);
         }
         
+        .notes-btn.tts-notes-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(232, 121, 168, 0.18) 0%, rgba(192, 80, 134, 0.1) 100%);
+            border: 1px solid rgba(232, 121, 168, 0.35);
+            color: #e879a8;
+            font-size: 0.6rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .notes-btn.tts-notes-btn:hover {
+            background: linear-gradient(135deg, rgba(232, 121, 168, 0.3) 0%, rgba(192, 80, 134, 0.18) 100%);
+            border-color: rgba(232, 121, 168, 0.55);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(232, 121, 168, 0.25);
+            color: #f0a0c4;
+        }
+        .notes-btn.tts-notes-btn.speaking {
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.3) 0%, rgba(219, 39, 119, 0.18) 100%);
+            border-color: rgba(244, 114, 182, 0.6);
+            animation: ttsPulseNotes 1.5s ease-in-out infinite;
+            color: #f472b6;
+        }
+        .notes-btn.tts-notes-btn.speaking i {
+            animation: ttsWave 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes ttsPulseNotes {
+            0%, 100% { box-shadow: 0 0 5px rgba(244, 114, 182, 0.2); }
+            50% { box-shadow: 0 0 12px rgba(244, 114, 182, 0.4); }
+        }
+        .notes-btn.tts-notes-btn .tts-progress-mini {
+            position: absolute; bottom: 0; left: 0; height: 2px;
+            background: rgba(244, 114, 182, 0.7);
+            border-radius: 0 0 6px 6px;
+            transition: width 0.3s linear;
+            width: 0;
+        }
+        .notes-btn.tts-notes-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
+        }
+
         .notes-btn.clear-notes-btn {
             width: auto;
             padding: 0 0.5rem;
@@ -22760,6 +22804,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <button type="button" class="notes-btn push-to-prompt-btn" onclick="pushNotesToPrompt()" title="Push to Main Prompt Editor">
                                         <i class="fas fa-arrow-right"></i>
                                         <span>→ Editor</span>
+                                    </button>
+                                    <button type="button" class="notes-btn tts-notes-btn" id="btnTtsNotes" onclick="ttsNotesToggle()" title="Read aloud (British Female Voice)">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span id="ttsNotesLabel">Read</span>
+                                        <div class="tts-progress-mini" id="ttsNotesProgress"></div>
                                     </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-times"></i>
@@ -31505,6 +31554,69 @@ in each section carefully and maintain proper connections between components.
             }
         }
         // ═══════ End TTS Reader ═══════
+
+        // ═══════ TTS Reader – Project Prompts ═══════
+        let _ttsNotesUtterance = null;
+        let _ttsNotesSpeaking = false;
+        let _ttsNotesTimer = null;
+
+        function ttsNotesToggle() {
+            if (_ttsNotesSpeaking) { ttsNotesStop(); return; }
+            const text = (document.getElementById('projectNotesTextarea') || {}).value || '';
+            if (!text.trim()) { showToast('Project Prompts is empty — nothing to read!', 'error'); return; }
+            ttsNotesSpeak(text);
+        }
+
+        function ttsNotesSpeak(text) {
+            ttsNotesStop();
+            const btn = document.getElementById('btnTtsNotes');
+            const label = document.getElementById('ttsNotesLabel');
+            const progress = document.getElementById('ttsNotesProgress');
+            const voices = speechSynthesis.getVoices();
+            if (!voices.length) { speechSynthesis.onvoiceschanged = () => ttsNotesSpeak(text); return; }
+
+            _ttsNotesUtterance = new SpeechSynthesisUtterance(text);
+            const voice = _ttsGetBritishFemaleVoice();
+            if (voice) _ttsNotesUtterance.voice = voice;
+            _ttsNotesUtterance.lang = 'en-GB';
+            _ttsNotesUtterance.rate = 1.0;
+            _ttsNotesUtterance.pitch = 1.05;
+
+            _ttsNotesUtterance.onstart = () => {
+                _ttsNotesSpeaking = true;
+                if (btn) { btn.classList.add('speaking'); btn.querySelector('i').className = 'fas fa-stop'; }
+                if (label) label.textContent = 'Stop';
+                if (btn) btn.title = 'Stop reading';
+                const estimatedMs = (text.length / 14) * 1000;
+                let elapsed = 0;
+                const tick = 200;
+                _ttsNotesTimer = setInterval(() => {
+                    elapsed += tick;
+                    const pct = Math.min((elapsed / estimatedMs) * 100, 98);
+                    if (progress) progress.style.width = pct + '%';
+                }, tick);
+            };
+            _ttsNotesUtterance.onend = () => _ttsNotesReset();
+            _ttsNotesUtterance.onerror = (e) => {
+                if (e.error !== 'canceled') showToast('TTS error: ' + e.error, 'error');
+                _ttsNotesReset();
+            };
+            speechSynthesis.speak(_ttsNotesUtterance);
+        }
+
+        function ttsNotesStop() { speechSynthesis.cancel(); _ttsNotesReset(); }
+
+        function _ttsNotesReset() {
+            _ttsNotesSpeaking = false;
+            if (_ttsNotesTimer) { clearInterval(_ttsNotesTimer); _ttsNotesTimer = null; }
+            const btn = document.getElementById('btnTtsNotes');
+            const label = document.getElementById('ttsNotesLabel');
+            const progress = document.getElementById('ttsNotesProgress');
+            if (btn) { btn.classList.remove('speaking'); btn.querySelector('i').className = 'fas fa-volume-up'; btn.title = 'Read aloud (British Female Voice)'; }
+            if (label) label.textContent = 'Read';
+            if (progress) progress.style.width = '0';
+        }
+        // ═══════ End TTS – Project Prompts ═══════
 
         // Paste from clipboard
         async function pasteToEditor() {
