@@ -16617,6 +16617,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 7px;
         }
 
+        .btn-dir-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-dir-toggle:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.15));
+            border-color: rgba(99, 102, 241, 0.45);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-dir-toggle i {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-dir-toggle.rtl-active {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.1));
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+        }
+
+        .btn-dir-toggle.rtl-active:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(217, 119, 6, 0.18));
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 3px 10px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-dir-toggle.rtl-active i {
+            transform: rotate(180deg);
+        }
+
         .char-count {
             display: flex;
             align-items: center;
@@ -23443,6 +23489,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="stt-dot"></span>
                         </button>
                     </div>
+                    
+                    <button class="btn-dir-toggle" id="btnDirToggle" onclick="toggleEditorDir()" title="Toggle text direction (LTR / RTL)">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span id="dirLabel">LTR</span>
+                    </button>
                     
                     <div class="word-count">
                         <i class="fas fa-text-width"></i>
@@ -31250,6 +31301,20 @@ in each section carefully and maintain proper connections between components.
             modal.classList.add('active');
         }
         
+        // ═══════ Editor Direction Toggle (LTR ↔ RTL) ═══════
+        function toggleEditorDir() {
+            const editor = document.getElementById('promptEditor');
+            const btn    = document.getElementById('btnDirToggle');
+            const label  = document.getElementById('dirLabel');
+            if (!editor || !btn || !label) return;
+
+            const isRtl = editor.style.direction === 'rtl';
+            editor.style.direction = isRtl ? 'ltr' : 'rtl';
+            editor.style.textAlign = isRtl ? 'left' : 'right';
+            label.textContent      = isRtl ? 'LTR' : 'RTL';
+            btn.classList.toggle('rtl-active', !isRtl);
+        }
+
         // Toggle file upload section
         function sptToggleFiles() {
             sptFilesOpen = !sptFilesOpen;
