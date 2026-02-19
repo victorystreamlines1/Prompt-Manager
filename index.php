@@ -39181,14 +39181,14 @@ async function deResetAll() {
     
     // ═══════════════════════════════════════════
     // STEP 3: Restore toasts & confirmations,
-    // expand all, and show final toast
+    // collapse all, and show final toast
     // ═══════════════════════════════════════════
     window.showToast = _origShowToast;
     window.deConfirm = _origDeConfirm;
     
-    // Suppress toast from deUncollapseAll
+    // Collapse all sections after reset
     window.showToast = function() {};
-    deUncollapseAll();
+    deCollapseAll();
     window.showToast = _origShowToast;
     
     showToast('✨ All tools reset to default!', 'success');
