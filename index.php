@@ -1770,6 +1770,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // ARABIC TTS PROXY — Fetch Google Translate audio server-side
+    // ============================================
+    if ($action === 'tts_ar_proxy') {
+        $text = $_POST['text'] ?? '';
+        
+        if (empty($text)) {
+            header('HTTP/1.1 400 Bad Request');
+            echo 'No text provided';
+            exit;
+        }
+        
+        // Limit text length for safety
+        $text = mb_substr($text, 0, 200);
+        
+        $url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=ar'
+             . '&client=tw-ob&q=' . urlencode($text);
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            CURLOPT_HTTPHEADER => [
+                'Referer: https://translate.google.com/',
+                'Accept: audio/mpeg, audio/*;q=0.9, */*;q=0.8'
+            ],
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+        
+        $audioData = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        if ($audioData && $httpCode === 200 && strlen($audioData) > 100) {
+            header('Content-Type: audio/mpeg');
+            header('Content-Length: ' . strlen($audioData));
+            header('Cache-Control: public, max-age=86400');
+            echo $audioData;
+        } else {
+            header('HTTP/1.1 502 Bad Gateway');
+            echo 'TTS fetch failed: ' . ($error ?: "HTTP $httpCode");
+        }
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -15131,6 +15180,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 0;
         }
 
+        /* Arabic TTS Reader Button */
+        .btn-tts-ar {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+        .btn-tts-ar:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+        }
+        .btn-tts-ar.speaking {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            animation: ttsArPulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
+        }
+        .btn-tts-ar.speaking i {
+            animation: ttsWave 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes ttsArPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+            50% { box-shadow: 0 0 22px rgba(245, 158, 11, 0.6); }
+        }
+        .btn-tts-ar .tts-ar-progress {
+            position: absolute; bottom: 0; left: 0; height: 2.5px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 0 0 8px 8px;
+            transition: width 0.3s linear;
+            width: 0;
+        }
+        .btn-tts-ar .ar-flag {
+            font-size: 0.6rem;
+            opacity: 0.85;
+            margin-left: 1px;
+        }
+
         /* STT Voice Recognizer Button */
         .btn-stt {
             background: linear-gradient(135deg, #34d399, #059669);
@@ -23208,6 +23295,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
                             <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
                             <div class="tts-progress" id="ttsProgress"></div>
+                        </button>
+                        <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
+                            <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
+                            <div class="tts-ar-progress" id="ttsArProgress"></div>
                         </button>
                         <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
                             <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
@@ -31650,6 +31741,171 @@ in each section carefully and maintain proper connections between components.
             }
         }
         // ═══════ End TTS Reader ═══════
+
+        // ═══════ Arabic TTS Reader (Google Translate Audio) ═══════
+        let _ttsArSpeaking = false;
+        let _ttsArProgressTimer = null;
+        let _ttsArChunks = [];
+        let _ttsArChunkIndex = 0;
+        let _ttsArAudio = null;
+
+        function _ttsArFetchAudio(text) {
+            // Fetch audio via local PHP proxy to avoid CORS issues
+            const fd = new FormData();
+            fd.append('action', 'tts_ar_proxy');
+            fd.append('text', text);
+            return fetch(window.location.pathname, { method: 'POST', body: fd })
+                .then(r => {
+                    if (!r.ok) throw new Error('TTS proxy HTTP ' + r.status);
+                    return r.blob();
+                })
+                .then(blob => URL.createObjectURL(blob));
+        }
+
+        function _ttsArSplitText(text, maxLen) {
+            // Split at Arabic sentence boundaries then enforce max length
+            const chunks = [];
+            const sentences = text.split(/(?<=[.!?،؛:\n])\s*/);
+            let current = '';
+            for (const s of sentences) {
+                if ((current + ' ' + s).trim().length > maxLen && current.trim()) {
+                    chunks.push(current.trim());
+                    current = s;
+                } else {
+                    current += (current ? ' ' : '') + s;
+                }
+            }
+            if (current.trim()) chunks.push(current.trim());
+            // Further split oversized chunks at word boundaries
+            const result = [];
+            for (const c of chunks) {
+                if (c.length <= maxLen) { result.push(c); continue; }
+                const words = c.split(/\s+/);
+                let part = '';
+                for (const w of words) {
+                    if ((part + ' ' + w).trim().length > maxLen && part.trim()) {
+                        result.push(part.trim());
+                        part = w;
+                    } else {
+                        part += (part ? ' ' : '') + w;
+                    }
+                }
+                if (part.trim()) result.push(part.trim());
+            }
+            return result.length ? result : [text];
+        }
+
+        function ttsArToggle() {
+            if (_ttsArSpeaking) { ttsArStop(); return; }
+            const text = document.getElementById('promptEditor').value.trim();
+            if (!text) {
+                showToast('المحرر فارغ – لا يوجد نص للقراءة!', 'error');
+                return;
+            }
+            // Stop English TTS if running
+            if (_ttsSpeaking) ttsStop();
+            ttsArSpeak(text);
+        }
+
+        function ttsArSpeak(text) {
+            ttsArStop();
+            const btn = document.getElementById('btnTtsAr');
+            const label = document.getElementById('ttsArLabel');
+            const progress = document.getElementById('ttsArProgress');
+
+            // Google Translate TTS accepts ~200 chars per request
+            _ttsArChunks = _ttsArSplitText(text, 190);
+            _ttsArChunkIndex = 0;
+            const totalChunks = _ttsArChunks.length;
+
+            // UI: speaking state
+            _ttsArSpeaking = true;
+            if (btn) {
+                btn.classList.add('speaking');
+                btn.querySelector('i').className = 'fas fa-stop';
+                btn.title = 'إيقاف القراءة العربية';
+            }
+            if (label) label.textContent = 'إيقاف';
+
+            async function playNext() {
+                if (!_ttsArSpeaking || _ttsArChunkIndex >= _ttsArChunks.length) {
+                    _ttsArReset();
+                    return;
+                }
+
+                try {
+                    const chunk = _ttsArChunks[_ttsArChunkIndex];
+                    // Fetch audio via local PHP proxy (avoids CORS)
+                    const audioUrl = await _ttsArFetchAudio(chunk);
+                    if (!_ttsArSpeaking) return; // stopped while loading
+
+                    _ttsArAudio = new Audio(audioUrl);
+                    _ttsArAudio.playbackRate = 1.0;
+
+                    _ttsArAudio.onplay = () => {
+                        if (progress) {
+                            const pct = ((_ttsArChunkIndex) / totalChunks) * 100;
+                            progress.style.width = pct + '%';
+                        }
+                    };
+
+                    _ttsArAudio.ontimeupdate = () => {
+                        if (_ttsArAudio && _ttsArAudio.duration && progress) {
+                            const chunkPct = _ttsArAudio.currentTime / _ttsArAudio.duration;
+                            const overallPct = ((_ttsArChunkIndex + chunkPct) / totalChunks) * 100;
+                            progress.style.width = Math.min(overallPct, 99) + '%';
+                        }
+                    };
+
+                    _ttsArAudio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        _ttsArChunkIndex++;
+                        if (_ttsArSpeaking) playNext();
+                    };
+
+                    _ttsArAudio.onerror = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        showToast('خطأ في تشغيل الصوت العربي.', 'error');
+                        _ttsArReset();
+                    };
+
+                    await _ttsArAudio.play();
+                } catch (err) {
+                    showToast('خطأ في تحميل الصوت العربي. تأكد من اتصالك بالإنترنت.', 'error');
+                    _ttsArReset();
+                }
+            }
+
+            playNext();
+        }
+
+        function ttsArStop() {
+            _ttsArSpeaking = false;
+            if (_ttsArAudio) {
+                _ttsArAudio.pause();
+                _ttsArAudio.src = '';
+                _ttsArAudio = null;
+            }
+            _ttsArChunks = [];
+            _ttsArChunkIndex = 0;
+            _ttsArReset();
+        }
+
+        function _ttsArReset() {
+            _ttsArSpeaking = false;
+            if (_ttsArProgressTimer) { clearInterval(_ttsArProgressTimer); _ttsArProgressTimer = null; }
+            const btn = document.getElementById('btnTtsAr');
+            const label = document.getElementById('ttsArLabel');
+            const progress = document.getElementById('ttsArProgress');
+            if (btn) {
+                btn.classList.remove('speaking');
+                btn.querySelector('i').className = 'fas fa-volume-up';
+                btn.title = 'قراءة عربية – صوت طبيعي عالي الجودة';
+            }
+            if (label) label.textContent = 'عربي';
+            if (progress) progress.style.width = '0';
+        }
+        // ═══════ End Arabic TTS Reader ═══════
 
         // ═══════ TTS Reader – Project Prompts ═══════
         let _ttsNotesUtterance = null;
