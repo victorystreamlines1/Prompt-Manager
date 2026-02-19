@@ -16587,11 +16587,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.6) 0%, rgba(20, 20, 45, 0.5) 100%);
+            border-top: 1px solid rgba(99, 102, 241, 0.12);
             font-size: 0.8rem;
             color: var(--text-muted);
+            gap: 0.75rem;
+        }
+
+        .footer-voice-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.6rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-voice-tools:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-voice-tools .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.78rem;
+            border-radius: 7px;
         }
 
         .char-count {
@@ -23292,18 +23315,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-primary" onclick="copyPrompt()">
                             <i class="fas fa-copy"></i> Copy
                         </button>
-                        <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
-                            <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
-                            <div class="tts-progress" id="ttsProgress"></div>
-                        </button>
-                        <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
-                            <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
-                            <div class="tts-ar-progress" id="ttsArProgress"></div>
-                        </button>
-                        <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
-                            <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
-                            <span class="stt-dot"></span>
-                        </button>
                         <button class="btn btn-success" onclick="openSaveModal()">
                             <i class="fas fa-save"></i> Save
                         </button>
@@ -23417,6 +23428,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-font"></i>
                         <span id="charCount">0</span> characters
                     </div>
+                    
+                    <div class="footer-voice-tools">
+                        <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
+                            <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
+                            <div class="tts-progress" id="ttsProgress"></div>
+                        </button>
+                        <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
+                            <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
+                            <div class="tts-ar-progress" id="ttsArProgress"></div>
+                        </button>
+                        <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
+                            <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
+                            <span class="stt-dot"></span>
+                        </button>
+                    </div>
+                    
                     <div class="word-count">
                         <i class="fas fa-text-width"></i>
                         <span id="wordCount">0</span> words
