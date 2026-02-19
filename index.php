@@ -3834,6 +3834,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.58rem; color: var(--text-muted);
             font-family: inherit; font-style: italic;
         }
+        /* Help tooltip button */
+        .tdt-help-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 16px; height: 16px; border-radius: 50%;
+            border: 1.5px solid rgba(6, 182, 212, 0.35);
+            background: rgba(6, 182, 212, 0.08);
+            color: #06b6d4; font-size: 0.5rem; font-weight: 800;
+            cursor: pointer; margin-left: 5px;
+            transition: all 0.25s ease; position: relative;
+            vertical-align: middle; line-height: 1;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tdt-help-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.6);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+            transform: scale(1.15);
+        }
+        .tdt-help-popup {
+            position: fixed;
+            z-index: 10002;
+            background: var(--bg-primary);
+            border: 1.5px solid rgba(6, 182, 212, 0.35);
+            border-radius: 12px;
+            padding: 14px 16px;
+            max-width: 310px; min-width: 240px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(6, 182, 212, 0.08);
+            animation: tdtHelpIn 0.2s ease;
+            pointer-events: auto;
+        }
+        @keyframes tdtHelpIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tdt-help-popup::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 2.5px; border-radius: 12px 12px 0 0;
+            background: linear-gradient(90deg, #06b6d4, #0891b2);
+        }
+        .tdt-help-title {
+            font-size: 0.72rem; font-weight: 700;
+            color: #06b6d4; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .tdt-help-title i { font-size: 0.65rem; }
+        .tdt-help-text {
+            font-size: 0.68rem; color: var(--text-secondary);
+            line-height: 1.55; margin: 0;
+        }
+        .tdt-help-text strong {
+            color: var(--text-primary); font-weight: 600;
+        }
+        .tdt-help-text .tdt-help-recommend {
+            display: inline-block; margin-top: 6px;
+            padding: 3px 8px; border-radius: 6px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #10b981; font-size: 0.62rem; font-weight: 700;
+        }
+        .tdt-help-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 10001; background: transparent;
+        }
         /* Section divider */
         .tdt-section-divider {
             height: 1px;
@@ -53641,6 +53705,77 @@ function tdtUpdateSidebarBadge() {
     }
 }
 
+// ── Help tooltip popup ──
+const _tdtHelpData = {
+    engine: {
+        icon: 'fas fa-server',
+        title: 'Storage Engine',
+        html: `The <strong>engine</strong> controls how MySQL physically stores and retrieves your data.<br><br>`
+            + `<strong>InnoDB</strong> — Supports transactions, row-level locking, and foreign keys. Best for most apps.<br>`
+            + `<strong>MyISAM</strong> — Faster reads, no transactions. Good for read-heavy tables like logs.<br>`
+            + `<strong>MEMORY</strong> — Stores data in RAM. Ultra-fast but data is lost on restart.<br><br>`
+            + `<span class="tdt-help-recommend"><i class="fas fa-check-circle"></i> Recommended: InnoDB — safe, reliable, industry standard</span>`
+    },
+    charset: {
+        icon: 'fas fa-font',
+        title: 'Character Set',
+        html: `The <strong>charset</strong> defines which characters your table can store.<br><br>`
+            + `<strong>utf8mb4</strong> — Full Unicode support including emojis (&#x1F680;, &#x1F4A1;). Modern standard.<br>`
+            + `<strong>utf8</strong> — Basic Unicode, 3 bytes. Doesn't support emojis or some rare characters.<br>`
+            + `<strong>latin1</strong> — Western European only. Very limited, legacy use only.<br><br>`
+            + `<span class="tdt-help-recommend"><i class="fas fa-check-circle"></i> Recommended: utf8mb4 — handles everything</span>`
+    },
+    collation: {
+        icon: 'fas fa-sort-alpha-down',
+        title: 'Collation',
+        html: `<strong>Collation</strong> controls how text is <strong>sorted</strong> and <strong>compared</strong> (e.g. is "A" = "a"?).<br><br>`
+            + `<strong>utf8mb4_unicode_ci</strong> — Accurate Unicode sorting. Handles accents & special chars well.<br>`
+            + `<strong>utf8mb4_general_ci</strong> — Slightly faster but less accurate sorting.<br>`
+            + `<strong>utf8_general_ci</strong> — For utf8 charset (no emoji support).<br><br>`
+            + `<em style="font-size:0.62rem; color:var(--text-muted);">ci = case-insensitive → "Hello" = "hello"</em><br>`
+            + `<span class="tdt-help-recommend"><i class="fas fa-check-circle"></i> Recommended: utf8mb4_unicode_ci</span>`
+    }
+};
+
+function tdtShowHelp(e, key) {
+    e.stopPropagation();
+    tdtCloseHelp();
+    const data = _tdtHelpData[key];
+    if (!data) return;
+
+    // Overlay to close on outside click
+    const overlay = document.createElement('div');
+    overlay.className = 'tdt-help-overlay';
+    overlay.onclick = tdtCloseHelp;
+
+    // Popup
+    const popup = document.createElement('div');
+    popup.className = 'tdt-help-popup';
+    popup.innerHTML = `<div class="tdt-help-title"><i class="${data.icon}"></i> ${data.title}</div><div class="tdt-help-text">${data.html}</div>`;
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(popup);
+
+    // Position near button
+    const rect = e.target.closest('.tdt-help-btn').getBoundingClientRect();
+    let top = rect.bottom + 8;
+    let left = rect.left - 60;
+
+    // Keep within viewport
+    const pw = popup.offsetWidth || 290;
+    const ph = popup.offsetHeight || 200;
+    if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
+    if (left < 12) left = 12;
+    if (top + ph > window.innerHeight - 12) top = rect.top - ph - 8;
+
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+}
+
+function tdtCloseHelp() {
+    document.querySelectorAll('.tdt-help-overlay, .tdt-help-popup').forEach(el => el.remove());
+}
+
 // ── Toggle (checkbox click) ──
 function tdtToggle() {
     const container = document.getElementById('tdtContainer');
@@ -53885,7 +54020,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="text" class="tdt-input" id="tdtTableName" placeholder="e.g. users, products, orders" autocomplete="off">
                 </div>
                 <div class="tdt-field-group">
-                    <label class="tdt-field-label"><i class="fas fa-server"></i> Engine</label>
+                    <label class="tdt-field-label"><i class="fas fa-server"></i> Engine <span class="tdt-help-btn" onclick="tdtShowHelp(event,'engine')">?</span></label>
                     <select class="tdt-select" id="tdtEngine">
                         <option value="InnoDB" selected>InnoDB (Recommended)</option>
                         <option value="MyISAM">MyISAM</option>
@@ -53895,7 +54030,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="tdt-info-grid three-col">
                 <div class="tdt-field-group">
-                    <label class="tdt-field-label"><i class="fas fa-font"></i> Charset</label>
+                    <label class="tdt-field-label"><i class="fas fa-font"></i> Charset <span class="tdt-help-btn" onclick="tdtShowHelp(event,'charset')">?</span></label>
                     <select class="tdt-select" id="tdtCharset">
                         <option value="utf8mb4" selected>utf8mb4</option>
                         <option value="utf8">utf8</option>
@@ -53903,7 +54038,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="tdt-field-group">
-                    <label class="tdt-field-label"><i class="fas fa-sort-alpha-down"></i> Collation</label>
+                    <label class="tdt-field-label"><i class="fas fa-sort-alpha-down"></i> Collation <span class="tdt-help-btn" onclick="tdtShowHelp(event,'collation')">?</span></label>
                     <select class="tdt-select" id="tdtCollation">
                         <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci</option>
                         <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
