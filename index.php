@@ -15260,6 +15260,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.4; transform: scale(0.6); }
         }
 
+        /* STT Arabic Dictation Button */
+        .btn-stt-ar {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            direction: rtl;
+        }
+        .btn-stt-ar:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+        }
+        .btn-stt-ar.listening {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            animation: sttArPulse 1s ease-in-out infinite;
+            box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+        }
+        .btn-stt-ar.listening i {
+            animation: sttBlink 0.7s ease-in-out infinite alternate;
+        }
+        @keyframes sttArPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(248, 113, 113, 0.7); }
+        }
+        .stt-ar-flag {
+            display: inline-block;
+            font-size: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: rgba(255,255,255,0.25);
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-right: 3px;
+            vertical-align: middle;
+        }
+        .stt-ar-dot {
+            display: none;
+            width: 6px; height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            animation: sttArDotPulse 0.8s ease-in-out infinite;
+            margin-right: 2px;
+        }
+        .btn-stt-ar.listening .stt-ar-dot { display: inline-block; }
+        @keyframes sttArDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.6); }
+        }
+
         /* History Navigation (Undo/Redo) */
         .history-navigation {
             display: flex;
@@ -23488,6 +23538,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
                             <span class="stt-dot"></span>
                         </button>
+                        <button class="btn btn-stt-ar" id="btnSttAr" onclick="sttArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
+                            <i class="fas fa-microphone"></i> <span id="sttArLabel">إملاء</span><span class="stt-ar-flag">AR</span>
+                            <span class="stt-ar-dot"></span>
+                        </button>
                     </div>
                     
                     <button class="btn-dir-toggle" id="btnDirToggle" onclick="toggleEditorDir()" title="Toggle text direction (LTR / RTL)">
@@ -31313,6 +31367,9 @@ in each section carefully and maintain proper connections between components.
             editor.style.textAlign = isRtl ? 'left' : 'right';
             label.textContent      = isRtl ? 'LTR' : 'RTL';
             btn.classList.toggle('rtl-active', !isRtl);
+            editor.placeholder = isRtl
+                ? "Your generated prompt will appear here...\n\nCheck the prompt templates on the left to build your prompt, or type directly."
+                : "سيظهر الأمر الذي تم إنشاؤه هنا...\n\nاختر قوالب الأوامر من اليسار لبناء الأمر، أو اكتب مباشرة.";
         }
 
         // Toggle file upload section
@@ -32334,6 +32391,163 @@ in each section carefully and maintain proper connections between components.
             _origSttReset();
         };
         // ═══════ End STT Voice Recognizer ═══════
+
+        // ═══════ STT Arabic Dictation (Speech-to-Text عربي) ═══════
+        let _sttArRecognition = null;
+        let _sttArListening = false;
+        let _sttArFinalTranscript = '';
+        let _sttArInterimTimeout = null;
+        let _sttArInsertedLength = 0;
+
+        function sttArToggle() {
+            if (_sttArListening) { sttArStop(); return; }
+            sttArStart();
+        }
+
+        function sttArStart() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('التعرّف على الكلام غير مدعوم في هذا المتصفح. استخدم Chrome أو Edge.', 'error');
+                return;
+            }
+
+            // Stop English STT if active
+            if (_sttListening && typeof sttStop === 'function') sttStop();
+            // Stop any active TTS to avoid feedback
+            if (typeof ttsStop === 'function' && typeof _ttsSpeaking !== 'undefined' && _ttsSpeaking) ttsStop();
+
+            _sttArRecognition = new SpeechRecognition();
+            _sttArRecognition.lang = 'ar-SA';
+            _sttArRecognition.continuous = true;
+            _sttArRecognition.interimResults = true;
+            _sttArRecognition.maxAlternatives = 1;
+
+            _sttArFinalTranscript = '';
+            _sttArInsertedLength = 0;
+
+            _sttArRecognition.onstart = () => {
+                _sttArListening = true;
+                const btn = document.getElementById('btnSttAr');
+                const label = document.getElementById('sttArLabel');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; btn.title = 'إيقاف الإملاء'; }
+                if (label) label.textContent = 'إيقاف';
+                showToast('🎤 جارٍ الاستماع… تحدّث بالعربية الآن!', 'success');
+            };
+
+            _sttArRecognition.onresult = (event) => {
+                const editor = document.getElementById('promptEditor');
+                if (!editor) return;
+
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        let finalText = transcript.trim();
+                        // Add space before if there's already text (Arabic uses spaces between words)
+                        if (_sttArFinalTranscript.length > 0 && !/\s$/.test(_sttArFinalTranscript)) {
+                            _sttArFinalTranscript += ' ';
+                        }
+                        _sttArFinalTranscript += finalText;
+
+                        // Insert final text into editor
+                        _sttArInsertText(editor, finalText);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Reset silence timer
+                if (_sttArInterimTimeout) clearTimeout(_sttArInterimTimeout);
+                _sttArInterimTimeout = setTimeout(() => {}, 8000);
+            };
+
+            _sttArRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showToast('لم يتم اكتشاف كلام. حاول مرة أخرى.', 'error');
+                } else if (event.error === 'audio-capture') {
+                    showToast('لم يتم العثور على ميكروفون. تحقق من الميكروفون.', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('تم رفض الوصول للميكروفون. اسمح بالوصول من إعدادات المتصفح.', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('خطأ في التعرّف على الكلام: ' + event.error, 'error');
+                }
+                sttArReset();
+            };
+
+            _sttArRecognition.onend = () => {
+                if (_sttArListening) {
+                    try { _sttArRecognition.start(); } catch (e) { sttArReset(); }
+                } else {
+                    sttArReset();
+                }
+            };
+
+            try {
+                _sttArRecognition.start();
+            } catch (e) {
+                showToast('تعذّر بدء التعرّف على الكلام: ' + e.message, 'error');
+                sttArReset();
+            }
+        }
+
+        function sttArStop() {
+            _sttArListening = false;
+            if (_sttArRecognition) {
+                try { _sttArRecognition.stop(); } catch (e) {}
+            }
+            if (_sttArInterimTimeout) { clearTimeout(_sttArInterimTimeout); _sttArInterimTimeout = null; }
+            if (_sttArFinalTranscript.trim()) {
+                updateCounts();
+                recordHistoryState(true);
+                const wordCount = _sttArFinalTranscript.trim().split(/\s+/).length;
+                showToast('✅ تم حفظ الإملاء! (' + wordCount + ' كلمة)', 'success');
+            } else {
+                showToast('تم إيقاف الإملاء.', 'info');
+            }
+            _sttArFinalTranscript = '';
+            _sttArInsertedLength = 0;
+            sttArReset();
+        }
+
+        function sttArReset() {
+            _sttArListening = false;
+            const btn = document.getElementById('btnSttAr');
+            const label = document.getElementById('sttArLabel');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; btn.title = 'إملاء عربي – تحدث بالعربية للكتابة'; }
+            if (label) label.textContent = 'إملاء';
+        }
+
+        function _sttArInsertText(editor, text) {
+            if (!text.trim()) return;
+            const curVal = editor.value;
+            const cursorPos = editor.selectionStart;
+
+            if (_sttArInsertedLength === 0) {
+                let prefix = '';
+                if (curVal.trim().length > 0) {
+                    if (cursorPos >= curVal.length) {
+                        prefix = curVal.endsWith('\n') ? '' : '\n';
+                    } else {
+                        prefix = ' ';
+                    }
+                }
+                const insertText = prefix + text;
+                editor.value = curVal.substring(0, cursorPos) + insertText + curVal.substring(cursorPos);
+                const newPos = cursorPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttArInsertedLength = insertText.length;
+            } else {
+                const insertPos = cursorPos;
+                const insertText = ' ' + text;
+                editor.value = curVal.substring(0, insertPos) + insertText + curVal.substring(insertPos);
+                const newPos = insertPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttArInsertedLength += insertText.length;
+            }
+            editor.focus();
+            editor.scrollTop = editor.scrollHeight;
+        }
+        // ═══════ End STT Arabic Dictation ═══════
 
         // ═══════ STT Voice Recognizer – Project Prompts ═══════
         let _sttNotesRecognition = null;
