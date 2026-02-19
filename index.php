@@ -17623,6 +17623,150 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
         
+        /* ═══ Project Prompts Footer Bar ═══ */
+        .notes-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.5rem;
+            padding: 0.45rem 0.8rem;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.55) 0%, rgba(20, 20, 45, 0.45) 100%);
+            border-top: 1px solid rgba(99, 102, 241, 0.10);
+            border-radius: 0 0 12px 12px;
+        }
+        .notes-footer-voice-tools {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 9px;
+            transition: all 0.3s ease;
+        }
+        .notes-footer-voice-tools:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .notes-footer .nf-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.32rem 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 7px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        /* Read (TTS) */
+        .notes-footer .nf-btn-tts {
+            background: linear-gradient(135deg, rgba(232, 121, 168, 0.18), rgba(192, 80, 134, 0.10));
+            border-color: rgba(232, 121, 168, 0.35);
+            color: #e879a8;
+        }
+        .notes-footer .nf-btn-tts:hover {
+            background: linear-gradient(135deg, rgba(232, 121, 168, 0.3), rgba(192, 80, 134, 0.18));
+            border-color: rgba(232, 121, 168, 0.55);
+            box-shadow: 0 2px 8px rgba(232, 121, 168, 0.25);
+            color: #f0a0c4;
+        }
+        .notes-footer .nf-btn-tts.speaking {
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.3), rgba(219, 39, 119, 0.18));
+            border-color: rgba(244, 114, 182, 0.6);
+            animation: ttsPulseNotes 1.5s ease-in-out infinite;
+            color: #f472b6;
+        }
+        .notes-footer .nf-btn-tts.speaking i { animation: ttsWave 0.6s ease-in-out infinite alternate; }
+        .notes-footer .nf-btn-tts .tts-progress-mini {
+            position: absolute; bottom: 0; left: 0; height: 2px;
+            background: rgba(244, 114, 182, 0.7);
+            border-radius: 0 0 6px 6px;
+            transition: width 0.3s linear; width: 0;
+        }
+        /* Dictate EN (STT) */
+        .notes-footer .nf-btn-stt {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(5, 150, 105, 0.10));
+            border-color: rgba(52, 211, 153, 0.35);
+            color: #6ee7b7;
+        }
+        .notes-footer .nf-btn-stt:hover {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.3), rgba(5, 150, 105, 0.18));
+            border-color: rgba(52, 211, 153, 0.55);
+            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.25);
+            color: #a7f3d0;
+        }
+        .notes-footer .nf-btn-stt.listening {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.3), rgba(220, 38, 38, 0.18));
+            border-color: rgba(248, 113, 113, 0.6);
+            animation: sttPulseNotes 1s ease-in-out infinite;
+            color: #fca5a5;
+        }
+        .notes-footer .nf-btn-stt.listening i { animation: sttBlink 0.7s ease-in-out infinite alternate; }
+        .notes-footer .nf-btn-stt .stt-dot-mini {
+            display: none; width: 5px; height: 5px;
+            background: #fca5a5; border-radius: 50%;
+            animation: sttDotPulse 0.8s ease-in-out infinite;
+        }
+        .notes-footer .nf-btn-stt.listening .stt-dot-mini { display: inline-block; }
+        /* Dictate AR (STT Arabic) */
+        .notes-footer .nf-btn-stt-ar {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.10));
+            border-color: rgba(245, 158, 11, 0.35);
+            color: #fbbf24;
+            direction: rtl;
+        }
+        .notes-footer .nf-btn-stt-ar:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.18));
+            border-color: rgba(245, 158, 11, 0.55);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+            color: #fcd34d;
+        }
+        .notes-footer .nf-btn-stt-ar.listening {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.3), rgba(220, 38, 38, 0.18));
+            border-color: rgba(248, 113, 113, 0.6);
+            animation: sttArPulse 1s ease-in-out infinite;
+            color: #fca5a5;
+        }
+        .notes-footer .nf-btn-stt-ar.listening i { animation: sttBlink 0.7s ease-in-out infinite alternate; }
+        .notes-footer .nf-btn-stt-ar .stt-ar-dot-mini {
+            display: none; width: 5px; height: 5px;
+            background: #fca5a5; border-radius: 50%;
+            animation: sttArDotPulse 0.8s ease-in-out infinite;
+        }
+        .notes-footer .nf-btn-stt-ar.listening .stt-ar-dot-mini { display: inline-block; }
+        .notes-footer .nf-ar-flag {
+            font-size: 0.5rem; font-weight: 800; letter-spacing: 0.5px;
+            background: rgba(255,255,255,0.15); padding: 1px 3px;
+            border-radius: 3px; margin-right: 2px; vertical-align: middle;
+        }
+        /* RTL Toggle */
+        .notes-footer .nf-btn-dir {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            padding: 0.32rem 0.7rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 7px;
+            color: var(--text-muted);
+            font-family: inherit; font-size: 0.7rem; font-weight: 600;
+            cursor: pointer; transition: all 0.25s ease; letter-spacing: 0.5px;
+        }
+        .notes-footer .nf-btn-dir:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.15));
+            border-color: rgba(99, 102, 241, 0.45);
+            color: var(--accent-primary);
+        }
+        .notes-footer .nf-btn-dir.rtl-active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(99, 102, 241, 0.15));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #a78bfa;
+        }
+
         .project-notes-body {
             position: relative;
             transition: max-height 0.3s ease, opacity 0.3s ease;
@@ -17691,6 +17835,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(to top, rgba(251, 191, 36, 0.35) 0%, transparent 100%);
             color: #fbbf24;
         }
+
+        /* ═══════ Notes Footer Toolbar ═══════ */
+        .notes-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: linear-gradient(135deg, rgba(251,191,36,0.04), rgba(245,158,11,0.02));
+            border-top: 1px solid rgba(251,191,36,0.12);
+            border-radius: 0 0 12px 12px;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .notes-footer-voice-tools {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        /* Generic footer button */
+        .nf-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: 1.2px solid transparent;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        /* TTS Read */
+        .nf-btn-tts {
+            background: rgba(99,102,241,0.08);
+            color: rgba(99,102,241,0.85);
+            border-color: rgba(99,102,241,0.18);
+        }
+        .nf-btn-tts:hover {
+            background: rgba(99,102,241,0.16);
+            color: #6366f1;
+            border-color: rgba(99,102,241,0.35);
+            box-shadow: 0 0 8px rgba(99,102,241,0.15);
+        }
+        .nf-btn-tts.speaking {
+            background: rgba(99,102,241,0.18);
+            color: #6366f1;
+            border-color: rgba(99,102,241,0.45);
+            animation: nfPulse 1.5s ease-in-out infinite;
+        }
+        .nf-btn-tts .tts-progress-mini {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #818cf8);
+            border-radius: 0 0 7px 7px;
+            transition: width 0.3s ease;
+            width: 0;
+        }
+        /* STT Dictate (English) */
+        .nf-btn-stt {
+            background: rgba(16,185,129,0.08);
+            color: rgba(16,185,129,0.85);
+            border-color: rgba(16,185,129,0.18);
+        }
+        .nf-btn-stt:hover {
+            background: rgba(16,185,129,0.16);
+            color: #10b981;
+            border-color: rgba(16,185,129,0.35);
+            box-shadow: 0 0 8px rgba(16,185,129,0.15);
+        }
+        .nf-btn-stt.listening {
+            background: rgba(239,68,68,0.14);
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.4);
+            animation: nfPulse 1.2s ease-in-out infinite;
+        }
+        .nf-btn-stt .stt-dot-mini {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .nf-btn-stt.listening .stt-dot-mini {
+            opacity: 1;
+            animation: nfDotBlink 0.7s infinite;
+        }
+        /* STT Dictate (Arabic) */
+        .nf-btn-stt-ar {
+            background: rgba(234,179,8,0.08);
+            color: rgba(234,179,8,0.85);
+            border-color: rgba(234,179,8,0.18);
+        }
+        .nf-btn-stt-ar:hover {
+            background: rgba(234,179,8,0.16);
+            color: #eab308;
+            border-color: rgba(234,179,8,0.35);
+            box-shadow: 0 0 8px rgba(234,179,8,0.15);
+        }
+        .nf-btn-stt-ar.listening {
+            background: rgba(239,68,68,0.14);
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.4);
+            animation: nfPulse 1.2s ease-in-out infinite;
+        }
+        .nf-btn-stt-ar .stt-ar-dot-mini {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .nf-btn-stt-ar.listening .stt-ar-dot-mini {
+            opacity: 1;
+            animation: nfDotBlink 0.7s infinite;
+        }
+        .nf-ar-flag {
+            font-size: 0.58rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: rgba(234,179,8,0.18);
+            color: #eab308;
+            padding: 1px 4px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        .nf-btn-stt-ar.listening .nf-ar-flag {
+            background: rgba(239,68,68,0.15);
+            color: #ef4444;
+        }
+        /* Direction toggle button */
+        .nf-btn-dir {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 9px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 1.2px solid rgba(148,163,184,0.2);
+            border-radius: 7px;
+            cursor: pointer;
+            background: rgba(148,163,184,0.06);
+            color: rgba(148,163,184,0.7);
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+        .nf-btn-dir:hover {
+            background: rgba(148,163,184,0.14);
+            color: #94a3b8;
+            border-color: rgba(148,163,184,0.35);
+        }
+        .nf-btn-dir.rtl-active {
+            background: rgba(234,179,8,0.1);
+            color: #eab308;
+            border-color: rgba(234,179,8,0.3);
+        }
+        .nf-btn-dir.rtl-active:hover {
+            background: rgba(234,179,8,0.18);
+            border-color: rgba(234,179,8,0.45);
+        }
+        /* Shared animations */
+        @keyframes nfPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.2); }
+            50% { box-shadow: 0 0 0 4px rgba(239,68,68,0.08); }
+        }
+        @keyframes nfDotBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        /* ═══════ End Notes Footer Toolbar ═══════ */
         
         /* Dashboard Footer with Project Management & Generate Button */
         .dashboard-footer {
@@ -23098,16 +23415,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="fas fa-arrow-right"></i>
                                         <span>→ Editor</span>
                                     </button>
-                                    <button type="button" class="notes-btn tts-notes-btn" id="btnTtsNotes" onclick="ttsNotesToggle()" title="Read aloud (British Female Voice)">
-                                        <i class="fas fa-volume-up"></i>
-                                        <span id="ttsNotesLabel">Read</span>
-                                        <div class="tts-progress-mini" id="ttsNotesProgress"></div>
-                                    </button>
-                                    <button type="button" class="notes-btn stt-notes-btn" id="btnSttNotes" onclick="sttNotesToggle()" title="Voice dictation – speak to type">
-                                        <i class="fas fa-microphone"></i>
-                                        <span id="sttNotesLabel">Dictate</span>
-                                        <span class="stt-dot-mini"></span>
-                                    </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-times"></i>
                                         <span>Clear</span>
@@ -23124,6 +23431,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                           oninput="onProjectNotesChange()"></textarea>
                                 <div class="project-notes-resize-handle" id="notesResizeHandle">
                                     <i class="fas fa-grip-lines"></i>
+                                </div>
+                                <div class="notes-footer">
+                                    <div class="notes-footer-voice-tools">
+                                        <button class="nf-btn nf-btn-tts" id="btnTtsNotes" onclick="ttsNotesToggle()" title="Read aloud (British Female Voice)">
+                                            <i class="fas fa-volume-up"></i> <span id="ttsNotesLabel">Read</span>
+                                            <div class="tts-progress-mini" id="ttsNotesProgress"></div>
+                                        </button>
+                                        <button class="nf-btn nf-btn-stt" id="btnSttNotes" onclick="sttNotesToggle()" title="Voice dictation – speak to type">
+                                            <i class="fas fa-microphone"></i> <span id="sttNotesLabel">Dictate</span>
+                                            <span class="stt-dot-mini"></span>
+                                        </button>
+                                        <button class="nf-btn nf-btn-stt-ar" id="btnSttNotesAr" onclick="sttNotesArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
+                                            <i class="fas fa-microphone"></i> <span id="sttNotesArLabel">إملاء</span><span class="nf-ar-flag">AR</span>
+                                            <span class="stt-ar-dot-mini"></span>
+                                        </button>
+                                    </div>
+                                    <button class="nf-btn-dir" id="btnNotesDirToggle" onclick="toggleNotesDir()" title="Toggle text direction (LTR / RTL)">
+                                        <i class="fas fa-exchange-alt"></i>
+                                        <span id="notesDirLabel">LTR</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -32704,6 +33031,146 @@ in each section carefully and maintain proper connections between components.
             editor.scrollTop = editor.scrollHeight;
         }
         // ═══════ End STT – Project Prompts ═══════
+
+        // ═══════ STT Arabic Dictation – Project Prompts ═══════
+        let _sttNotesArRecognition = null;
+        let _sttNotesArListening = false;
+        let _sttNotesArFinalTranscript = '';
+        let _sttNotesArInsertedLength = 0;
+
+        function sttNotesArToggle() {
+            if (_sttNotesArListening) { sttNotesArStop(); return; }
+            sttNotesArStart();
+        }
+
+        function sttNotesArStart() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('متصفحك لا يدعم التعرف على الكلام. استخدم Chrome أو Edge.', 'error'); return; }
+
+            if (typeof ttsNotesStop === 'function' && typeof _ttsNotesSpeaking !== 'undefined' && _ttsNotesSpeaking) ttsNotesStop();
+            if (_sttNotesListening) sttNotesStop();
+            if (_sttListening) sttStop();
+
+            _sttNotesArRecognition = new SR();
+            _sttNotesArRecognition.lang = 'ar-SA';
+            _sttNotesArRecognition.continuous = true;
+            _sttNotesArRecognition.interimResults = true;
+            _sttNotesArRecognition.maxAlternatives = 1;
+
+            _sttNotesArFinalTranscript = '';
+            _sttNotesArInsertedLength = 0;
+
+            _sttNotesArRecognition.onstart = () => {
+                _sttNotesArListening = true;
+                const btn = document.getElementById('btnSttNotesAr');
+                const label = document.getElementById('sttNotesArLabel');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; btn.title = 'إيقاف الإملاء'; }
+                if (label) label.textContent = 'إيقاف';
+                showToast('🎤 جارٍ الاستماع… تحدث بالعربية!', 'success');
+            };
+
+            _sttNotesArRecognition.onresult = (event) => {
+                const editor = document.getElementById('projectNotesTextarea');
+                if (!editor) return;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        let finalText = transcript.trim();
+                        if (_sttNotesArFinalTranscript.length > 0 && !/\s$/.test(_sttNotesArFinalTranscript)) {
+                            _sttNotesArFinalTranscript += ' ';
+                        }
+                        _sttNotesArFinalTranscript += finalText;
+                        _sttNotesArInsertText(editor, finalText);
+                    }
+                }
+            };
+
+            _sttNotesArRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') { showToast('لم يُكتشف كلام. حاول مرة أخرى.', 'error'); }
+                else if (event.error === 'audio-capture') { showToast('لم يُعثر على ميكروفون.', 'error'); }
+                else if (event.error === 'not-allowed') { showToast('تم رفض الوصول إلى الميكروفون.', 'error'); }
+                else if (event.error !== 'aborted') { showToast('خطأ في التعرف على الكلام: ' + event.error, 'error'); }
+                sttNotesArReset();
+            };
+
+            _sttNotesArRecognition.onend = () => {
+                if (_sttNotesArListening) {
+                    try { _sttNotesArRecognition.start(); } catch(e) { sttNotesArReset(); }
+                } else { sttNotesArReset(); }
+            };
+
+            try { _sttNotesArRecognition.start(); } catch(e) { showToast('تعذر بدء التعرف: ' + e.message, 'error'); sttNotesArReset(); }
+        }
+
+        function sttNotesArStop() {
+            _sttNotesArListening = false;
+            if (_sttNotesArRecognition) { try { _sttNotesArRecognition.stop(); } catch(e) {} }
+            if (_sttNotesArFinalTranscript.trim()) {
+                saveProjectNotesToStorage();
+                showToast('✅ تم حفظ الإملاء! (' + _sttNotesArFinalTranscript.trim().split(/\s+/).length + ' كلمة)', 'success');
+            } else { showToast('تم إيقاف الإملاء.', 'info'); }
+            _sttNotesArFinalTranscript = '';
+            _sttNotesArInsertedLength = 0;
+            sttNotesArReset();
+        }
+
+        function sttNotesArReset() {
+            _sttNotesArListening = false;
+            _sttNotesArInsertedLength = 0;
+            const btn = document.getElementById('btnSttNotesAr');
+            const label = document.getElementById('sttNotesArLabel');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; btn.title = 'إملاء عربي – تحدث بالعربية للكتابة'; }
+            if (label) label.textContent = 'إملاء';
+        }
+
+        function _sttNotesArInsertText(editor, text) {
+            if (!text.trim()) return;
+            const curVal = editor.value;
+            const cursorPos = editor.selectionStart;
+            if (_sttNotesArInsertedLength === 0) {
+                let prefix = '';
+                if (curVal.trim().length > 0) {
+                    prefix = (cursorPos >= curVal.length) ? (curVal.endsWith('\n') ? '' : '\n') : ' ';
+                }
+                const ins = prefix + text;
+                editor.value = curVal.substring(0, cursorPos) + ins + curVal.substring(cursorPos);
+                const np = cursorPos + ins.length;
+                editor.setSelectionRange(np, np);
+                _sttNotesArInsertedLength = ins.length;
+            } else {
+                const ins = ' ' + text;
+                editor.value = curVal.substring(0, cursorPos) + ins + curVal.substring(cursorPos);
+                const np = cursorPos + ins.length;
+                editor.setSelectionRange(np, np);
+                _sttNotesArInsertedLength += ins.length;
+            }
+            editor.focus();
+            editor.scrollTop = editor.scrollHeight;
+        }
+        // ═══════ End STT Arabic – Project Prompts ═══════
+
+        // ═══════ RTL/LTR Toggle – Project Prompts ═══════
+        function toggleNotesDir() {
+            const ta = document.getElementById('projectNotesTextarea');
+            const label = document.getElementById('notesDirLabel');
+            const btn = document.getElementById('btnNotesDirToggle');
+            if (!ta) return;
+            const isRtl = ta.style.direction === 'rtl';
+            if (isRtl) {
+                ta.style.direction = 'ltr';
+                ta.style.textAlign = 'left';
+                ta.placeholder = 'Generated prompts will appear here. You can also add custom instructions...';
+                if (label) label.textContent = 'LTR';
+                if (btn) btn.classList.remove('rtl-active');
+            } else {
+                ta.style.direction = 'rtl';
+                ta.style.textAlign = 'right';
+                ta.placeholder = 'ستظهر الأوامر هنا. يمكنك أيضاً إضافة تعليمات مخصصة...';
+                if (label) label.textContent = 'RTL';
+                if (btn) btn.classList.add('rtl-active');
+            }
+        }
+        // ═══════ End RTL/LTR Toggle – Project Prompts ═══════
 
         // ============================================
         // FOLDER PICKER & PROMPT.TXT SYSTEM
