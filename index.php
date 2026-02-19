@@ -17275,12 +17275,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         /* Project Notes Section */
         .project-notes-section {
-            margin: 0.6rem 0;
+            margin: 0.6rem 0 0.85rem 0;
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(245, 158, 11, 0.03) 100%);
             border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 10px;
             overflow: hidden;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .project-notes-section:hover {
@@ -17847,6 +17848,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 0 0 12px 12px;
             gap: 6px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 15;
         }
         .notes-footer-voice-tools {
             display: flex;
@@ -17895,6 +17898,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 0 0 7px 7px;
             transition: width 0.3s ease;
             width: 0;
+        }
+        /* TTS Read (Arabic) */
+        .nf-btn-tts-ar {
+            background: rgba(168,85,247,0.08);
+            color: rgba(168,85,247,0.85);
+            border-color: rgba(168,85,247,0.18);
+        }
+        .nf-btn-tts-ar:hover {
+            background: rgba(168,85,247,0.16);
+            color: #a855f7;
+            border-color: rgba(168,85,247,0.35);
+            box-shadow: 0 0 8px rgba(168,85,247,0.15);
+        }
+        .nf-btn-tts-ar.speaking {
+            background: rgba(168,85,247,0.18);
+            color: #a855f7;
+            border-color: rgba(168,85,247,0.45);
+            animation: nfPulse 1.5s ease-in-out infinite;
+        }
+        .nf-btn-tts-ar .tts-progress-mini {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #a855f7, #c084fc);
+            border-radius: 0 0 7px 7px;
+            transition: width 0.3s ease;
+            width: 0;
+        }
+        .nf-btn-tts-ar .nf-ar-flag {
+            background: rgba(168,85,247,0.18);
+            color: #a855f7;
+        }
+        .nf-btn-tts-ar.speaking .nf-ar-flag {
+            background: rgba(168,85,247,0.3);
+            color: #c084fc;
         }
         /* STT Dictate (English) */
         .nf-btn-stt {
@@ -23437,6 +23475,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <button class="nf-btn nf-btn-tts" id="btnTtsNotes" onclick="ttsNotesToggle()" title="Read aloud (British Female Voice)">
                                             <i class="fas fa-volume-up"></i> <span id="ttsNotesLabel">Read</span>
                                             <div class="tts-progress-mini" id="ttsNotesProgress"></div>
+                                        </button>
+                                        <button class="nf-btn nf-btn-tts-ar" id="btnTtsNotesAr" onclick="ttsNotesArToggle()" title="قراءة بصوت عربي أنثوي">
+                                            <i class="fas fa-volume-up"></i> <span id="ttsNotesArLabel">اقرأ</span><span class="nf-ar-flag">AR</span>
+                                            <div class="tts-progress-mini" id="ttsNotesArProgress"></div>
                                         </button>
                                         <button class="nf-btn nf-btn-stt" id="btnSttNotes" onclick="sttNotesToggle()" title="Voice dictation – speak to type">
                                             <i class="fas fa-microphone"></i> <span id="sttNotesLabel">Dictate</span>
@@ -32502,6 +32544,146 @@ in each section carefully and maintain proper connections between components.
             if (progress) progress.style.width = '0';
         }
         // ═══════ End TTS – Project Prompts ═══════
+
+        // ═══════ TTS Arabic – Project Prompts (Google Translate Proxy) ═══════
+        let _ttsNotesArSpeaking = false;
+        let _ttsNotesArAudio = null;
+        let _ttsNotesArChunks = [];
+        let _ttsNotesArChunkIndex = 0;
+
+        function ttsNotesArToggle() {
+            if (_ttsNotesArSpeaking) { ttsNotesArStop(); return; }
+            const text = (document.getElementById('projectNotesTextarea') || {}).value || '';
+            if (!text.trim()) { showToast('Project Prompts is empty — nothing to read!', 'error'); return; }
+            // Stop English TTS if playing
+            if (_ttsNotesSpeaking) ttsNotesStop();
+            // Unlock autoplay inside user gesture
+            _ttsArUnlockAudio();
+            ttsNotesArSpeak(text);
+        }
+
+        function ttsNotesArSpeak(text) {
+            ttsNotesArStop();
+            const btn = document.getElementById('btnTtsNotesAr');
+            const label = document.getElementById('ttsNotesArLabel');
+            const progress = document.getElementById('ttsNotesArProgress');
+
+            _ttsNotesArChunks = _ttsArSplitText(text, 190);
+            _ttsNotesArChunkIndex = 0;
+            const totalChunks = _ttsNotesArChunks.length;
+
+            // UI → loading spinner
+            _ttsNotesArSpeaking = true;
+            if (btn) {
+                btn.classList.add('speaking');
+                btn.querySelector('i').className = 'fas fa-spinner fa-spin';
+                btn.title = 'جارٍ تحميل الصوت...';
+            }
+            if (label) label.textContent = 'تحميل...';
+
+            // Pre-fetch first chunk
+            const firstFetch = _ttsArFetchAudio(_ttsNotesArChunks[0]);
+
+            async function playNext(prefetchedUrl) {
+                if (!_ttsNotesArSpeaking || _ttsNotesArChunkIndex >= _ttsNotesArChunks.length) {
+                    _ttsNotesArReset();
+                    return;
+                }
+                try {
+                    const audioUrl = prefetchedUrl || await _ttsArFetchAudio(_ttsNotesArChunks[_ttsNotesArChunkIndex]);
+                    if (!_ttsNotesArSpeaking) { URL.revokeObjectURL(audioUrl); return; }
+
+                    // Switch UI from loading → playing (first chunk only)
+                    if (_ttsNotesArChunkIndex === 0 && btn) {
+                        btn.querySelector('i').className = 'fas fa-stop';
+                        btn.title = 'إيقاف القراءة العربية';
+                        if (label) label.textContent = 'إيقاف';
+                    }
+
+                    // Pre-fetch next chunk while current plays
+                    const nextIdx = _ttsNotesArChunkIndex + 1;
+                    let nextFetchPromise = null;
+                    if (nextIdx < _ttsNotesArChunks.length) {
+                        nextFetchPromise = _ttsArFetchAudio(_ttsNotesArChunks[nextIdx]);
+                    }
+
+                    _ttsNotesArAudio = new Audio(audioUrl);
+                    _ttsNotesArAudio.playbackRate = 1.0;
+
+                    _ttsNotesArAudio.onplay = () => {
+                        if (progress) progress.style.width = ((_ttsNotesArChunkIndex) / totalChunks * 100) + '%';
+                    };
+                    _ttsNotesArAudio.ontimeupdate = () => {
+                        if (_ttsNotesArAudio && _ttsNotesArAudio.duration && progress) {
+                            const chunkPct = _ttsNotesArAudio.currentTime / _ttsNotesArAudio.duration;
+                            const overallPct = ((_ttsNotesArChunkIndex + chunkPct) / totalChunks) * 100;
+                            progress.style.width = Math.min(overallPct, 99) + '%';
+                        }
+                    };
+                    _ttsNotesArAudio.onended = async () => {
+                        URL.revokeObjectURL(audioUrl);
+                        _ttsNotesArChunkIndex++;
+                        if (!_ttsNotesArSpeaking) return;
+                        const nextUrl = nextFetchPromise ? await nextFetchPromise.catch(() => null) : null;
+                        playNext(nextUrl);
+                    };
+                    _ttsNotesArAudio.onerror = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        showToast('خطأ في تشغيل الصوت العربي.', 'error');
+                        _ttsNotesArReset();
+                    };
+                    await _ttsNotesArAudio.play();
+                } catch (err) {
+                    console.warn('TTS-AR Notes error:', err);
+                    showToast('خطأ في تحميل الصوت العربي. تأكد من اتصالك بالإنترنت.', 'error');
+                    _ttsNotesArReset();
+                }
+            }
+
+            firstFetch.then(url => playNext(url)).catch(() => {
+                showToast('خطأ في تحميل الصوت العربي. تأكد من اتصالك بالإنترنت.', 'error');
+                _ttsNotesArReset();
+            });
+        }
+
+        function ttsNotesArStop() {
+            _ttsNotesArSpeaking = false;
+            if (_ttsNotesArAudio) {
+                _ttsNotesArAudio.onplay = null;
+                _ttsNotesArAudio.ontimeupdate = null;
+                _ttsNotesArAudio.onended = null;
+                _ttsNotesArAudio.onerror = null;
+                _ttsNotesArAudio.pause();
+                _ttsNotesArAudio.removeAttribute('src');
+                _ttsNotesArAudio.load();
+                _ttsNotesArAudio = null;
+            }
+            _ttsNotesArChunks = [];
+            _ttsNotesArChunkIndex = 0;
+            _ttsNotesArReset();
+        }
+
+        function _ttsNotesArReset() {
+            _ttsNotesArSpeaking = false;
+            if (_ttsNotesArAudio) {
+                _ttsNotesArAudio.onplay = null;
+                _ttsNotesArAudio.ontimeupdate = null;
+                _ttsNotesArAudio.onended = null;
+                _ttsNotesArAudio.onerror = null;
+                _ttsNotesArAudio = null;
+            }
+            const btn = document.getElementById('btnTtsNotesAr');
+            const label = document.getElementById('ttsNotesArLabel');
+            const progress = document.getElementById('ttsNotesArProgress');
+            if (btn) {
+                btn.classList.remove('speaking');
+                btn.querySelector('i').className = 'fas fa-volume-up';
+                btn.title = 'قراءة بصوت عربي أنثوي';
+            }
+            if (label) label.textContent = 'اقرأ';
+            if (progress) progress.style.width = '0';
+        }
+        // ═══════ End TTS Arabic – Project Prompts ═══════
 
         // Paste from clipboard
         async function pasteToEditor() {
