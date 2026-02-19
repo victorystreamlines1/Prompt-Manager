@@ -17348,6 +17348,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
 
+        /* STT Dictate Button – Project Prompts */
+        .notes-btn.stt-notes-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.18) 0%, rgba(5, 150, 105, 0.10) 100%);
+            border-color: rgba(52, 211, 153, 0.35);
+            color: #6ee7b7;
+            font-size: 0.7rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .notes-btn.stt-notes-btn:hover {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.3) 0%, rgba(5, 150, 105, 0.18) 100%);
+            border-color: rgba(52, 211, 153, 0.55);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.25);
+            color: #a7f3d0;
+        }
+        .notes-btn.stt-notes-btn.listening {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.3) 0%, rgba(220, 38, 38, 0.18) 100%);
+            border-color: rgba(248, 113, 113, 0.6);
+            animation: sttPulseNotes 1s ease-in-out infinite;
+            color: #fca5a5;
+        }
+        .notes-btn.stt-notes-btn.listening i {
+            animation: sttBlink 0.7s ease-in-out infinite alternate;
+        }
+        @keyframes sttPulseNotes {
+            0%, 100% { box-shadow: 0 0 5px rgba(248, 113, 113, 0.2); }
+            50% { box-shadow: 0 0 12px rgba(248, 113, 113, 0.4); }
+        }
+        .notes-btn.stt-notes-btn .stt-dot-mini {
+            display: none;
+            width: 5px; height: 5px;
+            background: #fca5a5;
+            border-radius: 50%;
+            animation: sttDotPulse 0.8s ease-in-out infinite;
+        }
+        .notes-btn.stt-notes-btn.listening .stt-dot-mini { display: inline-block; }
+        .notes-btn.stt-notes-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
+        }
+
         .notes-btn.clear-notes-btn {
             width: auto;
             padding: 0 0.5rem;
@@ -22851,6 +22896,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="fas fa-volume-up"></i>
                                         <span id="ttsNotesLabel">Read</span>
                                         <div class="tts-progress-mini" id="ttsNotesProgress"></div>
+                                    </button>
+                                    <button type="button" class="notes-btn stt-notes-btn" id="btnSttNotes" onclick="sttNotesToggle()" title="Voice dictation – speak to type">
+                                        <i class="fas fa-microphone"></i>
+                                        <span id="sttNotesLabel">Dictate</span>
+                                        <span class="stt-dot-mini"></span>
                                     </button>
                                     <button type="button" class="notes-btn clear-notes-btn" onclick="clearProjectNotes()" title="Clear Notes">
                                         <i class="fas fa-times"></i>
@@ -31879,6 +31929,162 @@ in each section carefully and maintain proper connections between components.
             _origSttReset();
         };
         // ═══════ End STT Voice Recognizer ═══════
+
+        // ═══════ STT Voice Recognizer – Project Prompts ═══════
+        let _sttNotesRecognition = null;
+        let _sttNotesListening = false;
+        let _sttNotesFinalTranscript = '';
+        let _sttNotesInterimTimeout = null;
+        let _sttNotesInsertedLength = 0;
+
+        function sttNotesToggle() {
+            if (_sttNotesListening) { sttNotesStop(); return; }
+            sttNotesStart();
+        }
+
+        function sttNotesStart() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('Speech recognition is not supported in this browser. Please use Chrome or Edge.', 'error');
+                return;
+            }
+
+            // Stop any active TTS on notes to avoid feedback
+            if (typeof ttsNotesStop === 'function' && typeof _ttsNotesSpeaking !== 'undefined' && _ttsNotesSpeaking) ttsNotesStop();
+            // Also stop main editor STT if running
+            if (_sttListening) sttStop();
+
+            _sttNotesRecognition = new SpeechRecognition();
+            _sttNotesRecognition.lang = 'en-US';
+            _sttNotesRecognition.continuous = true;
+            _sttNotesRecognition.interimResults = true;
+            _sttNotesRecognition.maxAlternatives = 1;
+
+            _sttNotesFinalTranscript = '';
+            _sttNotesInsertedLength = 0;
+
+            _sttNotesRecognition.onstart = () => {
+                _sttNotesListening = true;
+                const btn = document.getElementById('btnSttNotes');
+                const label = document.getElementById('sttNotesLabel');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; btn.title = 'Stop dictation'; }
+                if (label) label.textContent = 'Stop';
+                showToast('🎤 Listening… Speak into Project Prompts!', 'success');
+            };
+
+            _sttNotesRecognition.onresult = (event) => {
+                const editor = document.getElementById('projectNotesTextarea');
+                if (!editor) return;
+
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        let finalText = transcript.trim();
+                        if (_sttNotesFinalTranscript === '' || /[.!?]\s*$/.test(_sttNotesFinalTranscript)) {
+                            finalText = finalText.charAt(0).toUpperCase() + finalText.slice(1);
+                        }
+                        if (_sttNotesFinalTranscript.length > 0 && !/\s$/.test(_sttNotesFinalTranscript)) {
+                            _sttNotesFinalTranscript += ' ';
+                        }
+                        _sttNotesFinalTranscript += finalText;
+
+                        _sttNotesInsertText(editor, finalText, true);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (_sttNotesInterimTimeout) clearTimeout(_sttNotesInterimTimeout);
+                _sttNotesInterimTimeout = setTimeout(() => {}, 8000);
+            };
+
+            _sttNotesRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showToast('No speech detected. Try again.', 'error');
+                } else if (event.error === 'audio-capture') {
+                    showToast('No microphone found. Please check your mic.', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied. Please allow mic access in browser settings.', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('Speech recognition error: ' + event.error, 'error');
+                }
+                sttNotesReset();
+            };
+
+            _sttNotesRecognition.onend = () => {
+                if (_sttNotesListening) {
+                    try { _sttNotesRecognition.start(); } catch (e) { sttNotesReset(); }
+                } else {
+                    sttNotesReset();
+                }
+            };
+
+            try {
+                _sttNotesRecognition.start();
+            } catch (e) {
+                showToast('Could not start speech recognition: ' + e.message, 'error');
+                sttNotesReset();
+            }
+        }
+
+        function sttNotesStop() {
+            _sttNotesListening = false;
+            if (_sttNotesRecognition) {
+                try { _sttNotesRecognition.stop(); } catch (e) {}
+            }
+            if (_sttNotesInterimTimeout) { clearTimeout(_sttNotesInterimTimeout); _sttNotesInterimTimeout = null; }
+            if (_sttNotesFinalTranscript.trim()) {
+                saveProjectNotesToStorage();
+                showToast('✅ Dictation saved to Project Prompts! (' + _sttNotesFinalTranscript.trim().split(/\s+/).length + ' words)', 'success');
+            } else {
+                showToast('Dictation stopped.', 'info');
+            }
+            _sttNotesFinalTranscript = '';
+            _sttNotesInsertedLength = 0;
+            sttNotesReset();
+        }
+
+        function sttNotesReset() {
+            _sttNotesListening = false;
+            _sttNotesInsertedLength = 0;
+            const btn = document.getElementById('btnSttNotes');
+            const label = document.getElementById('sttNotesLabel');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; btn.title = 'Voice dictation – speak to type'; }
+            if (label) label.textContent = 'Dictate';
+        }
+
+        function _sttNotesInsertText(editor, text, isFinal) {
+            if (!text.trim()) return;
+            const curVal = editor.value;
+            const cursorPos = editor.selectionStart;
+
+            if (_sttNotesInsertedLength === 0) {
+                let prefix = '';
+                if (curVal.trim().length > 0) {
+                    if (cursorPos >= curVal.length) {
+                        prefix = curVal.endsWith('\n') ? '' : '\n';
+                    } else {
+                        prefix = ' ';
+                    }
+                }
+                const insertText = prefix + text;
+                editor.value = curVal.substring(0, cursorPos) + insertText + curVal.substring(cursorPos);
+                const newPos = cursorPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttNotesInsertedLength = insertText.length;
+            } else {
+                const insertPos = cursorPos;
+                const insertText = ' ' + text;
+                editor.value = curVal.substring(0, insertPos) + insertText + curVal.substring(insertPos);
+                const newPos = insertPos + insertText.length;
+                editor.setSelectionRange(newPos, newPos);
+                _sttNotesInsertedLength += insertText.length;
+            }
+            editor.focus();
+            editor.scrollTop = editor.scrollHeight;
+        }
+        // ═══════ End STT – Project Prompts ═══════
 
         // ============================================
         // FOLDER PICKER & PROMPT.TXT SYSTEM
