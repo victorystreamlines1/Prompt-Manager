@@ -3657,12 +3657,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(6, 182, 212, 0.4);
             outline: none;
         }
-        .tdt-col-check {
-            display: flex; align-items: center; justify-content: center;
+        .tdt-col-props {
+            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+            padding: 2px 0;
         }
-        .tdt-col-check input[type="checkbox"] {
-            width: 15px; height: 15px; cursor: pointer;
-            accent-color: #06b6d4;
+        .tdt-col-chip {
+            display: inline-flex; align-items: center; gap: 2px;
+            padding: 2px 7px; border-radius: 6px;
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.3px;
+            cursor: pointer; user-select: none;
+            border: 1.5px solid transparent;
+            transition: all 0.2s ease;
+            opacity: 0.35;
+        }
+        .tdt-col-chip:hover { opacity: 0.7; }
+        .tdt-col-chip.active { opacity: 1; }
+        .tdt-col-chip input { display: none; }
+
+        .tdt-col-chip[data-prop="nullable"] {
+            color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.05);
+        }
+        .tdt-col-chip[data-prop="nullable"].active {
+            background: rgba(167,139,250,0.18); border-color: rgba(167,139,250,0.6);
+            box-shadow: 0 0 8px rgba(167,139,250,0.2);
+        }
+        .tdt-col-chip[data-prop="pk"] {
+            color: #f59e0b; border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05);
+        }
+        .tdt-col-chip[data-prop="pk"].active {
+            background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.6);
+            box-shadow: 0 0 8px rgba(245,158,11,0.2);
+        }
+        .tdt-col-chip[data-prop="ai"] {
+            color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05);
+        }
+        .tdt-col-chip[data-prop="ai"].active {
+            background: rgba(16,185,129,0.18); border-color: rgba(16,185,129,0.6);
+            box-shadow: 0 0 8px rgba(16,185,129,0.2);
+        }
+        .tdt-col-chip[data-prop="unique"] {
+            color: #06b6d4; border-color: rgba(6,182,212,0.3); background: rgba(6,182,212,0.05);
+        }
+        .tdt-col-chip[data-prop="unique"].active {
+            background: rgba(6,182,212,0.18); border-color: rgba(6,182,212,0.6);
+            box-shadow: 0 0 8px rgba(6,182,212,0.2);
+        }
+        .tdt-col-chip[data-prop="index"] {
+            color: #f472b6; border-color: rgba(244,114,182,0.3); background: rgba(244,114,182,0.05);
+        }
+        .tdt-col-chip[data-prop="index"].active {
+            background: rgba(244,114,182,0.18); border-color: rgba(244,114,182,0.6);
+            box-shadow: 0 0 8px rgba(244,114,182,0.2);
         }
         .tdt-col-remove {
             width: 24px; height: 24px; border-radius: 6px;
@@ -53323,7 +53368,7 @@ function tdtRenderColumns() {
     const tbody = document.getElementById('tdtColumnsBody');
     document.getElementById('tdtColCount').textContent = `(${tdtColumns.length})`;
     if (tdtColumns.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.75rem;"><i class="fas fa-info-circle"></i> No columns yet. Click "Add Column" or use Quick Add above.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.75rem;"><i class="fas fa-info-circle"></i> No columns yet. Click "Add Column" or use Quick Add above.</td></tr>';
         return;
     }
     tbody.innerHTML = tdtColumns.map(col => `
@@ -53332,11 +53377,15 @@ function tdtRenderColumns() {
             <td><div style="position:relative;"><input type="text" class="tdt-col-input" value="${_tdtEsc(col.type)}" placeholder="VARCHAR" onkeyup="tdtTypeAutocomplete(this, ${col._id})" onfocus="tdtTypeAutocomplete(this, ${col._id})" onblur="setTimeout(()=>tdtHideAutocomplete(),200)" onchange="tdtUpdateCol(${col._id},'type',this.value)" autocomplete="off"></div></td>
             <td><input type="text" class="tdt-col-input" value="${_tdtEsc(col.length)}" placeholder="255" onchange="tdtUpdateCol(${col._id},'length',this.value)"></td>
             <td><input type="text" class="tdt-col-input" value="${_tdtEsc(col.defaultVal)}" placeholder="NULL" onchange="tdtUpdateCol(${col._id},'defaultVal',this.value)"></td>
-            <td class="tdt-col-check"><input type="checkbox" ${col.nullable ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'nullable',this.checked)" title="Nullable"></td>
-            <td class="tdt-col-check"><input type="checkbox" ${col.pk ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'pk',this.checked)" title="Primary Key"></td>
-            <td class="tdt-col-check"><input type="checkbox" ${col.ai ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'ai',this.checked)" title="Auto Increment"></td>
-            <td class="tdt-col-check"><input type="checkbox" ${col.unique ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'unique',this.checked)" title="Unique"></td>
-            <td class="tdt-col-check"><input type="checkbox" ${col.index ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'index',this.checked)" title="Index"></td>
+            <td>
+                <div class="tdt-col-props">
+                    <span class="tdt-col-chip ${col.nullable ? 'active' : ''}" data-prop="nullable" title="Nullable — Allow NULL values" onclick="tdtToggleChip(${col._id},'nullable',this)"><i class="fas fa-circle-dot" style="font-size:0.5rem;"></i> NULL</span>
+                    <span class="tdt-col-chip ${col.pk ? 'active' : ''}" data-prop="pk" title="Primary Key" onclick="tdtToggleChip(${col._id},'pk',this)"><i class="fas fa-key" style="font-size:0.5rem;"></i> PK</span>
+                    <span class="tdt-col-chip ${col.ai ? 'active' : ''}" data-prop="ai" title="Auto Increment" onclick="tdtToggleChip(${col._id},'ai',this)"><i class="fas fa-arrow-up-1-9" style="font-size:0.5rem;"></i> AI</span>
+                    <span class="tdt-col-chip ${col.unique ? 'active' : ''}" data-prop="unique" title="Unique Constraint" onclick="tdtToggleChip(${col._id},'unique',this)"><i class="fas fa-fingerprint" style="font-size:0.5rem;"></i> UQ</span>
+                    <span class="tdt-col-chip ${col.index ? 'active' : ''}" data-prop="index" title="Add Index" onclick="tdtToggleChip(${col._id},'index',this)"><i class="fas fa-bolt" style="font-size:0.5rem;"></i> IDX</span>
+                </div>
+            </td>
             <td><button class="tdt-col-remove" onclick="tdtRemoveColumn(${col._id})" title="Remove"><i class="fas fa-times"></i></button></td>
         </tr>
     `).join('');
@@ -53350,6 +53399,13 @@ function _tdtEsc(str) {
 function tdtUpdateCol(id, field, value) {
     const col = tdtColumns.find(c => c._id === id);
     if (col) col[field] = value;
+}
+
+function tdtToggleChip(colId, prop, chipEl) {
+    const col = tdtColumns.find(c => c._id === colId);
+    if (!col) return;
+    col[prop] = !col[prop];
+    chipEl.classList.toggle('active', col[prop]);
 }
 
 // ── Autocomplete for field names ──
@@ -53886,15 +53942,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <table class="tdt-columns-table">
                     <thead>
                         <tr>
-                            <th style="width:22%;">Name</th>
-                            <th style="width:18%;">Type</th>
-                            <th style="width:10%;">Length</th>
-                            <th style="width:14%;">Default</th>
-                            <th style="width:5%;" title="Nullable">Null</th>
-                            <th style="width:5%;" title="Primary Key">PK</th>
-                            <th style="width:5%;" title="Auto Increment">AI</th>
-                            <th style="width:5%;" title="Unique">UQ</th>
-                            <th style="width:5%;" title="Index">IDX</th>
+                            <th style="width:18%;">Name</th>
+                            <th style="width:14%;">Type</th>
+                            <th style="width:8%;">Length</th>
+                            <th style="width:12%;">Default</th>
+                            <th style="width:44%;">Properties</th>
                             <th style="width:4%;"></th>
                         </tr>
                     </thead>
