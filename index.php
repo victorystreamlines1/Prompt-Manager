@@ -3375,6 +3375,427 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.68rem; cursor: pointer;
         }
 
+        /* ═══════ Static Template: Table Designer (TDT) ═══════ */
+        .tdt-container {
+            margin-bottom: 0.75rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.06), rgba(8, 145, 178, 0.03));
+            border: 1.5px solid rgba(6, 182, 212, 0.25);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tdt-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #06b6d4, #0891b2, #0e7490, #0891b2, #06b6d4);
+            background-size: 200% 100%;
+            animation: tdtShimmer 3s linear infinite;
+        }
+        @keyframes tdtShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .tdt-container:hover {
+            border-color: rgba(6, 182, 212, 0.45);
+            box-shadow: 0 2px 12px rgba(6, 182, 212, 0.1);
+        }
+        .tdt-container.checked {
+            border-color: rgba(6, 182, 212, 0.6);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(8, 145, 178, 0.06));
+            box-shadow: 0 2px 16px rgba(6, 182, 212, 0.15);
+        }
+        .tdt-main-row {
+            display: flex;
+            align-items: center;
+            padding: 0.7rem 0.75rem;
+            gap: 0.5rem;
+        }
+        .tdt-checkbox {
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .tdt-checkbox input { display: none; }
+        .tdt-checkbox .checkbox-box {
+            width: 22px; height: 22px;
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .tdt-checkbox .checkbox-box i {
+            font-size: 0.7rem; color: white;
+            opacity: 0; transform: scale(0);
+            transition: all 0.2s;
+        }
+        .tdt-container.checked .tdt-checkbox .checkbox-box {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            border-color: #06b6d4;
+        }
+        .tdt-container.checked .tdt-checkbox .checkbox-box i {
+            opacity: 1; transform: scale(1);
+        }
+        .tdt-content {
+            flex: 1; min-width: 0;
+            cursor: pointer;
+        }
+        .tdt-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.6rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: #06b6d4;
+            background: rgba(6, 182, 212, 0.12);
+            padding: 1px 7px; border-radius: 4px;
+            margin-bottom: 3px;
+        }
+        .tdt-name {
+            font-size: 0.85rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .tdt-preview {
+            font-size: 0.7rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        .tdt-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.6; transition: opacity 0.2s;
+        }
+        .tdt-container:hover .tdt-actions { opacity: 1; }
+        .tdt-action-btn {
+            width: 28px; height: 28px;
+            border-radius: 6px; border: none;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.72rem;
+        }
+        .tdt-action-btn.design:hover {
+            background: rgba(6, 182, 212, 0.25); color: #06b6d4;
+            transform: scale(1.1);
+        }
+        .tdt-action-btn.copy:hover {
+            background: rgba(16, 185, 129, 0.2); color: var(--success);
+            transform: scale(1.1);
+        }
+        .tdt-saved-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.55rem; font-weight: 600;
+            color: #10b981; background: rgba(16, 185, 129, 0.1);
+            padding: 1px 6px; border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        /* Table Designer Modal */
+        .tdt-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+            animation: tdtFadeIn 0.25s ease;
+        }
+        .tdt-modal-overlay.active { display: flex; }
+        @keyframes tdtFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .tdt-modal {
+            background: var(--bg-primary);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 16px;
+            width: 720px; max-width: 95vw;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(6, 182, 212, 0.08);
+            animation: tdtSlideUp 0.3s ease;
+        }
+        @keyframes tdtSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tdt-modal-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.15);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(8, 145, 178, 0.04));
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .tdt-modal-header h3 {
+            margin: 0; font-size: 1rem; font-weight: 700;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tdt-modal-header h3 i { color: #06b6d4; }
+        .tdt-modal-close {
+            width: 32px; height: 32px; border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .tdt-modal-close:hover {
+            background: rgba(239, 68, 68, 0.15); color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .tdt-modal-body {
+            padding: 1rem 1.25rem;
+            overflow-y: auto; flex: 1;
+        }
+        .tdt-modal-footer {
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: var(--bg-secondary);
+        }
+        /* Table info section */
+        .tdt-info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.6rem; margin-bottom: 1rem;
+        }
+        .tdt-info-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+        .tdt-field-group {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .tdt-field-group.full-width { grid-column: 1 / -1; }
+        .tdt-field-label {
+            font-size: 0.7rem; font-weight: 600;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .tdt-field-label i { color: #06b6d4; font-size: 0.65rem; }
+        .tdt-input, .tdt-select {
+            padding: 7px 10px; border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.78rem; font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+        .tdt-input:focus, .tdt-select:focus {
+            outline: none;
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+        .tdt-input::placeholder { color: var(--text-muted); font-style: italic; }
+        /* Columns section */
+        .tdt-columns-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .tdt-columns-title {
+            font-size: 0.8rem; font-weight: 700; color: var(--text-primary);
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tdt-columns-title i { color: #06b6d4; }
+        .tdt-add-col-btn {
+            padding: 5px 12px; border-radius: 8px;
+            border: 1px dashed rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.06);
+            color: #06b6d4; cursor: pointer;
+            font-size: 0.72rem; font-weight: 600;
+            display: flex; align-items: center; gap: 4px;
+            transition: all 0.2s;
+        }
+        .tdt-add-col-btn:hover {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: #06b6d4;
+            transform: translateY(-1px);
+        }
+        .tdt-columns-table {
+            width: 100%; border-collapse: separate;
+            border-spacing: 0; border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 0.75rem;
+        }
+        .tdt-columns-table thead th {
+            padding: 6px 8px; font-size: 0.62rem;
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: #06b6d4;
+            background: rgba(6, 182, 212, 0.06);
+            border-bottom: 1px solid var(--border-color);
+            text-align: left; white-space: nowrap;
+        }
+        .tdt-columns-table tbody tr {
+            transition: background 0.15s;
+        }
+        .tdt-columns-table tbody tr:hover {
+            background: rgba(6, 182, 212, 0.03);
+        }
+        .tdt-columns-table tbody td {
+            padding: 4px 4px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            vertical-align: middle;
+        }
+        .tdt-columns-table tbody tr:last-child td { border-bottom: none; }
+        .tdt-col-input {
+            width: 100%; padding: 5px 7px; border-radius: 6px;
+            border: 1px solid transparent;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+        }
+        .tdt-col-input:focus {
+            border-color: rgba(6, 182, 212, 0.4);
+            background: var(--bg-primary);
+            outline: none;
+        }
+        .tdt-col-select {
+            width: 100%; padding: 5px 4px; border-radius: 6px;
+            border: 1px solid transparent;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.7rem; cursor: pointer; transition: all 0.2s;
+        }
+        .tdt-col-select:focus {
+            border-color: rgba(6, 182, 212, 0.4);
+            outline: none;
+        }
+        .tdt-col-check {
+            display: flex; align-items: center; justify-content: center;
+        }
+        .tdt-col-check input[type="checkbox"] {
+            width: 15px; height: 15px; cursor: pointer;
+            accent-color: #06b6d4;
+        }
+        .tdt-col-remove {
+            width: 24px; height: 24px; border-radius: 6px;
+            border: none; background: transparent;
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; transition: all 0.2s;
+        }
+        .tdt-col-remove:hover {
+            background: rgba(239, 68, 68, 0.15); color: var(--danger);
+        }
+        /* Quick options */
+        .tdt-quick-options {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            margin-bottom: 0.75rem;
+        }
+        .tdt-quick-opt {
+            padding: 4px 10px; border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.68rem; cursor: pointer;
+            transition: all 0.2s; display: flex;
+            align-items: center; gap: 4px;
+        }
+        .tdt-quick-opt:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #06b6d4;
+        }
+        .tdt-quick-opt.active {
+            background: rgba(6, 182, 212, 0.12);
+            border-color: rgba(6, 182, 212, 0.5);
+            color: #06b6d4;
+        }
+        .tdt-quick-opt i { font-size: 0.6rem; }
+        /* Saved tables list */
+        .tdt-saved-list {
+            margin-top: 0.5rem;
+        }
+        .tdt-saved-item {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 8px; border-radius: 6px;
+            background: rgba(6, 182, 212, 0.04);
+            border: 1px solid rgba(6, 182, 212, 0.1);
+            margin-bottom: 4px; font-size: 0.72rem;
+            transition: all 0.2s;
+        }
+        .tdt-saved-item:hover {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: rgba(6, 182, 212, 0.25);
+        }
+        .tdt-saved-item-name {
+            flex: 1; font-weight: 600; color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tdt-saved-item-cols {
+            font-size: 0.62rem; color: var(--text-muted);
+        }
+        .tdt-saved-item-actions {
+            display: flex; gap: 3px;
+        }
+        .tdt-saved-item-btn {
+            width: 22px; height: 22px; border-radius: 4px;
+            border: none; background: transparent;
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; transition: all 0.2s;
+        }
+        .tdt-saved-item-btn.edit:hover { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+        .tdt-saved-item-btn.delete:hover { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        /* Modal buttons */
+        .tdt-btn {
+            padding: 7px 16px; border-radius: 8px;
+            border: none; cursor: pointer;
+            font-size: 0.75rem; font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .tdt-btn-primary {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+        }
+        .tdt-btn-primary:hover {
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            transform: translateY(-1px);
+        }
+        .tdt-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .tdt-btn-secondary:hover { background: var(--bg-card); }
+        .tdt-btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .tdt-btn-danger:hover { background: rgba(239, 68, 68, 0.2); }
+        /* Autocomplete dropdown */
+        .tdt-autocomplete {
+            position: absolute;
+            background: var(--bg-primary);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 10001;
+            max-height: 180px; overflow-y: auto;
+            display: none; min-width: 160px;
+        }
+        .tdt-autocomplete.show { display: block; }
+        .tdt-ac-item {
+            padding: 6px 10px; font-size: 0.72rem;
+            cursor: pointer; transition: background 0.15s;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .tdt-ac-item:hover, .tdt-ac-item.active {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+        }
+        .tdt-ac-item:first-child { border-radius: 8px 8px 0 0; }
+        .tdt-ac-item:last-child { border-radius: 0 0 8px 8px; }
+        .tdt-ac-hint {
+            font-size: 0.58rem; color: var(--text-muted);
+            font-family: inherit; font-style: italic;
+        }
+        /* Section divider */
+        .tdt-section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
+            margin: 0.75rem 0;
+        }
+
         /* Template Modal */
         .template-modal-overlay {
             position: fixed;
@@ -21824,6 +22245,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
+                <!-- Table Designer Static Template -->
+                <div class="tdt-container" id="tdtContainer">
+                    <div class="tdt-main-row">
+                        <div class="tdt-checkbox" onclick="tdtToggle()">
+                            <input type="checkbox" id="tdtCheckbox">
+                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="tdt-content" onclick="tdtOpenModal()">
+                            <div class="tdt-badge"><i class="fas fa-database"></i> SQL Table</div>
+                            <div class="tdt-name">Table Designer <span class="tdt-saved-badge" id="tdtSavedBadge" style="display:none;"><i class="fas fa-table"></i> <span id="tdtSavedCount">0</span> tables</span></div>
+                            <div class="tdt-preview" id="tdtPreview">Design database tables and generate creation prompts</div>
+                        </div>
+                        <div class="tdt-actions">
+                            <button class="tdt-action-btn design" onclick="tdtOpenModal()" title="Design Tables">
+                                <i class="fas fa-drafting-compass"></i>
+                            </button>
+                            <button class="tdt-action-btn copy" onclick="tdtCopyPrompt()" title="Copy Prompt">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="prompt-list" id="promptList">
                     <!-- Prompts will be generated here -->
                 </div>
@@ -30016,8 +30460,8 @@ in each section carefully and maintain proper connections between components.
         // Update prompt counter (includes static template)
         function updatePromptCounter() {
             const counter = document.getElementById('promptCounter');
-            const total = promptTemplates.length + 1; // +1 for static "Read the Application"
-            const selected = activePrompts.size + (sptActive ? 1 : 0);
+            const total = promptTemplates.length + 2; // +2 for static "Read the Application" + "Table Designer"
+            const selected = activePrompts.size + (sptActive ? 1 : 0) + (typeof tdtActive !== 'undefined' && tdtActive ? 1 : 0);
             counter.textContent = `${selected}/${total}`;
             
             // Change color based on selection
@@ -30763,6 +31207,17 @@ in each section carefully and maintain proper connections between components.
             sptActive = false;
             const sptEl = document.getElementById('sptContainer');
             if (sptEl) sptEl.classList.remove('checked');
+            
+            // Reset static template (Table Designer)
+            if (typeof tdtActive !== 'undefined') {
+                tdtActive = false;
+                const tdtEl = document.getElementById('tdtContainer');
+                if (tdtEl) tdtEl.classList.remove('checked');
+                const tdtCb = document.getElementById('tdtCheckbox');
+                if (tdtCb) tdtCb.checked = false;
+                localStorage.setItem(TDT_ACTIVE_KEY, '0');
+                if (typeof tdtRemoveFromEditor === 'function') tdtRemoveFromEditor();
+            }
             
             updateCounts();
             updatePromptCounter();
@@ -52730,6 +53185,749 @@ function toggleTheme() {
     });
 })();
 </script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// TABLE DESIGNER TEMPLATE (TDT)
+// ═══════════════════════════════════════════════════════════════
+
+let tdtActive = false;
+let tdtSavedTables = []; // [{id, name, engine, charset, collation, comment, columns:[...]}]
+let tdtEditingId = null;
+let tdtColumns = [];    // current form columns
+let tdtColIdCounter = 0;
+const TDT_MARKER_START = '<!-- TDT:TABLE_DESIGNER -->';
+const TDT_MARKER_END = '<!-- /TDT:TABLE_DESIGNER -->';
+const TDT_STORAGE_KEY = 'tdt_saved_tables';
+const TDT_ACTIVE_KEY = 'tdt_active';
+
+// ── SQL Data Types with smart hints ──
+const TDT_DATA_TYPES = [
+    { value: 'INT', hint: 'Whole numbers', category: 'Numeric' },
+    { value: 'BIGINT', hint: 'Large integers', category: 'Numeric' },
+    { value: 'SMALLINT', hint: 'Small integers', category: 'Numeric' },
+    { value: 'TINYINT', hint: 'Tiny integers / boolean', category: 'Numeric' },
+    { value: 'MEDIUMINT', hint: 'Medium integers', category: 'Numeric' },
+    { value: 'DECIMAL', hint: 'Exact decimal (money)', category: 'Numeric' },
+    { value: 'FLOAT', hint: 'Approximate decimal', category: 'Numeric' },
+    { value: 'DOUBLE', hint: 'Large approximate decimal', category: 'Numeric' },
+    { value: 'VARCHAR', hint: 'Variable-length string', category: 'String' },
+    { value: 'CHAR', hint: 'Fixed-length string', category: 'String' },
+    { value: 'TEXT', hint: 'Long text', category: 'String' },
+    { value: 'MEDIUMTEXT', hint: 'Medium text (~16MB)', category: 'String' },
+    { value: 'LONGTEXT', hint: 'Very long text (~4GB)', category: 'String' },
+    { value: 'TINYTEXT', hint: 'Tiny text (~255)', category: 'String' },
+    { value: 'ENUM', hint: 'Predefined values', category: 'String' },
+    { value: 'SET', hint: 'Multiple predefined values', category: 'String' },
+    { value: 'JSON', hint: 'JSON data', category: 'String' },
+    { value: 'DATE', hint: 'YYYY-MM-DD', category: 'Date/Time' },
+    { value: 'DATETIME', hint: 'YYYY-MM-DD HH:MM:SS', category: 'Date/Time' },
+    { value: 'TIMESTAMP', hint: 'Auto-updating datetime', category: 'Date/Time' },
+    { value: 'TIME', hint: 'HH:MM:SS', category: 'Date/Time' },
+    { value: 'YEAR', hint: 'Year value', category: 'Date/Time' },
+    { value: 'BOOLEAN', hint: 'True/False (TINYINT(1))', category: 'Other' },
+    { value: 'BLOB', hint: 'Binary large object', category: 'Other' },
+    { value: 'UUID', hint: 'CHAR(36) UUID', category: 'Other' },
+];
+
+// ── Smart field name suggestions ──
+const TDT_FIELD_SUGGESTIONS = [
+    { name: 'id', type: 'BIGINT', length: '', pk: true, ai: true, nullable: false, hint: 'Primary key' },
+    { name: 'uuid', type: 'CHAR', length: '36', pk: false, ai: false, nullable: false, hint: 'UUID identifier' },
+    { name: 'name', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: false, hint: 'Name field' },
+    { name: 'title', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: false, hint: 'Title' },
+    { name: 'slug', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: false, unique: true, hint: 'URL slug' },
+    { name: 'email', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: false, unique: true, hint: 'Email address' },
+    { name: 'password', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: false, hint: 'Hashed password' },
+    { name: 'phone', type: 'VARCHAR', length: '20', pk: false, ai: false, nullable: true, hint: 'Phone number' },
+    { name: 'description', type: 'TEXT', length: '', pk: false, ai: false, nullable: true, hint: 'Description' },
+    { name: 'content', type: 'LONGTEXT', length: '', pk: false, ai: false, nullable: true, hint: 'Content body' },
+    { name: 'body', type: 'TEXT', length: '', pk: false, ai: false, nullable: true, hint: 'Body text' },
+    { name: 'status', type: 'ENUM', length: "'active','inactive','pending'", pk: false, ai: false, nullable: false, defaultVal: 'active', hint: 'Status field' },
+    { name: 'type', type: 'VARCHAR', length: '50', pk: false, ai: false, nullable: true, hint: 'Type classifier' },
+    { name: 'role', type: 'ENUM', length: "'admin','user','editor'", pk: false, ai: false, nullable: false, defaultVal: 'user', hint: 'User role' },
+    { name: 'price', type: 'DECIMAL', length: '10,2', pk: false, ai: false, nullable: false, defaultVal: '0.00', hint: 'Price / money' },
+    { name: 'quantity', type: 'INT', length: '', pk: false, ai: false, nullable: false, defaultVal: '0', hint: 'Quantity' },
+    { name: 'amount', type: 'DECIMAL', length: '12,2', pk: false, ai: false, nullable: false, hint: 'Amount' },
+    { name: 'image', type: 'VARCHAR', length: '500', pk: false, ai: false, nullable: true, hint: 'Image URL/path' },
+    { name: 'avatar', type: 'VARCHAR', length: '500', pk: false, ai: false, nullable: true, hint: 'Avatar URL' },
+    { name: 'url', type: 'VARCHAR', length: '2048', pk: false, ai: false, nullable: true, hint: 'URL' },
+    { name: 'is_active', type: 'BOOLEAN', length: '', pk: false, ai: false, nullable: false, defaultVal: '1', hint: 'Active flag' },
+    { name: 'is_featured', type: 'BOOLEAN', length: '', pk: false, ai: false, nullable: false, defaultVal: '0', hint: 'Featured flag' },
+    { name: 'is_published', type: 'BOOLEAN', length: '', pk: false, ai: false, nullable: false, defaultVal: '0', hint: 'Published flag' },
+    { name: 'sort_order', type: 'INT', length: '', pk: false, ai: false, nullable: false, defaultVal: '0', hint: 'Sort position' },
+    { name: 'views', type: 'INT', length: '', pk: false, ai: false, nullable: false, defaultVal: '0', hint: 'View counter' },
+    { name: 'rating', type: 'DECIMAL', length: '3,2', pk: false, ai: false, nullable: true, hint: 'Rating score' },
+    { name: 'notes', type: 'TEXT', length: '', pk: false, ai: false, nullable: true, hint: 'Notes / memo' },
+    { name: 'metadata', type: 'JSON', length: '', pk: false, ai: false, nullable: true, hint: 'JSON metadata' },
+    { name: 'settings', type: 'JSON', length: '', pk: false, ai: false, nullable: true, hint: 'JSON settings' },
+    { name: 'address', type: 'TEXT', length: '', pk: false, ai: false, nullable: true, hint: 'Address' },
+    { name: 'city', type: 'VARCHAR', length: '100', pk: false, ai: false, nullable: true, hint: 'City name' },
+    { name: 'country', type: 'VARCHAR', length: '100', pk: false, ai: false, nullable: true, hint: 'Country' },
+    { name: 'zip_code', type: 'VARCHAR', length: '20', pk: false, ai: false, nullable: true, hint: 'Zip / postal code' },
+    { name: 'latitude', type: 'DECIMAL', length: '10,8', pk: false, ai: false, nullable: true, hint: 'Latitude' },
+    { name: 'longitude', type: 'DECIMAL', length: '11,8', pk: false, ai: false, nullable: true, hint: 'Longitude' },
+    { name: 'ip_address', type: 'VARCHAR', length: '45', pk: false, ai: false, nullable: true, hint: 'IP address' },
+    { name: 'user_agent', type: 'VARCHAR', length: '500', pk: false, ai: false, nullable: true, hint: 'Browser user agent' },
+    { name: 'token', type: 'VARCHAR', length: '255', pk: false, ai: false, nullable: true, unique: true, hint: 'Auth/API token' },
+    { name: 'expires_at', type: 'DATETIME', length: '', pk: false, ai: false, nullable: true, hint: 'Expiration time' },
+    { name: 'published_at', type: 'DATETIME', length: '', pk: false, ai: false, nullable: true, hint: 'Publish time' },
+    { name: 'deleted_at', type: 'DATETIME', length: '', pk: false, ai: false, nullable: true, hint: 'Soft delete time' },
+    { name: 'created_at', type: 'TIMESTAMP', length: '', pk: false, ai: false, nullable: true, defaultVal: 'CURRENT_TIMESTAMP', hint: 'Creation time' },
+    { name: 'updated_at', type: 'TIMESTAMP', length: '', pk: false, ai: false, nullable: true, defaultVal: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', hint: 'Last update' },
+    { name: 'parent_id', type: 'BIGINT', length: '', pk: false, ai: false, nullable: true, index: true, hint: 'Parent FK (self-ref)' },
+    { name: 'user_id', type: 'BIGINT', length: '', pk: false, ai: false, nullable: false, index: true, hint: 'User FK' },
+    { name: 'category_id', type: 'BIGINT', length: '', pk: false, ai: false, nullable: true, index: true, hint: 'Category FK' },
+    { name: 'order_id', type: 'BIGINT', length: '', pk: false, ai: false, nullable: false, index: true, hint: 'Order FK' },
+];
+
+// ── Modal open/close ──
+function tdtOpenModal() {
+    document.getElementById('tdtModalOverlay').classList.add('active');
+    tdtRenderColumns();
+    tdtRenderSavedList();
+    tdtUpdateQuickOptStates();
+}
+function tdtCloseModal() {
+    document.getElementById('tdtModalOverlay').classList.remove('active');
+    tdtHideAutocomplete();
+}
+
+// ── Column Management ──
+function tdtAddColumn(preset) {
+    const col = {
+        _id: ++tdtColIdCounter,
+        name: preset?.name || '',
+        type: preset?.type || 'VARCHAR',
+        length: preset?.length || '',
+        defaultVal: preset?.defaultVal || '',
+        nullable: preset?.nullable ?? true,
+        pk: preset?.pk || false,
+        ai: preset?.ai || false,
+        unique: preset?.unique || false,
+        index: preset?.index || false,
+    };
+    tdtColumns.push(col);
+    tdtRenderColumns();
+    tdtUpdateQuickOptStates();
+    return col;
+}
+
+function tdtRemoveColumn(id) {
+    tdtColumns = tdtColumns.filter(c => c._id !== id);
+    tdtRenderColumns();
+    tdtUpdateQuickOptStates();
+}
+
+function tdtRenderColumns() {
+    const tbody = document.getElementById('tdtColumnsBody');
+    document.getElementById('tdtColCount').textContent = `(${tdtColumns.length})`;
+    if (tdtColumns.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.75rem;"><i class="fas fa-info-circle"></i> No columns yet. Click "Add Column" or use Quick Add above.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = tdtColumns.map(col => `
+        <tr data-col-id="${col._id}">
+            <td><div style="position:relative;"><input type="text" class="tdt-col-input" value="${_tdtEsc(col.name)}" placeholder="column_name" onkeyup="tdtFieldAutocomplete(this, ${col._id})" onfocus="tdtFieldAutocomplete(this, ${col._id})" onblur="setTimeout(()=>tdtHideAutocomplete(),200)" onchange="tdtUpdateCol(${col._id},'name',this.value)" autocomplete="off"></div></td>
+            <td><div style="position:relative;"><input type="text" class="tdt-col-input" value="${_tdtEsc(col.type)}" placeholder="VARCHAR" onkeyup="tdtTypeAutocomplete(this, ${col._id})" onfocus="tdtTypeAutocomplete(this, ${col._id})" onblur="setTimeout(()=>tdtHideAutocomplete(),200)" onchange="tdtUpdateCol(${col._id},'type',this.value)" autocomplete="off"></div></td>
+            <td><input type="text" class="tdt-col-input" value="${_tdtEsc(col.length)}" placeholder="255" onchange="tdtUpdateCol(${col._id},'length',this.value)"></td>
+            <td><input type="text" class="tdt-col-input" value="${_tdtEsc(col.defaultVal)}" placeholder="NULL" onchange="tdtUpdateCol(${col._id},'defaultVal',this.value)"></td>
+            <td class="tdt-col-check"><input type="checkbox" ${col.nullable ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'nullable',this.checked)" title="Nullable"></td>
+            <td class="tdt-col-check"><input type="checkbox" ${col.pk ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'pk',this.checked)" title="Primary Key"></td>
+            <td class="tdt-col-check"><input type="checkbox" ${col.ai ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'ai',this.checked)" title="Auto Increment"></td>
+            <td class="tdt-col-check"><input type="checkbox" ${col.unique ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'unique',this.checked)" title="Unique"></td>
+            <td class="tdt-col-check"><input type="checkbox" ${col.index ? 'checked' : ''} onchange="tdtUpdateCol(${col._id},'index',this.checked)" title="Index"></td>
+            <td><button class="tdt-col-remove" onclick="tdtRemoveColumn(${col._id})" title="Remove"><i class="fas fa-times"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function _tdtEsc(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function tdtUpdateCol(id, field, value) {
+    const col = tdtColumns.find(c => c._id === id);
+    if (col) col[field] = value;
+}
+
+// ── Autocomplete for field names ──
+let _tdtAcTarget = null;
+let _tdtAcColId = null;
+
+function tdtFieldAutocomplete(input, colId) {
+    const val = input.value.toLowerCase().trim();
+    if (!val) { tdtHideAutocomplete(); return; }
+    const matches = TDT_FIELD_SUGGESTIONS.filter(s => s.name.includes(val)).slice(0, 8);
+    if (matches.length === 0) { tdtHideAutocomplete(); return; }
+    _tdtAcTarget = input;
+    _tdtAcColId = colId;
+    const ac = document.getElementById('tdtAutocomplete');
+    ac.innerHTML = matches.map(m =>
+        `<div class="tdt-ac-item" onmousedown="tdtApplyFieldSuggestion(${colId}, '${m.name}')">
+            <span>${m.name}</span><span class="tdt-ac-hint">${m.hint}</span>
+        </div>`
+    ).join('');
+    const rect = input.getBoundingClientRect();
+    ac.style.left = rect.left + 'px';
+    ac.style.top = (rect.bottom + 2) + 'px';
+    ac.style.minWidth = rect.width + 'px';
+    ac.classList.add('show');
+}
+
+function tdtApplyFieldSuggestion(colId, name) {
+    const suggestion = TDT_FIELD_SUGGESTIONS.find(s => s.name === name);
+    if (!suggestion) return;
+    const col = tdtColumns.find(c => c._id === colId);
+    if (!col) return;
+    col.name = suggestion.name;
+    col.type = suggestion.type;
+    col.length = suggestion.length || '';
+    col.pk = suggestion.pk || false;
+    col.ai = suggestion.ai || false;
+    col.nullable = suggestion.nullable ?? true;
+    col.unique = suggestion.unique || false;
+    col.index = suggestion.index || false;
+    col.defaultVal = suggestion.defaultVal || '';
+    tdtHideAutocomplete();
+    tdtRenderColumns();
+}
+
+function tdtTypeAutocomplete(input, colId) {
+    const val = input.value.toLowerCase().trim();
+    if (!val) { tdtHideAutocomplete(); return; }
+    const matches = TDT_DATA_TYPES.filter(t => t.value.toLowerCase().includes(val)).slice(0, 8);
+    if (matches.length === 0) { tdtHideAutocomplete(); return; }
+    _tdtAcTarget = input;
+    _tdtAcColId = colId;
+    const ac = document.getElementById('tdtAutocomplete');
+    ac.innerHTML = matches.map(m =>
+        `<div class="tdt-ac-item" onmousedown="tdtApplyTypeSuggestion(${colId}, '${m.value}')">
+            <span>${m.value}</span><span class="tdt-ac-hint">${m.hint}</span>
+        </div>`
+    ).join('');
+    const rect = input.getBoundingClientRect();
+    ac.style.left = rect.left + 'px';
+    ac.style.top = (rect.bottom + 2) + 'px';
+    ac.style.minWidth = rect.width + 'px';
+    ac.classList.add('show');
+}
+
+function tdtApplyTypeSuggestion(colId, typeName) {
+    const col = tdtColumns.find(c => c._id === colId);
+    if (col) col.type = typeName;
+    tdtHideAutocomplete();
+    tdtRenderColumns();
+}
+
+function tdtHideAutocomplete() {
+    const ac = document.getElementById('tdtAutocomplete');
+    if (ac) ac.classList.remove('show');
+    _tdtAcTarget = null;
+}
+
+// ── Quick Add Presets ──
+function tdtQuickAdd(opt) {
+    const hasCol = (name) => tdtColumns.some(c => c.name === name);
+    if (opt === 'id' && !hasCol('id')) {
+        tdtAddColumn({ name: 'id', type: 'BIGINT', length: '', pk: true, ai: true, nullable: false, unique: false, index: false });
+    } else if (opt === 'timestamps') {
+        if (!hasCol('created_at')) tdtAddColumn({ name: 'created_at', type: 'TIMESTAMP', length: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP' });
+        if (!hasCol('updated_at')) tdtAddColumn({ name: 'updated_at', type: 'TIMESTAMP', length: '', nullable: true, defaultVal: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP' });
+    } else if (opt === 'softdelete' && !hasCol('deleted_at')) {
+        tdtAddColumn({ name: 'deleted_at', type: 'DATETIME', length: '', nullable: true });
+    } else if (opt === 'uuid' && !hasCol('uuid')) {
+        tdtAddColumn({ name: 'uuid', type: 'CHAR', length: '36', nullable: false, unique: true });
+    } else if (opt === 'status' && !hasCol('status')) {
+        tdtAddColumn({ name: 'status', type: 'ENUM', length: "'active','inactive','pending'", nullable: false, defaultVal: 'active' });
+    } else if (opt === 'slug' && !hasCol('slug')) {
+        tdtAddColumn({ name: 'slug', type: 'VARCHAR', length: '255', nullable: false, unique: true });
+    }
+    tdtUpdateQuickOptStates();
+}
+
+function tdtUpdateQuickOptStates() {
+    const hasCol = (name) => tdtColumns.some(c => c.name === name);
+    document.querySelectorAll('#tdtQuickOptions .tdt-quick-opt').forEach(btn => {
+        const opt = btn.dataset.opt;
+        let active = false;
+        if (opt === 'id') active = hasCol('id');
+        else if (opt === 'timestamps') active = hasCol('created_at') && hasCol('updated_at');
+        else if (opt === 'softdelete') active = hasCol('deleted_at');
+        else if (opt === 'uuid') active = hasCol('uuid');
+        else if (opt === 'status') active = hasCol('status');
+        else if (opt === 'slug') active = hasCol('slug');
+        btn.classList.toggle('active', active);
+    });
+}
+
+// ── Save Table ──
+function tdtSaveTable() {
+    const name = document.getElementById('tdtTableName').value.trim();
+    if (!name) { showToast('Please enter a table name', 'error'); return; }
+    if (tdtColumns.length === 0) { showToast('Please add at least one column', 'error'); return; }
+    const tableData = {
+        id: tdtEditingId || Date.now(),
+        name: name,
+        engine: document.getElementById('tdtEngine').value,
+        charset: document.getElementById('tdtCharset').value,
+        collation: document.getElementById('tdtCollation').value,
+        comment: document.getElementById('tdtComment').value.trim(),
+        columns: tdtColumns.map(c => ({
+            name: c.name, type: c.type, length: c.length,
+            defaultVal: c.defaultVal, nullable: c.nullable,
+            pk: c.pk, ai: c.ai, unique: c.unique, index: c.index,
+        })),
+    };
+    if (tdtEditingId) {
+        const idx = tdtSavedTables.findIndex(t => t.id === tdtEditingId);
+        if (idx !== -1) tdtSavedTables[idx] = tableData;
+        tdtEditingId = null;
+    } else {
+        tdtSavedTables.push(tableData);
+    }
+    tdtPersist();
+    tdtRenderSavedList();
+    tdtUpdateSidebarBadge();
+    tdtClearForm();
+    if (tdtActive) tdtRefreshEditor();
+    showToast(`<i class="fas fa-database"></i> Table "${name}" saved!`, 'success');
+}
+
+// ── Load table into form for editing ──
+function tdtEditTable(id) {
+    const table = tdtSavedTables.find(t => t.id === id);
+    if (!table) return;
+    tdtEditingId = id;
+    document.getElementById('tdtTableName').value = table.name;
+    document.getElementById('tdtEngine').value = table.engine || 'InnoDB';
+    document.getElementById('tdtCharset').value = table.charset || 'utf8mb4';
+    document.getElementById('tdtCollation').value = table.collation || 'utf8mb4_unicode_ci';
+    document.getElementById('tdtComment').value = table.comment || '';
+    tdtColumns = table.columns.map(c => ({ ...c, _id: ++tdtColIdCounter }));
+    tdtRenderColumns();
+    tdtUpdateQuickOptStates();
+    document.querySelector('.tdt-modal-body').scrollTop = 0;
+    showToast(`Editing table "${table.name}"`, 'info');
+}
+
+// ── Delete single table ──
+function tdtDeleteTable(id) {
+    const table = tdtSavedTables.find(t => t.id === id);
+    if (!table) return;
+    tdtSavedTables = tdtSavedTables.filter(t => t.id !== id);
+    tdtPersist();
+    tdtRenderSavedList();
+    tdtUpdateSidebarBadge();
+    if (tdtActive) tdtRefreshEditor();
+    showToast(`Table "${table.name}" deleted`, 'info');
+}
+
+function tdtDeleteAllTables() {
+    if (tdtSavedTables.length === 0) return;
+    if (!confirm('Delete all saved tables?')) return;
+    tdtSavedTables = [];
+    tdtPersist();
+    tdtRenderSavedList();
+    tdtUpdateSidebarBadge();
+    if (tdtActive) tdtRefreshEditor();
+    showToast('All tables deleted', 'info');
+}
+
+// ── Clear form (new table) ──
+function tdtClearForm() {
+    tdtEditingId = null;
+    document.getElementById('tdtTableName').value = '';
+    document.getElementById('tdtEngine').value = 'InnoDB';
+    document.getElementById('tdtCharset').value = 'utf8mb4';
+    document.getElementById('tdtCollation').value = 'utf8mb4_unicode_ci';
+    document.getElementById('tdtComment').value = '';
+    tdtColumns = [];
+    tdtColIdCounter = 0;
+    tdtRenderColumns();
+    tdtUpdateQuickOptStates();
+}
+
+// ── Render saved tables list in modal ──
+function tdtRenderSavedList() {
+    const container = document.getElementById('tdtSavedList');
+    document.getElementById('tdtSavedTableCount').textContent = `(${tdtSavedTables.length})`;
+    if (tdtSavedTables.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:0.75rem; color:var(--text-muted); font-size:0.72rem;"><i class="fas fa-database" style="opacity:0.3; font-size:1.2rem; display:block; margin-bottom:4px;"></i>No saved tables yet</div>';
+        return;
+    }
+    container.innerHTML = tdtSavedTables.map(t => `
+        <div class="tdt-saved-item">
+            <i class="fas fa-table" style="color:#06b6d4; font-size:0.7rem;"></i>
+            <span class="tdt-saved-item-name">${_tdtEsc(t.name)}</span>
+            <span class="tdt-saved-item-cols">${t.columns.length} cols</span>
+            <div class="tdt-saved-item-actions">
+                <button class="tdt-saved-item-btn edit" onclick="tdtEditTable(${t.id})" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="tdt-saved-item-btn delete" onclick="tdtDeleteTable(${t.id})" title="Delete"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ── Sidebar badge update ──
+function tdtUpdateSidebarBadge() {
+    const badge = document.getElementById('tdtSavedBadge');
+    const count = document.getElementById('tdtSavedCount');
+    const preview = document.getElementById('tdtPreview');
+    if (tdtSavedTables.length > 0) {
+        badge.style.display = 'inline-flex';
+        count.textContent = tdtSavedTables.length;
+        preview.textContent = tdtSavedTables.map(t => t.name).join(', ');
+    } else {
+        badge.style.display = 'none';
+        preview.textContent = 'Design database tables and generate creation prompts';
+    }
+}
+
+// ── Toggle (checkbox click) ──
+function tdtToggle() {
+    const container = document.getElementById('tdtContainer');
+    const checkbox = document.getElementById('tdtCheckbox');
+    const editor = document.getElementById('promptEditor');
+    tdtActive = !tdtActive;
+    container.classList.toggle('checked', tdtActive);
+    if (checkbox) checkbox.checked = tdtActive;
+    localStorage.setItem(TDT_ACTIVE_KEY, tdtActive ? '1' : '0');
+
+    if (tdtActive) {
+        if (tdtSavedTables.length === 0) {
+            tdtActive = false;
+            container.classList.remove('checked');
+            if (checkbox) checkbox.checked = false;
+            localStorage.setItem(TDT_ACTIVE_KEY, '0');
+            showToast('No saved tables. Open the designer and create a table first.', 'error');
+            tdtOpenModal();
+            updatePromptCounter();
+            return;
+        }
+        const prompt = tdtBuildPrompt();
+        const marked = `${TDT_MARKER_START}\n${prompt}\n${TDT_MARKER_END}`;
+        if (editor.value.trim()) {
+            editor.value = editor.value.trimEnd() + '\n\n' + marked;
+        } else {
+            editor.value = marked;
+        }
+        showToast('<i class="fas fa-database"></i> Table Designer prompt pushed to editor', 'success');
+    } else {
+        tdtRemoveFromEditor();
+        showToast('<i class="fas fa-database"></i> Table Designer removed from editor', 'info');
+    }
+    updateCounts();
+    updatePromptCounter();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+}
+
+function tdtRemoveFromEditor() {
+    const editor = document.getElementById('promptEditor');
+    const content = editor.value;
+    const startIdx = content.indexOf(TDT_MARKER_START);
+    if (startIdx !== -1) {
+        const endIdx = content.indexOf(TDT_MARKER_END, startIdx);
+        if (endIdx !== -1) {
+            const before = content.substring(0, startIdx).trimEnd();
+            const after = content.substring(endIdx + TDT_MARKER_END.length).trimStart();
+            editor.value = before + (before && after ? '\n\n' : '') + after;
+        }
+    }
+}
+
+function tdtRefreshEditor() {
+    if (!tdtActive) return;
+    tdtRemoveFromEditor();
+    const editor = document.getElementById('promptEditor');
+    const prompt = tdtBuildPrompt();
+    const marked = `${TDT_MARKER_START}\n${prompt}\n${TDT_MARKER_END}`;
+    if (editor.value.trim()) {
+        editor.value = editor.value.trimEnd() + '\n\n' + marked;
+    } else {
+        editor.value = marked;
+    }
+    updateCounts();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+}
+
+// ── Build the comprehensive SQL prompt ──
+function tdtBuildPrompt() {
+    if (tdtSavedTables.length === 0) return '';
+    let prompt = '';
+    prompt += '════════════════════════════════════════════════════════════\n';
+    prompt += '  DATABASE TABLE CREATION INSTRUCTIONS\n';
+    prompt += '════════════════════════════════════════════════════════════\n\n';
+    prompt += `Please create the following ${tdtSavedTables.length} database table(s) in the application\'s database. `;
+    prompt += 'For each table, generate the complete SQL CREATE TABLE statement and implement the corresponding ';
+    prompt += 'PHP/backend code (model, migration, or direct SQL execution) as appropriate for the application\'s architecture.\n\n';
+    prompt += 'IMPORTANT REQUIREMENTS:\n';
+    prompt += '  - Use the exact column names, data types, and constraints specified below\n';
+    prompt += '  - Ensure all foreign key relationships are properly defined with ON DELETE and ON UPDATE rules\n';
+    prompt += '  - Add appropriate indexes for columns marked as indexed\n';
+    prompt += '  - Include table comments and column comments where specified\n';
+    prompt += '  - Follow SQL best practices for naming conventions and data integrity\n';
+    prompt += '  - If the table already exists, provide an ALTER TABLE migration strategy\n\n';
+
+    tdtSavedTables.forEach((table, tIdx) => {
+        prompt += '────────────────────────────────────────────────────────────\n';
+        prompt += `  TABLE ${tIdx + 1}: \`${table.name}\`\n`;
+        prompt += '────────────────────────────────────────────────────────────\n';
+        if (table.comment) prompt += `  Description: ${table.comment}\n`;
+        prompt += `  Engine: ${table.engine} | Charset: ${table.charset} | Collation: ${table.collation}\n\n`;
+
+        prompt += '  COLUMNS:\n';
+        prompt += '  ' + '-'.repeat(76) + '\n';
+        prompt += '  ' + _tdtPad('Column Name', 20) + _tdtPad('Type', 18) + _tdtPad('Constraints', 40) + '\n';
+        prompt += '  ' + '-'.repeat(76) + '\n';
+
+        table.columns.forEach(col => {
+            let typeStr = col.type;
+            if (col.length) typeStr += `(${col.length})`;
+            let constraints = [];
+            if (col.pk) constraints.push('PRIMARY KEY');
+            if (col.ai) constraints.push('AUTO_INCREMENT');
+            if (!col.nullable) constraints.push('NOT NULL');
+            else constraints.push('NULL');
+            if (col.unique) constraints.push('UNIQUE');
+            if (col.index) constraints.push('INDEX');
+            if (col.defaultVal) {
+                const isFunc = col.defaultVal.toUpperCase().includes('CURRENT_TIMESTAMP') || col.defaultVal.toUpperCase() === 'NULL';
+                constraints.push(`DEFAULT ${isFunc ? col.defaultVal : `'${col.defaultVal}'`}`);
+            }
+            prompt += '  ' + _tdtPad(col.name, 20) + _tdtPad(typeStr, 18) + constraints.join(', ') + '\n';
+        });
+
+        prompt += '  ' + '-'.repeat(76) + '\n\n';
+
+        // Generate actual SQL
+        prompt += '  SQL Reference:\n';
+        prompt += '  ```sql\n';
+        prompt += `  CREATE TABLE IF NOT EXISTS \`${table.name}\` (\n`;
+        const colLines = [];
+        const pks = [];
+        const indexes = [];
+        const uniques = [];
+
+        table.columns.forEach(col => {
+            let line = `    \`${col.name}\` ${col.type}`;
+            if (col.length) line += `(${col.length})`;
+            if (!col.nullable) line += ' NOT NULL';
+            else line += ' NULL';
+            if (col.ai) line += ' AUTO_INCREMENT';
+            if (col.defaultVal) {
+                const isFunc = col.defaultVal.toUpperCase().includes('CURRENT_TIMESTAMP') || col.defaultVal.toUpperCase() === 'NULL';
+                line += ` DEFAULT ${isFunc ? col.defaultVal : `'${col.defaultVal}'`}`;
+            }
+            colLines.push(line);
+            if (col.pk) pks.push(`\`${col.name}\``);
+            if (col.unique && !col.pk) uniques.push(`\`${col.name}\``);
+            if (col.index && !col.pk && !col.unique) indexes.push(`\`${col.name}\``);
+        });
+
+        if (pks.length > 0) colLines.push(`    PRIMARY KEY (${pks.join(', ')})`);
+        uniques.forEach(u => colLines.push(`    UNIQUE KEY \`uq_${table.name}_${u.replace(/`/g,'')}\` (${u})`));
+        indexes.forEach(i => colLines.push(`    INDEX \`idx_${table.name}_${i.replace(/`/g,'')}\` (${i})`));
+
+        prompt += colLines.join(',\n') + '\n';
+        prompt += `  ) ENGINE=${table.engine} DEFAULT CHARSET=${table.charset} COLLATE=${table.collation}`;
+        if (table.comment) prompt += ` COMMENT='${table.comment.replace(/'/g, "\\'")}'`;
+        prompt += ';\n';
+        prompt += '  ```\n\n';
+    });
+
+    prompt += '════════════════════════════════════════════════════════════\n';
+    prompt += '  ADDITIONAL INSTRUCTIONS\n';
+    prompt += '════════════════════════════════════════════════════════════\n';
+    prompt += '  - Create proper PHP model classes or data access objects for each table\n';
+    prompt += '  - Include INSERT, UPDATE, DELETE, and SELECT helper functions/methods\n';
+    prompt += '  - Add proper input validation and sanitization for all fields\n';
+    prompt += '  - Use prepared statements (PDO) to prevent SQL injection\n';
+    prompt += '  - Handle errors gracefully with try-catch blocks\n';
+    prompt += '  - Add indexes on foreign key columns for query performance\n';
+    prompt += '  - If using an ORM or migration system, generate the migration file(s)\n';
+    prompt += '════════════════════════════════════════════════════════════\n';
+
+    return prompt;
+}
+
+function _tdtPad(str, len) {
+    str = String(str || '');
+    return str.length >= len ? str + ' ' : str + ' '.repeat(len - str.length);
+}
+
+// ── Copy prompt to clipboard ──
+function tdtCopyPrompt() {
+    if (tdtSavedTables.length === 0) {
+        showToast('No saved tables to copy', 'error');
+        return;
+    }
+    const prompt = tdtBuildPrompt();
+    navigator.clipboard.writeText(prompt).then(() => {
+        showToast('<i class="fas fa-database"></i> Table Designer prompt copied!', 'success');
+    }).catch(() => showToast('Failed to copy', 'error'));
+}
+
+// ── LocalStorage persistence ──
+function tdtPersist() {
+    try {
+        localStorage.setItem(TDT_STORAGE_KEY, JSON.stringify(tdtSavedTables));
+    } catch (e) {
+        console.warn('TDT: Failed to save to localStorage', e);
+    }
+}
+
+function tdtLoadFromStorage() {
+    try {
+        const data = localStorage.getItem(TDT_STORAGE_KEY);
+        if (data) tdtSavedTables = JSON.parse(data);
+    } catch (e) {
+        console.warn('TDT: Failed to load from localStorage', e);
+        tdtSavedTables = [];
+    }
+    // Restore active state
+    const wasActive = localStorage.getItem(TDT_ACTIVE_KEY) === '1';
+    if (wasActive && tdtSavedTables.length > 0) {
+        tdtActive = true;
+        document.getElementById('tdtContainer').classList.add('checked');
+        const cb = document.getElementById('tdtCheckbox'); if (cb) cb.checked = true;
+        // Push to editor
+        const editor = document.getElementById('promptEditor');
+        if (!editor.value.includes(TDT_MARKER_START)) {
+            const prompt = tdtBuildPrompt();
+            const marked = `${TDT_MARKER_START}\n${prompt}\n${TDT_MARKER_END}`;
+            if (editor.value.trim()) {
+                editor.value = editor.value.trimEnd() + '\n\n' + marked;
+            } else {
+                editor.value = marked;
+            }
+        }
+    }
+    tdtUpdateSidebarBadge();
+}
+
+// Init on page load
+document.addEventListener('DOMContentLoaded', function() {
+    tdtLoadFromStorage();
+    if (typeof updatePromptCounter === 'function') updatePromptCounter();
+});
+</script>
+
+<!-- Table Designer Modal -->
+<div class="tdt-modal-overlay" id="tdtModalOverlay" onclick="if(event.target===this) tdtCloseModal()">
+    <div class="tdt-modal">
+        <div class="tdt-modal-header">
+            <h3><i class="fas fa-database"></i> Table Designer</h3>
+            <button class="tdt-modal-close" onclick="tdtCloseModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="tdt-modal-body">
+            <!-- Table Info -->
+            <div class="tdt-info-grid">
+                <div class="tdt-field-group">
+                    <label class="tdt-field-label"><i class="fas fa-table"></i> Table Name</label>
+                    <input type="text" class="tdt-input" id="tdtTableName" placeholder="e.g. users, products, orders" autocomplete="off">
+                </div>
+                <div class="tdt-field-group">
+                    <label class="tdt-field-label"><i class="fas fa-server"></i> Engine</label>
+                    <select class="tdt-select" id="tdtEngine">
+                        <option value="InnoDB" selected>InnoDB (Recommended)</option>
+                        <option value="MyISAM">MyISAM</option>
+                        <option value="MEMORY">MEMORY</option>
+                    </select>
+                </div>
+            </div>
+            <div class="tdt-info-grid three-col">
+                <div class="tdt-field-group">
+                    <label class="tdt-field-label"><i class="fas fa-font"></i> Charset</label>
+                    <select class="tdt-select" id="tdtCharset">
+                        <option value="utf8mb4" selected>utf8mb4</option>
+                        <option value="utf8">utf8</option>
+                        <option value="latin1">latin1</option>
+                    </select>
+                </div>
+                <div class="tdt-field-group">
+                    <label class="tdt-field-label"><i class="fas fa-sort-alpha-down"></i> Collation</label>
+                    <select class="tdt-select" id="tdtCollation">
+                        <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci</option>
+                        <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+                        <option value="utf8_general_ci">utf8_general_ci</option>
+                    </select>
+                </div>
+                <div class="tdt-field-group">
+                    <label class="tdt-field-label"><i class="fas fa-comment-alt"></i> Comment</label>
+                    <input type="text" class="tdt-input" id="tdtComment" placeholder="Table description...">
+                </div>
+            </div>
+
+            <div class="tdt-section-divider"></div>
+
+            <!-- Quick Options -->
+            <div style="margin-bottom:0.5rem; font-size:0.72rem; font-weight:600; color:var(--text-secondary);">
+                <i class="fas fa-magic" style="color:#06b6d4;"></i> Quick Add
+            </div>
+            <div class="tdt-quick-options" id="tdtQuickOptions">
+                <button class="tdt-quick-opt" data-opt="id" onclick="tdtQuickAdd('id')"><i class="fas fa-key"></i> ID (PK)</button>
+                <button class="tdt-quick-opt" data-opt="timestamps" onclick="tdtQuickAdd('timestamps')"><i class="fas fa-clock"></i> Timestamps</button>
+                <button class="tdt-quick-opt" data-opt="softdelete" onclick="tdtQuickAdd('softdelete')"><i class="fas fa-trash-restore"></i> Soft Delete</button>
+                <button class="tdt-quick-opt" data-opt="uuid" onclick="tdtQuickAdd('uuid')"><i class="fas fa-fingerprint"></i> UUID</button>
+                <button class="tdt-quick-opt" data-opt="status" onclick="tdtQuickAdd('status')"><i class="fas fa-toggle-on"></i> Status</button>
+                <button class="tdt-quick-opt" data-opt="slug" onclick="tdtQuickAdd('slug')"><i class="fas fa-link"></i> Slug</button>
+            </div>
+
+            <div class="tdt-section-divider"></div>
+
+            <!-- Columns -->
+            <div class="tdt-columns-header">
+                <div class="tdt-columns-title"><i class="fas fa-columns"></i> Columns <span id="tdtColCount" style="font-size:0.65rem; color:var(--text-muted); font-weight:400;">(0)</span></div>
+                <button class="tdt-add-col-btn" onclick="tdtAddColumn()"><i class="fas fa-plus"></i> Add Column</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="tdt-columns-table">
+                    <thead>
+                        <tr>
+                            <th style="width:22%;">Name</th>
+                            <th style="width:18%;">Type</th>
+                            <th style="width:10%;">Length</th>
+                            <th style="width:14%;">Default</th>
+                            <th style="width:5%;" title="Nullable">Null</th>
+                            <th style="width:5%;" title="Primary Key">PK</th>
+                            <th style="width:5%;" title="Auto Increment">AI</th>
+                            <th style="width:5%;" title="Unique">UQ</th>
+                            <th style="width:5%;" title="Index">IDX</th>
+                            <th style="width:4%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tdtColumnsBody">
+                        <!-- Columns will be rendered here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tdt-section-divider"></div>
+
+            <!-- Saved Tables -->
+            <div class="tdt-columns-header">
+                <div class="tdt-columns-title"><i class="fas fa-save"></i> Saved Tables <span id="tdtSavedTableCount" style="font-size:0.65rem; color:var(--text-muted); font-weight:400;">(0)</span></div>
+                <button class="tdt-add-col-btn" onclick="tdtClearForm()" title="New Table"><i class="fas fa-file-alt"></i> New Table</button>
+            </div>
+            <div class="tdt-saved-list" id="tdtSavedList">
+                <!-- Saved tables rendered here -->
+            </div>
+        </div>
+        <div class="tdt-modal-footer">
+            <div style="display:flex; gap:6px;">
+                <button class="tdt-btn tdt-btn-danger" onclick="tdtDeleteAllTables()" title="Delete all saved tables"><i class="fas fa-trash"></i> Clear All</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="tdt-btn tdt-btn-secondary" onclick="tdtCloseModal()"><i class="fas fa-times"></i> Close</button>
+                <button class="tdt-btn tdt-btn-primary" onclick="tdtSaveTable()"><i class="fas fa-save"></i> Save Table</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Autocomplete dropdown (positioned absolutely) -->
+<div class="tdt-autocomplete" id="tdtAutocomplete"></div>
 
 </body>
 </html>
