@@ -31742,15 +31742,18 @@ in each section carefully and maintain proper connections between components.
         }
         // ═══════ End TTS Reader ═══════
 
-        // ═══════ Arabic TTS Reader (Google Translate Audio) ═══════
+        // ═══════ Arabic TTS Reader (Google Translate Audio via PHP Proxy) ═══════
         let _ttsArSpeaking = false;
         let _ttsArProgressTimer = null;
         let _ttsArChunks = [];
         let _ttsArChunkIndex = 0;
         let _ttsArAudio = null;
+        // Shared Audio element – created once and reused to keep browser autoplay unlock alive
+        let _ttsArPlayer = null;
+        // Tiny silent MP3 for unlocking autoplay on first user gesture
+        const _ttsArSilence = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqkAAAAAAD/+1DEAAAHAAGSdAAAIwAANIAAAAQAAAaQAAAAgAAA0gAAABFFEjBgxIAOA4DhULhcME3/E4nC4XDH/4nE4nE4nC4f/hcLhcLhcLhcP/8='
 
         function _ttsArFetchAudio(text) {
-            // Fetch audio via local PHP proxy to avoid CORS issues
             const fd = new FormData();
             fd.append('action', 'tts_ar_proxy');
             fd.append('text', text);
@@ -31804,6 +31807,12 @@ in each section carefully and maintain proper connections between components.
             }
             // Stop English TTS if running
             if (_ttsSpeaking) ttsStop();
+
+            // ── Unlock autoplay IMMEDIATELY inside user-gesture (synchronous) ──
+            if (!_ttsArPlayer) _ttsArPlayer = new Audio();
+            _ttsArPlayer.src = _ttsArSilence;
+            _ttsArPlayer.play().catch(() => {});
+
             ttsArSpeak(text);
         }
 
@@ -31813,19 +31822,18 @@ in each section carefully and maintain proper connections between components.
             const label = document.getElementById('ttsArLabel');
             const progress = document.getElementById('ttsArProgress');
 
-            // Google Translate TTS accepts ~200 chars per request
             _ttsArChunks = _ttsArSplitText(text, 190);
             _ttsArChunkIndex = 0;
             const totalChunks = _ttsArChunks.length;
 
-            // UI: speaking state
+            // UI: loading state while first chunk is fetched
             _ttsArSpeaking = true;
             if (btn) {
                 btn.classList.add('speaking');
-                btn.querySelector('i').className = 'fas fa-stop';
-                btn.title = 'إيقاف القراءة العربية';
+                btn.querySelector('i').className = 'fas fa-spinner fa-spin';
+                btn.title = 'جارٍ تحميل الصوت...';
             }
-            if (label) label.textContent = 'إيقاف';
+            if (label) label.textContent = 'تحميل...';
 
             async function playNext() {
                 if (!_ttsArSpeaking || _ttsArChunkIndex >= _ttsArChunks.length) {
@@ -31835,17 +31843,28 @@ in each section carefully and maintain proper connections between components.
 
                 try {
                     const chunk = _ttsArChunks[_ttsArChunkIndex];
-                    // Fetch audio via local PHP proxy (avoids CORS)
                     const audioUrl = await _ttsArFetchAudio(chunk);
-                    if (!_ttsArSpeaking) return; // stopped while loading
+                    if (!_ttsArSpeaking) { URL.revokeObjectURL(audioUrl); return; }
 
-                    _ttsArAudio = new Audio(audioUrl);
+                    // Switch UI from loading → playing (only on first chunk)
+                    if (_ttsArChunkIndex === 0 && btn) {
+                        btn.querySelector('i').className = 'fas fa-stop';
+                        btn.title = 'إيقاف القراءة العربية';
+                        if (label) label.textContent = 'إيقاف';
+                    }
+
+                    // Reuse the pre-unlocked player for first chunk, new Audio for rest
+                    if (_ttsArChunkIndex === 0 && _ttsArPlayer) {
+                        _ttsArAudio = _ttsArPlayer;
+                        _ttsArAudio.src = audioUrl;
+                    } else {
+                        _ttsArAudio = new Audio(audioUrl);
+                    }
                     _ttsArAudio.playbackRate = 1.0;
 
                     _ttsArAudio.onplay = () => {
                         if (progress) {
-                            const pct = ((_ttsArChunkIndex) / totalChunks) * 100;
-                            progress.style.width = pct + '%';
+                            progress.style.width = ((_ttsArChunkIndex) / totalChunks * 100) + '%';
                         }
                     };
 
@@ -31871,6 +31890,7 @@ in each section carefully and maintain proper connections between components.
 
                     await _ttsArAudio.play();
                 } catch (err) {
+                    console.warn('TTS-AR error:', err);
                     showToast('خطأ في تحميل الصوت العربي. تأكد من اتصالك بالإنترنت.', 'error');
                     _ttsArReset();
                 }
