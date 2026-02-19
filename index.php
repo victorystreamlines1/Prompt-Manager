@@ -31747,11 +31747,25 @@ in each section carefully and maintain proper connections between components.
         let _ttsArProgressTimer = null;
         let _ttsArChunks = [];
         let _ttsArChunkIndex = 0;
-        let _ttsArAudio = null;
-        // Shared Audio element – created once and reused to keep browser autoplay unlock alive
-        let _ttsArPlayer = null;
-        // Tiny silent MP3 for unlocking autoplay on first user gesture
-        const _ttsArSilence = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqkAAAAAAD/+1DEAAAHAAGSdAAAIwAANIAAAAQAAAaQAAAAgAAA0gAAABFFEjBgxIAOA4DhULhcME3/E4nC4XDH/4nE4nE4nC4f/hcLhcLhcLhcP/8='
+        let _ttsArAudio = null;       // currently-playing Audio element
+        let _ttsArNextBlob = null;    // pre-fetched blob URL for next chunk
+        let _ttsArUnlocked = false;   // true after first AudioContext unlock
+
+        // Permanently unlock autoplay via AudioContext (call inside user gesture)
+        function _ttsArUnlockAudio() {
+            if (_ttsArUnlocked) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                // Create a tiny silent buffer and play it to satisfy autoplay policy
+                const buf = ctx.createBuffer(1, 1, 22050);
+                const src = ctx.createBufferSource();
+                src.buffer = buf;
+                src.connect(ctx.destination);
+                src.start(0);
+                ctx.resume().then(() => { setTimeout(() => ctx.close(), 100); });
+                _ttsArUnlocked = true;
+            } catch (e) { /* AudioContext unavailable – Audio.play() may still work */ }
+        }
 
         function _ttsArFetchAudio(text) {
             const fd = new FormData();
@@ -31766,7 +31780,6 @@ in each section carefully and maintain proper connections between components.
         }
 
         function _ttsArSplitText(text, maxLen) {
-            // Split at Arabic sentence boundaries then enforce max length
             const chunks = [];
             const sentences = text.split(/(?<=[.!?،؛:\n])\s*/);
             let current = '';
@@ -31779,7 +31792,6 @@ in each section carefully and maintain proper connections between components.
                 }
             }
             if (current.trim()) chunks.push(current.trim());
-            // Further split oversized chunks at word boundaries
             const result = [];
             for (const c of chunks) {
                 if (c.length <= maxLen) { result.push(c); continue; }
@@ -31805,13 +31817,10 @@ in each section carefully and maintain proper connections between components.
                 showToast('المحرر فارغ – لا يوجد نص للقراءة!', 'error');
                 return;
             }
-            // Stop English TTS if running
             if (_ttsSpeaking) ttsStop();
 
-            // ── Unlock autoplay IMMEDIATELY inside user-gesture (synchronous) ──
-            if (!_ttsArPlayer) _ttsArPlayer = new Audio();
-            _ttsArPlayer.src = _ttsArSilence;
-            _ttsArPlayer.play().catch(() => {});
+            // Unlock autoplay SYNCHRONOUSLY inside user-gesture – one-time, permanent
+            _ttsArUnlockAudio();
 
             ttsArSpeak(text);
         }
@@ -31824,9 +31833,10 @@ in each section carefully and maintain proper connections between components.
 
             _ttsArChunks = _ttsArSplitText(text, 190);
             _ttsArChunkIndex = 0;
+            _ttsArNextBlob = null;
             const totalChunks = _ttsArChunks.length;
 
-            // UI: loading state while first chunk is fetched
+            // UI → loading spinner
             _ttsArSpeaking = true;
             if (btn) {
                 btn.classList.add('speaking');
@@ -31835,31 +31845,36 @@ in each section carefully and maintain proper connections between components.
             }
             if (label) label.textContent = 'تحميل...';
 
-            async function playNext() {
+            // Pre-fetch the very first chunk immediately (overlap with UI feedback)
+            const firstFetch = _ttsArFetchAudio(_ttsArChunks[0]);
+
+            async function playNext(prefetchedUrl) {
                 if (!_ttsArSpeaking || _ttsArChunkIndex >= _ttsArChunks.length) {
                     _ttsArReset();
                     return;
                 }
 
                 try {
-                    const chunk = _ttsArChunks[_ttsArChunkIndex];
-                    const audioUrl = await _ttsArFetchAudio(chunk);
+                    // Use pre-fetched URL if available, otherwise fetch now
+                    const audioUrl = prefetchedUrl || await _ttsArFetchAudio(_ttsArChunks[_ttsArChunkIndex]);
                     if (!_ttsArSpeaking) { URL.revokeObjectURL(audioUrl); return; }
 
-                    // Switch UI from loading → playing (only on first chunk)
+                    // Switch UI from loading → playing (first chunk only)
                     if (_ttsArChunkIndex === 0 && btn) {
                         btn.querySelector('i').className = 'fas fa-stop';
                         btn.title = 'إيقاف القراءة العربية';
                         if (label) label.textContent = 'إيقاف';
                     }
 
-                    // Reuse the pre-unlocked player for first chunk, new Audio for rest
-                    if (_ttsArChunkIndex === 0 && _ttsArPlayer) {
-                        _ttsArAudio = _ttsArPlayer;
-                        _ttsArAudio.src = audioUrl;
-                    } else {
-                        _ttsArAudio = new Audio(audioUrl);
+                    // Start pre-fetching NEXT chunk while current one plays
+                    const nextIdx = _ttsArChunkIndex + 1;
+                    let nextFetchPromise = null;
+                    if (nextIdx < _ttsArChunks.length) {
+                        nextFetchPromise = _ttsArFetchAudio(_ttsArChunks[nextIdx]);
                     }
+
+                    // Create a fresh Audio element every time (no shared state)
+                    _ttsArAudio = new Audio(audioUrl);
                     _ttsArAudio.playbackRate = 1.0;
 
                     _ttsArAudio.onplay = () => {
@@ -31876,10 +31891,13 @@ in each section carefully and maintain proper connections between components.
                         }
                     };
 
-                    _ttsArAudio.onended = () => {
+                    _ttsArAudio.onended = async () => {
                         URL.revokeObjectURL(audioUrl);
                         _ttsArChunkIndex++;
-                        if (_ttsArSpeaking) playNext();
+                        if (!_ttsArSpeaking) return;
+                        // Use pre-fetched next chunk for seamless playback
+                        const nextUrl = nextFetchPromise ? await nextFetchPromise.catch(() => null) : null;
+                        playNext(nextUrl);
                     };
 
                     _ttsArAudio.onerror = () => {
@@ -31896,16 +31914,27 @@ in each section carefully and maintain proper connections between components.
                 }
             }
 
-            playNext();
+            // Wait for the pre-fetched first chunk, then start playback
+            firstFetch.then(url => playNext(url)).catch(() => {
+                showToast('خطأ في تحميل الصوت العربي. تأكد من اتصالك بالإنترنت.', 'error');
+                _ttsArReset();
+            });
         }
 
         function ttsArStop() {
             _ttsArSpeaking = false;
             if (_ttsArAudio) {
+                // Remove all handlers FIRST to prevent ghost error events
+                _ttsArAudio.onplay = null;
+                _ttsArAudio.ontimeupdate = null;
+                _ttsArAudio.onended = null;
+                _ttsArAudio.onerror = null;
                 _ttsArAudio.pause();
-                _ttsArAudio.src = '';
+                _ttsArAudio.removeAttribute('src');
+                _ttsArAudio.load();
                 _ttsArAudio = null;
             }
+            _ttsArNextBlob = null;
             _ttsArChunks = [];
             _ttsArChunkIndex = 0;
             _ttsArReset();
@@ -31917,6 +31946,14 @@ in each section carefully and maintain proper connections between components.
             const btn = document.getElementById('btnTtsAr');
             const label = document.getElementById('ttsArLabel');
             const progress = document.getElementById('ttsArProgress');
+            // Clean up any lingering audio reference from finished playback
+            if (_ttsArAudio) {
+                _ttsArAudio.onplay = null;
+                _ttsArAudio.ontimeupdate = null;
+                _ttsArAudio.onended = null;
+                _ttsArAudio.onerror = null;
+                _ttsArAudio = null;
+            }
             if (btn) {
                 btn.classList.remove('speaking');
                 btn.querySelector('i').className = 'fas fa-volume-up';
