@@ -39656,6 +39656,31 @@ function depCaptureState() {
         generalNotes: (document.getElementById('pcGeneralNotes') || {}).value || ''
     };
     
+    // 8) Task Breakdown state (explicit capture from JS variables + DOM)
+    state.taskBreakdown = {
+        parts: (typeof tbParts !== 'undefined') ? tbParts : 3,
+        optimizeToken: (typeof tbOptimizeToken !== 'undefined') ? !!tbOptimizeToken : true,
+        executionMode: (typeof tbExecutionMode !== 'undefined') ? (tbExecutionMode || 'step-by-step') : 'step-by-step',
+        notes: (document.getElementById('tbNotesTextarea') || {}).value || ''
+    };
+    
+    // 9) File Exclusion state (explicit capture from JS variables + DOM)
+    state.fileExclusion = {
+        excludedFiles: (typeof exExcludedFiles !== 'undefined') ? [...exExcludedFiles] : [],
+        notes: (document.getElementById('exNotesTextarea') || {}).value || ''
+    };
+    
+    // 10) Documentation Integration state (explicit capture from JS variables + DOM)
+    state.documentationConfig = {
+        enableDoc: (typeof diEnableDoc !== 'undefined') ? !!diEnableDoc : false,
+        fileName: (typeof diFileName !== 'undefined') ? (diFileName || null) : null,
+        fileContent: (typeof diFileContent !== 'undefined') ? (diFileContent || null) : null,
+        integrationMode: (typeof diIntegrationMode !== 'undefined') ? (diIntegrationMode || 'ai-decision') : 'ai-decision',
+        pageName: (typeof diPageName !== 'undefined') ? (diPageName || 'documentation') : 'documentation',
+        injectionFiles: (typeof diInjectionFiles !== 'undefined') ? [...diInjectionFiles] : [],
+        notes: (document.getElementById('diNotesTextarea') || {}).value || ''
+    };
+    
     return state;
 }
 
@@ -39742,14 +39767,31 @@ async function depRestoreState(stateData) {
     if (typeof ciLoadFromStorage === 'function') ciLoadFromStorage();
     if (typeof stLoadFromStorage === 'function') stLoadFromStorage();
     if (typeof stLoadNotesFromStorage === 'function') stLoadNotesFromStorage();
+    if (typeof stUpdateUI === 'function') stUpdateUI();
     if (typeof dtLoadFromStorage === 'function') dtLoadFromStorage();
     if (typeof dtLoadNotesFromStorage === 'function') dtLoadNotesFromStorage();
+    if (typeof dtUpdateUI === 'function') dtUpdateUI();
     if (typeof plLoadFromStorage === 'function') plLoadFromStorage();
     if (typeof plLoadNotesFromStorage === 'function') plLoadNotesFromStorage();
+    if (typeof plUpdateUI === 'function') plUpdateUI();
     if (typeof emLoadFromStorage === 'function') emLoadFromStorage();
+    if (typeof emUpdateUI === 'function') emUpdateUI();
     if (typeof dfLoadFromStorage === 'function') dfLoadFromStorage();
+    if (typeof dfUpdateUI === 'function') dfUpdateUI();
     if (typeof elLoadFromStorage === 'function') elLoadFromStorage();
-    if (typeof tbLoadFromStorage === 'function') tbLoadFromStorage();
+    if (typeof elUpdateUI === 'function') elUpdateUI();
+    // ── Task Breakdown: Explicit restore from saved state ──
+    if (state.taskBreakdown) {
+        if (typeof tbParts !== 'undefined') tbParts = state.taskBreakdown.parts || 3;
+        if (typeof tbOptimizeToken !== 'undefined') tbOptimizeToken = state.taskBreakdown.optimizeToken !== false;
+        if (typeof tbExecutionMode !== 'undefined') tbExecutionMode = state.taskBreakdown.executionMode || 'step-by-step';
+        const _tbNotes = document.getElementById('tbNotesTextarea');
+        if (_tbNotes) _tbNotes.value = state.taskBreakdown.notes || '';
+        if (typeof tbSaveToStorage === 'function') tbSaveToStorage();
+    } else {
+        if (typeof tbLoadFromStorage === 'function') tbLoadFromStorage();
+    }
+    if (typeof tbUpdateUI === 'function') tbUpdateUI();
     // ── Homepage Configuration: Explicit restore from saved state ──
     if (state.homepageConfig) {
         if (typeof hpCreateNew !== 'undefined') hpCreateNew = !!state.homepageConfig.createNew;
@@ -39768,9 +39810,38 @@ async function depRestoreState(stateData) {
     }
     if (typeof hpUpdateUI === 'function') hpUpdateUI();
     if (typeof ufLoadFromStorage === 'function') ufLoadFromStorage();
-    if (typeof exLoadFromStorage === 'function') exLoadFromStorage();
-    if (typeof diLoadFromStorage === 'function') diLoadFromStorage();
-    if (typeof diLoadNotesFromStorage === 'function') diLoadNotesFromStorage();
+    // ── File Exclusion: Explicit restore from saved state ──
+    if (state.fileExclusion) {
+        if (typeof exExcludedFiles !== 'undefined') exExcludedFiles = state.fileExclusion.excludedFiles || [];
+        const _exNotes = document.getElementById('exNotesTextarea');
+        if (_exNotes) _exNotes.value = state.fileExclusion.notes || '';
+        if (typeof exSaveToStorage === 'function') exSaveToStorage();
+        if (typeof exSaveNotesToStorage === 'function') exSaveNotesToStorage();
+    } else {
+        if (typeof exLoadFromStorage === 'function') exLoadFromStorage();
+    }
+    if (typeof exUpdateUI === 'function') exUpdateUI();
+    // ── Documentation Integration: Explicit restore from saved state ──
+    if (state.documentationConfig) {
+        if (typeof diEnableDoc !== 'undefined') diEnableDoc = !!state.documentationConfig.enableDoc;
+        if (typeof diFileName !== 'undefined') diFileName = state.documentationConfig.fileName || null;
+        if (typeof diFileContent !== 'undefined') diFileContent = state.documentationConfig.fileContent || null;
+        if (typeof diIntegrationMode !== 'undefined') diIntegrationMode = state.documentationConfig.integrationMode || 'ai-decision';
+        if (typeof diPageName !== 'undefined') diPageName = state.documentationConfig.pageName || 'documentation';
+        if (typeof diInjectionFiles !== 'undefined') diInjectionFiles = state.documentationConfig.injectionFiles || [];
+        const _diNotes = document.getElementById('diNotesTextarea');
+        if (_diNotes) {
+            _diNotes.value = state.documentationConfig.notes || '';
+            localStorage.setItem('diNotes', _diNotes.value);
+        }
+        if (typeof diSaveToStorage === 'function') diSaveToStorage();
+        localStorage.setItem('diPageName', diPageName);
+        localStorage.setItem('diInjectionFiles', JSON.stringify(diInjectionFiles));
+    } else {
+        if (typeof diLoadFromStorage === 'function') diLoadFromStorage();
+        if (typeof diLoadNotesFromStorage === 'function') diLoadNotesFromStorage();
+    }
+    if (typeof diUpdateUI === 'function') diUpdateUI();
     
     // ── STEP 4: Apply tool order ──
     if (state.toolOrder && Array.isArray(state.toolOrder)) {
@@ -48690,11 +48761,29 @@ function diUpdateUI() {
         uploadSection.classList.toggle('show', diEnableDoc);
     }
     
-    // File info display (name only)
+    // File info display
     if (diFileName && diFileContent) {
-        document.getElementById('diFileName').textContent = diFileName;
-        document.getElementById('diFileInfo').classList.add('show');
-        document.getElementById('diModeSection').classList.add('show');
+        const fnEl = document.getElementById('diFileName');
+        if (fnEl) fnEl.textContent = diFileName;
+        const fsEl = document.getElementById('diFileSize');
+        if (fsEl && typeof formatFileSize === 'function') fsEl.textContent = formatFileSize(new Blob([diFileContent]).size);
+        const fiEl = document.getElementById('diFileInfo');
+        if (fiEl) fiEl.classList.add('show');
+        const msEl = document.getElementById('diModeSection');
+        if (msEl) msEl.classList.add('show');
+    } else {
+        const fnEl = document.getElementById('diFileName');
+        if (fnEl) fnEl.textContent = '';
+        const fsEl = document.getElementById('diFileSize');
+        if (fsEl) fsEl.textContent = '';
+        const fiEl = document.getElementById('diFileInfo');
+        if (fiEl) fiEl.classList.remove('show');
+        const msEl = document.getElementById('diModeSection');
+        if (msEl) msEl.classList.remove('show');
+        const cpEl = document.getElementById('diCreatePageInput');
+        if (cpEl) cpEl.classList.remove('show');
+        const ijEl = document.getElementById('diInjectionFiles');
+        if (ijEl) ijEl.classList.remove('show');
     }
     
     // Mode selection
@@ -48709,8 +48798,15 @@ function diUpdateUI() {
     // Injection files list
     diUpdateInjectionList();
     
-    // Load notes
-    diLoadNotesFromStorage();
+    // Notes textarea (prefer current state, fallback to localStorage)
+    const _diNotesTA = document.getElementById('diNotesTextarea');
+    if (_diNotesTA) {
+        const savedNotes = localStorage.getItem('diNotes');
+        if (savedNotes !== null) {
+            _diNotesTA.value = savedNotes;
+        }
+        if (typeof diUpdateCharCount === 'function') diUpdateCharCount();
+    }
     
     // Update badge
     diUpdateBadge();
