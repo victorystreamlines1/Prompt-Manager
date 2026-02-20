@@ -24833,9 +24833,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
                     <!-- Localhost Root Ghost -->
-                    <div class="docroot-ghost" id="docrootGhost" title="Server document root – <?= str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']) ?>">
-                        <i class="fas fa-server"></i>
-                        <span id="docrootText"><?= str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']) ?></span>
+                    <?php
+                        $isLocal = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1'])
+                                || str_ends_with($_SERVER['SERVER_NAME'] ?? '', '.local')
+                                || str_starts_with($_SERVER['SERVER_ADDR'] ?? '', '127.')
+                                || ($_SERVER['SERVER_ADDR'] ?? '') === '::1';
+                        if ($isLocal) {
+                            $ghostIcon  = 'fa-server';
+                            $ghostLabel = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+                            $ghostTitle = 'Local document root – ' . $ghostLabel;
+                        } else {
+                            $ghostIcon  = 'fa-globe';
+                            $scheme     = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                            $ghostLabel = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME']);
+                            $ghostTitle = 'Remote host – ' . $ghostLabel;
+                        }
+                    ?>
+                    <div class="docroot-ghost" id="docrootGhost" title="<?= htmlspecialchars($ghostTitle) ?>">
+                        <i class="fas <?= $ghostIcon ?>"></i>
+                        <span id="docrootText"><?= htmlspecialchars($ghostLabel) ?></span>
                     </div>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
