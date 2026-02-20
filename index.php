@@ -568,6 +568,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     // ============================================
+    // BROWSE LOCALHOST DIRECTORIES - List subdirectories for folder picker
+    // ============================================
+    if ($action === 'browse_localhost_dirs') {
+        $path = $_POST['path'] ?? '';
+        
+        // Default starting paths for Windows (Laragon)
+        if (empty($path)) {
+            $path = 'C:/laragon/www';
+            if (!is_dir($path)) {
+                $path = dirname(__FILE__);
+            }
+        }
+        
+        $realPath = realpath($path);
+        if (!$realPath || !is_dir($realPath)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid directory path']);
+            exit;
+        }
+        
+        $realPath = str_replace('\\', '/', $realPath);
+        $parent = str_replace('\\', '/', dirname($realPath));
+        
+        $dirs = [];
+        $items = @scandir($realPath);
+        if ($items !== false) {
+            foreach ($items as $item) {
+                if ($item === '.' || $item === '..') continue;
+                $fullPath = $realPath . '/' . $item;
+                if (is_dir($fullPath)) {
+                    $dirs[] = [
+                        'name' => $item,
+                        'path' => str_replace('\\', '/', $fullPath)
+                    ];
+                }
+            }
+        }
+        
+        // Sort alphabetically
+        usort($dirs, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
+        
+        echo json_encode([
+            'success' => true,
+            'current' => $realPath,
+            'parent' => ($parent !== $realPath) ? $parent : null,
+            'dirs' => $dirs
+        ]);
+        exit;
+    }
+
+    // ============================================
     // DESIGN ENHANCER TOOL ORDER - Save
     // ============================================
     if ($action === 'save_tool_order') {
@@ -15859,6 +15909,362 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-style: italic;
         }
 
+        /* Browse Button */
+        .docroot-browse-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: rgba(251, 191, 36, 0.7);
+            transition: all 0.25s ease;
+            line-height: 1;
+        }
+        .docroot-browse-btn:hover {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.15);
+            transform: scale(1.1);
+        }
+        body.light-theme .docroot-browse-btn {
+            color: rgba(217, 119, 6, 0.6);
+        }
+        body.light-theme .docroot-browse-btn:hover {
+            color: #d97706;
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        /* ===== Localhost Folder Picker Modal ===== */
+        .lfp-modal {
+            max-width: 580px !important;
+            width: 95vw;
+            border-radius: 18px !important;
+            overflow: hidden;
+            background: linear-gradient(165deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.95)) !important;
+            border: 1px solid rgba(99, 102, 241, 0.25) !important;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 40px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            max-height: 75vh;
+        }
+        body.light-theme .lfp-modal {
+            background: linear-gradient(165deg, rgba(255,255,255,0.98), rgba(248, 250, 252, 0.96)) !important;
+            border-color: rgba(99, 102, 241, 0.2) !important;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.12), 0 0 40px rgba(99, 102, 241, 0.06) !important;
+        }
+
+        .lfp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent);
+        }
+        .lfp-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: rgba(220, 225, 240, 0.95);
+        }
+        .lfp-title i {
+            color: #fbbf24;
+            font-size: 1.1rem;
+        }
+        body.light-theme .lfp-title { color: #1e293b; }
+        body.light-theme .lfp-title i { color: #d97706; }
+
+        .lfp-close-btn {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            color: rgba(248, 113, 113, 0.8);
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s ease;
+            font-size: 0.85rem;
+        }
+        .lfp-close-btn:hover {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            transform: scale(1.05);
+        }
+
+        .lfp-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 20px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: rgba(148, 163, 184, 0.8);
+            background: rgba(15, 23, 42, 0.3);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+            flex-wrap: wrap;
+            min-height: 32px;
+        }
+        body.light-theme .lfp-breadcrumb {
+            background: rgba(241, 245, 249, 0.5);
+            color: #64748b;
+        }
+        .lfp-crumb {
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            color: rgba(165, 180, 252, 0.8);
+            white-space: nowrap;
+        }
+        .lfp-crumb:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+        }
+        .lfp-crumb.active {
+            color: #fbbf24;
+            font-weight: 600;
+            cursor: default;
+        }
+        .lfp-crumb.active:hover { background: none; }
+        .lfp-crumb-sep {
+            color: rgba(100, 116, 139, 0.5);
+            font-size: 0.65rem;
+        }
+        body.light-theme .lfp-crumb { color: #6366f1; }
+        body.light-theme .lfp-crumb:hover { background: rgba(99, 102, 241, 0.1); }
+        body.light-theme .lfp-crumb.active { color: #d97706; }
+
+        .lfp-search-bar {
+            display: flex;
+            align-items: center;
+            padding: 8px 20px;
+            gap: 8px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+        }
+        .lfp-search-icon {
+            color: rgba(148, 163, 184, 0.5);
+            font-size: 0.8rem;
+        }
+        .lfp-search-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: rgba(220, 225, 240, 0.9);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+        .lfp-search-input:focus {
+            border-color: rgba(99, 102, 241, 0.45);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+        }
+        .lfp-search-input::placeholder { color: rgba(148, 163, 184, 0.4); font-style: italic; }
+        body.light-theme .lfp-search-input {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(99, 102, 241, 0.15);
+            color: #1e293b;
+        }
+        .lfp-search-clear {
+            background: none; border: none; cursor: pointer;
+            color: rgba(248, 113, 113, 0.6);
+            padding: 4px; font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        .lfp-search-clear:hover { color: #f87171; }
+
+        .lfp-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 12px;
+            min-height: 200px;
+            max-height: 40vh;
+        }
+        .lfp-body::-webkit-scrollbar { width: 5px; }
+        .lfp-body::-webkit-scrollbar-track { background: transparent; }
+        .lfp-body::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.25); border-radius: 10px; }
+
+        .lfp-loading {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; padding: 40px;
+            color: rgba(148, 163, 184, 0.7);
+            font-size: 0.85rem;
+        }
+
+        .lfp-empty {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; padding: 40px;
+            color: rgba(148, 163, 184, 0.5);
+        }
+        .lfp-empty i { font-size: 2rem; opacity: 0.3; }
+        .lfp-empty span { font-size: 0.82rem; }
+
+        .lfp-folder-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+            border: 1px solid transparent;
+        }
+        .lfp-folder-item:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.06));
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+        .lfp-folder-item.selected {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.10));
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.1);
+        }
+        body.light-theme .lfp-folder-item:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
+        }
+        body.light-theme .lfp-folder-item.selected {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.07));
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        .lfp-folder-icon {
+            font-size: 1.1rem;
+            color: #fbbf24;
+            min-width: 22px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        .lfp-folder-item:hover .lfp-folder-icon { transform: scale(1.12); }
+        .lfp-folder-item.selected .lfp-folder-icon { color: #a5b4fc; }
+        body.light-theme .lfp-folder-icon { color: #d97706; }
+        body.light-theme .lfp-folder-item.selected .lfp-folder-icon { color: #6366f1; }
+
+        .lfp-folder-name {
+            flex: 1;
+            font-size: 0.85rem;
+            color: rgba(220, 225, 240, 0.9);
+            font-weight: 500;
+        }
+        body.light-theme .lfp-folder-name { color: #334155; }
+
+        .lfp-folder-enter {
+            opacity: 0;
+            color: rgba(148, 163, 184, 0.6);
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.08);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .lfp-folder-item:hover .lfp-folder-enter { opacity: 1; }
+        .lfp-folder-enter:hover {
+            background: rgba(99, 102, 241, 0.2) !important;
+            color: #a5b4fc;
+        }
+
+        .lfp-up-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+            color: rgba(165, 180, 252, 0.7);
+            font-size: 0.82rem;
+            border: 1px dashed rgba(99, 102, 241, 0.15);
+        }
+        .lfp-up-item:hover {
+            background: rgba(99, 102, 241, 0.08);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        .lfp-up-item i { font-size: 0.9rem; }
+
+        .lfp-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-top: 1px solid rgba(99, 102, 241, 0.12);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), transparent);
+            gap: 12px;
+        }
+        body.light-theme .lfp-footer {
+            background: linear-gradient(135deg, rgba(241, 245, 249, 0.5), transparent);
+        }
+
+        .lfp-selected-path {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: rgba(148, 163, 184, 0.6);
+        }
+        .lfp-selected-path i { color: rgba(251, 191, 36, 0.6); font-size: 0.75rem; }
+        .lfp-selected-path span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .lfp-selected-path.has-selection { color: rgba(165, 180, 252, 0.9); }
+        .lfp-selected-path.has-selection i { color: #fbbf24; }
+
+        .lfp-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .lfp-btn {
+            padding: 7px 16px;
+            border-radius: 9px;
+            border: 1px solid transparent;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+        .lfp-btn-cancel {
+            background: rgba(100, 116, 139, 0.1);
+            border-color: rgba(100, 116, 139, 0.2);
+            color: rgba(148, 163, 184, 0.8);
+        }
+        .lfp-btn-cancel:hover {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+        .lfp-btn-select {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+            border-color: rgba(99, 102, 241, 0.35);
+            color: #a5b4fc;
+        }
+        .lfp-btn-select:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.25));
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
+        }
+        .lfp-btn-select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        body.light-theme .lfp-btn-cancel { color: #64748b; }
+        body.light-theme .lfp-btn-select { color: #6366f1; }
+
         .docroot-ghost.editing {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.10));
             border-bottom-color: rgba(99, 102, 241, 0.3);
@@ -24929,7 +25335,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="text" id="docrootInput" class="docroot-input" 
                                placeholder="e.g. http://localhost/Prompt-Manager"
                                spellcheck="false" autocomplete="off" style="display:none;">
-                        <button class="docroot-config-btn" id="docrootConfigBtn" onclick="toggleDocrootEdit()" title="Configure localhost path">
+                        <button class="docroot-browse-btn" id="docrootBrowseBtn" onclick="openLocalhostFolderPicker()" title="Browse folders">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button class="docroot-config-btn" id="docrootConfigBtn" onclick="toggleDocrootEdit()" title="Configure localhost path manually">
                             <i class="fas fa-cog"></i>
                         </button>
                         <button class="docroot-save-btn" id="docrootSaveBtn" onclick="saveDocrootPath()" style="display:none;" title="Save path">
@@ -27697,6 +28106,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
     
+    <!-- Localhost Folder Picker Modal -->
+    <div class="modal-overlay" id="localhostFolderPickerModal">
+        <div class="modal lfp-modal">
+            <div class="lfp-header">
+                <div class="lfp-title">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Select Localhost Folder</span>
+                </div>
+                <button class="lfp-close-btn" onclick="closeLocalhostFolderPicker()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lfp-breadcrumb" id="lfpBreadcrumb">
+                <span class="lfp-crumb-loading">Loading...</span>
+            </div>
+            <div class="lfp-search-bar">
+                <i class="fas fa-search lfp-search-icon"></i>
+                <input type="text" id="lfpSearchInput" class="lfp-search-input" placeholder="Filter folders..." autocomplete="off" spellcheck="false">
+                <button class="lfp-search-clear" id="lfpSearchClear" onclick="lfpClearSearch()" title="Clear filter" style="display:none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lfp-body" id="lfpBody">
+                <div class="lfp-loading"><i class="fas fa-spinner fa-spin"></i> Loading directories...</div>
+            </div>
+            <div class="lfp-footer">
+                <div class="lfp-selected-path" id="lfpSelectedPath">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="lfpSelectedPathText">No folder selected</span>
+                </div>
+                <div class="lfp-actions">
+                    <button class="lfp-btn lfp-btn-cancel" onclick="closeLocalhostFolderPicker()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="lfp-btn lfp-btn-select" id="lfpSelectBtn" onclick="confirmLocalhostFolder()" disabled>
+                        <i class="fas fa-check"></i> Select
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
     
@@ -34666,6 +35117,238 @@ in each section carefully and maintain proper connections between components.
                 });
             }
         });
+
+        /* ── Localhost Folder Picker (Browse) ── */
+        var _lfpCurrentPath = '';
+        var _lfpSelectedPath = '';
+        var _lfpAllDirs = [];
+
+        function openLocalhostFolderPicker() {
+            var modal = document.getElementById('localhostFolderPickerModal');
+            if (!modal) return;
+            modal.classList.add('active');
+            _lfpSelectedPath = '';
+            _lfpUpdateSelectBtn();
+            document.getElementById('lfpSelectedPathText').textContent = 'No folder selected';
+            document.getElementById('lfpSelectedPath').classList.remove('has-selection');
+            var searchInp = document.getElementById('lfpSearchInput');
+            if (searchInp) { searchInp.value = ''; }
+            document.getElementById('lfpSearchClear').style.display = 'none';
+            // Load starting directory
+            _lfpNavigate('');
+        }
+
+        function closeLocalhostFolderPicker() {
+            var modal = document.getElementById('localhostFolderPickerModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function _lfpNavigate(path) {
+            var body = document.getElementById('lfpBody');
+            body.innerHTML = '<div class="lfp-loading"><i class="fas fa-spinner fa-spin"></i> Loading directories...</div>';
+            
+            var fd = new FormData();
+            fd.append('action', 'browse_localhost_dirs');
+            if (path) fd.append('path', path);
+            
+            fetch(window.location.href, { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.success) {
+                        body.innerHTML = '<div class="lfp-empty"><i class="fas fa-exclamation-triangle"></i><span>' + (data.message || 'Error loading') + '</span></div>';
+                        return;
+                    }
+                    _lfpCurrentPath = data.current;
+                    _lfpAllDirs = data.dirs || [];
+                    _lfpRenderBreadcrumb(data.current);
+                    _lfpRenderFolders(_lfpAllDirs, data.parent);
+                    // Clear search
+                    var searchInp = document.getElementById('lfpSearchInput');
+                    if (searchInp) searchInp.value = '';
+                    document.getElementById('lfpSearchClear').style.display = 'none';
+                })
+                .catch(function(err) {
+                    body.innerHTML = '<div class="lfp-empty"><i class="fas fa-exclamation-triangle"></i><span>Network error</span></div>';
+                });
+        }
+
+        function _lfpRenderBreadcrumb(fullPath) {
+            var bc = document.getElementById('lfpBreadcrumb');
+            if (!bc) return;
+            // Split path into segments
+            var parts = fullPath.replace(/\\/g, '/').split('/').filter(Boolean);
+            var html = '';
+            var accumulated = '';
+            
+            for (var i = 0; i < parts.length; i++) {
+                if (i === 0 && parts[i].indexOf(':') !== -1) {
+                    // Drive letter (e.g., C:)
+                    accumulated = parts[i];
+                } else {
+                    accumulated += '/' + parts[i];
+                }
+                var isLast = (i === parts.length - 1);
+                if (isLast) {
+                    html += '<span class="lfp-crumb active">' + _lfpEsc(parts[i]) + '</span>';
+                } else {
+                    html += '<span class="lfp-crumb" onclick="_lfpNavigate(\'' + _lfpEscAttr(accumulated) + '\')">' + _lfpEsc(parts[i]) + '</span>';
+                    html += '<span class="lfp-crumb-sep"><i class="fas fa-chevron-right"></i></span>';
+                }
+            }
+            bc.innerHTML = html;
+        }
+
+        function _lfpRenderFolders(dirs, parentPath) {
+            var body = document.getElementById('lfpBody');
+            if (!body) return;
+            var html = '';
+            
+            // Parent (..) link
+            if (parentPath) {
+                html += '<div class="lfp-up-item" onclick="_lfpNavigate(\'' + _lfpEscAttr(parentPath) + '\')">';
+                html += '<i class="fas fa-level-up-alt"></i>';
+                html += '<span>.. (parent directory)</span>';
+                html += '</div>';
+            }
+            
+            if (dirs.length === 0) {
+                html += '<div class="lfp-empty"><i class="fas fa-folder-open"></i><span>No subdirectories</span></div>';
+            } else {
+                for (var i = 0; i < dirs.length; i++) {
+                    var d = dirs[i];
+                    var isSelected = (_lfpSelectedPath === d.path);
+                    html += '<div class="lfp-folder-item' + (isSelected ? ' selected' : '') + '" ';
+                    html += 'onclick="_lfpSelectFolder(\'' + _lfpEscAttr(d.path) + '\', \'' + _lfpEscAttr(d.name) + '\')" ';
+                    html += 'ondblclick="_lfpNavigate(\'' + _lfpEscAttr(d.path) + '\')">';
+                    html += '<i class="fas fa-folder lfp-folder-icon"></i>';
+                    html += '<span class="lfp-folder-name">' + _lfpEsc(d.name) + '</span>';
+                    html += '<span class="lfp-folder-enter" onclick="event.stopPropagation(); _lfpNavigate(\'' + _lfpEscAttr(d.path) + '\')">Open <i class="fas fa-arrow-right"></i></span>';
+                    html += '</div>';
+                }
+            }
+            body.innerHTML = html;
+        }
+
+        function _lfpSelectFolder(path, name) {
+            _lfpSelectedPath = path;
+            // Update UI
+            var pathEl = document.getElementById('lfpSelectedPath');
+            var textEl = document.getElementById('lfpSelectedPathText');
+            textEl.textContent = path;
+            pathEl.classList.add('has-selection');
+            _lfpUpdateSelectBtn();
+            // Re-render to show selection highlight
+            var items = document.querySelectorAll('.lfp-folder-item');
+            items.forEach(function(el) {
+                el.classList.remove('selected');
+            });
+            // Find and highlight the selected one
+            items.forEach(function(el) {
+                var itemPath = el.getAttribute('onclick');
+                if (itemPath && itemPath.indexOf(_lfpEscAttr(path)) !== -1) {
+                    el.classList.add('selected');
+                }
+            });
+        }
+
+        function _lfpUpdateSelectBtn() {
+            var btn = document.getElementById('lfpSelectBtn');
+            if (btn) btn.disabled = !_lfpSelectedPath;
+        }
+
+        function confirmLocalhostFolder() {
+            if (!_lfpSelectedPath) return;
+            // Convert filesystem path to localhost URL
+            // e.g., C:/laragon/www/myapp -> http://localhost/myapp
+            var fsPath = _lfpSelectedPath.replace(/\\/g, '/');
+            var wwwRoot = 'C:/laragon/www';
+            var url = '';
+            
+            // Check if the path is under the www root
+            var lowerFs = fsPath.toLowerCase();
+            var lowerWww = wwwRoot.toLowerCase();
+            if (lowerFs.indexOf(lowerWww) === 0) {
+                var relative = fsPath.substring(wwwRoot.length);
+                url = 'http://localhost' + relative;
+            } else {
+                // Just use the folder name as a guess
+                var parts = fsPath.split('/');
+                url = 'http://localhost/' + parts[parts.length - 1];
+            }
+            
+            // Save to localStorage and update docroot
+            localStorage.setItem(_docrootKey, url);
+            _docrootLoad();
+            closeLocalhostFolderPicker();
+            showToast('Localhost path set to: ' + url, 'success');
+            
+            // Auto-load in iframe
+            if (typeof iframeLoadUrl === 'function') {
+                iframeLoadUrl(url);
+            }
+        }
+
+        function lfpClearSearch() {
+            var inp = document.getElementById('lfpSearchInput');
+            if (inp) inp.value = '';
+            document.getElementById('lfpSearchClear').style.display = 'none';
+            // Re-render all
+            _lfpRenderFolders(_lfpAllDirs, _lfpCurrentPath ? _getParentPath(_lfpCurrentPath) : null);
+        }
+
+        function _getParentPath(p) {
+            var parts = p.replace(/\\/g, '/').split('/').filter(Boolean);
+            if (parts.length <= 1) return null;
+            parts.pop();
+            var result = parts.join('/');
+            // Ensure drive letter format
+            if (parts.length === 1 && parts[0].indexOf(':') !== -1) {
+                result = parts[0] + '/';
+            }
+            return result;
+        }
+
+        // Search filter listener
+        document.addEventListener('DOMContentLoaded', function() {
+            var searchInp = document.getElementById('lfpSearchInput');
+            if (searchInp) {
+                searchInp.addEventListener('input', function() {
+                    var val = this.value.trim().toLowerCase();
+                    var clearBtn = document.getElementById('lfpSearchClear');
+                    clearBtn.style.display = val ? '' : 'none';
+                    
+                    if (!val) {
+                        _lfpRenderFolders(_lfpAllDirs, _getParentPath(_lfpCurrentPath));
+                        return;
+                    }
+                    var filtered = _lfpAllDirs.filter(function(d) {
+                        return d.name.toLowerCase().indexOf(val) !== -1;
+                    });
+                    _lfpRenderFolders(filtered, null);
+                });
+                searchInp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') { lfpClearSearch(); }
+                });
+            }
+            
+            // Close modal on overlay click
+            var modal = document.getElementById('localhostFolderPickerModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) closeLocalhostFolderPicker();
+                });
+            }
+        });
+
+        function _lfpEsc(str) {
+            var div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function _lfpEscAttr(str) {
+            return str.replace(/\\/g, '/').replace(/'/g, "\\'");
+        }
 
         function iframeGoHome() {
             var saved = localStorage.getItem(_docrootKey);
