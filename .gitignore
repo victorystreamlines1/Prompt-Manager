@@ -1,3 +1,9 @@
+# Replit
+.cache/
+.local/
+.replit
+replit.nix
+
 # Environment
 .env
 .env.local
