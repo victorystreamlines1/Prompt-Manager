@@ -24832,27 +24832,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
-                    <!-- Localhost Root Ghost -->
-                    <?php
-                        $isLocal = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1'])
-                                || str_ends_with($_SERVER['SERVER_NAME'] ?? '', '.local')
-                                || str_starts_with($_SERVER['SERVER_ADDR'] ?? '', '127.')
-                                || ($_SERVER['SERVER_ADDR'] ?? '') === '::1';
-                        if ($isLocal) {
-                            $ghostIcon  = 'fa-server';
-                            $ghostLabel = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
-                            $ghostTitle = 'Local document root – ' . $ghostLabel;
-                        } else {
-                            $ghostIcon  = 'fa-globe';
-                            $scheme     = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                            $ghostLabel = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME']);
-                            $ghostTitle = 'Remote host – ' . $ghostLabel;
-                        }
-                    ?>
-                    <div class="docroot-ghost" id="docrootGhost" title="<?= htmlspecialchars($ghostTitle) ?>">
-                        <i class="fas <?= $ghostIcon ?>"></i>
-                        <span id="docrootText"><?= htmlspecialchars($ghostLabel) ?></span>
+                    <!-- Server Root Ghost (auto-detected via JS) -->
+                    <div class="docroot-ghost" id="docrootGhost" title="">
+                        <i class="fas fa-globe" id="docrootIcon"></i>
+                        <span id="docrootText">Detecting...</span>
                     </div>
+                    <script>
+                    (function(){
+                        var origin = window.location.origin;                        // e.g. http://localhost or https://domain.com
+                        var host   = window.location.hostname;
+                        var isLocal = (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local'));
+                        var icon   = document.getElementById('docrootIcon');
+                        var text   = document.getElementById('docrootText');
+                        var ghost  = document.getElementById('docrootGhost');
+                        var docroot = <?= json_encode(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'])) ?>;
+
+                        if (isLocal) {
+                            icon.className = 'fas fa-server';
+                            text.textContent = origin + '  ·  ' + docroot;
+                            ghost.title = 'Local server – ' + origin + ' → ' + docroot;
+                        } else {
+                            icon.className = 'fas fa-globe';
+                            text.textContent = origin;
+                            ghost.title = 'Remote host – ' + origin;
+                        }
+                    })();
+                    </script>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
                         <div class="iframe-toolbar-left">
