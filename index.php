@@ -22332,6 +22332,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             to { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ═══════ Main Content Tabs ═══════ */
+        .mc-tabs {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin-bottom: 0.65rem;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.5), rgba(20, 20, 45, 0.35));
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 12px;
+            padding: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+        .mc-tabs::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25), transparent);
+        }
+        .mc-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.45rem 1rem;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: rgba(255, 255, 255, 0.4);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+        .mc-tab i {
+            font-size: 0.72rem;
+            transition: all 0.3s ease;
+        }
+        .mc-tab:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.65);
+            background: rgba(99, 102, 241, 0.06);
+        }
+        .mc-tab.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.10));
+            border-color: rgba(99, 102, 241, 0.30);
+            color: #c7d2fe;
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .mc-tab.active i {
+            color: #a5b4fc;
+        }
+        .mc-tab .mc-tab-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+        .mc-tab.active .mc-tab-dot {
+            opacity: 1;
+            transform: scale(1);
+            background: #818cf8;
+            box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+        }
+
+        /* Tab panels */
+        .mc-tab-panel {
+            display: none;
+            animation: mcTabFadeIn 0.35s ease;
+        }
+        .mc-tab-panel.active {
+            display: block;
+        }
+        @keyframes mcTabFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Iframe tab – empty placeholder */
+        .mc-iframe-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.4), rgba(20, 20, 45, 0.25));
+            border: 1px dashed rgba(99, 102, 241, 0.20);
+            border-radius: 16px;
+            padding: 3rem;
+        }
+        .mc-iframe-placeholder-icon {
+            font-size: 3rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.20), rgba(139, 92, 246, 0.12));
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(165, 180, 252, 0.4);
+            margin-bottom: 1.2rem;
+        }
+        .mc-iframe-placeholder h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.35);
+            margin: 0 0 0.4rem 0;
+            letter-spacing: 0.5px;
+        }
+        .mc-iframe-placeholder p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin: 0;
+        }
+
         /* Slider Container - Compact */
         .slider-container {
             margin-bottom: 0;
@@ -23496,6 +23621,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="gd-bar-shortcut"><kbd>Shift</kbd>+<kbd>E</kbd> / <kbd>Shift</kbd>+<kbd>A</kbd></span>
             </div>
 
+            <!-- Main Content Tabs -->
+            <div class="mc-tabs">
+                <button class="mc-tab active" data-mc-tab="workspace" onclick="mcSwitchTab('workspace')">
+                    <i class="fas fa-th-large"></i>
+                    <span>Workspace</span>
+                    <span class="mc-tab-dot"></span>
+                </button>
+                <button class="mc-tab" data-mc-tab="iframe" onclick="mcSwitchTab('iframe')">
+                    <i class="fas fa-window-maximize"></i>
+                    <span>Iframe</span>
+                    <span class="mc-tab-dot"></span>
+                </button>
+            </div>
+
+            <!-- Tab Panel: Workspace -->
+            <div class="mc-tab-panel active" id="mcPanelWorkspace" data-mc-panel="workspace">
+
             <!-- Work Distribution Slider -->
             <div class="distribution-section">
                 <div class="distribution-header">
@@ -24313,6 +24455,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+
+            </div><!-- /mc-tab-panel workspace -->
+
+            <!-- Tab Panel: Iframe -->
+            <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
+                <div class="mc-iframe-placeholder">
+                    <div class="mc-iframe-placeholder-icon">
+                        <i class="fas fa-window-maximize"></i>
+                    </div>
+                    <h3>Iframe Panel</h3>
+                    <p>This space is reserved for future content</p>
+                </div>
+            </div><!-- /mc-tab-panel iframe -->
             
         </main>
         
@@ -33770,6 +33925,21 @@ in each section carefully and maintain proper connections between components.
                 insertedRef.len += ins.length;
                 target.focus();
                 return ins.length;
+            }
+        }
+
+        // ── Main Content Tab Switching ──
+        function mcSwitchTab(tabName) {
+            document.querySelectorAll('.mc-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.mc-tab-panel').forEach(p => p.classList.remove('active'));
+            const tab = document.querySelector(`.mc-tab[data-mc-tab="${tabName}"]`);
+            const panel = document.querySelector(`.mc-tab-panel[data-mc-panel="${tabName}"]`);
+            if (tab) tab.classList.add('active');
+            if (panel) {
+                panel.classList.add('active');
+                panel.style.animation = 'none';
+                panel.offsetHeight;
+                panel.style.animation = '';
             }
         }
 
