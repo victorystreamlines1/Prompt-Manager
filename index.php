@@ -34418,20 +34418,7 @@ in each section carefully and maintain proper connections between components.
         }
 
         function iframeGoHome() {
-            const iframe = _iframeEl();
-            const emptyState = document.getElementById('iframeEmptyState');
-            const statusBar = _iframeStatusBar();
-            const statusText = document.getElementById('iframeStatusText');
-
-            if (iframe) {
-                iframe.src = 'about:blank';
-                iframe.classList.remove('active');
-            }
-            if (emptyState) emptyState.style.display = '';
-            document.getElementById('iframeUrlInput').value = '';
-            statusBar.className = 'iframe-status-bar';
-            statusText.textContent = 'Ready';
-            _iframeUpdateBookmarkIcon();
+            iframeLoadUrl('http://localhost/');
         }
 
         function iframeOpenExternal() {
