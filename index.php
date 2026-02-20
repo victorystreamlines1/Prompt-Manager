@@ -21927,6 +21927,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Distribution Append Checkbox */
         .dist-append-check {
+            margin-left: auto;
             display: flex;
             align-items: center;
             cursor: pointer;
@@ -21977,12 +21978,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #fff;
         }
 
-        /* ═══ Global Dictation Buttons (Steps Header) ═══ */
-        .gd-wrapper {
+        /* ═══════ Global Dictation – Standalone Bar ═══════ */
+        .gd-bar {
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.6), rgba(20, 20, 40, 0.45));
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            backdrop-filter: blur(8px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .gd-bar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.04), rgba(251, 146, 60, 0.04));
+            pointer-events: none;
+        }
+        .gd-bar:hover {
+            border-color: rgba(139, 92, 246, 0.22);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        .gd-bar-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            color: rgba(167, 139, 250, 0.8);
+            font-size: 0.6rem;
+            flex-shrink: 0;
+        }
+        .gd-bar-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .gd-bar-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .gd-bar-shortcut {
+            font-size: 0.5rem;
+            color: rgba(255, 255, 255, 0.25);
+            white-space: nowrap;
             margin-left: auto;
+        }
+        .gd-bar-shortcut kbd {
+            display: inline-block;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.48rem;
+            font-family: inherit;
+            color: rgba(255, 255, 255, 0.35);
+            margin: 0 1px;
         }
         .gd-btn {
             display: inline-flex;
@@ -23236,6 +23299,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Global Dictation Bar -->
+            <div class="gd-bar">
+                <div class="gd-bar-icon"><i class="fas fa-headset"></i></div>
+                <span class="gd-bar-label">Dictation</span>
+                <div class="gd-bar-divider"></div>
+                <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field (Shift+E)">
+                    <i class="fas fa-microphone"></i>
+                    <span class="gd-label" id="gdLabelEn">English</span>
+                    <span class="gd-pulse" id="gdPulseEn"></span>
+                </button>
+                <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل (Shift+A)">
+                    <i class="fas fa-microphone"></i>
+                    <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
+                    <span class="gd-pulse" id="gdPulseAr"></span>
+                </button>
+                <span class="gd-bar-shortcut"><kbd>Shift</kbd>+<kbd>E</kbd> / <kbd>Shift</kbd>+<kbd>A</kbd></span>
+            </div>
+
             <!-- Work Distribution Slider -->
             <div class="distribution-section">
                 <div class="distribution-header">
@@ -23251,19 +23332,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="checkbox" id="distributionEnabled">
                         <span class="check-box"><i class="fas fa-check"></i></span>
                     </label>
-                    <!-- Global Dictation Buttons -->
-                    <div class="gd-wrapper">
-                        <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field (Shift+E)">
-                            <i class="fas fa-microphone"></i>
-                            <span class="gd-label" id="gdLabelEn">Dictate</span>
-                            <span class="gd-pulse" id="gdPulseEn"></span>
-                        </button>
-                        <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل (Shift+A)">
-                            <i class="fas fa-microphone"></i>
-                            <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
-                            <span class="gd-pulse" id="gdPulseAr"></span>
-                        </button>
-                    </div>
                 </div>
                 
                 <div class="slider-container">
