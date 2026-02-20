@@ -24832,12 +24832,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
-                    <!-- App Path Ghost (auto-detected via __DIR__) -->
-                    <?php $appPath = str_replace('\\', '/', __DIR__); ?>
-                    <div class="docroot-ghost" id="docrootGhost" title="Application path – <?= htmlspecialchars($appPath) ?>">
-                        <i class="fas fa-folder-open"></i>
-                        <span id="docrootText"><?= htmlspecialchars($appPath) ?></span>
+                    <!-- Web Base Path Ghost -->
+                    <?php
+                        $webBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') ?: '/';
+                    ?>
+                    <div class="docroot-ghost" id="docrootGhost" title="">
+                        <i class="fas fa-sitemap" id="docrootIcon"></i>
+                        <span id="docrootText"></span>
                     </div>
+                    <script>
+                    (function(){
+                        var base = <?= json_encode($webBase) ?>;
+                        var full = window.location.origin + base;
+                        document.getElementById('docrootText').textContent = full;
+                        document.getElementById('docrootGhost').title = 'App web root – ' + full;
+                    })();
+                    </script>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
                         <div class="iframe-toolbar-left">
