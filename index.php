@@ -24152,14 +24152,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="editor-actions">
-                        <button class="btn btn-secondary" onclick="clearEditor()">
-                            <i class="fas fa-eraser"></i> Clear
+                        <button class="btn btn-primary" onclick="copyPrompt()">
+                            <i class="fas fa-copy"></i> Copy
                         </button>
                         <button class="btn btn-paste" onclick="pasteToEditor()">
                             <i class="fas fa-paste"></i> Paste
-                        </button>
-                        <button class="btn btn-primary" onclick="copyPrompt()">
-                            <i class="fas fa-copy"></i> Copy
                         </button>
                         <button class="btn btn-success" onclick="openSaveModal()">
                             <i class="fas fa-save"></i> Save
@@ -24180,9 +24177,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button class="btn btn-pull" id="btnPullFromFile" onclick="pullFromPromptFile()" disabled title="Pull from prompt.txt">
                                 <i class="fas fa-download"></i> Pull
                             </button>
-                            
-                            
                         </div>
+                        
+                        <button class="btn btn-secondary" onclick="clearEditor()">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
                     </div>
                 </div>
                 <div class="editor-body">
