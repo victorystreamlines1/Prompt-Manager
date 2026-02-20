@@ -15146,27 +15146,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* TTS Reader Button */
         .btn-tts {
-            background: linear-gradient(135deg, #e879a8, #c05086);
-            color: white;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.20), rgba(219, 39, 119, 0.10));
+            border: 1px solid rgba(236, 72, 153, 0.35);
+            color: #f9a8d4;
             position: relative;
             overflow: hidden;
         }
         .btn-tts:hover {
-            background: linear-gradient(135deg, #c05086, #9b3a6a);
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.32), rgba(219, 39, 119, 0.20));
+            border-color: rgba(236, 72, 153, 0.55);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(192, 80, 134, 0.4);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+            color: #fbcfe8;
         }
         .btn-tts.speaking {
-            background: linear-gradient(135deg, #f472b6, #db2777);
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.35), rgba(219, 39, 119, 0.25));
+            border-color: rgba(244, 114, 182, 0.6);
             animation: ttsPulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 16px rgba(244, 114, 182, 0.45);
+            box-shadow: 0 0 16px rgba(244, 114, 182, 0.35);
+            color: #fbcfe8;
         }
         .btn-tts.speaking i {
             animation: ttsWave 0.6s ease-in-out infinite alternate;
         }
         @keyframes ttsPulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(244, 114, 182, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(244, 114, 182, 0.55); }
+            0%, 100% { box-shadow: 0 0 8px rgba(244, 114, 182, 0.25); }
+            50% { box-shadow: 0 0 22px rgba(244, 114, 182, 0.5); }
         }
         @keyframes ttsWave {
             from { transform: scale(1); }
@@ -15174,7 +15179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .btn-tts .tts-progress {
             position: absolute; bottom: 0; left: 0; height: 2.5px;
-            background: rgba(255, 255, 255, 0.7);
+            background: linear-gradient(90deg, rgba(244, 114, 182, 0.8), rgba(236, 72, 153, 1));
             border-radius: 0 0 8px 8px;
             transition: width 0.3s linear;
             width: 0;
@@ -15182,32 +15187,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Arabic TTS Reader Button */
         .btn-tts-ar {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.20), rgba(245, 158, 11, 0.10));
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            color: #fcd34d;
             position: relative;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, sans-serif;
         }
         .btn-tts-ar:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.32), rgba(245, 158, 11, 0.20));
+            border-color: rgba(251, 191, 36, 0.55);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+            color: #fde68a;
         }
         .btn-tts-ar.speaking {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.35), rgba(245, 158, 11, 0.25));
+            border-color: rgba(251, 191, 36, 0.6);
             animation: ttsArPulse 1.5s ease-in-out infinite;
-            box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
+            box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+            color: #fde68a;
         }
         .btn-tts-ar.speaking i {
             animation: ttsWave 0.6s ease-in-out infinite alternate;
         }
         @keyframes ttsArPulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
-            50% { box-shadow: 0 0 22px rgba(245, 158, 11, 0.6); }
+            0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.25); }
+            50% { box-shadow: 0 0 22px rgba(251, 191, 36, 0.5); }
         }
         .btn-tts-ar .tts-ar-progress {
             position: absolute; bottom: 0; left: 0; height: 2.5px;
-            background: rgba(255, 255, 255, 0.7);
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.8), rgba(245, 158, 11, 1));
             border-radius: 0 0 8px 8px;
             transition: width 0.3s linear;
             width: 0;
@@ -15216,31 +15226,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.6rem;
             opacity: 0.85;
             margin-left: 1px;
+            background: rgba(251, 191, 36, 0.2);
+            padding: 1px 4px;
+            border-radius: 3px;
         }
 
         /* STT Voice Recognizer Button */
         .btn-stt {
-            background: linear-gradient(135deg, #34d399, #059669);
-            color: white;
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.20), rgba(16, 185, 129, 0.10));
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            color: #6ee7b7;
             position: relative;
             overflow: hidden;
         }
         .btn-stt:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.32), rgba(16, 185, 129, 0.20));
+            border-color: rgba(52, 211, 153, 0.55);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 4px 15px rgba(52, 211, 153, 0.3);
+            color: #a7f3d0;
         }
         .btn-stt.listening {
-            background: linear-gradient(135deg, #f87171, #dc2626);
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.30), rgba(239, 68, 68, 0.20));
+            border-color: rgba(248, 113, 113, 0.6);
             animation: sttPulse 1s ease-in-out infinite;
-            box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+            box-shadow: 0 0 16px rgba(248, 113, 113, 0.35);
+            color: #fca5a5;
         }
         .btn-stt.listening i {
             animation: sttBlink 0.7s ease-in-out infinite alternate;
         }
         @keyframes sttPulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
-            50% { box-shadow: 0 0 22px rgba(248, 113, 113, 0.6); }
+            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.25); }
+            50% { box-shadow: 0 0 22px rgba(248, 113, 113, 0.55); }
         }
         @keyframes sttBlink {
             from { transform: scale(1); opacity: 1; }
@@ -15249,7 +15267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-stt .stt-dot {
             display: none;
             width: 6px; height: 6px;
-            background: #fff;
+            background: currentColor;
             border-radius: 50%;
             animation: sttDotPulse 0.8s ease-in-out infinite;
             margin-left: 2px;
@@ -15262,35 +15280,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* STT Arabic Dictation Button */
         .btn-stt-ar {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.20), rgba(249, 115, 22, 0.10));
+            border: 1px solid rgba(251, 146, 60, 0.35);
+            color: #fdba74;
             position: relative;
             overflow: hidden;
             direction: rtl;
         }
         .btn-stt-ar:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.32), rgba(249, 115, 22, 0.20));
+            border-color: rgba(251, 146, 60, 0.55);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(217, 119, 6, 0.4);
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+            color: #fed7aa;
         }
         .btn-stt-ar.listening {
-            background: linear-gradient(135deg, #f87171, #dc2626);
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.30), rgba(239, 68, 68, 0.20));
+            border-color: rgba(248, 113, 113, 0.6);
             animation: sttArPulse 1s ease-in-out infinite;
-            box-shadow: 0 0 16px rgba(248, 113, 113, 0.5);
+            box-shadow: 0 0 16px rgba(248, 113, 113, 0.35);
+            color: #fca5a5;
         }
         .btn-stt-ar.listening i {
             animation: sttBlink 0.7s ease-in-out infinite alternate;
         }
         @keyframes sttArPulse {
-            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(248, 113, 113, 0.7); }
+            0%, 100% { box-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
+            50% { box-shadow: 0 0 22px rgba(248, 113, 113, 0.55); }
         }
         .stt-ar-flag {
             display: inline-block;
             font-size: 0.55rem;
             font-weight: 800;
             letter-spacing: 0.5px;
-            background: rgba(255,255,255,0.25);
+            background: rgba(251, 146, 60, 0.2);
             padding: 1px 4px;
             border-radius: 3px;
             margin-right: 3px;
@@ -15299,7 +15322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .stt-ar-dot {
             display: none;
             width: 6px; height: 6px;
-            background: #fff;
+            background: currentColor;
             border-radius: 50%;
             animation: sttArDotPulse 0.8s ease-in-out infinite;
             margin-right: 2px;
