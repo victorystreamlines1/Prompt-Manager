@@ -15796,6 +15796,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.07));
         }
 
+        /* Docroot Config Buttons & Input */
+        .docroot-config-btn,
+        .docroot-save-btn,
+        .docroot-cancel-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            transition: all 0.25s ease;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .docroot-config-btn {
+            color: rgba(129, 140, 248, 0.5);
+            margin-left: auto;
+        }
+        .docroot-config-btn:hover {
+            color: rgba(129, 140, 248, 1);
+            background: rgba(99, 102, 241, 0.15);
+            transform: rotate(90deg);
+        }
+
+        .docroot-save-btn {
+            color: rgba(52, 211, 153, 0.8);
+        }
+        .docroot-save-btn:hover {
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.15);
+        }
+
+        .docroot-cancel-btn {
+            color: rgba(248, 113, 113, 0.8);
+        }
+        .docroot-cancel-btn:hover {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.15);
+        }
+
+        .docroot-input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            color: rgba(220, 225, 240, 1);
+            outline: none;
+            letter-spacing: 0.3px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .docroot-input:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        }
+        .docroot-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+            font-style: italic;
+        }
+
+        .docroot-ghost.editing {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.10));
+            border-bottom-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .docroot-display.not-set {
+            font-style: italic;
+            opacity: 0.5;
+        }
+
+        body.light-theme .docroot-config-btn {
+            color: rgba(99, 102, 241, 0.45);
+        }
+        body.light-theme .docroot-config-btn:hover {
+            color: rgba(99, 102, 241, 0.9);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        body.light-theme .docroot-input {
+            background: rgba(248, 250, 252, 0.8);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: rgba(30, 41, 59, 1);
+        }
+        body.light-theme .docroot-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+
         .folder-path-indicator {
             display: none;
             align-items: center;
@@ -24832,22 +24922,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
-                    <!-- Web Base Path Ghost -->
-                    <?php
-                        $webBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') ?: '/';
-                    ?>
-                    <div class="docroot-ghost" id="docrootGhost" title="">
-                        <i class="fas fa-sitemap" id="docrootIcon"></i>
-                        <span id="docrootText"></span>
+                    <!-- Localhost Path Ghost (user-configurable) -->
+                    <div class="docroot-ghost" id="docrootGhost" title="Click the gear to set your localhost path">
+                        <i class="fas fa-server" id="docrootIcon"></i>
+                        <span id="docrootText" class="docroot-display">Not configured</span>
+                        <input type="text" id="docrootInput" class="docroot-input" 
+                               placeholder="e.g. http://localhost/Prompt-Manager"
+                               spellcheck="false" autocomplete="off" style="display:none;">
+                        <button class="docroot-config-btn" id="docrootConfigBtn" onclick="toggleDocrootEdit()" title="Configure localhost path">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <button class="docroot-save-btn" id="docrootSaveBtn" onclick="saveDocrootPath()" style="display:none;" title="Save path">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="docroot-cancel-btn" id="docrootCancelBtn" onclick="cancelDocrootEdit()" style="display:none;" title="Cancel">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <script>
-                    (function(){
-                        var base = <?= json_encode($webBase) ?>;
-                        var full = window.location.origin + base;
-                        document.getElementById('docrootText').textContent = full;
-                        document.getElementById('docrootGhost').title = 'App web root – ' + full;
-                    })();
-                    </script>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
                         <div class="iframe-toolbar-left">
@@ -34494,8 +34585,91 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
+        /* ── Localhost Path Config ── */
+        var _docrootKey = 'pm_localhost_path';
+
+        function _docrootLoad() {
+            var saved = localStorage.getItem(_docrootKey) || '';
+            var txt = document.getElementById('docrootText');
+            var ghost = document.getElementById('docrootGhost');
+            if (saved) {
+                txt.textContent = saved;
+                txt.classList.remove('not-set');
+                ghost.title = 'Localhost path – ' + saved;
+            } else {
+                txt.textContent = 'Not configured – click ⚙ to set';
+                txt.classList.add('not-set');
+                ghost.title = 'Click the gear to set your localhost path';
+            }
+        }
+
+        function toggleDocrootEdit() {
+            var ghost = document.getElementById('docrootGhost');
+            var txt = document.getElementById('docrootText');
+            var inp = document.getElementById('docrootInput');
+            var cfg = document.getElementById('docrootConfigBtn');
+            var sav = document.getElementById('docrootSaveBtn');
+            var can = document.getElementById('docrootCancelBtn');
+            ghost.classList.add('editing');
+            txt.style.display = 'none';
+            inp.style.display = '';
+            inp.value = localStorage.getItem(_docrootKey) || '';
+            cfg.style.display = 'none';
+            sav.style.display = '';
+            can.style.display = '';
+            inp.focus();
+            inp.select();
+        }
+
+        function saveDocrootPath() {
+            var inp = document.getElementById('docrootInput');
+            var val = inp.value.trim();
+            if (val) {
+                localStorage.setItem(_docrootKey, val);
+            } else {
+                localStorage.removeItem(_docrootKey);
+            }
+            _docrootExitEdit();
+            _docrootLoad();
+            if (typeof showToast === 'function') {
+                showToast(val ? 'Localhost path saved!' : 'Localhost path cleared.', 'success');
+            }
+        }
+
+        function cancelDocrootEdit() {
+            _docrootExitEdit();
+        }
+
+        function _docrootExitEdit() {
+            var ghost = document.getElementById('docrootGhost');
+            var txt = document.getElementById('docrootText');
+            var inp = document.getElementById('docrootInput');
+            var cfg = document.getElementById('docrootConfigBtn');
+            var sav = document.getElementById('docrootSaveBtn');
+            var can = document.getElementById('docrootCancelBtn');
+            ghost.classList.remove('editing');
+            txt.style.display = '';
+            inp.style.display = 'none';
+            cfg.style.display = '';
+            sav.style.display = 'none';
+            can.style.display = 'none';
+        }
+
+        // Enter to save, Esc to cancel in the docroot input
+        document.addEventListener('DOMContentLoaded', function() {
+            _docrootLoad();
+            var inp = document.getElementById('docrootInput');
+            if (inp) {
+                inp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') { e.preventDefault(); saveDocrootPath(); }
+                    if (e.key === 'Escape') { e.preventDefault(); cancelDocrootEdit(); }
+                });
+            }
+        });
+
         function iframeGoHome() {
-            iframeLoadUrl('http://localhost/');
+            var saved = localStorage.getItem(_docrootKey);
+            iframeLoadUrl(saved || 'http://localhost/');
         }
 
         function iframeOpenExternal() {
