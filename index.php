@@ -17746,6 +17746,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: rgba(255,255,255,0.15); padding: 1px 3px;
             border-radius: 3px; margin-right: 2px; vertical-align: middle;
         }
+        /* Copy Button */
+        .notes-footer .nf-btn-copy {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(14, 165, 233, 0.10));
+            border-color: rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+        }
+        .notes-footer .nf-btn-copy:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(14, 165, 233, 0.18));
+            border-color: rgba(56, 189, 248, 0.55);
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+            color: #bae6fd;
+        }
+        .notes-footer .nf-btn-copy.copied {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+        /* Paste Button */
+        .notes-footer .nf-btn-paste {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(139, 92, 246, 0.10));
+            border-color: rgba(168, 85, 247, 0.35);
+            color: #c4b5fd;
+        }
+        .notes-footer .nf-btn-paste:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(139, 92, 246, 0.18));
+            border-color: rgba(168, 85, 247, 0.55);
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
+            color: #ddd6fe;
+        }
+        .notes-footer .nf-btn-paste.pasted {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+        /* Clear Button */
+        .notes-footer .nf-btn-clear {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08));
+            border-color: rgba(239, 68, 68, 0.30);
+            color: #fca5a5;
+        }
+        .notes-footer .nf-btn-clear:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.28), rgba(220, 38, 38, 0.16));
+            border-color: rgba(239, 68, 68, 0.50);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.22);
+            color: #fecaca;
+        }
+        .notes-footer .nf-btn-clear.cleared {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
         /* RTL Toggle */
         .notes-footer .nf-btn-dir {
             display: inline-flex; align-items: center; gap: 0.35rem;
@@ -23680,6 +23731,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <button class="nf-btn nf-btn-stt-ar" id="btnSttNotesAr" onclick="sttNotesArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
                                             <i class="fas fa-microphone"></i> <span id="sttNotesArLabel">إملاء</span><span class="nf-ar-flag">AR</span>
                                             <span class="stt-ar-dot-mini"></span>
+                                        </button>
+                                        <button class="nf-btn nf-btn-copy" id="btnCopyNotes" onclick="copyNotesText()" title="Copy project prompts to clipboard">
+                                            <i class="fas fa-copy"></i> <span id="copyNotesLabel">Copy</span>
+                                        </button>
+                                        <button class="nf-btn nf-btn-paste" id="btnPasteNotes" onclick="pasteNotesText()" title="Paste from clipboard into project prompts">
+                                            <i class="fas fa-paste"></i> <span id="pasteNotesLabel">Paste</span>
+                                        </button>
+                                        <button class="nf-btn nf-btn-clear" id="btnClearNotes" onclick="clearNotesText()" title="Clear project prompts">
+                                            <i class="fas fa-eraser"></i> <span id="clearNotesLabel">Clear</span>
                                         </button>
                                     </div>
                                     <button class="nf-btn-dir" id="btnNotesDirToggle" onclick="toggleNotesDir()" title="Toggle text direction (LTR / RTL)">
@@ -33806,6 +33866,79 @@ in each section carefully and maintain proper connections between components.
             }
         });
         // ═══════ End Global Dictation ═══════
+
+        // ═══════ Copy – Project Prompts ═══════
+        function copyNotesText() {
+            const ta = document.getElementById('projectNotesTextarea');
+            const btn = document.getElementById('btnCopyNotes');
+            const label = document.getElementById('copyNotesLabel');
+            if (!ta || !ta.value.trim()) return;
+            navigator.clipboard.writeText(ta.value).then(() => {
+                if (btn) btn.classList.add('copied');
+                if (label) label.textContent = 'Copied!';
+                const icon = btn ? btn.querySelector('i') : null;
+                if (icon) { icon.className = 'fas fa-check'; }
+                setTimeout(() => {
+                    if (btn) btn.classList.remove('copied');
+                    if (label) label.textContent = 'Copy';
+                    if (icon) { icon.className = 'fas fa-copy'; }
+                }, 1800);
+            }).catch(() => {
+                ta.select();
+                document.execCommand('copy');
+                if (label) label.textContent = 'Copied!';
+                setTimeout(() => { if (label) label.textContent = 'Copy'; }, 1800);
+            });
+        }
+
+        // ═══════ Paste – Project Prompts ═══════
+        function pasteNotesText() {
+            const ta = document.getElementById('projectNotesTextarea');
+            const btn = document.getElementById('btnPasteNotes');
+            const label = document.getElementById('pasteNotesLabel');
+            if (!ta) return;
+            navigator.clipboard.readText().then(text => {
+                if (!text) return;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                ta.value = ta.value.substring(0, start) + text + ta.value.substring(end);
+                ta.selectionStart = ta.selectionEnd = start + text.length;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.focus();
+                if (btn) btn.classList.add('pasted');
+                if (label) label.textContent = 'Pasted!';
+                const icon = btn ? btn.querySelector('i') : null;
+                if (icon) icon.className = 'fas fa-check';
+                setTimeout(() => {
+                    if (btn) btn.classList.remove('pasted');
+                    if (label) label.textContent = 'Paste';
+                    if (icon) icon.className = 'fas fa-paste';
+                }, 1800);
+            }).catch(() => {
+                ta.focus();
+                document.execCommand('paste');
+            });
+        }
+
+        // ═══════ Clear – Project Prompts ═══════
+        function clearNotesText() {
+            const ta = document.getElementById('projectNotesTextarea');
+            const btn = document.getElementById('btnClearNotes');
+            const label = document.getElementById('clearNotesLabel');
+            if (!ta || !ta.value.trim()) return;
+            ta.value = '';
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+            if (btn) btn.classList.add('cleared');
+            if (label) label.textContent = 'Cleared!';
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) icon.className = 'fas fa-check';
+            setTimeout(() => {
+                if (btn) btn.classList.remove('cleared');
+                if (label) label.textContent = 'Clear';
+                if (icon) icon.className = 'fas fa-eraser';
+            }, 1800);
+        }
 
         // ═══════ RTL/LTR Toggle – Project Prompts ═══════
         function toggleNotesDir() {
