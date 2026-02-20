@@ -21927,7 +21927,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Distribution Append Checkbox */
         .dist-append-check {
-            margin-left: auto;
             display: flex;
             align-items: center;
             cursor: pointer;
@@ -21976,6 +21975,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .dist-append-check.active .check-box i {
             color: #fff;
+        }
+
+        /* ═══ Global Dictation Buttons (Steps Header) ═══ */
+        .gd-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-left: auto;
+        }
+        .gd-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.28s ease;
+            position: relative;
+            white-space: nowrap;
+            font-family: inherit;
+            overflow: hidden;
+            border: 1.2px solid transparent;
+        }
+        .gd-btn i {
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+        .gd-btn:hover i { transform: scale(1.15); }
+        .gd-label { pointer-events: none; }
+
+        /* English button */
+        .gd-btn-en {
+            background: rgba(16, 185, 129, 0.08);
+            color: rgba(16, 185, 129, 0.85);
+            border-color: rgba(16, 185, 129, 0.18);
+        }
+        .gd-btn-en:hover {
+            background: rgba(16, 185, 129, 0.18);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+        }
+        .gd-btn-en.listening {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.15));
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.5);
+            animation: gdPulseEn 1.5s ease-in-out infinite;
+        }
+
+        /* Arabic button */
+        .gd-btn-ar {
+            background: rgba(251, 146, 60, 0.08);
+            color: rgba(251, 146, 60, 0.85);
+            border-color: rgba(251, 146, 60, 0.18);
+        }
+        .gd-btn-ar:hover {
+            background: rgba(251, 146, 60, 0.18);
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.4);
+            box-shadow: 0 0 10px rgba(251, 146, 60, 0.15);
+        }
+        .gd-btn-ar.listening {
+            background: linear-gradient(135deg, rgba(251, 146, 60, 0.2), rgba(253, 186, 116, 0.15));
+            color: #fdba74;
+            border-color: rgba(251, 146, 60, 0.5);
+            animation: gdPulseAr 1.5s ease-in-out infinite;
+        }
+        .gd-ar-flag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            margin-left: 2px;
+            line-height: 1;
+        }
+        .gd-btn-ar.listening .gd-ar-flag {
+            background: rgba(251, 146, 60, 0.3);
+            color: #fdba74;
+        }
+
+        /* Pulse dot */
+        .gd-pulse {
+            display: none;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-left: 2px;
+        }
+        .gd-btn.listening .gd-pulse {
+            display: inline-block;
+            animation: gdDotBlink 0.8s ease-in-out infinite alternate;
+        }
+        .gd-btn-en .gd-pulse { background: #34d399; }
+        .gd-btn-ar .gd-pulse { background: #fdba74; }
+
+        @keyframes gdPulseEn {
+            0%, 100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.35), 0 0 4px rgba(16, 185, 129, 0.15); }
+        }
+        @keyframes gdPulseAr {
+            0%, 100% { box-shadow: 0 0 4px rgba(251, 146, 60, 0.2); }
+            50% { box-shadow: 0 0 14px rgba(251, 146, 60, 0.35), 0 0 4px rgba(251, 146, 60, 0.15); }
+        }
+        @keyframes gdDotBlink {
+            from { opacity: 0.4; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); }
         }
 
         /* Slider Container - Compact */
@@ -23139,6 +23251,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="checkbox" id="distributionEnabled">
                         <span class="check-box"><i class="fas fa-check"></i></span>
                     </label>
+                    <!-- Global Dictation Buttons -->
+                    <div class="gd-wrapper">
+                        <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field">
+                            <i class="fas fa-microphone"></i>
+                            <span class="gd-label" id="gdLabelEn">Dictate</span>
+                            <span class="gd-pulse" id="gdPulseEn"></span>
+                        </button>
+                        <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل">
+                            <i class="fas fa-microphone"></i>
+                            <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
+                            <span class="gd-pulse" id="gdPulseAr"></span>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="slider-container">
@@ -33330,6 +33455,272 @@ in each section carefully and maintain proper connections between components.
             editor.scrollTop = editor.scrollHeight;
         }
         // ═══════ End STT Arabic – Project Prompts ═══════
+
+        // ═══════ Global Dictation (Steps Header) ═══════
+        // Tracks the last focused textarea/input so dictation goes to any field
+        let _gdLastTarget = null;
+        let _gdEnRecognition = null;
+        let _gdEnListening = false;
+        let _gdEnFinalTranscript = '';
+        let _gdEnInsertedLength = 0;
+        let _gdArRecognition = null;
+        let _gdArListening = false;
+        let _gdArFinalTranscript = '';
+        let _gdArInsertedLength = 0;
+
+        // Track focus on any textarea or input[type=text] across the page
+        document.addEventListener('focusin', (e) => {
+            const t = e.target;
+            if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && (t.type === 'text' || t.type === 'search' || t.type === '')))) {
+                _gdLastTarget = t;
+            }
+        });
+
+        // ── Generic insert into any target element ──
+        function _gdInsertText(target, text, insertedRef) {
+            if (!target || !text.trim()) return 0;
+            const curVal = target.value;
+            const cursorPos = target.selectionStart;
+
+            if (insertedRef.len === 0) {
+                let prefix = '';
+                if (curVal.trim().length > 0) {
+                    if (cursorPos >= curVal.length) {
+                        prefix = curVal.endsWith('\n') ? '' : '\n';
+                    } else {
+                        prefix = ' ';
+                    }
+                }
+                const ins = prefix + text;
+                target.value = curVal.substring(0, cursorPos) + ins + curVal.substring(cursorPos);
+                const np = cursorPos + ins.length;
+                target.setSelectionRange(np, np);
+                insertedRef.len = ins.length;
+                target.focus();
+                return ins.length;
+            } else {
+                const ins = ' ' + text;
+                target.value = curVal.substring(0, cursorPos) + ins + curVal.substring(cursorPos);
+                const np = cursorPos + ins.length;
+                target.setSelectionRange(np, np);
+                insertedRef.len += ins.length;
+                target.focus();
+                return ins.length;
+            }
+        }
+
+        // ── English Global Dictation ──
+        function gdToggleEn() {
+            if (_gdEnListening) { gdStopEn(); return; }
+            gdStartEn();
+        }
+
+        function gdStartEn() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('Speech recognition not supported. Use Chrome or Edge.', 'error'); return; }
+
+            // Stop other dictations
+            if (_gdArListening) gdStopAr();
+            if (_sttListening && typeof sttStop === 'function') sttStop();
+            if (_sttArListening && typeof sttArStop === 'function') sttArStop();
+            if (typeof _sttNotesListening !== 'undefined' && _sttNotesListening && typeof sttNotesStop === 'function') sttNotesStop();
+            if (typeof _sttNotesArListening !== 'undefined' && _sttNotesArListening && typeof sttNotesArStop === 'function') sttNotesArStop();
+
+            // Capture current focus target before button click changes it
+            const target = _gdLastTarget;
+            if (!target) {
+                showToast('Click on a text field first, then dictate.', 'error');
+                return;
+            }
+
+            _gdEnRecognition = new SR();
+            _gdEnRecognition.lang = 'en-US';
+            _gdEnRecognition.continuous = true;
+            _gdEnRecognition.interimResults = true;
+            _gdEnRecognition.maxAlternatives = 1;
+            _gdEnFinalTranscript = '';
+            _gdEnInsertedLength = 0;
+            const insertRef = { len: 0 };
+
+            _gdEnRecognition.onstart = () => {
+                _gdEnListening = true;
+                const btn = document.getElementById('gdBtnEn');
+                const label = document.getElementById('gdLabelEn');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; }
+                if (label) label.textContent = 'Stop';
+                showToast('🎤 Global Dictation – Speak now! (EN)', 'success');
+            };
+
+            _gdEnRecognition.onresult = (event) => {
+                if (!_gdLastTarget) return;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        let finalText = transcript.trim();
+                        if (_gdEnFinalTranscript === '' || /[.!?]\s*$/.test(_gdEnFinalTranscript)) {
+                            finalText = finalText.charAt(0).toUpperCase() + finalText.slice(1);
+                        }
+                        if (_gdEnFinalTranscript.length > 0 && !/\s$/.test(_gdEnFinalTranscript)) {
+                            _gdEnFinalTranscript += ' ';
+                        }
+                        _gdEnFinalTranscript += finalText;
+                        _gdInsertText(_gdLastTarget, finalText, insertRef);
+                    }
+                }
+            };
+
+            _gdEnRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showToast('No speech detected. Try again.', 'error');
+                } else if (event.error === 'audio-capture') {
+                    showToast('No microphone found.', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('Microphone access denied.', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('Speech error: ' + event.error, 'error');
+                }
+                gdResetEn();
+            };
+
+            _gdEnRecognition.onend = () => {
+                if (_gdEnListening) {
+                    try { _gdEnRecognition.start(); } catch (e) { gdResetEn(); }
+                } else {
+                    gdResetEn();
+                }
+            };
+
+            try { _gdEnRecognition.start(); } catch (e) {
+                showToast('Could not start recognition: ' + e.message, 'error');
+                gdResetEn();
+            }
+        }
+
+        function gdStopEn() {
+            _gdEnListening = false;
+            if (_gdEnRecognition) { try { _gdEnRecognition.stop(); } catch (e) {} }
+            if (_gdEnFinalTranscript.trim()) {
+                const wc = _gdEnFinalTranscript.trim().split(/\s+/).length;
+                showToast('✅ Global dictation saved! (' + wc + ' words)', 'success');
+            } else {
+                showToast('Dictation stopped.', 'info');
+            }
+            _gdEnFinalTranscript = '';
+            gdResetEn();
+        }
+
+        function gdResetEn() {
+            _gdEnListening = false;
+            const btn = document.getElementById('gdBtnEn');
+            const label = document.getElementById('gdLabelEn');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; }
+            if (label) label.textContent = 'Dictate';
+        }
+
+        // ── Arabic Global Dictation ──
+        function gdToggleAr() {
+            if (_gdArListening) { gdStopAr(); return; }
+            gdStartAr();
+        }
+
+        function gdStartAr() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('التعرّف على الكلام غير مدعوم. استخدم Chrome أو Edge.', 'error'); return; }
+
+            // Stop other dictations
+            if (_gdEnListening) gdStopEn();
+            if (_sttListening && typeof sttStop === 'function') sttStop();
+            if (_sttArListening && typeof sttArStop === 'function') sttArStop();
+            if (typeof _sttNotesListening !== 'undefined' && _sttNotesListening && typeof sttNotesStop === 'function') sttNotesStop();
+            if (typeof _sttNotesArListening !== 'undefined' && _sttNotesArListening && typeof sttNotesArStop === 'function') sttNotesArStop();
+
+            const target = _gdLastTarget;
+            if (!target) {
+                showToast('اضغط على حقل نص أولاً ثم ابدأ الإملاء.', 'error');
+                return;
+            }
+
+            _gdArRecognition = new SR();
+            _gdArRecognition.lang = 'ar-SA';
+            _gdArRecognition.continuous = true;
+            _gdArRecognition.interimResults = true;
+            _gdArRecognition.maxAlternatives = 1;
+            _gdArFinalTranscript = '';
+            _gdArInsertedLength = 0;
+            const insertRef = { len: 0 };
+
+            _gdArRecognition.onstart = () => {
+                _gdArListening = true;
+                const btn = document.getElementById('gdBtnAr');
+                const label = document.getElementById('gdLabelAr');
+                if (btn) { btn.classList.add('listening'); btn.querySelector('i').className = 'fas fa-microphone-slash'; }
+                if (label) label.textContent = 'إيقاف';
+                showToast('🎤 إملاء عام – تحدّث بالعربية الآن!', 'success');
+            };
+
+            _gdArRecognition.onresult = (event) => {
+                if (!_gdLastTarget) return;
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        let finalText = transcript.trim();
+                        if (_gdArFinalTranscript.length > 0 && !/\s$/.test(_gdArFinalTranscript)) {
+                            _gdArFinalTranscript += ' ';
+                        }
+                        _gdArFinalTranscript += finalText;
+                        _gdInsertText(_gdLastTarget, finalText, insertRef);
+                    }
+                }
+            };
+
+            _gdArRecognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showToast('لم يتم اكتشاف كلام. حاول مرة أخرى.', 'error');
+                } else if (event.error === 'audio-capture') {
+                    showToast('لم يتم العثور على ميكروفون.', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('تم رفض الوصول للميكروفون.', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('خطأ: ' + event.error, 'error');
+                }
+                gdResetAr();
+            };
+
+            _gdArRecognition.onend = () => {
+                if (_gdArListening) {
+                    try { _gdArRecognition.start(); } catch (e) { gdResetAr(); }
+                } else {
+                    gdResetAr();
+                }
+            };
+
+            try { _gdArRecognition.start(); } catch (e) {
+                showToast('تعذّر بدء التعرّف: ' + e.message, 'error');
+                gdResetAr();
+            }
+        }
+
+        function gdStopAr() {
+            _gdArListening = false;
+            if (_gdArRecognition) { try { _gdArRecognition.stop(); } catch (e) {} }
+            if (_gdArFinalTranscript.trim()) {
+                const wc = _gdArFinalTranscript.trim().split(/\s+/).length;
+                showToast('✅ تم حفظ الإملاء! (' + wc + ' كلمة)', 'success');
+            } else {
+                showToast('تم إيقاف الإملاء.', 'info');
+            }
+            _gdArFinalTranscript = '';
+            gdResetAr();
+        }
+
+        function gdResetAr() {
+            _gdArListening = false;
+            const btn = document.getElementById('gdBtnAr');
+            const label = document.getElementById('gdLabelAr');
+            if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; }
+            if (label) label.textContent = 'إملاء';
+        }
+        // ═══════ End Global Dictation ═══════
 
         // ═══════ RTL/LTR Toggle – Project Prompts ═══════
         function toggleNotesDir() {
