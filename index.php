@@ -15735,6 +15735,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
         }
 
+        /* Document Root Ghost Text */
+        .docroot-ghost {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.78rem;
+            color: rgba(199, 210, 230, 0.85);
+            letter-spacing: 0.4px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: all;
+            cursor: default;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.08));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: color 0.3s ease, background 0.3s ease;
+        }
+
+        .docroot-ghost i {
+            font-size: 0.7rem;
+            color: rgba(129, 140, 248, 0.7);
+            flex-shrink: 0;
+            text-shadow: 0 0 6px rgba(99, 102, 241, 0.3);
+        }
+
+        .docroot-ghost span {
+            opacity: 0.85;
+        }
+
+        .docroot-ghost:hover {
+            color: rgba(220, 225, 240, 1);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(139, 92, 246, 0.13));
+        }
+
+        .docroot-ghost:hover i {
+            color: rgba(129, 140, 248, 0.95);
+        }
+
+        .docroot-ghost:hover span {
+            opacity: 1;
+        }
+
+        body.light-theme .docroot-ghost {
+            color: rgba(71, 85, 105, 0.75);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
+            border-bottom-color: rgba(99, 102, 241, 0.12);
+        }
+
+        body.light-theme .docroot-ghost i {
+            color: rgba(99, 102, 241, 0.6);
+        }
+
+        body.light-theme .docroot-ghost:hover {
+            color: rgba(51, 65, 85, 0.95);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.07));
+        }
+
         .folder-path-indicator {
             display: none;
             align-items: center;
@@ -24771,6 +24832,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
+                    <!-- Localhost Root Ghost -->
+                    <div class="docroot-ghost" id="docrootGhost" title="Server document root – <?= str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']) ?>">
+                        <i class="fas fa-server"></i>
+                        <span id="docrootText"><?= str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']) ?></span>
+                    </div>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
                         <div class="iframe-toolbar-left">
