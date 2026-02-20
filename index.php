@@ -24832,32 +24832,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
                 <div class="iframe-workspace">
-                    <!-- Server Root Ghost (auto-detected via JS) -->
-                    <div class="docroot-ghost" id="docrootGhost" title="">
-                        <i class="fas fa-globe" id="docrootIcon"></i>
-                        <span id="docrootText">Detecting...</span>
+                    <!-- App Path Ghost (auto-detected via __DIR__) -->
+                    <?php $appPath = str_replace('\\', '/', __DIR__); ?>
+                    <div class="docroot-ghost" id="docrootGhost" title="Application path – <?= htmlspecialchars($appPath) ?>">
+                        <i class="fas fa-folder-open"></i>
+                        <span id="docrootText"><?= htmlspecialchars($appPath) ?></span>
                     </div>
-                    <script>
-                    (function(){
-                        var origin = window.location.origin;                        // e.g. http://localhost or https://domain.com
-                        var host   = window.location.hostname;
-                        var isLocal = (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.local'));
-                        var icon   = document.getElementById('docrootIcon');
-                        var text   = document.getElementById('docrootText');
-                        var ghost  = document.getElementById('docrootGhost');
-                        var docroot = <?= json_encode(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'])) ?>;
-
-                        if (isLocal) {
-                            icon.className = 'fas fa-server';
-                            text.textContent = origin + '  ·  ' + docroot;
-                            ghost.title = 'Local server – ' + origin + ' → ' + docroot;
-                        } else {
-                            icon.className = 'fas fa-globe';
-                            text.textContent = origin;
-                            ghost.title = 'Remote host – ' + origin;
-                        }
-                    })();
-                    </script>
                     <!-- Iframe Toolbar -->
                     <div class="iframe-toolbar">
                         <div class="iframe-toolbar-left">
