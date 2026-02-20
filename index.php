@@ -15310,6 +15310,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.4; transform: scale(0.6); }
         }
 
+        /* Prompt Editor – Copy Button */
+        .btn-copy-editor {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(14, 165, 233, 0.12));
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-copy-editor:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(14, 165, 233, 0.22));
+            border-color: rgba(56, 189, 248, 0.55);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            color: #bae6fd;
+        }
+        .btn-copy-editor.copied {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.18));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+        /* Prompt Editor – Paste Button */
+        .btn-paste-editor {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(139, 92, 246, 0.12));
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            color: #c4b5fd;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-paste-editor:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(139, 92, 246, 0.22));
+            border-color: rgba(168, 85, 247, 0.55);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+            color: #ddd6fe;
+        }
+        .btn-paste-editor.pasted {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.18));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+        /* Prompt Editor – Clear Button */
+        .btn-clear-editor {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(220, 38, 38, 0.10));
+            border: 1px solid rgba(239, 68, 68, 0.30);
+            color: #fca5a5;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-clear-editor:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.30), rgba(220, 38, 38, 0.18));
+            border-color: rgba(239, 68, 68, 0.50);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
+            color: #fecaca;
+        }
+        .btn-clear-editor.cleared {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.18));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+        }
+
         /* History Navigation (Undo/Redo) */
         .history-navigation {
             display: flex;
@@ -24163,6 +24224,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-stt-ar" id="btnSttAr" onclick="sttArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
                             <i class="fas fa-microphone"></i> <span id="sttArLabel">إملاء</span><span class="stt-ar-flag">AR</span>
                             <span class="stt-ar-dot"></span>
+                        </button>
+                        <button class="btn btn-copy-editor" id="btnCopyEditor" onclick="copyEditorText()" title="Copy prompt to clipboard">
+                            <i class="fas fa-copy"></i> <span id="copyEditorLabel">Copy</span>
+                        </button>
+                        <button class="btn btn-paste-editor" id="btnPasteEditor" onclick="pasteEditorText()" title="Paste from clipboard">
+                            <i class="fas fa-paste"></i> <span id="pasteEditorLabel">Paste</span>
+                        </button>
+                        <button class="btn btn-clear-editor" id="btnClearEditor" onclick="clearEditorText()" title="Clear prompt editor">
+                            <i class="fas fa-eraser"></i> <span id="clearEditorLabel">Clear</span>
                         </button>
                     </div>
                     
@@ -33866,6 +33936,73 @@ in each section carefully and maintain proper connections between components.
             }
         });
         // ═══════ End Global Dictation ═══════
+
+        // ═══════ Copy / Paste / Clear – Prompt Editor ═══════
+        function copyEditorText() {
+            const ta = document.getElementById('promptEditor');
+            const btn = document.getElementById('btnCopyEditor');
+            const label = document.getElementById('copyEditorLabel');
+            if (!ta || !ta.value.trim()) return;
+            navigator.clipboard.writeText(ta.value).then(() => {
+                if (btn) btn.classList.add('copied');
+                if (label) label.textContent = 'Copied!';
+                const icon = btn ? btn.querySelector('i') : null;
+                if (icon) icon.className = 'fas fa-check';
+                setTimeout(() => {
+                    if (btn) btn.classList.remove('copied');
+                    if (label) label.textContent = 'Copy';
+                    if (icon) icon.className = 'fas fa-copy';
+                }, 1800);
+            }).catch(() => {
+                ta.select(); document.execCommand('copy');
+                if (label) label.textContent = 'Copied!';
+                setTimeout(() => { if (label) label.textContent = 'Copy'; }, 1800);
+            });
+        }
+
+        function pasteEditorText() {
+            const ta = document.getElementById('promptEditor');
+            const btn = document.getElementById('btnPasteEditor');
+            const label = document.getElementById('pasteEditorLabel');
+            if (!ta) return;
+            navigator.clipboard.readText().then(text => {
+                if (!text) return;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                ta.value = ta.value.substring(0, start) + text + ta.value.substring(end);
+                ta.selectionStart = ta.selectionEnd = start + text.length;
+                ta.dispatchEvent(new Event('input', { bubbles: true }));
+                ta.focus();
+                if (btn) btn.classList.add('pasted');
+                if (label) label.textContent = 'Pasted!';
+                const icon = btn ? btn.querySelector('i') : null;
+                if (icon) icon.className = 'fas fa-check';
+                setTimeout(() => {
+                    if (btn) btn.classList.remove('pasted');
+                    if (label) label.textContent = 'Paste';
+                    if (icon) icon.className = 'fas fa-paste';
+                }, 1800);
+            }).catch(() => { ta.focus(); document.execCommand('paste'); });
+        }
+
+        function clearEditorText() {
+            const ta = document.getElementById('promptEditor');
+            const btn = document.getElementById('btnClearEditor');
+            const label = document.getElementById('clearEditorLabel');
+            if (!ta || !ta.value.trim()) return;
+            ta.value = '';
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+            ta.focus();
+            if (btn) btn.classList.add('cleared');
+            if (label) label.textContent = 'Cleared!';
+            const icon = btn ? btn.querySelector('i') : null;
+            if (icon) icon.className = 'fas fa-check';
+            setTimeout(() => {
+                if (btn) btn.classList.remove('cleared');
+                if (label) label.textContent = 'Clear';
+                if (icon) icon.className = 'fas fa-eraser';
+            }, 1800);
+        }
 
         // ═══════ Copy – Project Prompts ═══════
         function copyNotesText() {
