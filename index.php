@@ -35044,9 +35044,12 @@ in each section carefully and maintain proper connections between components.
             var txt = document.getElementById('docrootText');
             var ghost = document.getElementById('docrootGhost');
             if (saved) {
-                txt.textContent = saved;
+                // Display only the folder name, not the full path
+                var parts = saved.replace(/\\/g, '/').replace(/\/+$/, '').split('/');
+                var folderName = parts[parts.length - 1] || saved;
+                txt.textContent = folderName;
                 txt.classList.remove('not-set');
-                ghost.title = 'Localhost path – ' + saved;
+                ghost.title = 'Connected to localhost – ' + folderName;
             } else {
                 txt.textContent = 'Not configured – click ⚙ to set';
                 txt.classList.add('not-set');
@@ -35258,33 +35261,17 @@ in each section carefully and maintain proper connections between components.
 
         function confirmLocalhostFolder() {
             if (!_lfpSelectedPath) return;
-            // Convert filesystem path to localhost URL
-            // e.g., C:/laragon/www/myapp -> http://localhost/myapp
             var fsPath = _lfpSelectedPath.replace(/\\/g, '/');
-            var wwwRoot = 'C:/laragon/www';
-            var url = '';
             
-            // Check if the path is under the www root
-            var lowerFs = fsPath.toLowerCase();
-            var lowerWww = wwwRoot.toLowerCase();
-            if (lowerFs.indexOf(lowerWww) === 0) {
-                var relative = fsPath.substring(wwwRoot.length);
-                url = 'http://localhost' + relative;
-            } else {
-                // Just use the folder name as a guess
-                var parts = fsPath.split('/');
-                url = 'http://localhost/' + parts[parts.length - 1];
-            }
-            
-            // Save to localStorage and update docroot
-            localStorage.setItem(_docrootKey, url);
+            // Save the filesystem path as-is to ghost text display
+            localStorage.setItem(_docrootKey, fsPath);
             _docrootLoad();
             closeLocalhostFolderPicker();
-            showToast('Localhost path set to: ' + url, 'success');
+            showToast('Document root set to: ' + fsPath, 'success');
             
-            // Auto-load in iframe
+            // Always load just http://localhost — the server already points to the selected root
             if (typeof iframeLoadUrl === 'function') {
-                iframeLoadUrl(url);
+                iframeLoadUrl('http://localhost');
             }
         }
 
@@ -35351,8 +35338,7 @@ in each section carefully and maintain proper connections between components.
         }
 
         function iframeGoHome() {
-            var saved = localStorage.getItem(_docrootKey);
-            iframeLoadUrl(saved || 'http://localhost/');
+            iframeLoadUrl('http://localhost');
         }
 
         function iframeOpenExternal() {
