@@ -15076,72 +15076,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 0.5rem;
             padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 8px;
+            border: 1px solid transparent;
+            border-radius: 10px;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
         }
 
+        /* Copy – Indigo */
         .btn-primary {
-            background: var(--gradient-main);
-            color: white;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(79, 70, 229, 0.12));
+            border: 1px solid rgba(99, 102, 241, 0.38);
+            color: #a5b4fc;
         }
-
         .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(79, 70, 229, 0.22));
+            border-color: rgba(99, 102, 241, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 4px 18px rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
         }
 
+        /* Clear – Rose */
         .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.18), rgba(225, 29, 72, 0.08));
+            border: 1px solid rgba(244, 63, 94, 0.32);
+            color: #fda4af;
         }
-
         .btn-secondary:hover {
-            border-color: var(--accent-primary);
-            background: rgba(99, 102, 241, 0.1);
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.30), rgba(225, 29, 72, 0.18));
+            border-color: rgba(244, 63, 94, 0.55);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(244, 63, 94, 0.25);
+            color: #fecdd3;
         }
 
+        /* Save – Emerald */
         .btn-success {
-            background: var(--success);
-            color: white;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.12));
+            border: 1px solid rgba(16, 185, 129, 0.38);
+            color: #6ee7b7;
         }
-
         .btn-success:hover {
-            background: #0ea572;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.22));
+            border-color: rgba(16, 185, 129, 0.6);
             transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
         }
 
+        /* Paste – Amber */
         .btn-paste {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(245, 158, 11, 0.12));
+            border: 1px solid rgba(251, 191, 36, 0.38);
+            color: #fcd34d;
         }
-
         .btn-paste:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.35), rgba(245, 158, 11, 0.22));
+            border-color: rgba(251, 191, 36, 0.6);
             transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(251, 191, 36, 0.3);
+            color: #fde68a;
         }
 
         .btn-danger {
-            background: var(--danger);
-            color: white;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(220, 38, 38, 0.12));
+            border: 1px solid rgba(239, 68, 68, 0.38);
+            color: #fca5a5;
         }
-
         .btn-danger:hover {
-            background: #dc2626;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.22));
+            border-color: rgba(239, 68, 68, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(239, 68, 68, 0.3);
+            color: #fecaca;
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.12));
+            border: 1px solid rgba(245, 158, 11, 0.38);
+            color: #fbbf24;
         }
-
         .btn-warning:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(217, 119, 6, 0.22));
+            border-color: rgba(245, 158, 11, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.3);
+            color: #fde68a;
         }
 
         /* TTS Reader Button */
@@ -15555,28 +15580,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.5rem;
             margin-left: 0.5rem;
             padding-left: 1rem;
-            border-left: 2px solid var(--border-color);
+            border-left: 2px solid rgba(139, 92, 246, 0.2);
         }
 
         .btn-folder {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(124, 58, 237, 0.12));
+            border: 1px solid rgba(139, 92, 246, 0.38);
+            color: #c4b5fd;
             position: relative;
         }
 
         .btn-folder:hover {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(124, 58, 237, 0.22));
+            border-color: rgba(139, 92, 246, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 18px rgba(139, 92, 246, 0.3);
+            color: #ddd6fe;
         }
 
         .btn-folder.connected {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(5, 150, 105, 0.16));
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
         }
 
         .btn-folder.connected:hover {
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.38), rgba(5, 150, 105, 0.25));
+            border-color: rgba(16, 185, 129, 0.65);
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.3);
+            color: #a7f3d0;
         }
 
         .btn-folder .folder-status {
@@ -15596,13 +15628,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-folder.needs-reconnect {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(217, 119, 6, 0.16));
+            border-color: rgba(245, 158, 11, 0.5);
+            color: #fcd34d;
             animation: pulse-reconnect 2s infinite;
         }
 
         .btn-folder.needs-reconnect:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.38), rgba(217, 119, 6, 0.25));
+            border-color: rgba(245, 158, 11, 0.65);
+            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.3);
+            color: #fde68a;
         }
 
         .btn-folder.needs-reconnect .folder-status {
@@ -15621,18 +15657,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-send {
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
-            color: white;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(8, 145, 178, 0.12));
+            border: 1px solid rgba(6, 182, 212, 0.38);
+            color: #67e8f9;
         }
 
         .btn-send:hover {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.35), rgba(8, 145, 178, 0.22));
+            border-color: rgba(6, 182, 212, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+            box-shadow: 0 4px 18px rgba(6, 182, 212, 0.3);
+            color: #a5f3fc;
         }
 
         .btn-send:disabled {
-            background: var(--bg-tertiary);
+            background: rgba(30, 30, 50, 0.3);
+            border-color: rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
             cursor: not-allowed;
             transform: none;
@@ -15649,18 +15689,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-pull {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(22, 163, 74, 0.12));
+            border: 1px solid rgba(34, 197, 94, 0.38);
+            color: #86efac;
         }
 
         .btn-pull:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.35), rgba(22, 163, 74, 0.22));
+            border-color: rgba(34, 197, 94, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 4px 18px rgba(34, 197, 94, 0.3);
+            color: #bbf7d0;
         }
 
         .btn-pull:disabled {
-            background: var(--bg-tertiary);
+            background: rgba(30, 30, 50, 0.3);
+            border-color: rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
             cursor: not-allowed;
             transform: none;
