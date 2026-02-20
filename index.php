@@ -23084,6 +23084,209 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: rgba(255, 255, 255, 0.2);
             font-family: inherit;
         }
+
+        /* ── URL Autocomplete Wrapper ── */
+        .iframe-url-input-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            min-width: 0;
+        }
+        .iframe-url-input-wrapper .iframe-url-input {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            background: transparent;
+            padding: 2px 0;
+        }
+        /* Ghost text overlay – sits behind the real input */
+        .iframe-url-ghost {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 2px 0;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            letter-spacing: 0.3px;
+            color: transparent;
+        }
+        .iframe-url-ghost .ghost-typed {
+            color: transparent;
+            white-space: pre;
+        }
+        .iframe-url-ghost .ghost-suggestion {
+            color: rgba(139, 92, 246, 0.45);
+            white-space: pre;
+            animation: ghostPulse 2s ease-in-out infinite;
+        }
+        @keyframes ghostPulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Autocomplete Dropdown */
+        .iframe-url-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            display: none;
+            max-height: 260px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(15, 15, 30, 0.92);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(139, 92, 246, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            padding: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+        }
+        .iframe-url-dropdown.visible {
+            display: block;
+            animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dropdownSlideIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .iframe-url-dropdown::-webkit-scrollbar { width: 5px; }
+        .iframe-url-dropdown::-webkit-scrollbar-track { background: transparent; }
+        .iframe-url-dropdown::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+        }
+
+        /* Dropdown items */
+        .iframe-ac-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.76rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            letter-spacing: 0.2px;
+            color: #c4c9de;
+            position: relative;
+            overflow: hidden;
+        }
+        .iframe-ac-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .iframe-ac-item:hover,
+        .iframe-ac-item.active {
+            background: rgba(139, 92, 246, 0.12);
+            color: #e2e8f0;
+        }
+        .iframe-ac-item:hover::before,
+        .iframe-ac-item.active::before {
+            opacity: 1;
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.06), transparent);
+        }
+        .iframe-ac-item .ac-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+        .iframe-ac-item .ac-icon.ac-icon-dir {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.12));
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.15);
+        }
+        .iframe-ac-item .ac-icon.ac-icon-html {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(234, 88, 12, 0.12));
+            color: #fb923c;
+            border: 1px solid rgba(249, 115, 22, 0.15);
+        }
+        .iframe-ac-item .ac-icon.ac-icon-php {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.12));
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        .iframe-ac-item .ac-name {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .iframe-ac-item .ac-badge {
+            font-size: 0.58rem;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .iframe-ac-item .ac-badge.badge-dir {
+            background: rgba(251, 191, 36, 0.12);
+            color: rgba(251, 191, 36, 0.7);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+        }
+        .iframe-ac-item .ac-badge.badge-html {
+            background: rgba(249, 115, 22, 0.12);
+            color: rgba(249, 115, 22, 0.7);
+            border: 1px solid rgba(249, 115, 22, 0.1);
+        }
+        .iframe-ac-item .ac-badge.badge-php {
+            background: rgba(99, 102, 241, 0.12);
+            color: rgba(99, 102, 241, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+
+        /* No results message */
+        .iframe-ac-empty {
+            padding: 12px 10px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.72rem;
+            font-style: italic;
+        }
+
+        /* Dropdown header showing current path */
+        .iframe-ac-header {
+            padding: 5px 10px 4px;
+            font-size: 0.62rem;
+            color: rgba(139, 92, 246, 0.5);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .iframe-ac-header i {
+            font-size: 0.58rem;
+        }
+
         .iframe-go-btn {
             width: 24px;
             height: 24px;
@@ -25366,10 +25569,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="iframe-url-bar">
                             <i class="fas fa-globe iframe-url-icon"></i>
-                            <input type="text" class="iframe-url-input" id="iframeUrlInput" 
-                                   placeholder="Enter URL or local path (e.g. http://localhost:3000)" 
-                                   spellcheck="false" autocomplete="off"
-                                   onkeydown="if(event.key==='Enter') iframeNavigate()">
+                            <div class="iframe-url-input-wrapper">
+                                <div class="iframe-url-ghost" id="iframeUrlGhost" aria-hidden="true"></div>
+                                <input type="text" class="iframe-url-input" id="iframeUrlInput" 
+                                       placeholder="Enter URL or local path (e.g. http://localhost:3000)" 
+                                       spellcheck="false" autocomplete="off"
+                                       onkeydown="iframeUrlKeydown(event)" oninput="iframeUrlAutocomplete()">
+                                <div class="iframe-url-dropdown" id="iframeUrlDropdown"></div>
+                            </div>
                             <button class="iframe-go-btn" onclick="iframeNavigate()" title="Go">
                                 <i class="fas fa-arrow-right"></i>
                             </button>
@@ -35119,6 +35326,269 @@ in each section carefully and maintain proper connections between components.
                     if (e.key === 'Escape') { e.preventDefault(); cancelDocrootEdit(); }
                 });
             }
+        });
+
+        /* ══════════════════════════════════════════
+           URL Autocomplete – Ghost Text + Dropdown
+           ══════════════════════════════════════════ */
+        var _acDebounceTimer = null;
+        var _acItems = [];          // current suggestion list
+        var _acActiveIdx = -1;      // highlighted dropdown index (-1 = none / ghost only)
+        var _acGhostSuggestion = ''; // the text appended as ghost
+        var _acOpen = false;
+        var _acLastQuery = '';
+
+        /**
+         * Extract the "path after localhost" from the input value.
+         * Returns { base, partial, trigger } or null if autocomplete should not fire.
+         *   base    = "localhost/" or "localhost/folder/"
+         *   partial = typed partial filename/folder after last slash
+         *   trigger = true when the URL ends with / (list whole dir)
+         */
+        function _acParseInput(val) {
+            // Match: localhost/ or localhost:port/ or http://localhost/ etc.
+            var m = val.match(/^(https?:\/\/)?localhost(:\d+)?(\/.*)?$/i);
+            if (!m) return null;
+            var path = m[3] || '';           // everything after localhost[:port]
+            if (path === '') return null;     // no slash typed yet — don't trigger
+            // path starts with /
+            // Separate directory part from partial filename
+            var lastSlash = path.lastIndexOf('/');
+            var dir = path.substring(1, lastSlash + 1); // after leading /
+            var partial = path.substring(lastSlash + 1);
+            return {
+                dir: dir,           // e.g. "Fusion Viewer/" or ""
+                partial: partial,   // e.g. "found" (partial) or "" (list all)
+                trigger: true
+            };
+        }
+
+        /** Called on every input event */
+        function iframeUrlAutocomplete() {
+            clearTimeout(_acDebounceTimer);
+            _acDebounceTimer = setTimeout(_acFetch, 180);
+        }
+
+        function _acFetch() {
+            var input = document.getElementById('iframeUrlInput');
+            var val = input.value;
+            var parsed = _acParseInput(val);
+            if (!parsed) {
+                _acClose();
+                return;
+            }
+            var q = parsed.dir + parsed.partial;
+            if (q === _acLastQuery && _acOpen) return; // same query, skip
+            _acLastQuery = q;
+
+            // Build query for the PHP endpoint, include custom root if configured
+            var rootPath = localStorage.getItem('pm_localhost_path') || '';
+            var endpoint = 'url_suggest.php?q=' + encodeURIComponent(q)
+                         + (rootPath ? '&root=' + encodeURIComponent(rootPath) : '');
+            fetch(endpoint)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.items || data.items.length === 0) {
+                        _acClose();
+                        return;
+                    }
+                    _acItems = data.items;
+                    _acActiveIdx = -1;
+                    _acRenderDropdown(parsed);
+                    _acUpdateGhost(parsed);
+                    _acShow();
+                })
+                .catch(function() { _acClose(); });
+        }
+
+        /** Render the dropdown */
+        function _acRenderDropdown(parsed) {
+            var dd = document.getElementById('iframeUrlDropdown');
+            var html = '';
+            // Header
+            var displayDir = parsed.dir || '/';
+            html += '<div class="iframe-ac-header"><i class="fas fa-folder-open"></i> ' + _acEsc(displayDir) + '</div>';
+
+            for (var i = 0; i < _acItems.length; i++) {
+                var it = _acItems[i];
+                var iconClass = it.type === 'dir' ? 'ac-icon-dir' : (it.icon === 'php' ? 'ac-icon-php' : 'ac-icon-html');
+                var iconFa = it.type === 'dir' ? 'fa-folder' : (it.icon === 'php' ? 'fa-file-code' : 'fa-file-alt');
+                var badge = it.type === 'dir' ? 'DIR' : (it.ext || 'html').toUpperCase();
+                var badgeClass = it.type === 'dir' ? 'badge-dir' : (it.icon === 'php' ? 'badge-php' : 'badge-html');
+                html += '<div class="iframe-ac-item' + (i === _acActiveIdx ? ' active' : '') + '" data-idx="' + i + '" '
+                      + 'onmouseenter="_acHover(' + i + ')" onclick="_acSelect(' + i + ')">'
+                      + '<div class="ac-icon ' + iconClass + '"><i class="fas ' + iconFa + '"></i></div>'
+                      + '<span class="ac-name">' + _acHighlight(it.name, parsed.partial) + '</span>'
+                      + '<span class="ac-badge ' + badgeClass + '">' + badge + '</span>'
+                      + '</div>';
+            }
+            dd.innerHTML = html;
+        }
+
+        /** Highlight the matching portion in the name */
+        function _acHighlight(name, partial) {
+            if (!partial) return _acEsc(name);
+            var idx = name.toLowerCase().indexOf(partial.toLowerCase());
+            if (idx === -1) return _acEsc(name);
+            return _acEsc(name.substring(0, idx))
+                 + '<span style="color:#a78bfa;font-weight:600;">' + _acEsc(name.substring(idx, idx + partial.length)) + '</span>'
+                 + _acEsc(name.substring(idx + partial.length));
+        }
+
+        function _acEsc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        /** Update ghost text */
+        function _acUpdateGhost(parsed) {
+            var ghost = document.getElementById('iframeUrlGhost');
+            var input = document.getElementById('iframeUrlInput');
+            var val = input.value;
+
+            // Pick the suggestion to show as ghost
+            var idx = _acActiveIdx >= 0 ? _acActiveIdx : 0;
+            if (idx >= _acItems.length) { ghost.innerHTML = ''; _acGhostSuggestion = ''; return; }
+
+            var suggestion = _acItems[idx].name;
+            // The ghost completion = the part of the suggestion not yet typed
+            var completion = '';
+            if (parsed.partial && suggestion.toLowerCase().indexOf(parsed.partial.toLowerCase()) === 0) {
+                completion = suggestion.substring(parsed.partial.length);
+            } else if (!parsed.partial) {
+                completion = suggestion;
+            }
+
+            _acGhostSuggestion = completion;
+
+            if (!completion) {
+                ghost.innerHTML = '';
+                return;
+            }
+
+            // Build ghost: invisible typed part + visible suggestion part
+            ghost.innerHTML = '<span class="ghost-typed">' + _acEsc(val) + '</span>'
+                            + '<span class="ghost-suggestion">' + _acEsc(completion) + '</span>';
+        }
+
+        function _acShow() {
+            var dd = document.getElementById('iframeUrlDropdown');
+            dd.classList.add('visible');
+            _acOpen = true;
+        }
+
+        function _acClose() {
+            var dd = document.getElementById('iframeUrlDropdown');
+            var ghost = document.getElementById('iframeUrlGhost');
+            dd.classList.remove('visible');
+            dd.innerHTML = '';
+            ghost.innerHTML = '';
+            _acItems = [];
+            _acActiveIdx = -1;
+            _acGhostSuggestion = '';
+            _acOpen = false;
+            _acLastQuery = '';
+        }
+
+        function _acHover(idx) {
+            _acActiveIdx = idx;
+            _acRefreshActive();
+            var parsed = _acParseInput(document.getElementById('iframeUrlInput').value);
+            if (parsed) _acUpdateGhost(parsed);
+        }
+
+        function _acRefreshActive() {
+            var dd = document.getElementById('iframeUrlDropdown');
+            var items = dd.querySelectorAll('.iframe-ac-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.toggle('active', i === _acActiveIdx);
+            }
+            // Scroll into view
+            if (_acActiveIdx >= 0 && items[_acActiveIdx]) {
+                items[_acActiveIdx].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        /** Accept the current suggestion (ghost text or active dropdown item) */
+        function _acAccept() {
+            var input = document.getElementById('iframeUrlInput');
+            if (_acGhostSuggestion) {
+                input.value += _acGhostSuggestion;
+                _acGhostSuggestion = '';
+                document.getElementById('iframeUrlGhost').innerHTML = '';
+                // If we accepted a directory, immediately trigger new autocomplete
+                if (input.value.endsWith('/')) {
+                    _acLastQuery = '';
+                    iframeUrlAutocomplete();
+                } else {
+                    _acClose();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function _acSelect(idx) {
+            if (idx < 0 || idx >= _acItems.length) return;
+            _acActiveIdx = idx;
+            var parsed = _acParseInput(document.getElementById('iframeUrlInput').value);
+            if (parsed) _acUpdateGhost(parsed);
+            _acAccept();
+            document.getElementById('iframeUrlInput').focus();
+        }
+
+        /** Main keydown handler for the URL input */
+        function iframeUrlKeydown(event) {
+            if (event.key === 'Tab' && _acOpen && _acGhostSuggestion) {
+                event.preventDefault();
+                _acAccept();
+                return;
+            }
+            if (event.key === 'Escape') {
+                if (_acOpen) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    _acClose();
+                    return;
+                }
+            }
+            if (event.key === 'ArrowDown' && _acOpen) {
+                event.preventDefault();
+                _acActiveIdx = Math.min(_acActiveIdx + 1, _acItems.length - 1);
+                _acRefreshActive();
+                var parsed = _acParseInput(document.getElementById('iframeUrlInput').value);
+                if (parsed) _acUpdateGhost(parsed);
+                return;
+            }
+            if (event.key === 'ArrowUp' && _acOpen) {
+                event.preventDefault();
+                _acActiveIdx = Math.max(_acActiveIdx - 1, 0);
+                _acRefreshActive();
+                var parsed = _acParseInput(document.getElementById('iframeUrlInput').value);
+                if (parsed) _acUpdateGhost(parsed);
+                return;
+            }
+            if (event.key === 'Enter') {
+                if (_acOpen && _acActiveIdx >= 0) {
+                    event.preventDefault();
+                    _acSelect(_acActiveIdx);
+                    return;
+                }
+                // If no dropdown selection, navigate normally
+                _acClose();
+                iframeNavigate();
+                return;
+            }
+        }
+
+        // Close autocomplete when clicking outside
+        document.addEventListener('click', function(e) {
+            var wrapper = document.querySelector('.iframe-url-input-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                _acClose();
+            }
+        });
+
+        // Also close when the iframe tab loses visibility
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) _acClose();
         });
 
         /* ── Localhost Folder Picker (Browse) ── */
