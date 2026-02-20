@@ -1,0 +1,1 @@
+Now I want you to add in the iFrame an input box to put any path and to display the iFrame full scale nicely under the iFrame tab of the accordion. make it professional this iFrame will be another workspace for working with prompt manager prepare it nicely and try to ornament the iFrame and make it prepared for further extension and incrementation. 

@@ -22419,42 +22419,352 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Iframe tab – empty placeholder */
-        .mc-iframe-placeholder {
+        /* ═══════ Iframe Workspace ═══════ */
+        .iframe-workspace {
+            display: flex;
+            flex-direction: column;
+            border-radius: 14px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.6), rgba(20, 20, 45, 0.4));
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        /* Toolbar */
+        .iframe-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: linear-gradient(135deg, rgba(20, 20, 45, 0.8), rgba(15, 15, 35, 0.9));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.10);
+            position: relative;
+        }
+        .iframe-toolbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2), transparent);
+        }
+        .iframe-toolbar-left,
+        .iframe-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        .iframe-nav-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.72rem;
+        }
+        .iframe-nav-btn:hover:not(:disabled) {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+        .iframe-nav-btn:active:not(:disabled) {
+            transform: scale(0.92);
+        }
+        .iframe-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .iframe-fullscreen-btn:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+        }
+
+        /* URL Bar */
+        .iframe-url-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .iframe-url-bar:focus-within {
+            border-color: rgba(99, 102, 241, 0.35);
+            background: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+        }
+        .iframe-url-icon {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+            transition: color 0.3s ease;
+        }
+        .iframe-url-bar:focus-within .iframe-url-icon {
+            color: #818cf8;
+        }
+        .iframe-url-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e2e8f0;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            letter-spacing: 0.3px;
+        }
+        .iframe-url-input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-family: inherit;
+        }
+        .iframe-go-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.2));
+            color: #a5b4fc;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+        .iframe-go-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.35));
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+            transform: scale(1.08);
+        }
+
+        /* Status Bar */
+        .iframe-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 3px 12px;
+            background: rgba(10, 10, 30, 0.4);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.06);
+            min-height: 24px;
+        }
+        .iframe-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .iframe-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+        }
+        .iframe-status-bar.loading .iframe-status-dot {
+            background: #fbbf24;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+            animation: iframeDotPulse 0.8s ease-in-out infinite alternate;
+        }
+        .iframe-status-bar.loaded .iframe-status-dot {
+            background: #34d399;
+            box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+        }
+        .iframe-status-bar.error .iframe-status-dot {
+            background: #f87171;
+            box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+        }
+        @keyframes iframeDotPulse {
+            from { opacity: 0.5; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.3); }
+        }
+        .iframe-status-text {
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 0.3px;
+        }
+        .iframe-bookmarks {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .iframe-bookmark-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.25s ease;
+        }
+        .iframe-bookmark-btn:hover {
+            color: #fbbf24;
+        }
+        .iframe-bookmark-btn.bookmarked i {
+            font-weight: 900;
+            color: #fbbf24;
+        }
+        .iframe-bookmark-list {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            max-width: 300px;
+            overflow-x: auto;
+        }
+        .iframe-bookmark-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 8px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 6px;
+            font-size: 0.62rem;
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .iframe-bookmark-chip:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #c7d2fe;
+        }
+        .iframe-bookmark-chip .remove-bookmark {
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            margin-left: 2px;
+        }
+        .iframe-bookmark-chip .remove-bookmark:hover {
+            color: #f87171;
+        }
+
+        /* Iframe Display */
+        .iframe-display-wrapper {
+            position: relative;
+            min-height: 65vh;
+            background: #0a0a1a;
+        }
+        .iframe-viewer {
+            width: 100%;
+            height: 65vh;
+            border: none;
+            display: none;
+            background: #fff;
+        }
+        .iframe-viewer.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .iframe-empty-state {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 50vh;
-            background: linear-gradient(135deg, rgba(15, 15, 35, 0.4), rgba(20, 20, 45, 0.25));
-            border: 1px dashed rgba(99, 102, 241, 0.20);
-            border-radius: 16px;
+            min-height: 65vh;
             padding: 3rem;
+            text-align: center;
         }
-        .mc-iframe-placeholder-icon {
-            font-size: 3rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.20), rgba(139, 92, 246, 0.12));
-            border: 1px solid rgba(99, 102, 241, 0.18);
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
+        .iframe-empty-icon {
+            font-size: 3.5rem;
+            width: 90px;
+            height: 90px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: rgba(165, 180, 252, 0.4);
-            margin-bottom: 1.2rem;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            color: rgba(99, 102, 241, 0.35);
+            margin-bottom: 1.5rem;
+            animation: iframeEmptyFloat 3s ease-in-out infinite;
         }
-        .mc-iframe-placeholder h3 {
-            font-size: 1.1rem;
+        @keyframes iframeEmptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .iframe-empty-state h3 {
+            font-size: 1.15rem;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.35);
             margin: 0 0 0.4rem 0;
             letter-spacing: 0.5px;
         }
-        .mc-iframe-placeholder p {
-            font-size: 0.8rem;
+        .iframe-empty-state p {
+            font-size: 0.82rem;
             color: rgba(255, 255, 255, 0.2);
-            margin: 0;
+            margin: 0 0 1.5rem 0;
+        }
+        .iframe-quick-links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .iframe-quick-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.15);
+            font-weight: 600;
+        }
+        .iframe-quick-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .iframe-quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+            color: rgba(165, 180, 252, 0.6);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .iframe-quick-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.12));
+            border-color: rgba(99, 102, 241, 0.30);
+            color: #c7d2fe;
+            box-shadow: 0 2px 12px rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
+        }
+        .iframe-quick-btn i {
+            font-size: 0.72rem;
+        }
+
+        /* Iframe Fullscreen Mode */
+        .iframe-workspace.fullscreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999;
+            border-radius: 0;
+            border: none;
+        }
+        .iframe-workspace.fullscreen .iframe-display-wrapper {
+            min-height: calc(100vh - 65px);
+        }
+        .iframe-workspace.fullscreen .iframe-viewer {
+            height: calc(100vh - 65px);
+        }
+        .iframe-workspace.fullscreen .iframe-empty-state {
+            min-height: calc(100vh - 65px);
         }
 
         /* Slider Container - Compact */
@@ -24460,12 +24770,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
-                <div class="mc-iframe-placeholder">
-                    <div class="mc-iframe-placeholder-icon">
-                        <i class="fas fa-window-maximize"></i>
+                <div class="iframe-workspace">
+                    <!-- Iframe Toolbar -->
+                    <div class="iframe-toolbar">
+                        <div class="iframe-toolbar-left">
+                            <button class="iframe-nav-btn" id="iframeBack" onclick="iframeGoBack()" title="Back" disabled>
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="iframe-nav-btn" id="iframeForward" onclick="iframeGoForward()" title="Forward" disabled>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button class="iframe-nav-btn" id="iframeRefresh" onclick="iframeReload()" title="Refresh">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="iframe-nav-btn" id="iframeHome" onclick="iframeGoHome()" title="Home">
+                                <i class="fas fa-home"></i>
+                            </button>
+                        </div>
+                        <div class="iframe-url-bar">
+                            <i class="fas fa-globe iframe-url-icon"></i>
+                            <input type="text" class="iframe-url-input" id="iframeUrlInput" 
+                                   placeholder="Enter URL or local path (e.g. http://localhost:3000)" 
+                                   spellcheck="false" autocomplete="off"
+                                   onkeydown="if(event.key==='Enter') iframeNavigate()">
+                            <button class="iframe-go-btn" onclick="iframeNavigate()" title="Go">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="iframe-toolbar-right">
+                            <button class="iframe-nav-btn" id="iframeNewTab" onclick="iframeOpenExternal()" title="Open in new tab">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                            <button class="iframe-nav-btn iframe-fullscreen-btn" id="iframeFullscreen" onclick="iframeToggleFullscreen()" title="Fullscreen">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
                     </div>
-                    <h3>Iframe Panel</h3>
-                    <p>This space is reserved for future content</p>
+
+                    <!-- Iframe Status Bar -->
+                    <div class="iframe-status-bar" id="iframeStatusBar">
+                        <div class="iframe-status-indicator" id="iframeStatusIndicator">
+                            <span class="iframe-status-dot"></span>
+                            <span class="iframe-status-text" id="iframeStatusText">Ready</span>
+                        </div>
+                        <div class="iframe-bookmarks" id="iframeBookmarks">
+                            <button class="iframe-bookmark-btn" onclick="iframeAddBookmark()" title="Bookmark this page">
+                                <i class="far fa-star" id="iframeBookmarkIcon"></i>
+                            </button>
+                            <div class="iframe-bookmark-list" id="iframeBookmarkList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Iframe Display -->
+                    <div class="iframe-display-wrapper" id="iframeDisplayWrapper">
+                        <div class="iframe-empty-state" id="iframeEmptyState">
+                            <div class="iframe-empty-icon">
+                                <i class="fas fa-globe-americas"></i>
+                            </div>
+                            <h3>Iframe Workspace</h3>
+                            <p>Enter a URL above to load content</p>
+                            <div class="iframe-quick-links">
+                                <span class="iframe-quick-label">Quick Links</span>
+                                <div class="iframe-quick-btns">
+                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('http://localhost')">
+                                        <i class="fas fa-server"></i> Localhost
+                                    </button>
+                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('http://localhost/phpmyadmin')">
+                                        <i class="fas fa-database"></i> phpMyAdmin
+                                    </button>
+                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('https://chat.openai.com')">
+                                        <i class="fas fa-robot"></i> ChatGPT
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <iframe id="iframeViewer" class="iframe-viewer" src="about:blank" 
+                                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+                                allowfullscreen></iframe>
+                    </div>
                 </div>
             </div><!-- /mc-tab-panel iframe -->
             
@@ -33942,6 +34324,190 @@ in each section carefully and maintain proper connections between components.
                 panel.style.animation = '';
             }
         }
+
+        // ═══════ Iframe Workspace ═══════
+        const _iframeHistory = [];
+        let _iframeHistoryIdx = -1;
+        let _iframeBookmarks = JSON.parse(localStorage.getItem('iframeBookmarks') || '[]');
+
+        function _iframeEl() { return document.getElementById('iframeViewer'); }
+        function _iframeStatusBar() { return document.getElementById('iframeStatusBar'); }
+
+        function iframeNavigate() {
+            let url = document.getElementById('iframeUrlInput').value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
+                url = 'http://' + url;
+                document.getElementById('iframeUrlInput').value = url;
+            }
+            iframeLoadUrl(url);
+        }
+
+        function iframeLoadUrl(url) {
+            const iframe = _iframeEl();
+            const emptyState = document.getElementById('iframeEmptyState');
+            const statusBar = _iframeStatusBar();
+            const statusText = document.getElementById('iframeStatusText');
+            const urlInput = document.getElementById('iframeUrlInput');
+
+            if (!iframe) return;
+
+            urlInput.value = url;
+
+            // Update status
+            statusBar.className = 'iframe-status-bar loading';
+            statusText.textContent = 'Loading...';
+
+            // Hide empty state, show iframe
+            if (emptyState) emptyState.style.display = 'none';
+            iframe.classList.add('active');
+
+            // Push to history
+            if (_iframeHistoryIdx < _iframeHistory.length - 1) {
+                _iframeHistory.splice(_iframeHistoryIdx + 1);
+            }
+            _iframeHistory.push(url);
+            _iframeHistoryIdx = _iframeHistory.length - 1;
+            _iframeUpdateNavBtns();
+            _iframeUpdateBookmarkIcon();
+
+            // Load
+            iframe.src = url;
+
+            iframe.onload = function() {
+                statusBar.className = 'iframe-status-bar loaded';
+                statusText.textContent = url.replace(/^https?:\/\//, '').split('/')[0];
+            };
+            iframe.onerror = function() {
+                statusBar.className = 'iframe-status-bar error';
+                statusText.textContent = 'Failed to load';
+            };
+        }
+
+        function iframeGoBack() {
+            if (_iframeHistoryIdx > 0) {
+                _iframeHistoryIdx--;
+                const url = _iframeHistory[_iframeHistoryIdx];
+                document.getElementById('iframeUrlInput').value = url;
+                _iframeEl().src = url;
+                _iframeUpdateNavBtns();
+                _iframeUpdateBookmarkIcon();
+            }
+        }
+
+        function iframeGoForward() {
+            if (_iframeHistoryIdx < _iframeHistory.length - 1) {
+                _iframeHistoryIdx++;
+                const url = _iframeHistory[_iframeHistoryIdx];
+                document.getElementById('iframeUrlInput').value = url;
+                _iframeEl().src = url;
+                _iframeUpdateNavBtns();
+                _iframeUpdateBookmarkIcon();
+            }
+        }
+
+        function iframeReload() {
+            const iframe = _iframeEl();
+            if (iframe && iframe.src && iframe.src !== 'about:blank') {
+                const statusBar = _iframeStatusBar();
+                const statusText = document.getElementById('iframeStatusText');
+                statusBar.className = 'iframe-status-bar loading';
+                statusText.textContent = 'Refreshing...';
+                iframe.src = iframe.src;
+            }
+        }
+
+        function iframeGoHome() {
+            const iframe = _iframeEl();
+            const emptyState = document.getElementById('iframeEmptyState');
+            const statusBar = _iframeStatusBar();
+            const statusText = document.getElementById('iframeStatusText');
+
+            if (iframe) {
+                iframe.src = 'about:blank';
+                iframe.classList.remove('active');
+            }
+            if (emptyState) emptyState.style.display = '';
+            document.getElementById('iframeUrlInput').value = '';
+            statusBar.className = 'iframe-status-bar';
+            statusText.textContent = 'Ready';
+            _iframeUpdateBookmarkIcon();
+        }
+
+        function iframeOpenExternal() {
+            const url = document.getElementById('iframeUrlInput').value.trim();
+            if (url && url !== 'about:blank') {
+                window.open(url, '_blank');
+            }
+        }
+
+        function iframeToggleFullscreen() {
+            const workspace = document.querySelector('.iframe-workspace');
+            const btn = document.getElementById('iframeFullscreen');
+            if (!workspace) return;
+            workspace.classList.toggle('fullscreen');
+            const isFs = workspace.classList.contains('fullscreen');
+            btn.querySelector('i').className = isFs ? 'fas fa-compress' : 'fas fa-expand';
+            btn.title = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+        }
+
+        function _iframeUpdateNavBtns() {
+            const backBtn = document.getElementById('iframeBack');
+            const fwdBtn = document.getElementById('iframeForward');
+            if (backBtn) backBtn.disabled = (_iframeHistoryIdx <= 0);
+            if (fwdBtn) fwdBtn.disabled = (_iframeHistoryIdx >= _iframeHistory.length - 1);
+        }
+
+        // ── Bookmarks ──
+        function iframeAddBookmark() {
+            const url = document.getElementById('iframeUrlInput').value.trim();
+            if (!url || url === 'about:blank') return;
+
+            const idx = _iframeBookmarks.indexOf(url);
+            if (idx !== -1) {
+                _iframeBookmarks.splice(idx, 1);
+            } else {
+                _iframeBookmarks.push(url);
+            }
+            localStorage.setItem('iframeBookmarks', JSON.stringify(_iframeBookmarks));
+            _iframeRenderBookmarks();
+            _iframeUpdateBookmarkIcon();
+        }
+
+        function _iframeUpdateBookmarkIcon() {
+            const url = document.getElementById('iframeUrlInput').value.trim();
+            const icon = document.getElementById('iframeBookmarkIcon');
+            const btn = icon ? icon.closest('.iframe-bookmark-btn') : null;
+            if (!icon) return;
+            const isBookmarked = _iframeBookmarks.includes(url);
+            icon.className = isBookmarked ? 'fas fa-star' : 'far fa-star';
+            if (btn) btn.classList.toggle('bookmarked', isBookmarked);
+        }
+
+        function _iframeRenderBookmarks() {
+            const list = document.getElementById('iframeBookmarkList');
+            if (!list) return;
+            list.innerHTML = '';
+            _iframeBookmarks.forEach((url, i) => {
+                const chip = document.createElement('span');
+                chip.className = 'iframe-bookmark-chip';
+                const label = url.replace(/^https?:\/\//, '').split('/')[0];
+                chip.innerHTML = `<span onclick="iframeLoadUrl('${url.replace(/'/g, "\\'")}')">${label}</span><span class="remove-bookmark" onclick="event.stopPropagation();_iframeRemoveBookmark(${i})">×</span>`;
+                list.appendChild(chip);
+            });
+        }
+
+        function _iframeRemoveBookmark(idx) {
+            _iframeBookmarks.splice(idx, 1);
+            localStorage.setItem('iframeBookmarks', JSON.stringify(_iframeBookmarks));
+            _iframeRenderBookmarks();
+            _iframeUpdateBookmarkIcon();
+        }
+
+        // Init bookmarks on load
+        document.addEventListener('DOMContentLoaded', function() {
+            _iframeRenderBookmarks();
+        });
 
         // ── English Global Dictation ──
         function gdToggleEn() {
