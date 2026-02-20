@@ -23253,12 +23253,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </label>
                     <!-- Global Dictation Buttons -->
                     <div class="gd-wrapper">
-                        <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field">
+                        <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field (Shift+E)">
                             <i class="fas fa-microphone"></i>
                             <span class="gd-label" id="gdLabelEn">Dictate</span>
                             <span class="gd-pulse" id="gdPulseEn"></span>
                         </button>
-                        <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل">
+                        <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل (Shift+A)">
                             <i class="fas fa-microphone"></i>
                             <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
                             <span class="gd-pulse" id="gdPulseAr"></span>
@@ -33720,6 +33720,23 @@ in each section carefully and maintain proper connections between components.
             if (btn) { btn.classList.remove('listening'); btn.querySelector('i').className = 'fas fa-microphone'; }
             if (label) label.textContent = 'إملاء';
         }
+        // ── Keyboard Shortcuts: Shift+E (EN) / Shift+A (AR) ──
+        document.addEventListener('keydown', (e) => {
+            if (!e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+
+            const tag = (document.activeElement || {}).tagName;
+            const isTyping = (tag === 'TEXTAREA' || tag === 'INPUT' || (document.activeElement && document.activeElement.isContentEditable));
+
+            // If dictation is already active, allow stopping from anywhere
+            if (e.key === 'E' || e.key === 'e') {
+                if (_gdEnListening) { e.preventDefault(); gdStopEn(); return; }
+                if (!isTyping) { e.preventDefault(); gdToggleEn(); return; }
+            }
+            if (e.key === 'A' || e.key === 'a') {
+                if (_gdArListening) { e.preventDefault(); gdStopAr(); return; }
+                if (!isTyping) { e.preventDefault(); gdToggleAr(); return; }
+            }
+        });
         // ═══════ End Global Dictation ═══════
 
         // ═══════ RTL/LTR Toggle – Project Prompts ═══════
