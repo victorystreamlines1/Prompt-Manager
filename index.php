@@ -16104,6 +16104,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .lfp-empty i { font-size: 2rem; opacity: 0.3; }
         .lfp-empty span { font-size: 0.82rem; }
 
+        .lfp-current-dir {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 6px;
+            border: 1px dashed rgba(99, 102, 241, 0.35);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(34, 197, 94, 0.04));
+            color: rgba(220, 225, 240, 0.85);
+            font-size: 0.83rem;
+        }
+        .lfp-current-dir:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(34, 197, 94, 0.08));
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        .lfp-current-dir.selected {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(99, 102, 241, 0.10));
+            border-color: rgba(34, 197, 94, 0.5);
+            border-style: solid;
+            box-shadow: 0 2px 12px rgba(34, 197, 94, 0.12);
+        }
+        .lfp-current-dir i { color: #22c55e; font-size: 1rem; }
+        .lfp-current-dir.selected i { color: #4ade80; }
+        .lfp-current-dir strong { color: #a5b4fc; }
+        body.light-theme .lfp-current-dir {
+            color: #475569;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(34, 197, 94, 0.03));
+        }
+        body.light-theme .lfp-current-dir:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(34, 197, 94, 0.05));
+        }
+        body.light-theme .lfp-current-dir.selected {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(99, 102, 241, 0.07));
+        }
+        body.light-theme .lfp-current-dir strong { color: #6366f1; }
+
         .lfp-folder-item {
             display: flex;
             align-items: center;
@@ -35859,9 +35898,19 @@ in each section carefully and maintain proper connections between components.
             if (!body) return;
             var html = '';
 
+            // "Use this folder" — select the current directory itself
+            if (_lfpCurrentHandle) {
+                var curPath = _lfpClientNavStack.map(function(p) { return p.name; }).concat([_lfpCurrentHandle.name]).join('/');
+                var isCurSel = (_lfpSelectedPath === curPath);
+                html += '<div class="lfp-current-dir' + (isCurSel ? ' selected' : '') + '" data-lfp-action="select-current">';
+                html += '<i class="fas fa-check-circle"></i>';
+                html += '<span>Use this folder: <strong>' + _lfpEsc(_lfpCurrentHandle.name) + '</strong></span>';
+                html += '</div>';
+            }
+
             // Parent (..) link if we have nav stack
             if (_lfpClientNavStack.length > 0) {
-                html += '<div class="lfp-up-item" onclick="_lfpClientGoUp()">';
+                html += '<div class="lfp-up-item" data-lfp-action="go-up">';
                 html += '<i class="fas fa-level-up-alt"></i>';
                 html += '<span>.. (parent directory)</span>';
                 html += '</div>';
@@ -35873,12 +35922,10 @@ in each section carefully and maintain proper connections between components.
                 for (var i = 0; i < subdirs.length; i++) {
                     var entry = subdirs[i];
                     var isSelected = (_lfpClientSelectedName === entry.name);
-                    html += '<div class="lfp-folder-item' + (isSelected ? ' selected' : '') + '" ';
-                    html += 'onclick="_lfpSelectClientFolder(\'' + _lfpEscAttr(entry.name) + '\')" ';
-                    html += 'ondblclick="_lfpEnterClientFolder(\'' + _lfpEscAttr(entry.name) + '\')">';
+                    html += '<div class="lfp-folder-item' + (isSelected ? ' selected' : '') + '" data-lfp-action="select" data-lfp-name="' + _lfpEsc(entry.name).replace(/"/g, '&quot;') + '">';
                     html += '<i class="fas fa-folder lfp-folder-icon"></i>';
                     html += '<span class="lfp-folder-name">' + _lfpEsc(entry.name) + '</span>';
-                    html += '<span class="lfp-folder-enter" onclick="event.stopPropagation(); _lfpEnterClientFolder(\'' + _lfpEscAttr(entry.name) + '\')">Open <i class="fas fa-arrow-right"></i></span>';
+                    html += '<span class="lfp-folder-enter" data-lfp-action="enter" data-lfp-name="' + _lfpEsc(entry.name).replace(/"/g, '&quot;') + '">Open <i class="fas fa-arrow-right"></i></span>';
                     html += '</div>';
                 }
             }
@@ -35886,34 +35933,72 @@ in each section carefully and maintain proper connections between components.
         }
 
         function _lfpSelectClientFolder(name) {
-            _lfpClientSelectedName = name;
+            try {
+                _lfpClientSelectedName = name;
 
-            // Build full display path from nav stack
-            var pathParts = _lfpClientNavStack.map(function(p) { return p.name; });
-            pathParts.push(_lfpCurrentHandle.name);
-            pathParts.push(name);
-            _lfpSelectedPath = pathParts.join('/');
+                // Build full display path from nav stack
+                var pathParts = _lfpClientNavStack.map(function(p) { return p.name; });
+                if (_lfpCurrentHandle) pathParts.push(_lfpCurrentHandle.name);
+                pathParts.push(name);
+                _lfpSelectedPath = pathParts.join('/');
 
-            var pathEl = document.getElementById('lfpSelectedPath');
-            var textEl = document.getElementById('lfpSelectedPathText');
-            textEl.textContent = _lfpSelectedPath;
-            pathEl.classList.add('has-selection');
-            _lfpUpdateSelectBtn();
+                // Update selected path display
+                var pathEl = document.getElementById('lfpSelectedPath');
+                var textEl = document.getElementById('lfpSelectedPathText');
+                if (textEl) textEl.textContent = _lfpSelectedPath;
+                if (pathEl) pathEl.classList.add('has-selection');
 
-            // Update selection highlight
-            var items = document.querySelectorAll('.lfp-folder-item');
-            items.forEach(function(el) { el.classList.remove('selected'); });
-            items.forEach(function(el) {
-                var folderName = el.querySelector('.lfp-folder-name');
-                if (folderName && folderName.textContent === name) {
-                    el.classList.add('selected');
-                }
-            });
+                // Force-enable the select button
+                var btn = document.getElementById('lfpSelectBtn');
+                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); }
+
+                // Update selection highlights
+                document.querySelectorAll('.lfp-current-dir').forEach(function(el) { el.classList.remove('selected'); });
+                document.querySelectorAll('.lfp-folder-item').forEach(function(el) { el.classList.remove('selected'); });
+                document.querySelectorAll('.lfp-folder-item').forEach(function(el) {
+                    if (el.getAttribute('data-lfp-name') === name) {
+                        el.classList.add('selected');
+                    }
+                });
+            } catch(e) {
+                console.error('_lfpSelectClientFolder error:', e);
+            }
+        }
+
+        function _lfpSelectCurrentDir() {
+            try {
+                if (!_lfpCurrentHandle) return;
+                _lfpClientSelectedName = '';
+
+                // Path = nav stack names + current handle name
+                var pathParts = _lfpClientNavStack.map(function(p) { return p.name; });
+                pathParts.push(_lfpCurrentHandle.name);
+                _lfpSelectedPath = pathParts.join('/');
+
+                // Update selected path display
+                var pathEl = document.getElementById('lfpSelectedPath');
+                var textEl = document.getElementById('lfpSelectedPathText');
+                if (textEl) textEl.textContent = _lfpSelectedPath;
+                if (pathEl) pathEl.classList.add('has-selection');
+
+                // Force-enable the select button
+                var btn = document.getElementById('lfpSelectBtn');
+                if (btn) { btn.disabled = false; btn.removeAttribute('disabled'); }
+
+                // Update highlights
+                document.querySelectorAll('.lfp-folder-item').forEach(function(el) { el.classList.remove('selected'); });
+                document.querySelectorAll('.lfp-current-dir').forEach(function(el) { el.classList.add('selected'); });
+            } catch(e) {
+                console.error('_lfpSelectCurrentDir error:', e);
+            }
         }
 
         function _lfpUpdateSelectBtn() {
             var btn = document.getElementById('lfpSelectBtn');
-            if (btn) btn.disabled = !_lfpSelectedPath;
+            if (btn) {
+                btn.disabled = !_lfpSelectedPath;
+                if (_lfpSelectedPath) btn.removeAttribute('disabled');
+            }
         }
 
         function confirmLocalhostFolder() {
@@ -36001,6 +36086,43 @@ in each section carefully and maintain proper connections between components.
                 });
             }
             
+            // Event delegation for client-mode folder picker actions
+            var lfpBody = document.getElementById('lfpBody');
+            if (lfpBody) {
+                lfpBody.addEventListener('click', function(e) {
+                    if (!_lfpClientMode) return;
+                    var target = e.target;
+                    // Walk up from the clicked element to find the action attribute
+                    var actionEl = target.closest('[data-lfp-action]');
+                    if (!actionEl) return;
+                    var action = actionEl.getAttribute('data-lfp-action');
+                    var name = actionEl.getAttribute('data-lfp-name');
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (action === 'select-current') {
+                        _lfpSelectCurrentDir();
+                    } else if (action === 'go-up') {
+                        _lfpClientGoUp();
+                    } else if (action === 'select') {
+                        if (name) _lfpSelectClientFolder(name);
+                    } else if (action === 'enter') {
+                        if (name) _lfpEnterClientFolder(name);
+                    }
+                });
+
+                // Double-click to enter folder in client mode
+                lfpBody.addEventListener('dblclick', function(e) {
+                    if (!_lfpClientMode) return;
+                    var target = e.target;
+                    var folderItem = target.closest('.lfp-folder-item[data-lfp-name]');
+                    if (!folderItem) return;
+                    var name = folderItem.getAttribute('data-lfp-name');
+                    if (name) _lfpEnterClientFolder(name);
+                });
+            }
+
             // Close modal on overlay click
             var modal = document.getElementById('localhostFolderPickerModal');
             if (modal) {
