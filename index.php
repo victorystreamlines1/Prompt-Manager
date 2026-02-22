@@ -16246,17 +16246,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 8px;
             flex: 1;
             min-width: 0;
-            font-size: 0.72rem;
+            font-size: 0.78rem;
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             color: rgba(148, 163, 184, 0.6);
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
-        .lfp-selected-path i { color: rgba(251, 191, 36, 0.6); font-size: 0.75rem; }
+        .lfp-selected-path i { color: rgba(251, 191, 36, 0.6); font-size: 0.8rem; flex-shrink: 0; }
         .lfp-selected-path span {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .lfp-selected-path.has-selection { color: rgba(165, 180, 252, 0.9); }
+        .lfp-selected-path.has-selection {
+            color: rgba(165, 180, 252, 1);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            font-weight: 500;
+        }
         .lfp-selected-path.has-selection i { color: #fbbf24; }
 
         .lfp-actions {
@@ -35289,15 +35297,18 @@ in each section carefully and maintain proper connections between components.
             var saved = localStorage.getItem(_docrootKey) || '';
             var txt = document.getElementById('docrootText');
             var ghost = document.getElementById('docrootGhost');
+            if (!txt || !ghost) return;
             if (saved) {
                 // Display only the folder name, not the full path
                 var parts = saved.replace(/\\/g, '/').replace(/\/+$/, '').split('/');
                 var folderName = parts[parts.length - 1] || saved;
                 txt.textContent = folderName;
+                txt.style.display = '';
                 txt.classList.remove('not-set');
                 ghost.title = 'Connected to localhost – ' + folderName;
             } else {
                 txt.textContent = 'Not configured – click ⚙ to set';
+                txt.style.display = '';
                 txt.classList.add('not-set');
                 ghost.title = 'Click the gear to set your localhost path';
             }
@@ -36006,9 +36017,30 @@ in each section carefully and maintain proper connections between components.
             var wasClientMode = _lfpClientMode;
             var fsPath = _lfpSelectedPath.replace(/\\/g, '/');
             
-            // Save the filesystem path as-is to ghost text display
+            // Save the filesystem path
             localStorage.setItem(_docrootKey, fsPath);
+            
+            // Update docroot display — call _docrootLoad plus direct fallback
             _docrootLoad();
+            
+            // Direct DOM update as safety fallback
+            var txt = document.getElementById('docrootText');
+            var ghost = document.getElementById('docrootGhost');
+            var inp = document.getElementById('docrootInput');
+            if (txt) {
+                var parts = fsPath.replace(/\/+$/, '').split('/');
+                var folderName = parts[parts.length - 1] || fsPath;
+                txt.textContent = folderName;
+                txt.style.display = '';
+                txt.classList.remove('not-set');
+            }
+            if (ghost) {
+                ghost.classList.remove('editing');
+                ghost.title = 'Document root: ' + fsPath;
+            }
+            // Make sure edit input is hidden
+            if (inp) inp.style.display = 'none';
+            
             closeLocalhostFolderPicker();
             showToast('Document root set to: ' + fsPath, 'success');
             
