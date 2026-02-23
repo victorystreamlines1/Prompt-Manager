@@ -1,4 +1,10 @@
 <?php
+// Performance: Buffer output + gzip compression for this large file
+ini_set('memory_limit', '1024M');
+ini_set('max_execution_time', '120');
+if (!ob_get_level()) {
+    ob_start('ob_gzhandler');
+}
 session_start();
 
 // ============================================
@@ -25676,7 +25682,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         <iframe id="iframeViewer" class="iframe-viewer" src="about:blank" 
-                                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
                                 allowfullscreen></iframe>
                     </div>
                 </div>
