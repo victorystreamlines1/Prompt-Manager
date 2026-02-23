@@ -35303,17 +35303,76 @@ in each section carefully and maintain proper connections between components.
         let _iframeHistoryIdx = -1;
         let _iframeBookmarks = JSON.parse(localStorage.getItem('iframeBookmarks') || '[]');
         var _iframeNavByCode = false; // flag: true when navigation triggered by our code
+        var _iframeListenerAttached = false;
 
         function _iframeEl() { return document.getElementById('iframeViewer'); }
         function _iframeStatusBar() { return document.getElementById('iframeStatusBar'); }
+
+        // Auto-adapt localhost URLs to current host when on external server (same-origin = URL tracking works)
+        function _iframeAdaptUrl(url) {
+            if (/^localhost$/i.test(window.location.hostname)) return url;
+            try {
+                var parsed = new URL(url);
+                if (/^localhost$/i.test(parsed.hostname) && (!parsed.port || parsed.port === '80' || parsed.port === '443')) {
+                    var adapted = window.location.origin + parsed.pathname + parsed.search + parsed.hash;
+                    return adapted;
+                }
+            } catch(e) {}
+            return url;
+        }
+
+        // Attach a permanent load listener to catch ALL iframe navigations (including internal link clicks)
+        function _iframeAttachLoadListener() {
+            if (_iframeListenerAttached) return;
+            var iframe = _iframeEl();
+            if (!iframe) return;
+            _iframeListenerAttached = true;
+            iframe.addEventListener('load', function() {
+                if (_iframeNavByCode) return; // Skip — handled by iframeLoadUrl/GoBack/GoForward/Reload
+                // Internal navigation (user clicked a link inside the iframe)
+                var urlInput = document.getElementById('iframeUrlInput');
+                var statusBar = _iframeStatusBar();
+                var statusText = document.getElementById('iframeStatusText');
+                if (!urlInput) return;
+                var resolvedUrl = urlInput.value;
+                try {
+                    var loc = iframe.contentWindow.location;
+                    if (loc && loc.href && loc.href !== 'about:blank') {
+                        resolvedUrl = _iframeCleanUrl(loc.href);
+                    }
+                } catch(e) { /* cross-origin */ }
+                urlInput.value = resolvedUrl;
+                if (statusText) statusText.textContent = resolvedUrl.replace(/^https?:\/\//, '').split('/')[0];
+                if (statusBar) statusBar.className = 'iframe-status-bar loaded';
+                // Update history for internal navigation
+                if (_iframeHistory[_iframeHistoryIdx] !== resolvedUrl) {
+                    if (_iframeHistoryIdx < _iframeHistory.length - 1) {
+                        _iframeHistory.splice(_iframeHistoryIdx + 1);
+                    }
+                    _iframeHistory.push(resolvedUrl);
+                    _iframeHistoryIdx = _iframeHistory.length - 1;
+                    _iframeUpdateNavBtns();
+                }
+                _iframeUpdateBookmarkIcon();
+                _iframeUpdateBreadcrumb(resolvedUrl);
+            });
+        }
 
         function iframeNavigate() {
             let url = document.getElementById('iframeUrlInput').value.trim();
             if (!url) return;
             if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
                 url = 'http://' + url;
-                document.getElementById('iframeUrlInput').value = url;
             }
+            // Auto-adapt localhost URLs on external host
+            var adapted = _iframeAdaptUrl(url);
+            if (adapted !== url) {
+                url = adapted;
+                if (typeof showToast === 'function') {
+                    showToast('Auto-adapted to current host for URL tracking', 'info');
+                }
+            }
+            document.getElementById('iframeUrlInput').value = url;
             iframeLoadUrl(url);
         }
 
@@ -35353,6 +35412,9 @@ in each section carefully and maintain proper connections between components.
             const urlInput = document.getElementById('iframeUrlInput');
 
             if (!iframe) return;
+
+            // Attach permanent load listener for internal navigation tracking
+            _iframeAttachLoadListener();
 
             // Store the clean URL for display and history
             var cleanUrl = _iframeCleanUrl(url);
