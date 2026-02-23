@@ -23486,6 +23486,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #f87171;
         }
 
+        /* ── Breadcrumb Path Bar ── */
+        .iframe-breadcrumb-bar {
+            display: none;
+            align-items: center;
+            gap: 0;
+            padding: 5px 14px;
+            background: linear-gradient(135deg, rgba(10, 10, 30, 0.5), rgba(15, 15, 40, 0.4));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+            min-height: 28px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .iframe-breadcrumb-bar::-webkit-scrollbar { display: none; }
+        .iframe-breadcrumb-bar.visible { display: flex; }
+        .iframe-breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            letter-spacing: 0.3px;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .iframe-breadcrumb-item:hover {
+            color: #c7d2fe;
+            background: rgba(99, 102, 241, 0.12);
+        }
+        .iframe-breadcrumb-item.bc-root {
+            color: #818cf8;
+            font-weight: 600;
+        }
+        .iframe-breadcrumb-item.bc-root i {
+            font-size: 0.65rem;
+            color: #818cf8;
+        }
+        .iframe-breadcrumb-item.bc-root:hover {
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, 0.15);
+        }
+        .iframe-breadcrumb-item.bc-active {
+            color: #e2e8f0;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            cursor: default;
+        }
+        .iframe-breadcrumb-item.bc-active:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .iframe-breadcrumb-sep {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.6rem;
+            margin: 0 2px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .iframe-breadcrumb-item .bc-icon {
+            font-size: 0.62rem;
+            opacity: 0.7;
+        }
+        .iframe-breadcrumb-item.bc-file .bc-icon { color: #34d399; }
+        .iframe-breadcrumb-item.bc-dir .bc-icon { color: #fbbf24; }
+
         /* Iframe Display */
         .iframe-display-wrapper {
             position: relative;
@@ -25682,6 +25751,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="iframe-bookmark-list" id="iframeBookmarkList"></div>
                         </div>
                     </div>
+
+                    <!-- Breadcrumb Path Bar -->
+                    <div class="iframe-breadcrumb-bar" id="iframeBreadcrumbBar"></div>
 
                     <!-- Iframe Display -->
                     <div class="iframe-display-wrapper" id="iframeDisplayWrapper">
@@ -36277,6 +36349,85 @@ in each section carefully and maintain proper connections between components.
             const fwdBtn = document.getElementById('iframeForward');
             if (backBtn) backBtn.disabled = (_iframeHistoryIdx <= 0);
             if (fwdBtn) fwdBtn.disabled = (_iframeHistoryIdx >= _iframeHistory.length - 1);
+        }
+
+        // ── Breadcrumb Path ──
+        function _iframeUpdateBreadcrumb(url) {
+            var bar = document.getElementById('iframeBreadcrumbBar');
+            if (!bar) return;
+
+            // Only show breadcrumb for localhost URLs
+            if (!url || !/^https?:\/\/localhost/i.test(url)) {
+                bar.classList.remove('visible');
+                bar.innerHTML = '';
+                return;
+            }
+
+            try {
+                var u = new URL(url);
+                var pathname = u.pathname; // e.g. /Prompt-Manager/subfolder/file.php
+                // Remove leading slash and split
+                var segments = pathname.replace(/^\/+/, '').replace(/\/+$/, '').split('/').filter(Boolean);
+
+                if (segments.length === 0) {
+                    // Just localhost root, show only the root
+                    bar.innerHTML = '<span class="iframe-breadcrumb-item bc-root bc-active" title="localhost"><i class="fas fa-server"></i> localhost</span>';
+                    bar.classList.add('visible');
+                    return;
+                }
+
+                // First segment is the main directory — replace it with "localhost"
+                var mainDir = segments[0];
+                var html = '';
+
+                // Root item: "localhost" (replaces main directory name)
+                var rootUrl = u.origin + '/' + mainDir + '/';
+                html += '<span class="iframe-breadcrumb-item bc-root' + (segments.length === 1 ? ' bc-active' : '') + '" '
+                      + 'onclick="iframeLoadUrl(\'' + _bcEscAttr(rootUrl) + '\')" '
+                      + 'title="' + _bcEscAttr(mainDir) + '">'
+                      + '<i class="fas fa-server"></i> localhost</span>';
+
+                // Sub-segments (skip index 0 which is the main directory)
+                for (var i = 1; i < segments.length; i++) {
+                    var seg = segments[i];
+                    var isLast = (i === segments.length - 1);
+                    var isFile = isLast && seg.indexOf('.') !== -1;
+
+                    // Build path up to this segment
+                    var partialPath = u.origin + '/' + segments.slice(0, i + 1).join('/') + (isFile ? '' : '/');
+
+                    // Separator
+                    html += '<span class="iframe-breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>';
+
+                    // Icon
+                    var iconClass = isFile ? 'fa-file-code' : 'fa-folder';
+                    var typeClass = isFile ? 'bc-file' : 'bc-dir';
+
+                    html += '<span class="iframe-breadcrumb-item ' + typeClass + (isLast ? ' bc-active' : '') + '" '
+                          + (isLast ? '' : 'onclick="iframeLoadUrl(\'' + _bcEscAttr(partialPath) + '\')" ')
+                          + 'title="' + _bcEscAttr(seg) + '">'
+                          + '<i class="fas ' + iconClass + ' bc-icon"></i> '
+                          + _bcEscHtml(seg) + '</span>';
+                }
+
+                bar.innerHTML = html;
+                bar.classList.add('visible');
+
+                // Auto-scroll to end
+                bar.scrollLeft = bar.scrollWidth;
+            } catch(e) {
+                bar.classList.remove('visible');
+                bar.innerHTML = '';
+            }
+        }
+
+        function _bcEscHtml(s) {
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+        function _bcEscAttr(s) {
+            return s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
         // ── Bookmarks ──
