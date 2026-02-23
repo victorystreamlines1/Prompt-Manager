@@ -36409,8 +36409,7 @@ in each section carefully and maintain proper connections between components.
             var bar = document.getElementById('iframeBreadcrumbBar');
             if (!bar) return;
 
-            // Only show breadcrumb for localhost URLs
-            if (!url || !/^https?:\/\/localhost/i.test(url)) {
+            if (!url || url === 'about:blank') {
                 bar.classList.remove('visible');
                 bar.innerHTML = '';
                 return;
@@ -36418,41 +36417,38 @@ in each section carefully and maintain proper connections between components.
 
             try {
                 var u = new URL(url);
-                var pathname = u.pathname; // e.g. /Prompt-Manager/subfolder/file.php
-                // Remove leading slash and split
+                var isLocal = /^localhost$/i.test(u.hostname);
+                var hostLabel = isLocal ? 'localhost' : u.hostname.replace(/^www\./i, '');
+                var hostIcon = isLocal ? 'fa-server' : 'fa-globe';
+                var pathname = u.pathname;
                 var segments = pathname.replace(/^\/+/, '').replace(/\/+$/, '').split('/').filter(Boolean);
 
                 if (segments.length === 0) {
-                    // Just localhost root, show only the root
-                    bar.innerHTML = '<span class="iframe-breadcrumb-item bc-root bc-active" title="localhost"><i class="fas fa-server"></i> localhost</span>';
+                    bar.innerHTML = '<span class="iframe-breadcrumb-item bc-root bc-active" title="' + _bcEscAttr(u.origin) + '"><i class="fas ' + hostIcon + '"></i> ' + _bcEscHtml(hostLabel) + '</span>';
                     bar.classList.add('visible');
                     return;
                 }
 
-                // First segment is the main directory — replace it with "localhost"
                 var mainDir = segments[0];
                 var html = '';
 
-                // Root item: "localhost" (replaces main directory name)
+                // Root item: show hostname
                 var rootUrl = u.origin + '/' + mainDir + '/';
                 html += '<span class="iframe-breadcrumb-item bc-root' + (segments.length === 1 ? ' bc-active' : '') + '" '
                       + 'onclick="iframeLoadUrl(\'' + _bcEscAttr(rootUrl) + '\')" '
                       + 'title="' + _bcEscAttr(mainDir) + '">'
-                      + '<i class="fas fa-server"></i> localhost</span>';
+                      + '<i class="fas ' + hostIcon + '"></i> ' + _bcEscHtml(hostLabel) + '</span>';
 
-                // Sub-segments (skip index 0 which is the main directory)
+                // Sub-segments
                 for (var i = 1; i < segments.length; i++) {
                     var seg = segments[i];
                     var isLast = (i === segments.length - 1);
                     var isFile = isLast && seg.indexOf('.') !== -1;
 
-                    // Build path up to this segment
                     var partialPath = u.origin + '/' + segments.slice(0, i + 1).join('/') + (isFile ? '' : '/');
 
-                    // Separator
                     html += '<span class="iframe-breadcrumb-sep"><i class="fas fa-chevron-right"></i></span>';
 
-                    // Icon
                     var iconClass = isFile ? 'fa-file-code' : 'fa-folder';
                     var typeClass = isFile ? 'bc-file' : 'bc-dir';
 
