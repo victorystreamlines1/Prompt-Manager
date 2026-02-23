@@ -35216,6 +35216,34 @@ in each section carefully and maintain proper connections between components.
             iframeLoadUrl(url);
         }
 
+        // Cache-busting: strip any existing _cb param and add a fresh timestamp
+        function _iframeCacheBust(url) {
+            try {
+                var u = new URL(url, window.location.origin);
+                u.searchParams.delete('_cb');
+                u.searchParams.set('_cb', Date.now());
+                return u.toString();
+            } catch(e) {
+                // Fallback for malformed URLs
+                var sep = url.indexOf('?') === -1 ? '?' : '&';
+                return url.replace(/[?&]_cb=\d+/g, '') + sep + '_cb=' + Date.now();
+            }
+        }
+
+        // Get clean URL (without cache-bust param) for display/history
+        function _iframeCleanUrl(url) {
+            try {
+                var u = new URL(url, window.location.origin);
+                u.searchParams.delete('_cb');
+                var clean = u.toString();
+                // Remove trailing '?' if no params left
+                if (clean.endsWith('?')) clean = clean.slice(0, -1);
+                return clean;
+            } catch(e) {
+                return url.replace(/[?&]_cb=\d+/g, '');
+            }
+        }
+
         function iframeLoadUrl(url) {
             const iframe = _iframeEl();
             const emptyState = document.getElementById('iframeEmptyState');
@@ -35225,7 +35253,9 @@ in each section carefully and maintain proper connections between components.
 
             if (!iframe) return;
 
-            urlInput.value = url;
+            // Store the clean URL for display and history
+            var cleanUrl = _iframeCleanUrl(url);
+            urlInput.value = cleanUrl;
 
             // Update status
             statusBar.className = 'iframe-status-bar loading';
@@ -35235,21 +35265,21 @@ in each section carefully and maintain proper connections between components.
             if (emptyState) emptyState.style.display = 'none';
             iframe.classList.add('active');
 
-            // Push to history
+            // Push to history (store clean URL)
             if (_iframeHistoryIdx < _iframeHistory.length - 1) {
                 _iframeHistory.splice(_iframeHistoryIdx + 1);
             }
-            _iframeHistory.push(url);
+            _iframeHistory.push(cleanUrl);
             _iframeHistoryIdx = _iframeHistory.length - 1;
             _iframeUpdateNavBtns();
             _iframeUpdateBookmarkIcon();
 
-            // Load
-            iframe.src = url;
+            // Load with cache-busting to prevent stale content
+            iframe.src = _iframeCacheBust(cleanUrl);
 
             iframe.onload = function() {
                 statusBar.className = 'iframe-status-bar loaded';
-                statusText.textContent = url.replace(/^https?:\/\//, '').split('/')[0];
+                statusText.textContent = cleanUrl.replace(/^https?:\/\//, '').split('/')[0];
             };
             iframe.onerror = function() {
                 statusBar.className = 'iframe-status-bar error';
@@ -35262,7 +35292,7 @@ in each section carefully and maintain proper connections between components.
                 _iframeHistoryIdx--;
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
-                _iframeEl().src = url;
+                _iframeEl().src = _iframeCacheBust(url);
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35273,7 +35303,7 @@ in each section carefully and maintain proper connections between components.
                 _iframeHistoryIdx++;
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
-                _iframeEl().src = url;
+                _iframeEl().src = _iframeCacheBust(url);
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35286,7 +35316,12 @@ in each section carefully and maintain proper connections between components.
                 const statusText = document.getElementById('iframeStatusText');
                 statusBar.className = 'iframe-status-bar loading';
                 statusText.textContent = 'Refreshing...';
-                iframe.src = iframe.src;
+                // Force fresh load with new cache-bust parameter
+                var cleanSrc = _iframeCleanUrl(iframe.src);
+                iframe.src = 'about:blank';
+                setTimeout(function() {
+                    iframe.src = _iframeCacheBust(cleanSrc);
+                }, 50);
             }
         }
 
@@ -35344,6 +35379,11 @@ in each section carefully and maintain proper connections between components.
             _docrootLoad();
             if (typeof showToast === 'function') {
                 showToast(val ? 'Localhost path saved!' : 'Localhost path cleared.', 'success');
+            }
+            // Reload iframe to reflect the new docroot (cache-busted)
+            var iframe = _iframeEl();
+            if (iframe && iframe.src && iframe.src !== 'about:blank') {
+                iframeReload();
             }
         }
 
@@ -36044,14 +36084,21 @@ in each section carefully and maintain proper connections between components.
             closeLocalhostFolderPicker();
             showToast('Document root set to: ' + fsPath, 'success');
             
-            if (!wasClientMode) {
-                // PHP mode (localhost) — can safely load http://localhost
+            // Reload iframe to reflect the new docroot
+            // In both modes, http://localhost points to the user's local machine
+            var iframe = _iframeEl();
+            if (iframe && iframe.src && iframe.src !== 'about:blank') {
+                // If already viewing localhost, force reload with cache-bust
+                var currentClean = _iframeCleanUrl(iframe.src);
+                if (currentClean.indexOf('localhost') !== -1) {
+                    iframeReload();
+                }
+            } else if (!wasClientMode) {
+                // First time — auto-navigate to localhost
                 if (typeof iframeLoadUrl === 'function') {
                     iframeLoadUrl('http://localhost');
                 }
             }
-            // In client mode (remote host), we don't auto-load http://localhost
-            // since it would point to the remote server, not the user's machine
         }
 
         function lfpClearSearch() {
