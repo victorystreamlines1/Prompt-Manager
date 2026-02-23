@@ -1,9 +1,7 @@
 <?php
-// Performance: Buffer output + gzip compression for this large file
-ini_set('memory_limit', '1024M');
-ini_set('max_execution_time', '120');
+// Ensure clean output buffering for header() calls on this large file
 if (!ob_get_level()) {
-    ob_start('ob_gzhandler');
+    ob_start();
 }
 
 // Configure session cookie for iframe compatibility (SameSite=Lax)
@@ -35304,6 +35302,7 @@ in each section carefully and maintain proper connections between components.
         const _iframeHistory = [];
         let _iframeHistoryIdx = -1;
         let _iframeBookmarks = JSON.parse(localStorage.getItem('iframeBookmarks') || '[]');
+        var _iframeNavByCode = false; // flag: true when navigation triggered by our code
 
         function _iframeEl() { return document.getElementById('iframeViewer'); }
         function _iframeStatusBar() { return document.getElementById('iframeStatusBar'); }
@@ -35377,9 +35376,11 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateBookmarkIcon();
 
             // Load with cache-busting to prevent stale content
+            _iframeNavByCode = true;
             iframe.src = _iframeCacheBust(cleanUrl);
 
             iframe.onload = function() {
+                _iframeNavByCode = false;
                 statusBar.className = 'iframe-status-bar loaded';
                 // Try to read the actual resolved URL from the iframe (same-origin only)
                 var resolvedUrl = cleanUrl;
@@ -35435,8 +35436,9 @@ in each section carefully and maintain proper connections between components.
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
                 var iframe = _iframeEl();
+                _iframeNavByCode = true;
                 iframe.src = _iframeCacheBust(url);
-                iframe.onload = function() { _iframeResolveAndUpdate(iframe); };
+                iframe.onload = function() { _iframeNavByCode = false; _iframeResolveAndUpdate(iframe); };
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35448,8 +35450,9 @@ in each section carefully and maintain proper connections between components.
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
                 var iframe = _iframeEl();
+                _iframeNavByCode = true;
                 iframe.src = _iframeCacheBust(url);
-                iframe.onload = function() { _iframeResolveAndUpdate(iframe); };
+                iframe.onload = function() { _iframeNavByCode = false; _iframeResolveAndUpdate(iframe); };
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35466,8 +35469,10 @@ in each section carefully and maintain proper connections between components.
                 var cleanSrc = _iframeCleanUrl(iframe.src);
                 iframe.src = 'about:blank';
                 setTimeout(function() {
+                    _iframeNavByCode = true;
                     iframe.src = _iframeCacheBust(cleanSrc);
                     iframe.onload = function() {
+                        _iframeNavByCode = false;
                         statusBar.className = 'iframe-status-bar loaded';
                         _iframeResolveAndUpdate(iframe);
                     };
