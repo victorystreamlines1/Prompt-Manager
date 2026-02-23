@@ -5,6 +5,15 @@ ini_set('max_execution_time', '120');
 if (!ob_get_level()) {
     ob_start('ob_gzhandler');
 }
+
+// Configure session cookie for iframe compatibility (SameSite=Lax)
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => false,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 // ============================================
@@ -28,7 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
         
         // Set remember me cookie (30 days)
         if (isset($_POST['remember_me'])) {
-            setcookie('admin_remember', hash('sha256', ADMIN_PASSWORD . 'salt_key_2024'), time() + (86400 * 30), '/');
+            setcookie('admin_remember', hash('sha256', ADMIN_PASSWORD . 'salt_key_2024'), [
+                'expires' => time() + (86400 * 30),
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
         }
         
         header('Location: ' . $_SERVER['PHP_SELF']);
@@ -41,7 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
 // Handle logout
 if (isset($_GET['logout'])) {
     $_SESSION['admin_logged_in'] = false;
-    setcookie('admin_remember', '', time() - 3600, '/');
+    setcookie('admin_remember', '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_destroy();
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
@@ -49,6 +70,10 @@ if (isset($_GET['logout'])) {
 
 // Check if logged in
 $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+
+// Release session lock early so iframes/AJAX can access the session
+// This is critical when Prompt Manager loads inside its own iframe
+session_write_close();
 
 // If not logged in, show login page
 if (!$isLoggedIn) {
