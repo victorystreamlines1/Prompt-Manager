@@ -35487,7 +35487,11 @@ in each section carefully and maintain proper connections between components.
             var saved = localStorage.getItem(_docrootKey) || '';
             var txt = document.getElementById('docrootText');
             var ghost = document.getElementById('docrootGhost');
+            var icon = document.getElementById('docrootIcon');
             if (!txt || !ghost) return;
+
+            var isLocal = /^localhost$/i.test(window.location.hostname);
+
             if (saved) {
                 // Display only the folder name, not the full path
                 var parts = saved.replace(/\\/g, '/').replace(/\/+$/, '').split('/');
@@ -35495,12 +35499,20 @@ in each section carefully and maintain proper connections between components.
                 txt.textContent = folderName;
                 txt.style.display = '';
                 txt.classList.remove('not-set');
-                ghost.title = 'Connected to localhost – ' + folderName;
+                ghost.title = (isLocal ? 'localhost' : window.location.hostname) + ' – ' + folderName;
+                if (icon) icon.className = isLocal ? 'fas fa-server' : 'fas fa-globe';
             } else {
-                txt.textContent = 'Not configured – click ⚙ to set';
+                // Auto-detect path from current URL
+                var basePath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '') + '/';
+                var hostLabel = isLocal ? 'localhost' : window.location.hostname.replace(/^www\./i, '');
+                var pathSegments = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '').split('/').filter(Boolean);
+                var displayName = pathSegments.length > 0 ? pathSegments[0] : hostLabel;
+
+                txt.textContent = displayName;
                 txt.style.display = '';
-                txt.classList.add('not-set');
-                ghost.title = 'Click the gear to set your localhost path';
+                txt.classList.remove('not-set');
+                ghost.title = hostLabel + ' – ' + basePath;
+                if (icon) icon.className = isLocal ? 'fas fa-server' : 'fas fa-globe';
             }
         }
 
