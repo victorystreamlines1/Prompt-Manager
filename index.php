@@ -35381,12 +35381,52 @@ in each section carefully and maintain proper connections between components.
 
             iframe.onload = function() {
                 statusBar.className = 'iframe-status-bar loaded';
-                statusText.textContent = cleanUrl.replace(/^https?:\/\//, '').split('/')[0];
+                // Try to read the actual resolved URL from the iframe (same-origin only)
+                var resolvedUrl = cleanUrl;
+                try {
+                    var loc = iframe.contentWindow.location;
+                    if (loc && loc.href && loc.href !== 'about:blank') {
+                        resolvedUrl = _iframeCleanUrl(loc.href);
+                    }
+                } catch(e) { /* cross-origin, keep original */ }
+
+                // Update URL bar with the resolved path
+                urlInput.value = resolvedUrl;
+                statusText.textContent = resolvedUrl.replace(/^https?:\/\//, '').split('/')[0];
+
+                // Update history entry with actual resolved URL
+                if (_iframeHistory[_iframeHistoryIdx] !== resolvedUrl) {
+                    _iframeHistory[_iframeHistoryIdx] = resolvedUrl;
+                }
+                _iframeUpdateBookmarkIcon();
+                _iframeUpdateBreadcrumb(resolvedUrl);
             };
             iframe.onerror = function() {
                 statusBar.className = 'iframe-status-bar error';
                 statusText.textContent = 'Failed to load';
+                _iframeUpdateBreadcrumb('');
             };
+        }
+
+        // Helper: read actual URL from iframe (same-origin) and update URL bar + history + breadcrumb
+        function _iframeResolveAndUpdate(iframe) {
+            var urlInput = document.getElementById('iframeUrlInput');
+            var statusText = document.getElementById('iframeStatusText');
+            var currentUrl = urlInput.value;
+            var resolvedUrl = currentUrl;
+            try {
+                var loc = iframe.contentWindow.location;
+                if (loc && loc.href && loc.href !== 'about:blank') {
+                    resolvedUrl = _iframeCleanUrl(loc.href);
+                }
+            } catch(e) { /* cross-origin, keep original */ }
+            urlInput.value = resolvedUrl;
+            statusText.textContent = resolvedUrl.replace(/^https?:\/\//, '').split('/')[0];
+            if (_iframeHistory[_iframeHistoryIdx] !== resolvedUrl) {
+                _iframeHistory[_iframeHistoryIdx] = resolvedUrl;
+            }
+            _iframeUpdateBookmarkIcon();
+            _iframeUpdateBreadcrumb(resolvedUrl);
         }
 
         function iframeGoBack() {
@@ -35394,7 +35434,9 @@ in each section carefully and maintain proper connections between components.
                 _iframeHistoryIdx--;
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
-                _iframeEl().src = _iframeCacheBust(url);
+                var iframe = _iframeEl();
+                iframe.src = _iframeCacheBust(url);
+                iframe.onload = function() { _iframeResolveAndUpdate(iframe); };
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35405,7 +35447,9 @@ in each section carefully and maintain proper connections between components.
                 _iframeHistoryIdx++;
                 const url = _iframeHistory[_iframeHistoryIdx];
                 document.getElementById('iframeUrlInput').value = url;
-                _iframeEl().src = _iframeCacheBust(url);
+                var iframe = _iframeEl();
+                iframe.src = _iframeCacheBust(url);
+                iframe.onload = function() { _iframeResolveAndUpdate(iframe); };
                 _iframeUpdateNavBtns();
                 _iframeUpdateBookmarkIcon();
             }
@@ -35423,6 +35467,10 @@ in each section carefully and maintain proper connections between components.
                 iframe.src = 'about:blank';
                 setTimeout(function() {
                     iframe.src = _iframeCacheBust(cleanSrc);
+                    iframe.onload = function() {
+                        statusBar.className = 'iframe-status-bar loaded';
+                        _iframeResolveAndUpdate(iframe);
+                    };
                 }, 50);
             }
         }
