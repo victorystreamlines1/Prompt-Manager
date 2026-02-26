@@ -3289,6 +3289,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #fbbf24;
         }
 
+        .prompt-action-icon.push-right {
+            position: relative;
+            overflow: hidden;
+        }
+        .prompt-action-icon.push-right:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(99, 102, 241, 0.18));
+            color: #60a5fa;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+        .prompt-action-icon.push-right:hover i {
+            animation: pushRightArrow 0.5s ease-in-out infinite alternate;
+        }
+
+        .prompt-action-icon.pull-left {
+            position: relative;
+            overflow: hidden;
+        }
+        .prompt-action-icon.pull-left:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.18));
+            color: #fbbf24;
+            box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+        }
+        .prompt-action-icon.pull-left:hover i {
+            animation: pullLeftArrow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pushRightArrow {
+            from { transform: translateX(-2px); }
+            to   { transform: translateX(2px); }
+        }
+        @keyframes pullLeftArrow {
+            from { transform: translateX(2px); }
+            to   { transform: translateX(-2px); }
+        }
+
         /* ═══════ Static Prompt Template (Read the Application) ═══════ */
         .spt-container {
             margin-bottom: 0.75rem;
@@ -33104,8 +33139,11 @@ in each section carefully and maintain proper connections between components.
                             <button type="button" class="prompt-action-icon copy" onclick="copyTemplate(${prompt.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button type="button" class="prompt-action-icon pull" onclick="pullToTemplate(${prompt.id})" title="Pull from Editor">
-                                <i class="fas fa-arrow-down"></i>
+                            <button type="button" class="prompt-action-icon push-right" onclick="pushTemplateToEditor(${prompt.id})" title="Push to Editor">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button type="button" class="prompt-action-icon pull-left" onclick="pullToTemplate(${prompt.id})" title="Pull from Editor">
+                                <i class="fas fa-arrow-left"></i>
                             </button>
                             <button type="button" class="prompt-action-icon edit" onclick="openEditTemplateModal(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
@@ -33476,6 +33514,17 @@ in each section carefully and maintain proper connections between components.
             });
         }
         
+        // Push template content to the prompt editor
+        function pushTemplateToEditor(id) {
+            const template = promptTemplates.find(t => t.id === id);
+            if (!template) return;
+            
+            const editor = document.getElementById('promptEditor');
+            editor.value = template.content;
+            editor.dispatchEvent(new Event('input'));
+            showToast(`➡️ "${template.name}" pushed to editor!`, 'success');
+        }
+        
         // Pull editor content to Template (overwrite template with editor content)
         function pullToTemplate(id) {
             const template = promptTemplates.find(t => t.id === id);
@@ -33489,12 +33538,7 @@ in each section carefully and maintain proper connections between components.
                 return;
             }
             
-            // Confirm before overwriting
-            if (!confirm(`Are you sure you want to overwrite "${template.name}" with the current editor content?`)) {
-                return;
-            }
-            
-            // Send update to server
+            // Send update to server immediately
             const formData = new FormData();
             formData.append('action', 'update_template');
             formData.append('id', id);
@@ -33510,7 +33554,9 @@ in each section carefully and maintain proper connections between components.
                 if (data.success) {
                     // Update local array
                     template.content = editorContent;
-                    showToast(`✅ "${template.name}" updated with editor content!`, 'success');
+                    showToast(`⬅️ "${template.name}" updated with editor content!`, 'success');
+                    // Show inline banner above editor
+                    showPullBanner(`⬅️ Pulled successfully to "${template.name}"`);
                 } else {
                     showToast(data.message || 'Failed to update template', 'error');
                 }
