@@ -14930,7 +14930,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
         }
 
-        /* Editor Container */
+        /* Editor Container (always visible – excluded from tab toggle) */
         .editor-container {
             display: flex;
             flex-direction: column;
@@ -14942,6 +14942,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
+            margin-top: 0.65rem;
         }
 
         .editor-header {
@@ -25584,8 +25585,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
-            
-            <!-- Editor -->
+
+            </div><!-- /mc-tab-panel workspace -->
+
+            <!-- Editor (always visible – excluded from tab toggle) -->
             <div class="editor-container">
                 <div class="editor-header">
                     <div class="editor-title">
@@ -25808,8 +25811,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
-
-            </div><!-- /mc-tab-panel workspace -->
 
             <!-- Tab Panel: Iframe -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
