@@ -15909,6 +15909,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             opacity: 1;
         }
 
+        /* Docroot Path Segments */
+        .docroot-root-name {
+            font-weight: 700;
+            color: rgba(165, 180, 252, 0.95);
+            text-shadow: 0 0 8px rgba(99, 102, 241, 0.25);
+        }
+        .docroot-sep {
+            color: rgba(148, 163, 184, 0.4);
+            font-weight: 400;
+            margin: 0 1px;
+        }
+        .docroot-segment {
+            font-weight: 500;
+            opacity: 0.7;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+        .docroot-dir {
+            color: rgba(196, 181, 253, 0.85);
+        }
+        .docroot-file {
+            color: rgba(129, 230, 217, 0.9);
+        }
+        .docroot-active {
+            opacity: 1;
+            font-weight: 600;
+        }
+        .docroot-ghost:hover .docroot-root-name {
+            color: rgba(199, 210, 252, 1);
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        .docroot-ghost:hover .docroot-sep {
+            color: rgba(148, 163, 184, 0.6);
+        }
+        .docroot-ghost:hover .docroot-segment {
+            opacity: 0.9;
+        }
+        .docroot-ghost:hover .docroot-active {
+            opacity: 1;
+        }
+
+        body.light-theme .docroot-root-name {
+            color: rgba(79, 70, 229, 0.9);
+            text-shadow: none;
+        }
+        body.light-theme .docroot-sep {
+            color: rgba(100, 116, 139, 0.4);
+        }
+        body.light-theme .docroot-dir {
+            color: rgba(109, 40, 217, 0.75);
+        }
+        body.light-theme .docroot-file {
+            color: rgba(13, 148, 136, 0.85);
+        }
+
         body.light-theme .docroot-ghost {
             color: rgba(71, 85, 105, 0.75);
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
@@ -35476,6 +35530,7 @@ in each section carefully and maintain proper connections between components.
                 }
                 _iframeUpdateBookmarkIcon();
                 _iframeUpdateBreadcrumb(resolvedUrl);
+                _docrootUpdateFromIframe(resolvedUrl);
             });
         }
 
@@ -35584,6 +35639,7 @@ in each section carefully and maintain proper connections between components.
                 }
                 _iframeUpdateBookmarkIcon();
                 _iframeUpdateBreadcrumb(resolvedUrl);
+                _docrootUpdateFromIframe(resolvedUrl);
             };
             iframe.onerror = function() {
                 statusBar.className = 'iframe-status-bar error';
@@ -35611,6 +35667,7 @@ in each section carefully and maintain proper connections between components.
             }
             _iframeUpdateBookmarkIcon();
             _iframeUpdateBreadcrumb(resolvedUrl);
+            _docrootUpdateFromIframe(resolvedUrl);
         }
 
         function iframeGoBack() {
@@ -35767,6 +35824,84 @@ in each section carefully and maintain proper connections between components.
                 });
             }
         });
+
+        // Update docroot ghost path based on iframe navigation
+        function _docrootUpdateFromIframe(iframeUrl) {
+            var txt = document.getElementById('docrootText');
+            var ghost = document.getElementById('docrootGhost');
+            if (!txt || !ghost || ghost.classList.contains('editing')) return;
+
+            if (!iframeUrl || iframeUrl === 'about:blank') {
+                _docrootLoad();
+                return;
+            }
+
+            try {
+                var iframeU = new URL(iframeUrl);
+                var iframePath = iframeU.pathname;
+
+                // Get the docroot base path
+                var saved = localStorage.getItem(_docrootKey) || '';
+                var basePath = '';
+
+                if (saved) {
+                    try {
+                        var savedU = new URL(saved);
+                        basePath = savedU.pathname;
+                    } catch(e) {
+                        basePath = saved.replace(/\\/g, '/');
+                    }
+                } else {
+                    basePath = window.location.pathname.replace(/\/[^\/]*$/, '');
+                }
+
+                // Normalize
+                basePath = basePath.replace(/\/+$/, '');
+                iframePath = iframePath.replace(/\/+$/, '');
+
+                // Root folder name
+                var baseSegments = basePath.replace(/^\/+/, '').split('/').filter(Boolean);
+                var rootName = baseSegments[baseSegments.length - 1] || 'localhost';
+
+                // Relative path from docroot
+                var relativePath = '';
+                if (iframePath.toLowerCase().indexOf(basePath.toLowerCase()) === 0) {
+                    relativePath = iframePath.substring(basePath.length);
+                } else {
+                    relativePath = iframePath;
+                }
+
+                var segments = relativePath.replace(/^\/+/, '').split('/').filter(Boolean);
+
+                var icon = document.getElementById('docrootIcon');
+                var isLocal = /^localhost$/i.test(iframeU.hostname) || /^127\.0\.0\.1$/.test(iframeU.hostname);
+                if (icon) icon.className = isLocal ? 'fas fa-server' : 'fas fa-globe';
+
+                if (segments.length === 0) {
+                    txt.innerHTML = '<span class="docroot-root-name">' + _docrootEsc(rootName) + '</span>';
+                } else {
+                    var html = '<span class="docroot-root-name">' + _docrootEsc(rootName) + '</span>';
+                    for (var i = 0; i < segments.length; i++) {
+                        var seg = segments[i];
+                        var isLast = (i === segments.length - 1);
+                        var isFile = isLast && seg.indexOf('.') !== -1;
+                        html += '<span class="docroot-sep"> / </span>';
+                        html += '<span class="docroot-segment' + (isFile ? ' docroot-file' : ' docroot-dir') + (isLast ? ' docroot-active' : '') + '">' + _docrootEsc(seg) + '</span>';
+                    }
+                    txt.innerHTML = html;
+                }
+
+                ghost.title = iframeUrl;
+            } catch(e) {
+                _docrootLoad();
+            }
+        }
+
+        function _docrootEsc(s) {
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
 
         /* ══════════════════════════════════════════
            URL Autocomplete – Ghost Text + Dropdown
