@@ -15243,6 +15243,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #a7f3d0;
         }
 
+        /* Save Template – Amber/Gold */
+        .btn-save-template {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(217, 119, 6, 0.12));
+            border: 1px solid rgba(245, 158, 11, 0.38);
+            color: #fbbf24;
+        }
+        .btn-save-template:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.38), rgba(217, 119, 6, 0.25));
+            border-color: rgba(245, 158, 11, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.3);
+            color: #fde68a;
+        }
+
         /* Paste – Amber */
         .btn-paste {
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(245, 158, 11, 0.12));
@@ -25584,6 +25598,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-success" onclick="openSaveModal()">
                             <i class="fas fa-save"></i> Save Prompt
                         </button>
+                        <button class="btn btn-save-template" onclick="openSaveTemplateModal()">
+                            <i class="fas fa-layer-group"></i> Save Template
+                        </button>
                         
                         <!-- Folder Picker Group -->
                         <div class="folder-picker-group">
@@ -28219,6 +28236,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </div>
             <input type="hidden" id="editPromptId" value="">
+        </div>
+    </div>
+    
+    <!-- Save Template Modal -->
+    <div class="modal-overlay" id="saveTemplateModal">
+        <div class="modal">
+            <div class="modal-header" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));">
+                <h3><i class="fas fa-layer-group" style="color: #f59e0b;"></i> Save Template</h3>
+                <button class="modal-close" onclick="closeModal('saveTemplateModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="templateNameInput">Template Name</label>
+                    <input type="text" id="templateNameInput" placeholder="Enter a name for your template...">
+                </div>
+                <div class="form-group">
+                    <label for="templateContentInput">Template Content</label>
+                    <textarea id="templateContentInput" placeholder="Template content will be auto-filled..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('saveTemplateModal')">Cancel</button>
+                <button class="btn btn-save-template" onclick="saveTemplate()">
+                    <i class="fas fa-check"></i> Save Template
+                </button>
+            </div>
         </div>
     </div>
     
@@ -40897,6 +40940,62 @@ in each section carefully and maintain proper connections between components.
                     showToast(`${data.message} ⏱️ ${data.operationTime}ms`, 'success');
                     closeModal('saveModal');
                     loadSavedPrompts();
+                } else {
+                    showToast(data.message || 'Save failed!', 'error');
+                }
+            } catch (err) {
+                showToast('Save error!', 'error');
+            }
+        }
+
+        // Open Save Template Modal
+        function openSaveTemplateModal() {
+            const modal = document.getElementById('saveTemplateModal');
+            const nameInput = document.getElementById('templateNameInput');
+            const contentInput = document.getElementById('templateContentInput');
+            
+            nameInput.value = '';
+            contentInput.value = document.getElementById('promptEditor').value;
+            modal.classList.add('active');
+            setTimeout(() => nameInput.focus(), 100);
+        }
+
+        // Save as Template
+        async function saveTemplate() {
+            const name = document.getElementById('templateNameInput').value.trim();
+            const content = document.getElementById('templateContentInput').value.trim();
+            
+            if (!name || !content) {
+                showToast('Name and content required!', 'error');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'add_template');
+                formData.append('name', name);
+                formData.append('content', content);
+                
+                const response = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.operationTime) {
+                        addSpeedEntry({
+                            time: data.operationTime,
+                            type: data.operationType || 'ADD_TEMPLATE',
+                            connection: data.connectionType || currentConnectionType,
+                            timestamp: Date.now()
+                        });
+                        updateSpeedMonitor();
+                    }
+                    showToast(`${data.message} \u23f1\ufe0f ${data.operationTime}ms`, 'success');
+                    closeModal('saveTemplateModal');
+                    loadPromptTemplates();
                 } else {
                     showToast(data.message || 'Save failed!', 'error');
                 }
