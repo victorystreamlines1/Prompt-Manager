@@ -25516,7 +25516,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-paste"></i> Paste
                         </button>
                         <button class="btn btn-success" onclick="openSaveModal()">
-                            <i class="fas fa-save"></i> Save
+                            <i class="fas fa-save"></i> Save Prompt
                         </button>
                         
                         <!-- Folder Picker Group -->
