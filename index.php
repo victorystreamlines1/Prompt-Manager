@@ -23692,7 +23692,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Iframe Display */
         .iframe-display-wrapper {
             position: relative;
-            min-height: 65vh;
+            min-height: 200px;
             background: #0a0a1a;
         }
         .iframe-viewer {
@@ -23704,6 +23704,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .iframe-viewer.active {
             display: block;
+        }
+
+        /* Iframe Resize Handle */
+        .iframe-resize-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 22px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(6, 182, 212, 0.06) 100%);
+            border-top: 1px solid rgba(99, 102, 241, 0.15);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            cursor: ns-resize;
+            user-select: none;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .iframe-resize-handle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.12) 50%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .iframe-resize-handle:hover::before {
+            opacity: 1;
+        }
+        .iframe-resize-handle:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(6, 182, 212, 0.12) 100%);
+            height: 24px;
+        }
+        .iframe-resize-handle:active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.28) 0%, rgba(6, 182, 212, 0.18) 100%);
+        }
+        .iframe-resize-handle i {
+            color: rgba(148, 163, 184, 0.5);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            transition: all 0.25s ease;
+            z-index: 1;
+        }
+        .iframe-resize-handle:hover i {
+            color: var(--accent-primary);
+            transform: scaleX(1.3);
+        }
+        .iframe-resize-handle .iframe-resize-size {
+            position: absolute;
+            right: 12px;
+            font-size: 0.65rem;
+            color: rgba(148, 163, 184, 0.4);
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .iframe-resize-handle:hover .iframe-resize-size {
+            opacity: 1;
+            color: rgba(148, 163, 184, 0.7);
         }
 
         /* Empty State */
@@ -25918,6 +25976,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <iframe id="iframeViewer" class="iframe-viewer" src="about:blank" 
                                 allowfullscreen></iframe>
+                        <div class="iframe-resize-handle" id="iframeResizeHandle" title="Drag to resize iframe">
+                            <i class="fas fa-grip-lines"></i>
+                            <span class="iframe-resize-size" id="iframeResizeSize"></span>
+                        </div>
                     </div>
                 </div>
             </div><!-- /mc-tab-panel iframe -->
@@ -42250,6 +42312,97 @@ in each section carefully and maintain proper connections between components.
         
         // Initialize resize handle on page load
         document.addEventListener('DOMContentLoaded', initResizeHandle);
+
+        // ============================================
+        // IFRAME RESIZE HANDLE
+        // ============================================
+        function initIframeResize() {
+            const handle = document.getElementById('iframeResizeHandle');
+            const iframe = document.getElementById('iframeViewer');
+            const wrapper = document.getElementById('iframeDisplayWrapper');
+            const sizeLabel = document.getElementById('iframeResizeSize');
+
+            if (!handle || !iframe) return;
+
+            const STORAGE_KEY = 'pm_iframe_height';
+            const MIN_H = 200;
+            const MAX_RATIO = 0.92;
+            let isResizing = false;
+            let startY = 0;
+            let startHeight = 0;
+
+            // Restore saved height
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const h = parseInt(saved, 10);
+                if (h >= MIN_H) {
+                    iframe.style.height = h + 'px';
+                    if (wrapper) wrapper.style.minHeight = h + 'px';
+                }
+            }
+
+            function showSize(h) {
+                if (sizeLabel) sizeLabel.textContent = Math.round(h) + 'px';
+            }
+
+            function applyHeight(clientY) {
+                const deltaY = clientY - startY;
+                const maxH = window.innerHeight * MAX_RATIO;
+                const newH = Math.max(MIN_H, Math.min(startHeight + deltaY, maxH));
+                iframe.style.height = newH + 'px';
+                if (wrapper) wrapper.style.minHeight = newH + 'px';
+                showSize(newH);
+            }
+
+            function stopResize() {
+                if (!isResizing) return;
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                handle.classList.remove('active');
+                // Save to localStorage
+                const finalH = iframe.offsetHeight;
+                localStorage.setItem(STORAGE_KEY, finalH);
+            }
+
+            // Mouse
+            handle.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = iframe.offsetHeight;
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                handle.classList.add('active');
+                showSize(startHeight);
+                e.preventDefault();
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
+                applyHeight(e.clientY);
+            });
+            document.addEventListener('mouseup', stopResize);
+
+            // Touch
+            handle.addEventListener('touchstart', function(e) {
+                isResizing = true;
+                startY = e.touches[0].clientY;
+                startHeight = iframe.offsetHeight;
+                handle.classList.add('active');
+                showSize(startHeight);
+                e.preventDefault();
+            }, { passive: false });
+            document.addEventListener('touchmove', function(e) {
+                if (!isResizing) return;
+                applyHeight(e.touches[0].clientY);
+            }, { passive: false });
+            document.addEventListener('touchend', stopResize);
+
+            // Show current size on hover
+            handle.addEventListener('mouseenter', function() {
+                showSize(iframe.offsetHeight);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initIframeResize);
 
         // ============================================
         // SAVED PROMPTS RESIZE HANDLE
