@@ -21984,6 +21984,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #fbbf24;
         }
 
+        .saved-action-icon.push:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        /* Pull success banner above editor */
+        .pull-success-banner {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 8px;
+            color: #34d399;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: pullBannerSlide 0.35s ease;
+            margin-bottom: 6px;
+        }
+        .pull-success-banner.visible {
+            display: flex;
+        }
+        .pull-success-banner i {
+            font-size: 0.9rem;
+        }
+        @keyframes pullBannerSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         /* Saved Prompt Preview Modal */
         .saved-preview-modal {
             max-width: 650px;
@@ -25542,6 +25573,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <div class="editor-body">
+                    <div class="pull-success-banner" id="pullSuccessBanner" style="display:none;"></div>
                     <div class="editor-highlight-overlay" id="editorHighlightOverlay"></div>
                     <textarea id="promptEditor" placeholder="Your generated prompt will appear here...&#10;&#10;Check the prompt templates on the left to build your prompt, or type directly."></textarea>
                     <div class="resize-handle" id="resizeHandle" title="Drag to resize">
@@ -40920,8 +40952,11 @@ in each section carefully and maintain proper connections between components.
                             <button type="button" class="saved-action-icon copy" onclick="copySavedPrompt(${prompt.id})" title="Copy">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button type="button" class="saved-action-icon pull" onclick="pullToSavedPrompt(${prompt.id})" title="Pull from Editor">
+                            <button type="button" class="saved-action-icon push" onclick="pushToEditor(${prompt.id})" title="Push to Editor">
                                 <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" class="saved-action-icon pull" onclick="pullToSavedPrompt(${prompt.id})" title="Pull from Editor">
+                                <i class="fas fa-arrow-up"></i>
                             </button>
                             <button type="button" class="saved-action-icon edit" onclick="editSavedPrompt(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
@@ -41318,6 +41353,17 @@ in each section carefully and maintain proper connections between components.
             });
         }
         
+        // Push saved prompt content to Editor
+        function pushToEditor(id) {
+            const prompt = savedPromptsList.find(p => p.id === id);
+            if (!prompt) return;
+            
+            const editor = document.getElementById('promptEditor');
+            editor.value = prompt.content;
+            editor.dispatchEvent(new Event('input'));
+            showToast(`⬇️ "${prompt.title}" pushed to editor!`, 'success');
+        }
+        
         // Pull editor content to Saved Prompt (overwrite prompt with editor content)
         function pullToSavedPrompt(id) {
             const prompt = savedPromptsList.find(p => p.id === id);
@@ -41331,12 +41377,7 @@ in each section carefully and maintain proper connections between components.
                 return;
             }
             
-            // Confirm before overwriting
-            if (!confirm(`Are you sure you want to overwrite "${prompt.title}" with the current editor content?`)) {
-                return;
-            }
-            
-            // Send update to server
+            // Send update to server immediately
             const formData = new FormData();
             formData.append('action', 'update_prompt');
             formData.append('id', id);
@@ -41352,7 +41393,10 @@ in each section carefully and maintain proper connections between components.
                 if (data.success) {
                     // Update local array
                     prompt.content = editorContent;
-                    showToast(`✅ "${prompt.title}" updated with editor content!`, 'success');
+                    renderSavedPrompts();
+                    showToast(`⬆️ "${prompt.title}" updated with editor content!`, 'success');
+                    // Show inline banner above editor
+                    showPullBanner(`⬆️ Pulled successfully to "${prompt.title}"`);
                 } else {
                     showToast(data.message || 'Failed to update prompt', 'error');
                 }
@@ -41361,6 +41405,23 @@ in each section carefully and maintain proper connections between components.
                 console.error('Error:', err);
                 showToast('Failed to update prompt', 'error');
             });
+        }
+        
+        // Show pull success banner above the editor
+        function showPullBanner(message) {
+            const banner = document.getElementById('pullSuccessBanner');
+            banner.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
+            banner.classList.add('visible');
+            banner.style.display = '';
+            // Re-trigger animation
+            banner.style.animation = 'none';
+            banner.offsetHeight; // force reflow
+            banner.style.animation = '';
+            // Auto-hide after 4 seconds
+            clearTimeout(banner._hideTimer);
+            banner._hideTimer = setTimeout(() => {
+                banner.classList.remove('visible');
+            }, 4000);
         }
         
         // Open saved prompt preview modal
