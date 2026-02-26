@@ -4021,6 +4021,22 @@ usort($fileList, function($a, $b) {
     </style>
 </head>
 <body>
+    <!-- Cross-origin iframe URL bridge: notify parent of current URL -->
+    <script>
+    (function(){
+        if (window.parent !== window) {
+            try {
+                window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*');
+            } catch(e) {}
+            window.addEventListener('hashchange', function() {
+                try { window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*'); } catch(e) {}
+            });
+            window.addEventListener('popstate', function() {
+                try { window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*'); } catch(e) {}
+            });
+        }
+    })();
+    </script>
     <!-- Animated Background Particles -->
     <div class="particles" id="particles"></div>
 

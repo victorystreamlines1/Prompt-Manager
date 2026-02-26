@@ -15887,6 +15887,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: color 0.3s ease, background 0.3s ease;
         }
 
+        .docroot-ghost.navigated-pulse {
+            animation: docrootNavPulse 0.7s ease-in-out 3;
+        }
+        @keyframes docrootNavPulse {
+            0%, 100% { background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.08)); box-shadow: none; }
+            50% { background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.18)); box-shadow: 0 0 12px rgba(34, 197, 94, 0.3); }
+        }
+
         .docroot-ghost i {
             font-size: 0.7rem;
             color: rgba(129, 140, 248, 0.7);
@@ -24798,6 +24806,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
+    <!-- Cross-origin iframe URL bridge: notify parent of current URL -->
+    <script>
+    (function(){
+        if (window.parent !== window) {
+            try {
+                window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*');
+            } catch(e) {}
+            window.addEventListener('hashchange', function() {
+                try { window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*'); } catch(e) {}
+            });
+            window.addEventListener('popstate', function() {
+                try { window.parent.postMessage({ type: 'pm_iframe_nav', url: window.location.href }, '*'); } catch(e) {}
+            });
+        }
+    })();
+    </script>
     <!-- Database Connection Toggle Switch -->
     <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)" data-active="<?php echo $connectionType; ?>">
         <span class="toggle-label local" id="labelLocal">🖥️</span>
@@ -35574,29 +35598,78 @@ in each section carefully and maintain proper connections between components.
                 var statusText = document.getElementById('iframeStatusText');
                 if (!urlInput) return;
                 var resolvedUrl = urlInput.value;
+                var isCrossOrigin = false;
                 try {
                     var loc = iframe.contentWindow.location;
                     if (loc && loc.href && loc.href !== 'about:blank') {
                         resolvedUrl = _iframeCleanUrl(loc.href);
                     }
-                } catch(e) { /* cross-origin */ }
-                urlInput.value = resolvedUrl;
-                if (statusText) statusText.textContent = resolvedUrl.replace(/^https?:\/\//, '').split('/')[0];
-                if (statusBar) statusBar.className = 'iframe-status-bar loaded';
-                // Update history for internal navigation
-                if (_iframeHistory[_iframeHistoryIdx] !== resolvedUrl) {
-                    if (_iframeHistoryIdx < _iframeHistory.length - 1) {
-                        _iframeHistory.splice(_iframeHistoryIdx + 1);
+                } catch(e) { isCrossOrigin = true; }
+
+                if (!isCrossOrigin) {
+                    // Same-origin: full tracking
+                    urlInput.value = resolvedUrl;
+                    if (statusText) statusText.textContent = resolvedUrl.replace(/^https?:\/\//, '').split('/')[0];
+                    if (statusBar) statusBar.className = 'iframe-status-bar loaded';
+                    if (_iframeHistory[_iframeHistoryIdx] !== resolvedUrl) {
+                        if (_iframeHistoryIdx < _iframeHistory.length - 1) {
+                            _iframeHistory.splice(_iframeHistoryIdx + 1);
+                        }
+                        _iframeHistory.push(resolvedUrl);
+                        _iframeHistoryIdx = _iframeHistory.length - 1;
+                        _iframeUpdateNavBtns();
                     }
-                    _iframeHistory.push(resolvedUrl);
-                    _iframeHistoryIdx = _iframeHistory.length - 1;
-                    _iframeUpdateNavBtns();
+                    _iframeUpdateBookmarkIcon();
+                    _iframeUpdateBreadcrumb(resolvedUrl);
+                    _docrootUpdateFromIframe(resolvedUrl);
+                } else {
+                    // Cross-origin: can't read URL — wait briefly for postMessage, show pulse
+                    if (statusBar) statusBar.className = 'iframe-status-bar loaded';
+                    if (statusText) statusText.textContent = 'Page navigated';
+                    var ghost = document.getElementById('docrootGhost');
+                    if (ghost) {
+                        ghost.classList.add('navigated-pulse');
+                        setTimeout(function() { ghost.classList.remove('navigated-pulse'); }, 2500);
+                    }
                 }
-                _iframeUpdateBookmarkIcon();
-                _iframeUpdateBreadcrumb(resolvedUrl);
-                _docrootUpdateFromIframe(resolvedUrl);
             });
         }
+
+        // Listen for postMessage from iframe content (cross-origin URL bridge)
+        window.addEventListener('message', function(e) {
+            if (!e.data || e.data.type !== 'pm_iframe_nav' || !e.data.url) return;
+            var url = e.data.url;
+            var cleanUrl = _iframeCleanUrl(url);
+            var urlInput = document.getElementById('iframeUrlInput');
+            var statusBar = _iframeStatusBar();
+            var statusText = document.getElementById('iframeStatusText');
+
+            // Update URL bar
+            if (urlInput) urlInput.value = cleanUrl;
+
+            // Update status
+            if (statusBar) statusBar.className = 'iframe-status-bar loaded';
+            if (statusText) statusText.textContent = cleanUrl.replace(/^https?:\/\//, '').split('/')[0];
+
+            // Update history
+            if (_iframeHistory[_iframeHistoryIdx] !== cleanUrl) {
+                if (_iframeHistoryIdx < _iframeHistory.length - 1) {
+                    _iframeHistory.splice(_iframeHistoryIdx + 1);
+                }
+                _iframeHistory.push(cleanUrl);
+                _iframeHistoryIdx = _iframeHistory.length - 1;
+                _iframeUpdateNavBtns();
+            }
+
+            // Update breadcrumb, docroot, bookmarks
+            _iframeUpdateBookmarkIcon();
+            _iframeUpdateBreadcrumb(cleanUrl);
+            _docrootUpdateFromIframe(cleanUrl);
+
+            // Remove pulse if active (postMessage arrived with real URL)
+            var ghost = document.getElementById('docrootGhost');
+            if (ghost) ghost.classList.remove('navigated-pulse');
+        });
 
         function iframeNavigate() {
             let url = document.getElementById('iframeUrlInput').value.trim();
