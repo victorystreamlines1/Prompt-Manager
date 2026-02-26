@@ -14943,6 +14943,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             box-sizing: border-box;
             margin-top: 0.65rem;
+            order: 99;
         }
 
         .editor-header {
