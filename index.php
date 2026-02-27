@@ -35691,9 +35691,26 @@ in each section carefully and maintain proper connections between components.
                 var parsed = new URL(url);
                 // Use target URL's origin (e.g. http://localhost) — bridge must be same-origin with content
                 var bridgeOrigin = parsed.origin;
-                // Derive app directory from current page's path (same folder structure on localhost)
-                var appDir = window.location.pathname.replace(/\/[^\/]*$/, ''); // e.g. /Prompt-Manager
-                return bridgeOrigin + appDir + '/iframe_bridge.php?url=' + encodeURIComponent(url);
+
+                // Determine app directory on the localhost server from pm_localhost_path
+                var storedRoot = localStorage.getItem('pm_localhost_path') || '';
+                var appPath = '';
+                if (storedRoot) {
+                    try {
+                        // Full URL like "http://localhost/Prompt-Manager"
+                        var storedUrl = new URL(storedRoot);
+                        appPath = storedUrl.pathname.replace(/\/+$/, '');
+                    } catch(e2) {
+                        // Relative path like "Prompt-Manager" or "/Prompt-Manager"
+                        appPath = '/' + storedRoot.replace(/^\/+/, '').replace(/\/+$/, '');
+                    }
+                }
+                if (!appPath) {
+                    // Fallback: use current page's path structure
+                    appPath = window.location.pathname.replace(/\/[^\/]*$/, '');
+                }
+
+                return bridgeOrigin + appPath + '/iframe_bridge.php?url=' + encodeURIComponent(url);
             } catch(e) { return url; }
         }
 
