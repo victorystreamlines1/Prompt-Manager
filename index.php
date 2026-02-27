@@ -35697,12 +35697,8 @@ in each section carefully and maintain proper connections between components.
             if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
                 url = 'http://' + url;
             }
-            // If cross-origin localhost, use bridge for URL tracking (keeps real localhost content)
-            if (_iframeIsCrossOriginLocalhost(url)) {
-                if (typeof showToast === 'function') {
-                    showToast('Using bridge for cross-origin URL tracking', 'info');
-                }
-            } else {
+            // Cross-origin localhost: load directly, rely on postMessage for URL tracking
+            if (!_iframeIsCrossOriginLocalhost(url)) {
                 // Same-origin: adapt localhost URLs to current host
                 var adapted = _iframeAdaptUrl(url);
                 if (adapted !== url) {
@@ -35779,28 +35775,19 @@ in each section carefully and maintain proper connections between components.
 
             // Load with cache-busting to prevent stale content
             _iframeNavByCode = true;
-            // Cross-origin localhost: route through bridge for URL tracking
-            var loadUrl = cleanUrl;
-            var usingBridge = _iframeIsCrossOriginLocalhost(cleanUrl);
-            if (usingBridge) {
-                loadUrl = _iframeBridgeUrl(cleanUrl);
-            }
-            iframe.src = _iframeCacheBust(loadUrl);
+            iframe.src = _iframeCacheBust(cleanUrl);
 
             iframe.onload = function() {
                 _iframeNavByCode = false;
                 statusBar.className = 'iframe-status-bar loaded';
                 // Try to read the actual resolved URL from the iframe (same-origin only)
                 var resolvedUrl = cleanUrl;
-                if (!usingBridge) {
-                    try {
-                        var loc = iframe.contentWindow.location;
-                        if (loc && loc.href && loc.href !== 'about:blank') {
-                            resolvedUrl = _iframeCleanUrl(loc.href);
-                        }
-                    } catch(e) { /* cross-origin, keep original */ }
-                }
-                // When using bridge, the postMessage listener will update with the real URL
+                try {
+                    var loc = iframe.contentWindow.location;
+                    if (loc && loc.href && loc.href !== 'about:blank') {
+                        resolvedUrl = _iframeCleanUrl(loc.href);
+                    }
+                } catch(e) { /* cross-origin: postMessage listener will update URL */ }
 
                 // Update URL bar with the resolved path
                 urlInput.value = resolvedUrl;
