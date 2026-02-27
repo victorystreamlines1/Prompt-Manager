@@ -1,26 +1,26 @@
-still flashing green and blocking the path, I don't know why, still the same exact behavior, please try to solve it, this is the console. ----->Setting up root selector (PHP folder browser mode)...
-(index):50783 Setting up drop zone...
-(index):32274 Failed to load SPT files: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
-    at sptLoadFiles ((index):32261:45)
-sptLoadFiles @ (index):32274Understand this warning
-(index):52168 🎨 No image files found for logo detection
-(index):44244 Initializing drag and drop...
-(index):44247 Found tools: 15
-(index):44545 Order applied to DOM
-(index):44496 Applied cached order from localStorage
-(index):44430 Drag and drop initialized successfully
-(index):51930 📚 Doc tool already has this file: _Final Version - Genetic Invent Report.txt
-(index):39734 Scrollbar update: Object
-(index):39734 Scrollbar update: Object
-(index):39734 Scrollbar update: Object
-(index):27413 ✅ Loaded 10 connections from Database Hub
-(index):39734 Scrollbar update: Object
-(index):39734 Scrollbar update: Object
+Not working, this is the console. ---->Setting up drop zone...
+(index):32269 Failed to load SPT files: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+    at sptLoadFiles ((index):32256:45)
+sptLoadFiles @ (index):32269Understand this warning
+(index):52153 🎨 No image files found for logo detection
+(index):44229 Initializing drag and drop...
+(index):44232 Found tools: 15
+(index):44530 Order applied to DOM
+(index):44481 Applied cached order from localStorage
+(index):44415 Drag and drop initialized successfully
+(index):51915 📚 Doc tool already has this file: _Final Version - Genetic Invent Report.txt
+(index):39719 Scrollbar update: Object
+(index):39719 Scrollbar update: Object
+(index):39719 Scrollbar update: Object
+(index):27408 ✅ Loaded 10 connections from Database Hub
+(index):39719 Scrollbar update: Object
+(index):39719 Scrollbar update: Object
 2144.vendors.chunk.js:2 [DEFAULT]: WARN : Using DEFAULT root logger
 printToConsole @ 2144.vendors.chunk.js:2Understand this warning
-(index):44515 Loaded order from database: Array(15)
-(index):44545 Order applied to DOM
-2(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+(index):44500 Loaded order from database: Array(15)
+(index):44530 Order applied to DOM
+(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
 dictionary.php:1889 API Request: ../api/dictionary.php?page=1&limit=20
-(index):39734 Scrollbar update: Object
-groups.php:518 Uncaught SyntaxError: Unexpected token ',' (at groups.php:518:16)Understand this error
+dictionary.php:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+index-oGPu1AAM.js:1 Uncaught (in promise) Error: No response for request-get-recorder-state
+    at index-oGPu1AAM.js:1:186

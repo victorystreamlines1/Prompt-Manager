@@ -35687,10 +35687,17 @@ in each section carefully and maintain proper connections between components.
         // Construct bridge URL: routes localhost content through iframe_bridge.php for URL tracking
         function _iframeBridgeUrl(url) {
             try {
+                // Try stored localhost path first (most reliable)
+                var storedRoot = localStorage.getItem('pm_localhost_path') || '';
+                if (storedRoot) {
+                    // Ensure no trailing slash
+                    var base = storedRoot.replace(/\/+$/, '');
+                    return base + '/iframe_bridge.php?url=' + encodeURIComponent(url);
+                }
+                // Fallback: derive from target URL origin + current page's path
                 var parsed = new URL(url);
-                var bridgeOrigin = parsed.origin; // e.g. http://localhost or http://localhost:8080
-                // Derive the app directory from the current page's path (same structure on localhost)
-                var appDir = window.location.pathname.replace(/\/[^\/]*$/, ''); // e.g. /Prompt-Manager
+                var bridgeOrigin = parsed.origin;
+                var appDir = window.location.pathname.replace(/\/[^\/]*$/, '');
                 return bridgeOrigin + appDir + '/iframe_bridge.php?url=' + encodeURIComponent(url);
             } catch(e) { return url; }
         }
@@ -35826,7 +35833,7 @@ in each section carefully and maintain proper connections between components.
             if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
                 url = 'http://' + url;
             }
-            // Cross-origin localhost: load directly, rely on postMessage for URL tracking
+            // Cross-origin localhost: keep original URL, bridge handles tracking in iframeLoadUrl
             if (!_iframeIsCrossOriginLocalhost(url)) {
                 // Same-origin: adapt localhost URLs to current host
                 var adapted = _iframeAdaptUrl(url);
@@ -35902,9 +35909,17 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateNavBtns();
             _iframeUpdateBookmarkIcon();
 
-            // Load with cache-busting to prevent stale content
+            // Load: use bridge for cross-origin localhost, direct for same-origin
             _iframeNavByCode = true;
-            iframe.src = _iframeCacheBust(cleanUrl);
+            var actualSrc;
+            if (_iframeIsCrossOriginLocalhost(cleanUrl)) {
+                // Route through bridge for URL tracking across origins
+                actualSrc = _iframeBridgeUrl(cleanUrl);
+                console.log('[iframe] Cross-origin detected, using bridge:', actualSrc);
+            } else {
+                actualSrc = _iframeCacheBust(cleanUrl);
+            }
+            iframe.src = actualSrc;
 
             iframe.onload = function() {
                 _iframeNavByCode = false;
