@@ -35792,29 +35792,30 @@ in each section carefully and maintain proper connections between components.
             setTimeout(function() { box.classList.remove('path-updated'); }, 1200);
         }
 
-        // ── Navigation Path Popup ──
-        var _navPopupTimer = null;
+        // ── Push navigation path into Prompt Editor textarea ──
         function _iframeShowNavPopup(url) {
-            var popup = document.getElementById('iframeNavPopup');
-            var pathEl = document.getElementById('iframeNavPopupPath');
-            if (!popup || !pathEl) return;
+            var editor = document.getElementById('promptEditor');
+            if (!editor) return;
             // Extract readable path from URL
             var displayPath = url;
             try {
                 var p = new URL(url);
                 displayPath = decodeURIComponent(p.pathname + p.search + p.hash) || '/';
-                // Prepend origin for clarity
                 displayPath = p.origin + displayPath;
             } catch(e) {}
-            pathEl.textContent = displayPath;
-            // Show with animation
-            popup.classList.add('show');
-            // Clear previous auto-hide timer
-            if (_navPopupTimer) clearTimeout(_navPopupTimer);
-            _navPopupTimer = setTimeout(function() {
-                popup.classList.remove('show');
-                _navPopupTimer = null;
-            }, 4000);
+            // Build the line to insert
+            var pathLine = '📂 ' + displayPath;
+            // Append to editor (add newline if editor has content)
+            var current = editor.value;
+            if (current && !current.endsWith('\n')) {
+                editor.value = current + '\n' + pathLine + '\n';
+            } else {
+                editor.value = (current || '') + pathLine + '\n';
+            }
+            // Scroll textarea to bottom to show the new path
+            editor.scrollTop = editor.scrollHeight;
+            // Trigger input event so any listeners (char count, autosave, etc.) update
+            editor.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
         // Attach a permanent load listener to catch ALL iframe navigations (including internal link clicks)
