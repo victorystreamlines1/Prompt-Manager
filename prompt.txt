@@ -1,1 +1,3 @@
-The pop-up is coming within the iFrame not outside the iFrame I'll tell you another approach Just push the path into prompt editor Push the path into prompt editor and that's it Prompt editor is completely outside the iFrame Try to push the path into prompt editor Thank you. In other words, in the text area. 
+📂 http://localhost/
+📂 http://localhost/
+I'm getting this into the text editor I'm not getting the rest of the path it's only giving localhosts I don't know why 

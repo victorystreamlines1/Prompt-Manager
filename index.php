@@ -15887,10 +15887,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: color 0.3s ease, background 0.3s ease;
         }
 
+        @keyframes docrootPulseGlow {
+            0%   { border-bottom-color: rgba(34, 197, 94, 0.15); box-shadow: 0 2px 8px rgba(34, 197, 94, 0); }
+            40%  { border-bottom-color: rgba(34, 197, 94, 0.55); box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25); }
+            100% { border-bottom-color: rgba(34, 197, 94, 0.15); box-shadow: 0 2px 8px rgba(34, 197, 94, 0); }
+        }
         .docroot-ghost.navigated-pulse {
-            /* subtle border glow only, no blocking animation */
-            border-bottom-color: rgba(34, 197, 94, 0.4);
-            transition: border-bottom-color 0.4s ease;
+            animation: docrootPulseGlow 1.2s ease-in-out infinite;
         }
 
         .docroot-ghost i {
@@ -35860,13 +35863,14 @@ in each section carefully and maintain proper connections between components.
                     _iframeShowNavPopup(resolvedUrl);
                 } else {
                     // Cross-origin: can't read URL directly
-                    // Use last known URL from the URL bar as best-effort fallback
+                    // Bridge proxy + postMessage will provide the real URL — don't push stale data
                     if (statusBar) statusBar.className = 'iframe-status-bar loaded';
-                    if (statusText) statusText.textContent = 'Page navigated (cross-origin)';
-                    // Still update path display with last known URL
-                    _docrootUpdateFromIframe(resolvedUrl);
-                    _iframeUpdatePathBox(resolvedUrl);
-                    _iframeShowNavPopup(resolvedUrl);
+                    if (statusText) statusText.textContent = 'Waiting for bridge...';
+                    var ghost = document.getElementById('docrootGhost');
+                    if (ghost) {
+                        ghost.classList.add('navigated-pulse');
+                        setTimeout(function() { ghost.classList.remove('navigated-pulse'); }, 2500);
+                    }
                 }
             });
         }
@@ -35909,14 +35913,33 @@ in each section carefully and maintain proper connections between components.
             if (ghost) ghost.classList.remove('navigated-pulse');
         });
 
+        // Build bridge URL for cross-origin localhost proxying
+        function _iframeBridgeUrl(originalUrl) {
+            try {
+                var parsed = new URL(originalUrl);
+                if (/^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname)) {
+                    // Route through the bridge on localhost
+                    var bridgeBase = parsed.protocol + '//' + parsed.host;
+                    // Find the Prompt-Manager path on localhost
+                    var pmPath = '/Prompt-Manager/iframe-bridge.php';
+                    return bridgeBase + pmPath + '?url=' + encodeURIComponent(originalUrl);
+                }
+            } catch(e) {}
+            return originalUrl;
+        }
+
         function iframeNavigate() {
             let url = document.getElementById('iframeUrlInput').value.trim();
             if (!url) return;
             if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
                 url = 'http://' + url;
             }
-            // Cross-origin localhost: keep original URL, postMessage senders handle tracking
-            if (!_iframeIsCrossOriginLocalhost(url)) {
+            if (_iframeIsCrossOriginLocalhost(url)) {
+                // Cross-origin localhost: route through bridge proxy for URL tracking
+                var bridgeUrl = _iframeBridgeUrl(url);
+                document.getElementById('iframeUrlInput').value = url; // Show original URL in bar
+                iframeLoadUrl(url, bridgeUrl); // Pass both: display URL + actual src
+            } else {
                 // Same-origin: adapt localhost URLs to current host
                 var adapted = _iframeAdaptUrl(url);
                 if (adapted !== url) {
@@ -35925,9 +35948,9 @@ in each section carefully and maintain proper connections between components.
                         showToast('Auto-adapted to current host for URL tracking', 'info');
                     }
                 }
+                document.getElementById('iframeUrlInput').value = url;
+                iframeLoadUrl(url);
             }
-            document.getElementById('iframeUrlInput').value = url;
-            iframeLoadUrl(url);
         }
 
         // Cache-busting: strip any existing _cb param and add a fresh timestamp
@@ -35958,7 +35981,7 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
-        function iframeLoadUrl(url) {
+        function iframeLoadUrl(url, bridgeSrc) {
             const iframe = _iframeEl();
             const emptyState = document.getElementById('iframeEmptyState');
             const statusBar = _iframeStatusBar();
@@ -35991,9 +36014,10 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateNavBtns();
             _iframeUpdateBookmarkIcon();
 
-            // Load URL directly (postMessage senders in PM pages handle cross-origin URL tracking)
+            // Use bridge URL if provided (cross-origin proxy), otherwise load directly
+            var actualSrc = bridgeSrc ? _iframeCacheBust(bridgeSrc) : _iframeCacheBust(cleanUrl);
             _iframeNavByCode = true;
-            iframe.src = _iframeCacheBust(cleanUrl);
+            iframe.src = actualSrc;
 
             iframe.onload = function() {
                 _iframeNavByCode = false;
