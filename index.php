@@ -15902,6 +15902,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-shadow: 0 0 6px rgba(99, 102, 241, 0.3);
         }
 
+        /* Navigation path readonly input */
+        .docroot-nav-input {
+            flex: 1;
+            min-width: 0;
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-size: 0.74rem;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            color: rgba(167, 243, 208, 0.95);
+            letter-spacing: 0.3px;
+            outline: none;
+            cursor: default;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: all 0.35s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .docroot-nav-input::placeholder {
+            color: rgba(148, 163, 184, 0.35);
+            font-style: italic;
+        }
+        .docroot-nav-input:focus {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.15), 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+        .docroot-nav-input.nav-flash {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #6ee7b7;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+        body.light-theme .docroot-nav-input {
+            background: rgba(241, 245, 249, 0.6);
+            border-color: rgba(99, 102, 241, 0.15);
+            color: rgba(5, 150, 105, 0.9);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        body.light-theme .docroot-nav-input::placeholder {
+            color: rgba(100, 116, 139, 0.4);
+        }
+        body.light-theme .docroot-nav-input.nav-flash {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #059669;
+        }
+
         .docroot-ghost span {
             opacity: 0.85;
         }
@@ -25951,6 +26000,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Localhost Path Ghost (user-configurable) -->
                     <div class="docroot-ghost" id="docrootGhost" title="Click the gear to set your localhost path">
                         <i class="fas fa-server" id="docrootIcon"></i>
+                        <input type="text" id="docrootNavInput" class="docroot-nav-input" readonly
+                               placeholder="/ navigation path..." spellcheck="false">
                         <span id="docrootText" class="docroot-display">Not configured</span>
                         <input type="text" id="docrootInput" class="docroot-input" 
                                placeholder="e.g. http://localhost/Prompt-Manager"
@@ -36074,16 +36125,18 @@ in each section carefully and maintain proper connections between components.
         function _docrootUpdateFromIframe(iframeUrl) {
             var txt = document.getElementById('docrootText');
             var ghost = document.getElementById('docrootGhost');
+            var navInput = document.getElementById('docrootNavInput');
             if (!txt || !ghost || ghost.classList.contains('editing')) return;
 
             if (!iframeUrl || iframeUrl === 'about:blank') {
+                if (navInput) navInput.value = '';
                 _docrootLoad();
                 return;
             }
 
             try {
                 var iframeU = new URL(iframeUrl);
-                var iframePath = iframeU.pathname;
+                var iframePath = decodeURIComponent(iframeU.pathname);
 
                 // Get the docroot base path
                 var saved = localStorage.getItem(_docrootKey) || '';
@@ -36104,16 +36157,23 @@ in each section carefully and maintain proper connections between components.
                 basePath = basePath.replace(/\/+$/, '');
                 iframePath = iframePath.replace(/\/+$/, '');
 
-                // Root folder name
-                var baseSegments = basePath.replace(/^\/+/, '').split('/').filter(Boolean);
-                var rootName = baseSegments[baseSegments.length - 1] || 'localhost';
-
-                // Relative path from docroot
+                // Relative path from docroot (strip localhost base, show only subpath)
                 var relativePath = '';
                 if (iframePath.toLowerCase().indexOf(basePath.toLowerCase()) === 0) {
                     relativePath = iframePath.substring(basePath.length);
                 } else {
                     relativePath = iframePath;
+                }
+
+                // Write relative path into the nav input (no http://localhost, just the path)
+                if (navInput) {
+                    var displayPath = relativePath || '/';
+                    if (displayPath.charAt(0) !== '/') displayPath = '/' + displayPath;
+                    navInput.value = displayPath;
+                    // Flash animation
+                    navInput.classList.add('nav-flash');
+                    clearTimeout(navInput._flashTimer);
+                    navInput._flashTimer = setTimeout(function() { navInput.classList.remove('nav-flash'); }, 1200);
                 }
 
                 var segments = relativePath.replace(/^\/+/, '').split('/').filter(Boolean);
@@ -36123,9 +36183,9 @@ in each section carefully and maintain proper connections between components.
                 if (icon) icon.className = isLocal ? 'fas fa-server' : 'fas fa-globe';
 
                 if (segments.length === 0) {
-                    txt.innerHTML = '<span class="docroot-root-name">' + _docrootEsc(rootName) + '</span>';
+                    txt.innerHTML = '<span class="docroot-root-name">' + _docrootEsc(iframeU.hostname) + '</span>';
                 } else {
-                    var html = '<span class="docroot-root-name">' + _docrootEsc(rootName) + '</span>';
+                    var html = '<span class="docroot-root-name">' + _docrootEsc(iframeU.hostname) + '</span>';
                     for (var i = 0; i < segments.length; i++) {
                         var seg = segments[i];
                         var isLast = (i === segments.length - 1);
@@ -36136,8 +36196,9 @@ in each section carefully and maintain proper connections between components.
                     txt.innerHTML = html;
                 }
 
-                ghost.title = iframeUrl;
+                ghost.title = relativePath || '/';
             } catch(e) {
+                if (navInput) navInput.value = iframeUrl;
                 _docrootLoad();
             }
         }
