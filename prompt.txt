@@ -1,26 +1,33 @@
-Not working, this is the console. ---->Setting up drop zone...
+Now it's showing Hostinger's page and this page does not exist from Hostinger 404 But it is showing the path of Hostinger, the exact path I'll give you an image, you can see it and this is the console --->(index):41717 📡 Propagate channel connected
+(index):57027 📁 Folder Browser IIFE initializing...
+(index):57119 ✅ openFolderBrowser registered on window
+(index):27565 ✅ Dashboard settings loaded from localStorage
+(index):28493 ✅ Dynamic items loaded from localStorage
+(index):42762 Notes resize initialized
+(index):42852 Auto-expand initialized for textareas
+(index):44545 Order applied to DOM
+(index):50537 Setting up root selector (PHP folder browser mode)...
+(index):50783 Setting up drop zone...
 (index):32269 Failed to load SPT files: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
     at sptLoadFiles ((index):32256:45)
 sptLoadFiles @ (index):32269Understand this warning
-(index):52153 🎨 No image files found for logo detection
-(index):44229 Initializing drag and drop...
-(index):44232 Found tools: 15
-(index):44530 Order applied to DOM
-(index):44481 Applied cached order from localStorage
-(index):44415 Drag and drop initialized successfully
-(index):51915 📚 Doc tool already has this file: _Final Version - Genetic Invent Report.txt
-(index):39719 Scrollbar update: Object
-(index):39719 Scrollbar update: Object
-(index):39719 Scrollbar update: Object
+(index):52168 🎨 No image files found for logo detection
+(index):44244 Initializing drag and drop...
+(index):44247 Found tools: 15
+(index):44545 Order applied to DOM
+(index):44496 Applied cached order from localStorage
+(index):44430 Drag and drop initialized successfully
+(index):51930 📚 Doc tool already has this file: _Final Version - Genetic Invent Report.txt
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
 (index):27408 ✅ Loaded 10 connections from Database Hub
-(index):39719 Scrollbar update: Object
-(index):39719 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
 2144.vendors.chunk.js:2 [DEFAULT]: WARN : Using DEFAULT root logger
 printToConsole @ 2144.vendors.chunk.js:2Understand this warning
-(index):44500 Loaded order from database: Array(15)
-(index):44530 Order applied to DOM
-(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
-dictionary.php:1889 API Request: ../api/dictionary.php?page=1&limit=20
-dictionary.php:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
-index-oGPu1AAM.js:1 Uncaught (in promise) Error: No response for request-get-recorder-state
-    at index-oGPu1AAM.js:1:186
+(index):44515 Loaded order from database: Array(15)
+(index):44545 Order applied to DOM
+(index):34011 [iframe] Cross-origin detected, using bridge: Prompt-Manager/iframe_bridge.php?url=http%3A%2F%2Flocalhost%2F
+iframe_bridge.php?url=http%3A%2F%2Flocalhost%2F:1  Failed to load resource: the server responded with a status of 404 ()Understand this error
+rul?tid=G-9Q6H0QETRF&gacid=1669583486.1744709463&gtm=45je54b0v9125959112za200&dma=1&dma_cps=syphamo…:1  Failed to load resource: the server responded with a status of 404 ()

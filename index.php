@@ -35685,19 +35685,14 @@ in each section carefully and maintain proper connections between components.
         }
 
         // Construct bridge URL: routes localhost content through iframe_bridge.php for URL tracking
+        // Bridge MUST be on the same origin as the target (localhost), NOT on Hostinger
         function _iframeBridgeUrl(url) {
             try {
-                // Try stored localhost path first (most reliable)
-                var storedRoot = localStorage.getItem('pm_localhost_path') || '';
-                if (storedRoot) {
-                    // Ensure no trailing slash
-                    var base = storedRoot.replace(/\/+$/, '');
-                    return base + '/iframe_bridge.php?url=' + encodeURIComponent(url);
-                }
-                // Fallback: derive from target URL origin + current page's path
                 var parsed = new URL(url);
+                // Use target URL's origin (e.g. http://localhost) — bridge must be same-origin with content
                 var bridgeOrigin = parsed.origin;
-                var appDir = window.location.pathname.replace(/\/[^\/]*$/, '');
+                // Derive app directory from current page's path (same folder structure on localhost)
+                var appDir = window.location.pathname.replace(/\/[^\/]*$/, ''); // e.g. /Prompt-Manager
                 return bridgeOrigin + appDir + '/iframe_bridge.php?url=' + encodeURIComponent(url);
             } catch(e) { return url; }
         }
