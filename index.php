@@ -37542,7 +37542,7 @@ in each section carefully and maintain proper connections between components.
             }).catch(() => { ta.focus(); document.execCommand('paste'); });
         }
 
-        function clearEditorText() {
+        async function clearEditorText() {
             const ta = document.getElementById('promptEditor');
             const btn = document.getElementById('btnClearEditor');
             const label = document.getElementById('clearEditorLabel');
@@ -37550,15 +37550,40 @@ in each section carefully and maintain proper connections between components.
             ta.value = '';
             ta.dispatchEvent(new Event('input', { bubbles: true }));
             ta.focus();
+
+            // Also clear the remote prompt.txt if connected
+            let fileClearOk = false;
+            if (promptFileHandle) {
+                try {
+                    const writable = await promptFileHandle.createWritable();
+                    await writable.write('');
+                    await writable.close();
+                    fileClearOk = true;
+                } catch (err) {
+                    console.error('Error clearing prompt.txt:', err);
+                }
+            }
+
             if (btn) btn.classList.add('cleared');
-            if (label) label.textContent = 'Cleared!';
             const icon = btn ? btn.querySelector('i') : null;
             if (icon) icon.className = 'fas fa-check';
+
+            if (fileClearOk) {
+                const folderName = localStorage.getItem('promptFolderName') || 'folder';
+                if (label) label.textContent = 'Both Cleared!';
+                showToast(`🧹 Editor & ${folderName}/prompt.txt cleared`, 'success');
+            } else if (promptFileHandle) {
+                if (label) label.textContent = 'Editor Only';
+                showToast('⚠️ Editor cleared but prompt.txt write failed', 'warning');
+            } else {
+                if (label) label.textContent = 'Cleared!';
+            }
+
             setTimeout(() => {
                 if (btn) btn.classList.remove('cleared');
                 if (label) label.textContent = 'Clear';
                 if (icon) icon.className = 'fas fa-eraser';
-            }, 1800);
+            }, 2200);
         }
 
         // ═══════ Copy – Project Prompts ═══════
