@@ -1,17 +1,26 @@
-no remove that HTTP localhost also you put three times localhosts in a row no need just one localhost denotes that there is a localhost don't put in the don't put it as a path because this is restricted so I what I want you to do just put an input box inside this container after the folder I don't see any input box every time I remove I move and navigate it only flashes green again so now put in this container and just an input box wherever I navigate just pick up the navigation and spit it inside that input box this is the container I want you to add an input box in front of it ---><div class="docroot-ghost snipcss-8xfUl" id="docrootGhost" title="http://localhost/">
-    <i class="fas fa-server" id="docrootIcon"></i>
-    <span id="docrootText" class="docroot-display"><span class="docroot-root-name">AIPromptDictionary</span></span>
-    <input type="text" id="docrootInput" class="docroot-input style-6MvAZ" placeholder="e.g. http://localhost/Prompt-Manager" spellcheck="false" autocomplete="off">
-    <button class="docroot-browse-btn" id="docrootBrowseBtn" onclick="openLocalhostFolderPicker()" title="Browse folders">
-        <i class="fas fa-folder-open"></i>
-    </button>
-    <button class="docroot-config-btn" id="docrootConfigBtn" onclick="toggleDocrootEdit()" title="Configure localhost path manually">
-        <i class="fas fa-cog"></i>
-    </button>
-    <button class="docroot-save-btn style-oRGxU" id="docrootSaveBtn" onclick="saveDocrootPath()" title="Save path">
-        <i class="fas fa-check"></i>
-    </button>
-    <button class="docroot-cancel-btn style-hXsQo" id="docrootCancelBtn" onclick="cancelDocrootEdit()" title="Cancel">
-        <i class="fas fa-times"></i>
-    </button>
-</div>
+still flashing green and blocking the path, I don't know why, still the same exact behavior, please try to solve it, this is the console. ----->Setting up root selector (PHP folder browser mode)...
+(index):50783 Setting up drop zone...
+(index):32274 Failed to load SPT files: SyntaxError: Failed to execute 'json' on 'Response': Unexpected end of JSON input
+    at sptLoadFiles ((index):32261:45)
+sptLoadFiles @ (index):32274Understand this warning
+(index):52168 🎨 No image files found for logo detection
+(index):44244 Initializing drag and drop...
+(index):44247 Found tools: 15
+(index):44545 Order applied to DOM
+(index):44496 Applied cached order from localStorage
+(index):44430 Drag and drop initialized successfully
+(index):51930 📚 Doc tool already has this file: _Final Version - Genetic Invent Report.txt
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
+(index):27413 ✅ Loaded 10 connections from Database Hub
+(index):39734 Scrollbar update: Object
+(index):39734 Scrollbar update: Object
+2144.vendors.chunk.js:2 [DEFAULT]: WARN : Using DEFAULT root logger
+printToConsole @ 2144.vendors.chunk.js:2Understand this warning
+(index):44515 Loaded order from database: Array(15)
+(index):44545 Order applied to DOM
+2(index):1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedUnderstand this error
+dictionary.php:1889 API Request: ../api/dictionary.php?page=1&limit=20
+(index):39734 Scrollbar update: Object
+groups.php:518 Uncaught SyntaxError: Unexpected token ',' (at groups.php:518:16)Understand this error

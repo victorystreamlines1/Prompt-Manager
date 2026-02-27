@@ -15888,11 +15888,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .docroot-ghost.navigated-pulse {
-            animation: docrootNavPulse 0.7s ease-in-out 3;
-        }
-        @keyframes docrootNavPulse {
-            0%, 100% { background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.08)); box-shadow: none; }
-            50% { background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.18)); box-shadow: 0 0 12px rgba(34, 197, 94, 0.3); }
+            /* subtle border glow only, no blocking animation */
+            border-bottom-color: rgba(34, 197, 94, 0.4);
+            transition: border-bottom-color 0.4s ease;
         }
 
         .docroot-ghost i {
@@ -15931,10 +15929,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.15), 0 0 8px rgba(99, 102, 241, 0.15);
         }
         .docroot-nav-input.nav-flash {
-            background: rgba(16, 185, 129, 0.12);
-            border-color: rgba(16, 185, 129, 0.4);
+            border-color: rgba(16, 185, 129, 0.35);
             color: #6ee7b7;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 0 10px rgba(16, 185, 129, 0.2);
         }
         body.light-theme .docroot-nav-input {
             background: rgba(241, 245, 249, 0.6);
@@ -15946,7 +15942,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: rgba(100, 116, 139, 0.4);
         }
         body.light-theme .docroot-nav-input.nav-flash {
-            background: rgba(16, 185, 129, 0.08);
             border-color: rgba(16, 185, 129, 0.3);
             color: #059669;
         }
@@ -35777,14 +35772,13 @@ in each section carefully and maintain proper connections between components.
                     _docrootUpdateFromIframe(resolvedUrl);
                     _iframeUpdatePathBox(resolvedUrl);
                 } else {
-                    // Cross-origin: can't read URL — wait briefly for postMessage, show pulse
+                    // Cross-origin: can't read URL directly
+                    // Use last known URL from the URL bar as best-effort fallback
                     if (statusBar) statusBar.className = 'iframe-status-bar loaded';
-                    if (statusText) statusText.textContent = 'Page navigated';
-                    var ghost = document.getElementById('docrootGhost');
-                    if (ghost) {
-                        ghost.classList.add('navigated-pulse');
-                        setTimeout(function() { ghost.classList.remove('navigated-pulse'); }, 2500);
-                    }
+                    if (statusText) statusText.textContent = 'Page navigated (cross-origin)';
+                    // Still update path display with last known URL
+                    _docrootUpdateFromIframe(resolvedUrl);
+                    _iframeUpdatePathBox(resolvedUrl);
                 }
             });
         }
@@ -36126,10 +36120,12 @@ in each section carefully and maintain proper connections between components.
             var txt = document.getElementById('docrootText');
             var ghost = document.getElementById('docrootGhost');
             var navInput = document.getElementById('docrootNavInput');
-            if (!txt || !ghost || ghost.classList.contains('editing')) return;
+            if (!ghost || ghost.classList.contains('editing')) return;
 
             if (!iframeUrl || iframeUrl === 'about:blank') {
+                // Reset: show docrootText, clear navInput
                 if (navInput) navInput.value = '';
+                if (txt) txt.style.display = '';
                 _docrootLoad();
                 return;
             }
@@ -36165,41 +36161,30 @@ in each section carefully and maintain proper connections between components.
                     relativePath = iframePath;
                 }
 
-                // Write relative path into the nav input (no http://localhost, just the path)
+                // Build the display path for the input
+                var displayPath = relativePath || '/';
+                if (displayPath.charAt(0) !== '/') displayPath = '/' + displayPath;
+
+                // HIDE docrootText — navInput takes over the space
+                if (txt) txt.style.display = 'none';
+
+                // Write path into the nav input with flash feedback
                 if (navInput) {
-                    var displayPath = relativePath || '/';
-                    if (displayPath.charAt(0) !== '/') displayPath = '/' + displayPath;
                     navInput.value = displayPath;
-                    // Flash animation
                     navInput.classList.add('nav-flash');
                     clearTimeout(navInput._flashTimer);
                     navInput._flashTimer = setTimeout(function() { navInput.classList.remove('nav-flash'); }, 1200);
                 }
 
-                var segments = relativePath.replace(/^\/+/, '').split('/').filter(Boolean);
-
                 var icon = document.getElementById('docrootIcon');
                 var isLocal = /^localhost$/i.test(iframeU.hostname) || /^127\.0\.0\.1$/.test(iframeU.hostname);
                 if (icon) icon.className = isLocal ? 'fas fa-server' : 'fas fa-globe';
 
-                if (segments.length === 0) {
-                    txt.innerHTML = '<span class="docroot-root-name">' + _docrootEsc(iframeU.hostname) + '</span>';
-                } else {
-                    var html = '<span class="docroot-root-name">' + _docrootEsc(iframeU.hostname) + '</span>';
-                    for (var i = 0; i < segments.length; i++) {
-                        var seg = segments[i];
-                        var isLast = (i === segments.length - 1);
-                        var isFile = isLast && seg.indexOf('.') !== -1;
-                        html += '<span class="docroot-sep"> / </span>';
-                        html += '<span class="docroot-segment' + (isFile ? ' docroot-file' : ' docroot-dir') + (isLast ? ' docroot-active' : '') + '">' + _docrootEsc(seg) + '</span>';
-                    }
-                    txt.innerHTML = html;
-                }
-
-                ghost.title = relativePath || '/';
+                ghost.title = iframeUrl;
             } catch(e) {
+                // Fallback: show raw URL in nav input
+                if (txt) txt.style.display = 'none';
                 if (navInput) navInput.value = iframeUrl;
-                _docrootLoad();
             }
         }
 
