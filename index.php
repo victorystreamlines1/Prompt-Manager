@@ -23791,6 +23791,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             filter: drop-shadow(0 0 8px rgba(110, 231, 183, 0.6));
         }
 
+        /* ── Navigation Path Popup ── */
+        .iframe-nav-popup {
+            position: relative;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(-6px);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .iframe-nav-popup.show {
+            max-height: 60px;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .iframe-nav-popup-inner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(139,92,246,0.13) 50%, rgba(59,130,246,0.10) 100%);
+            border: 1px solid rgba(129,140,248,0.25);
+            border-radius: 10px;
+            margin: 4px 0;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: navPopupShimmer 3s ease-in-out infinite;
+        }
+        @keyframes navPopupShimmer {
+            0%, 100% { border-color: rgba(129,140,248,0.25); box-shadow: 0 4px 20px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.05); }
+            50% { border-color: rgba(139,92,246,0.4); box-shadow: 0 4px 24px rgba(139,92,246,0.25), inset 0 1px 0 rgba(255,255,255,0.08); }
+        }
+        .iframe-nav-popup-icon {
+            font-size: 0.75rem;
+            color: #a78bfa;
+            filter: drop-shadow(0 0 6px rgba(167,139,250,0.5));
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        .iframe-nav-popup.show .iframe-nav-popup-icon {
+            animation: navPopupIconPulse 1s ease-out;
+        }
+        @keyframes navPopupIconPulse {
+            0% { transform: scale(0.6) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .iframe-nav-popup-path {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: #c4b5fd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 12px rgba(196,181,253,0.3);
+        }
+
         /* Iframe Display */
         .iframe-display-wrapper {
             position: relative;
@@ -26077,6 +26139,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="text" id="iframePathText" readonly
                                placeholder="Navigation path will appear here..."
                                spellcheck="false">
+                    </div>
+
+                    <!-- Navigation Path Popup (appears outside iframe on navigation) -->
+                    <div class="iframe-nav-popup" id="iframeNavPopup">
+                        <div class="iframe-nav-popup-inner">
+                            <i class="fas fa-location-arrow iframe-nav-popup-icon"></i>
+                            <span class="iframe-nav-popup-path" id="iframeNavPopupPath"></span>
+                        </div>
                     </div>
 
                     <!-- Iframe Display -->
@@ -35722,6 +35792,31 @@ in each section carefully and maintain proper connections between components.
             setTimeout(function() { box.classList.remove('path-updated'); }, 1200);
         }
 
+        // ── Navigation Path Popup ──
+        var _navPopupTimer = null;
+        function _iframeShowNavPopup(url) {
+            var popup = document.getElementById('iframeNavPopup');
+            var pathEl = document.getElementById('iframeNavPopupPath');
+            if (!popup || !pathEl) return;
+            // Extract readable path from URL
+            var displayPath = url;
+            try {
+                var p = new URL(url);
+                displayPath = decodeURIComponent(p.pathname + p.search + p.hash) || '/';
+                // Prepend origin for clarity
+                displayPath = p.origin + displayPath;
+            } catch(e) {}
+            pathEl.textContent = displayPath;
+            // Show with animation
+            popup.classList.add('show');
+            // Clear previous auto-hide timer
+            if (_navPopupTimer) clearTimeout(_navPopupTimer);
+            _navPopupTimer = setTimeout(function() {
+                popup.classList.remove('show');
+                _navPopupTimer = null;
+            }, 4000);
+        }
+
         // Attach a permanent load listener to catch ALL iframe navigations (including internal link clicks)
         function _iframeAttachLoadListener() {
             if (_iframeListenerAttached) return;
@@ -35761,6 +35856,7 @@ in each section carefully and maintain proper connections between components.
                     _iframeUpdateBreadcrumb(resolvedUrl);
                     _docrootUpdateFromIframe(resolvedUrl);
                     _iframeUpdatePathBox(resolvedUrl);
+                    _iframeShowNavPopup(resolvedUrl);
                 } else {
                     // Cross-origin: can't read URL directly
                     // Use last known URL from the URL bar as best-effort fallback
@@ -35769,6 +35865,7 @@ in each section carefully and maintain proper connections between components.
                     // Still update path display with last known URL
                     _docrootUpdateFromIframe(resolvedUrl);
                     _iframeUpdatePathBox(resolvedUrl);
+                    _iframeShowNavPopup(resolvedUrl);
                 }
             });
         }
@@ -35804,6 +35901,7 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateBreadcrumb(cleanUrl);
             _docrootUpdateFromIframe(cleanUrl);
             _iframeUpdatePathBox(cleanUrl);
+            _iframeShowNavPopup(cleanUrl);
 
             // Remove pulse if active (postMessage arrived with real URL)
             var ghost = document.getElementById('docrootGhost');
