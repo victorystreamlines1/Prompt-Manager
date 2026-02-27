@@ -23697,6 +23697,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .iframe-breadcrumb-item.bc-file .bc-icon { color: #34d399; }
         .iframe-breadcrumb-item.bc-dir .bc-icon { color: #fbbf24; }
 
+        /* ── Current Path Display Box ── */
+        .iframe-path-box {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.12));
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+            min-height: 30px;
+            transition: all 0.3s ease;
+        }
+        .iframe-path-box.visible {
+            display: flex;
+        }
+        .iframe-path-icon {
+            color: #34d399;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.4));
+            animation: pathIconPulse 2s ease-in-out infinite;
+        }
+        @keyframes pathIconPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        .iframe-path-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #a7f3d0;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.4px;
+            cursor: default;
+            text-overflow: ellipsis;
+        }
+        .iframe-path-box input::placeholder {
+            color: rgba(167, 243, 208, 0.3);
+            font-style: italic;
+        }
+        .iframe-path-box.path-updated {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.2));
+            border-bottom-color: rgba(16, 185, 129, 0.3);
+        }
+        .iframe-path-box.path-updated .iframe-path-icon {
+            color: #6ee7b7;
+            filter: drop-shadow(0 0 8px rgba(110, 231, 183, 0.6));
+        }
+
         /* Iframe Display */
         .iframe-display-wrapper {
             position: relative;
@@ -25974,6 +26024,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- Breadcrumb Path Bar -->
                     <div class="iframe-breadcrumb-bar" id="iframeBreadcrumbBar"></div>
+
+                    <!-- Current Path Display Box -->
+                    <div class="iframe-path-box" id="iframePathBox">
+                        <i class="fas fa-map-marker-alt iframe-path-icon"></i>
+                        <input type="text" id="iframePathText" readonly
+                               placeholder="Navigation path will appear here..."
+                               spellcheck="false">
+                    </div>
 
                     <!-- Iframe Display -->
                     <div class="iframe-display-wrapper" id="iframeDisplayWrapper">
@@ -35604,6 +35662,30 @@ in each section carefully and maintain proper connections between components.
             return url;
         }
 
+        // Update the path display text box with the current iframe URL
+        function _iframeUpdatePathBox(url) {
+            var box = document.getElementById('iframePathBox');
+            var txt = document.getElementById('iframePathText');
+            if (!box || !txt) return;
+            if (!url || url === 'about:blank') {
+                box.classList.remove('visible', 'path-updated');
+                txt.value = '';
+                return;
+            }
+            try {
+                var parsed = new URL(url);
+                var path = decodeURIComponent(parsed.pathname + parsed.search + parsed.hash);
+                // Show origin + path for clarity
+                txt.value = parsed.origin + path;
+            } catch(e) {
+                txt.value = url;
+            }
+            box.classList.add('visible');
+            // Flash effect on update
+            box.classList.add('path-updated');
+            setTimeout(function() { box.classList.remove('path-updated'); }, 1200);
+        }
+
         // Attach a permanent load listener to catch ALL iframe navigations (including internal link clicks)
         function _iframeAttachLoadListener() {
             if (_iframeListenerAttached) return;
@@ -35642,6 +35724,7 @@ in each section carefully and maintain proper connections between components.
                     _iframeUpdateBookmarkIcon();
                     _iframeUpdateBreadcrumb(resolvedUrl);
                     _docrootUpdateFromIframe(resolvedUrl);
+                    _iframeUpdatePathBox(resolvedUrl);
                 } else {
                     // Cross-origin: can't read URL — wait briefly for postMessage, show pulse
                     if (statusBar) statusBar.className = 'iframe-status-bar loaded';
@@ -35681,10 +35764,11 @@ in each section carefully and maintain proper connections between components.
                 _iframeUpdateNavBtns();
             }
 
-            // Update breadcrumb, docroot, bookmarks
+            // Update breadcrumb, docroot, bookmarks, path box
             _iframeUpdateBookmarkIcon();
             _iframeUpdateBreadcrumb(cleanUrl);
             _docrootUpdateFromIframe(cleanUrl);
+            _iframeUpdatePathBox(cleanUrl);
 
             // Remove pulse if active (postMessage arrived with real URL)
             var ghost = document.getElementById('docrootGhost');
@@ -35800,6 +35884,7 @@ in each section carefully and maintain proper connections between components.
                 _iframeUpdateBookmarkIcon();
                 _iframeUpdateBreadcrumb(resolvedUrl);
                 _docrootUpdateFromIframe(resolvedUrl);
+                _iframeUpdatePathBox(resolvedUrl);
             };
             iframe.onerror = function() {
                 statusBar.className = 'iframe-status-bar error';
