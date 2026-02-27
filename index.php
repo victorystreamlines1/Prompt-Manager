@@ -1630,6 +1630,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // ============================================
+    // CLEAR PROMPT FILE - Clear prompt.txt on the server
+    // ============================================
+    if ($action === 'clear_prompt_file') {
+        $promptFile = __DIR__ . '/prompt.txt';
+        if (file_exists($promptFile)) {
+            if (file_put_contents($promptFile, '') !== false) {
+                echo json_encode(['success' => true, 'message' => 'prompt.txt cleared']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to write to prompt.txt']);
+            }
+        } else {
+            // Create it empty if it doesn't exist
+            file_put_contents($promptFile, '');
+            echo json_encode(['success' => true, 'message' => 'prompt.txt created empty']);
+        }
+        exit;
+    }
+
+    // ============================================
     // RESOLVE FOLDER PATH - Find a folder by name in common locations
     // ============================================
     if ($action === 'resolve_folder_path') {
@@ -37551,16 +37570,26 @@ in each section carefully and maintain proper connections between components.
             ta.dispatchEvent(new Event('input', { bubbles: true }));
             ta.focus();
 
-            // Also clear the remote prompt.txt if connected
-            let fileClearOk = false;
+            // Clear the server-side prompt.txt via AJAX
+            let serverClearOk = false;
+            try {
+                const fd = new FormData();
+                fd.append('action', 'clear_prompt_file');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                serverClearOk = !!data.success;
+            } catch (err) {
+                console.error('Error clearing server prompt.txt:', err);
+            }
+
+            // Also clear the local File System Access handle if connected
             if (promptFileHandle) {
                 try {
                     const writable = await promptFileHandle.createWritable();
                     await writable.write('');
                     await writable.close();
-                    fileClearOk = true;
                 } catch (err) {
-                    console.error('Error clearing prompt.txt:', err);
+                    console.error('Error clearing local prompt.txt:', err);
                 }
             }
 
@@ -37568,15 +37597,12 @@ in each section carefully and maintain proper connections between components.
             const icon = btn ? btn.querySelector('i') : null;
             if (icon) icon.className = 'fas fa-check';
 
-            if (fileClearOk) {
-                const folderName = localStorage.getItem('promptFolderName') || 'folder';
+            if (serverClearOk) {
                 if (label) label.textContent = 'Both Cleared!';
-                showToast(`🧹 Editor & ${folderName}/prompt.txt cleared`, 'success');
-            } else if (promptFileHandle) {
-                if (label) label.textContent = 'Editor Only';
-                showToast('⚠️ Editor cleared but prompt.txt write failed', 'warning');
+                showToast('🧹 Editor & prompt.txt cleared', 'success');
             } else {
-                if (label) label.textContent = 'Cleared!';
+                if (label) label.textContent = 'Editor Only';
+                showToast('⚠️ Editor cleared but prompt.txt failed', 'warning');
             }
 
             setTimeout(() => {
