@@ -35684,35 +35684,6 @@ in each section carefully and maintain proper connections between components.
             } catch(e) { return false; }
         }
 
-        // Construct bridge URL: routes localhost content through iframe_bridge.php for URL tracking
-        // Bridge MUST be on the same origin as the target (localhost), NOT on Hostinger
-        function _iframeBridgeUrl(url) {
-            try {
-                var parsed = new URL(url);
-                // Use target URL's origin (e.g. http://localhost) — bridge must be same-origin with content
-                var bridgeOrigin = parsed.origin;
-
-                // Determine app directory on the localhost server from pm_localhost_path
-                var storedRoot = localStorage.getItem('pm_localhost_path') || '';
-                var appPath = '';
-                if (storedRoot) {
-                    try {
-                        // Full URL like "http://localhost/Prompt-Manager"
-                        var storedUrl = new URL(storedRoot);
-                        appPath = storedUrl.pathname.replace(/\/+$/, '');
-                    } catch(e2) {
-                        // Relative path like "Prompt-Manager" or "/Prompt-Manager"
-                        appPath = '/' + storedRoot.replace(/^\/+/, '').replace(/\/+$/, '');
-                    }
-                }
-                if (!appPath) {
-                    // Fallback: use current page's path structure
-                    appPath = window.location.pathname.replace(/\/[^\/]*$/, '');
-                }
-
-                return bridgeOrigin + appPath + '/iframe_bridge.php?url=' + encodeURIComponent(url);
-            } catch(e) { return url; }
-        }
 
         // Auto-adapt localhost URLs to current host when on external server (same-origin = URL tracking works)
         function _iframeAdaptUrl(url) {
@@ -35845,7 +35816,7 @@ in each section carefully and maintain proper connections between components.
             if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
                 url = 'http://' + url;
             }
-            // Cross-origin localhost: keep original URL, bridge handles tracking in iframeLoadUrl
+            // Cross-origin localhost: keep original URL, postMessage senders handle tracking
             if (!_iframeIsCrossOriginLocalhost(url)) {
                 // Same-origin: adapt localhost URLs to current host
                 var adapted = _iframeAdaptUrl(url);
@@ -35921,17 +35892,9 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateNavBtns();
             _iframeUpdateBookmarkIcon();
 
-            // Load: use bridge for cross-origin localhost, direct for same-origin
+            // Load URL directly (postMessage senders in PM pages handle cross-origin URL tracking)
             _iframeNavByCode = true;
-            var actualSrc;
-            if (_iframeIsCrossOriginLocalhost(cleanUrl)) {
-                // Route through bridge for URL tracking across origins
-                actualSrc = _iframeBridgeUrl(cleanUrl);
-                console.log('[iframe] Cross-origin detected, using bridge:', actualSrc);
-            } else {
-                actualSrc = _iframeCacheBust(cleanUrl);
-            }
-            iframe.src = actualSrc;
+            iframe.src = _iframeCacheBust(cleanUrl);
 
             iframe.onload = function() {
                 _iframeNavByCode = false;
