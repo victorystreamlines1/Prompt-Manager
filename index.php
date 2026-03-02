@@ -4542,6 +4542,202 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 6px 18px rgba(16,185,129,0.45);
         }
 
+        /* ═══════════════════════════════════════════════════════════
+           IMAGE TO CODE (ITC) — Static Node
+           ═══════════════════════════════════════════════════════════ */
+        .itc-container {
+            position: relative; border-radius: 10px; cursor: pointer;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease; overflow: hidden;
+        }
+        .itc-container:hover {
+            border-color: rgba(245,158,11,0.5);
+            box-shadow: 0 4px 18px rgba(245,158,11,0.12);
+            transform: translateY(-1px);
+        }
+        .itc-container.checked {
+            border-color: rgba(245,158,11,0.6);
+            box-shadow: 0 0 0 1px rgba(245,158,11,0.15), 0 4px 18px rgba(245,158,11,0.12);
+        }
+        .itc-glow-bar {
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, #f59e0b, #d97706, #f59e0b);
+            opacity: 0.7;
+        }
+        .itc-inner {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px;
+        }
+        .itc-checkbox { flex-shrink: 0; }
+        .itc-checkbox input { display: none; }
+        .itc-check-box {
+            width: 18px; height: 18px; border-radius: 5px;
+            border: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s; background: var(--bg-tertiary);
+        }
+        .itc-check-box i { font-size: 9px; color: transparent; transition: 0.2s; }
+        .itc-container.checked .itc-check-box {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #f59e0b;
+        }
+        .itc-container.checked .itc-check-box i { color: white; }
+        .itc-body { flex: 1; min-width: 0; }
+        .itc-badges { display: flex; gap: 5px; margin-bottom: 3px; }
+        .itc-badge-static {
+            font-size: 0.6rem; padding: 1px 6px; border-radius: 4px;
+            background: rgba(245,158,11,0.12); color: #f59e0b;
+            font-weight: 700; display: flex; align-items: center; gap: 3px;
+        }
+        .itc-badge-type {
+            font-size: 0.6rem; padding: 1px 6px; border-radius: 4px;
+            background: rgba(217,119,6,0.1); color: #d97706;
+            font-weight: 600; display: flex; align-items: center; gap: 3px;
+        }
+        .itc-name {
+            font-size: 0.82rem; font-weight: 700;
+            color: var(--text-primary); margin-bottom: 1px;
+        }
+        .itc-preview {
+            font-size: 0.68rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .itc-actions { display: flex; gap: 4px; flex-shrink: 0; }
+        .itc-action-btn {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; font-size: 0.72rem;
+        }
+        .itc-copy {
+            background: rgba(245,158,11,0.1); color: #f59e0b;
+        }
+        .itc-copy:hover {
+            background: rgba(245,158,11,0.25); transform: scale(1.08);
+        }
+        .itc-push {
+            background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
+        }
+        .itc-push:hover {
+            transform: scale(1.08);
+            box-shadow: 0 3px 12px rgba(245,158,11,0.35);
+        }
+
+        /* ── ITC Modal ── */
+        .itc-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+            z-index: 10001; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .itc-modal-overlay.active { opacity: 1; visibility: visible; }
+        .itc-modal {
+            background: var(--bg-primary); border-radius: 14px;
+            border: 1px solid var(--border-color);
+            width: 520px; max-width: 92vw; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            transform: translateY(20px) scale(0.96);
+            transition: all 0.3s;
+        }
+        .itc-modal-overlay.active .itc-modal {
+            transform: translateY(0) scale(1);
+        }
+        .itc-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, rgba(245,158,11,0.08), transparent);
+        }
+        .itc-modal-title {
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 700; font-size: 0.95rem; color: #f59e0b;
+        }
+        .itc-modal-close {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .itc-modal-close:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .itc-modal-body { padding: 16px 18px; }
+        .itc-modal-hint {
+            font-size: 0.78rem; color: var(--text-secondary);
+            line-height: 1.5; margin-bottom: 14px;
+            padding: 8px 10px; border-radius: 8px;
+            background: rgba(245,158,11,0.06);
+            border-left: 3px solid rgba(245,158,11,0.4);
+        }
+        .itc-input-wrap { margin-bottom: 12px; }
+        .itc-input-label {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .itc-file-zone {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 22px 16px; border-radius: 10px;
+            border: 2px dashed rgba(245,158,11,0.35);
+            background: rgba(245,158,11,0.04);
+            cursor: pointer; transition: all 0.2s; gap: 6px;
+        }
+        .itc-file-zone:hover {
+            border-color: rgba(245,158,11,0.6);
+            background: rgba(245,158,11,0.08);
+        }
+        .itc-upload-icon { font-size: 1.5rem; color: #f59e0b; opacity: 0.7; }
+        .itc-upload-text { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .itc-upload-sub { font-size: 0.67rem; color: var(--text-muted); }
+        .itc-file-list { margin-top: 4px; }
+        .itc-file-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 10px; border-radius: 7px;
+            background: var(--bg-tertiary); margin-bottom: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .itc-file-item-name {
+            font-size: 0.75rem; color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .itc-file-item-name i { color: #f59e0b; font-size: 0.7rem; }
+        .itc-file-remove {
+            width: 20px; height: 20px; border-radius: 4px; border: none;
+            background: rgba(239,68,68,0.1); color: #ef4444;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; transition: all 0.2s;
+        }
+        .itc-file-remove:hover { background: rgba(239,68,68,0.25); }
+        .itc-modal-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 18px; border-top: 1px solid var(--border-color);
+        }
+        .itc-file-count {
+            font-size: 0.72rem; color: var(--text-muted); font-weight: 600;
+        }
+        .itc-modal-btns { display: flex; gap: 8px; }
+        .itc-btn-cancel {
+            padding: 0.45rem 1rem; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .itc-btn-cancel:hover { background: var(--bg-card); color: var(--text-primary); }
+        .itc-btn-push {
+            padding: 0.45rem 1.1rem; border-radius: 7px;
+            border: none;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+        }
+        .itc-btn-push:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(245,158,11,0.45);
+        }
+
         /* Template Modal */
         .template-modal-overlay {
             position: fixed;
@@ -25807,6 +26003,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Static Node: Image to Code (ITC) -->
+                    <div class="itc-container" id="itcContainer" onclick="itcOpenModal()">
+                        <div class="itc-glow-bar"></div>
+                        <div class="itc-inner">
+                            <div class="itc-checkbox" id="itcCheckboxWrap" onclick="event.stopPropagation(); itcToggleDirect()">
+                                <input type="checkbox" id="itcCheckbox">
+                                <div class="itc-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="itc-body">
+                                <div class="itc-badges">
+                                    <span class="itc-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="itc-badge-type"><i class="fas fa-image"></i> Image</span>
+                                </div>
+                                <div class="itc-name">Image to Code</div>
+                                <div class="itc-preview">Image → HTML/CSS — select images to generate recreation prompt</div>
+                            </div>
+                            <div class="itc-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="itc-action-btn itc-copy" onclick="itcCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="itc-action-btn itc-push" onclick="itcOpenModal()" title="Select images & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="saved-list" id="savedList">
@@ -25861,6 +26084,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="ret-modal-footer">
                         <button class="ret-btn-cancel" onclick="retCloseModal()"><i class="fas fa-times"></i> Cancel</button>
                         <button class="ret-btn-push" onclick="retConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITC Image Modal -->
+            <div class="itc-modal-overlay" id="itcModalOverlay" onclick="if(event.target===this) itcCloseModal()">
+                <div class="itc-modal" onclick="event.stopPropagation()">
+                    <div class="itc-modal-header">
+                        <div class="itc-modal-title">
+                            <i class="fas fa-image"></i>
+                            <span>Image to Code</span>
+                        </div>
+                        <button class="itc-modal-close" onclick="itcCloseModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="itc-modal-body">
+                        <p class="itc-modal-hint">Select the <strong>image(s)</strong> you want to convert to HTML/CSS. The image names will be placed directly into the prompt.</p>
+                        <div class="itc-input-wrap">
+                            <label class="itc-input-label"><i class="fas fa-images"></i> Select Image(s)</label>
+                            <div class="itc-file-zone" id="itcFileZone">
+                                <i class="fas fa-cloud-upload-alt itc-upload-icon"></i>
+                                <span class="itc-upload-text">Click or use the button below to select images</span>
+                                <span class="itc-upload-sub">PNG, JPG, GIF, SVG, WEBP — Multiple allowed</span>
+                                <input type="file" id="itcFileInput" multiple style="margin-top:8px; cursor:pointer;" onchange="itcFilesChanged(this)">
+                            </div>
+                        </div>
+                        <div class="itc-file-list" id="itcFileList" style="display:none">
+                            <label class="itc-input-label"><i class="fas fa-list"></i> Selected Files</label>
+                            <div id="itcFileItems"></div>
+                        </div>
+                    </div>
+                    <div class="itc-modal-footer">
+                        <div class="itc-file-count" id="itcFileCount">0 files selected</div>
+                        <div class="itc-modal-btns">
+                            <button class="itc-btn-cancel" onclick="itcCloseModal()"><i class="fas fa-times"></i> Cancel</button>
+                            <button class="itc-btn-push" onclick="itcConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -34256,8 +34515,8 @@ in each section carefully and maintain proper connections between components.
         // Update prompt counter (includes static template)
         function updatePromptCounter() {
             const counter = document.getElementById('promptCounter');
-            const total = promptTemplates.length + 3; // +3 for static "Read the Application" + "Table Designer" + "Reverse Engineer"
-            const selected = activePrompts.size + (sptActive ? 1 : 0) + (typeof tdtActive !== 'undefined' && tdtActive ? 1 : 0) + (typeof retActive !== 'undefined' && retActive ? 1 : 0);
+            const total = promptTemplates.length + 4; // +4 for static "Read the Application" + "Table Designer" + "Reverse Engineer" + "Image to Code"
+            const selected = activePrompts.size + (sptActive ? 1 : 0) + (typeof tdtActive !== 'undefined' && tdtActive ? 1 : 0) + (typeof retActive !== 'undefined' && retActive ? 1 : 0) + (typeof itcActive !== 'undefined' && itcActive ? 1 : 0);
             counter.textContent = `${selected}/${total}`;
             
             // Change color based on selection
@@ -35053,6 +35312,14 @@ in each section carefully and maintain proper connections between components.
             const retCb = document.getElementById('retCheckbox');
             if (retCb) retCb.checked = false;
             if (typeof retRemoveFromEditor === 'function') retRemoveFromEditor();
+
+            // Reset static node (Image to Code)
+            if (typeof itcActive !== 'undefined') itcActive = false;
+            const itcEl = document.getElementById('itcContainer');
+            if (itcEl) itcEl.classList.remove('checked');
+            const itcCb = document.getElementById('itcCheckbox');
+            if (itcCb) itcCb.checked = false;
+            if (typeof itcRemoveFromEditor === 'function') itcRemoveFromEditor();
             
             updateCounts();
             updatePromptCounter();
@@ -61526,6 +61793,185 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const overlay = document.getElementById('retModalOverlay');
         if (overlay && overlay.classList.contains('active')) retCloseModal();
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// IMAGE TO CODE (ITC) — Static Node
+// ═══════════════════════════════════════════════════════════════
+
+let itcActive = false;
+let itcSelectedFiles = [];
+
+const ITC_MARKER_START = '<!-- ITC:IMAGE_TO_CODE -->';
+const ITC_MARKER_END   = '<!-- /ITC:IMAGE_TO_CODE -->';
+
+const ITC_PROMPT_TEMPLATE = `# IMAGE TO CODE CONVERTER
+
+## YOUR MISSION:
+You are an expert front-end developer. Your task is to look at the provided image(s) and recreate the design as **pixel-perfect, clean, responsive HTML/CSS code**.
+
+## IMAGE PATH(S):
+{{IMAGES}}
+
+## INSTRUCTIONS:
+1. **Analyze** each image carefully — study the layout, spacing, colors, typography, borders, shadows, and all visual details.
+2. **Recreate** the design using clean, semantic HTML5 and modern CSS3.
+3. **Match** the design as closely as possible — pixel-perfect accuracy is the goal.
+4. **Use** flexbox/grid for layout, CSS variables for colors, and responsive units where appropriate.
+5. **Include** all visual elements: icons (use Font Awesome or similar), images (use placeholder if needed), text content, buttons, cards, etc.
+6. **Ensure** the code is responsive and looks good on different screen sizes.
+
+## OUTPUT FORMAT:
+- Provide a single HTML file with embedded CSS (inside <style> tags).
+- Use modern CSS features (flexbox, grid, custom properties, etc.).
+- Add comments to explain major sections.
+- Do NOT use any JavaScript unless absolutely necessary for the visual layout.
+- Do NOT use any external CSS frameworks unless specified.
+
+## QUALITY CHECKLIST:
+- [ ] Colors match the image
+- [ ] Typography (font size, weight, spacing) matches
+- [ ] Layout and spacing are accurate
+- [ ] Borders, shadows, and rounded corners match
+- [ ] Icons and decorative elements are included
+- [ ] Responsive on mobile and desktop`;
+
+// ── Build content with image paths ──
+function itcBuildContent(imagePaths) {
+    const content = ITC_PROMPT_TEMPLATE.replace('{{IMAGES}}', imagePaths);
+    return ITC_MARKER_START + '\n' + content + '\n' + ITC_MARKER_END;
+}
+
+// ── File selection changed ──
+function itcFilesChanged(input) {
+    const files = Array.from(input.files);
+    alert('DEBUG: itcFilesChanged called! Files count: ' + files.length);
+    itcSelectedFiles = files;
+    itcRenderFileList();
+}
+
+// ── Remove a file from the list ──
+function itcRemoveFile(index) {
+    itcSelectedFiles.splice(index, 1);
+    itcRenderFileList();
+}
+
+// ── Render the file list in the modal ──
+function itcRenderFileList() {
+    const listContainer = document.getElementById('itcFileList');
+    const itemsContainer = document.getElementById('itcFileItems');
+    const countEl = document.getElementById('itcFileCount');
+    const count = itcSelectedFiles.length;
+
+    countEl.textContent = count + ' file' + (count !== 1 ? 's' : '') + ' selected';
+
+    if (count === 0) {
+        listContainer.style.display = 'none';
+        itemsContainer.innerHTML = '';
+        return;
+    }
+
+    listContainer.style.display = 'block';
+    itemsContainer.innerHTML = itcSelectedFiles.map((file, i) => `
+        <div class="itc-file-item">
+            <span class="itc-file-item-name"><i class="fas fa-image"></i> ${file.name}</span>
+            <button class="itc-file-remove" onclick="itcRemoveFile(${i})" title="Remove"><i class="fas fa-times"></i></button>
+        </div>
+    `).join('');
+}
+
+// ── Build image paths string ──
+function itcBuildImagePaths() {
+    return itcSelectedFiles.map((file, i) => {
+        return `${i + 1}. \`${file.name}\``;
+    }).join('\n');
+}
+
+// ── Open modal ──
+function itcOpenModal() {
+    const overlay = document.getElementById('itcModalOverlay');
+    overlay.classList.add('active');
+}
+
+// ── Close modal ──
+function itcCloseModal() {
+    alert('DEBUG: itcCloseModal called! Stack: ' + new Error().stack);
+    const overlay = document.getElementById('itcModalOverlay');
+    overlay.classList.remove('active');
+    document.getElementById('itcFileInput').value = '';
+    itcSelectedFiles = [];
+    itcRenderFileList();
+}
+
+// ── Confirm push ──
+function itcConfirmPush() {
+    if (itcSelectedFiles.length === 0) {
+        showToast('Please select at least one image', 'error');
+        return;
+    }
+
+    const imagePaths = itcBuildImagePaths();
+    const content = itcBuildContent(imagePaths);
+    const editor = document.getElementById('promptEditor');
+
+    // Remove existing ITC block if any
+    itcRemoveFromEditor();
+
+    editor.value = editor.value.trimEnd() + '\n\n' + content;
+    itcActive = true;
+    document.getElementById('itcContainer').classList.add('checked');
+    document.getElementById('itcCheckbox').checked = true;
+
+    updatePromptCounter();
+    showToast('Image to Code prompt pushed to editor!', 'success');
+    itcCloseModal();
+
+    if (typeof saveEditorContent === 'function') {
+        saveEditorContent();
+    }
+}
+
+// ── Toggle directly (checkbox) ──
+function itcToggleDirect() {
+    if (itcActive) {
+        itcRemoveFromEditor();
+        itcActive = false;
+        document.getElementById('itcContainer').classList.remove('checked');
+        document.getElementById('itcCheckbox').checked = false;
+        updatePromptCounter();
+        showToast('Image to Code removed from editor', 'info');
+        if (typeof saveEditorContent === 'function') saveEditorContent();
+    } else {
+        itcOpenModal();
+    }
+}
+
+// ── Remove from editor ──
+function itcRemoveFromEditor() {
+    const editor = document.getElementById('promptEditor');
+    const startIdx = editor.value.indexOf(ITC_MARKER_START);
+    const endIdx = editor.value.indexOf(ITC_MARKER_END);
+    if (startIdx !== -1 && endIdx !== -1) {
+        const before = editor.value.substring(0, startIdx).replace(/\n+$/, '');
+        const after = editor.value.substring(endIdx + ITC_MARKER_END.length).replace(/^\n+/, '');
+        editor.value = before + (after ? '\n\n' + after : '');
+    }
+}
+
+// ── Copy prompt ──
+function itcCopyPrompt() {
+    const text = ITC_PROMPT_TEMPLATE.replace('{{IMAGES}}', '(Select images and push to fill this section)');
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Image to Code prompt copied!', 'success');
+    });
+}
+
+// ── Close modal on Escape key ──
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('itcModalOverlay');
+        if (overlay && overlay.classList.contains('active')) itcCloseModal();
     }
 });
 </script>
