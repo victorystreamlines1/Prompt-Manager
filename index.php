@@ -4087,6 +4087,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0.75rem 0;
         }
 
+        /* ═══════ Static Nodes Row Container ═══════ */
+        .static-nodes-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 0.6rem;
+        }
+        .static-nodes-row > .qst-container,
+        .static-nodes-row > .ret-container {
+            flex: 1;
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
         /* ═══════ Static Node: Quiz Question Generator (QST) ═══════ */
         .qst-container {
             margin-bottom: 0.6rem;
@@ -4304,6 +4317,229 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .qst-btn-push:hover {
             transform: translateY(-1px);
             box-shadow: 0 6px 18px rgba(99,102,241,0.45);
+        }
+
+        /* ═══════ Static Node: Reverse Engineer (RET) ═══════ */
+        .ret-container {
+            margin-bottom: 0.6rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.07), rgba(5, 150, 105, 0.04));
+            border: 1.5px solid rgba(16, 185, 129, 0.22);
+            overflow: hidden;
+            transition: all 0.25s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .ret-glow-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, #10b981, #059669, #34d399, #059669, #10b981);
+            background-size: 200% 100%;
+            animation: retShimmer 3s linear infinite;
+        }
+        @keyframes retShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .ret-container:hover {
+            border-color: rgba(16, 185, 129, 0.42);
+            box-shadow: 0 2px 14px rgba(16, 185, 129, 0.12);
+            transform: translateY(-1px);
+        }
+        .ret-container.checked {
+            border-color: rgba(16, 185, 129, 0.6);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.13), rgba(5, 150, 105, 0.07));
+            box-shadow: 0 2px 18px rgba(16, 185, 129, 0.18);
+        }
+        .ret-inner {
+            display: flex;
+            align-items: center;
+            padding: 0.55rem 0.7rem;
+            gap: 0.45rem;
+        }
+        .ret-checkbox { flex-shrink: 0; cursor: pointer; }
+        .ret-checkbox input { display: none; }
+        .ret-check-box {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(16, 185, 129, 0.35);
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .ret-check-box i { font-size: 0.65rem; color: white; opacity: 0; transform: scale(0); transition: all 0.2s; }
+        .ret-container.checked .ret-check-box {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+        }
+        .ret-container.checked .ret-check-box i { opacity: 1; transform: scale(1); }
+        .ret-body { flex: 1; min-width: 0; }
+        .ret-badges {
+            display: flex; align-items: center; gap: 4px;
+            margin-bottom: 2px;
+        }
+        .ret-badge-static {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.12);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .ret-badge-type {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .ret-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ret-preview {
+            font-size: 0.67rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .ret-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.55; transition: opacity 0.2s;
+        }
+        .ret-container:hover .ret-actions { opacity: 1; }
+        .ret-action-btn {
+            width: 26px; height: 26px;
+            border-radius: 6px; border: none;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.7rem;
+        }
+        .ret-action-btn.ret-copy:hover {
+            background: rgba(16, 185, 129, 0.18); color: var(--success);
+            transform: scale(1.1);
+        }
+        .ret-action-btn.ret-push:hover {
+            background: rgba(16, 185, 129, 0.22); color: #34d399;
+            transform: scale(1.1);
+        }
+
+        /* RET Code Modal */
+        .ret-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10500;
+            display: none; align-items: center; justify-content: center;
+        }
+        .ret-modal-overlay.active { display: flex; }
+        .ret-modal {
+            background: var(--bg-primary);
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            width: 520px; max-width: 95vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(16,185,129,0.08);
+            animation: retModalIn 0.25s ease;
+            overflow: hidden;
+        }
+        @keyframes retModalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .ret-modal-header {
+            padding: 0.9rem 1.1rem 0.75rem;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.12);
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.04));
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .ret-modal-title {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.92rem; font-weight: 700; color: var(--text-primary);
+        }
+        .ret-modal-title i { color: #34d399; font-size: 0.9rem; }
+        .ret-modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 0.2s;
+        }
+        .ret-modal-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+        .ret-modal-body { padding: 1rem 1.1rem; }
+        .ret-modal-hint {
+            font-size: 0.75rem; color: var(--text-muted);
+            line-height: 1.55; margin-bottom: 0.85rem;
+            padding: 0.55rem 0.75rem;
+            background: rgba(16,185,129,0.06);
+            border-radius: 8px;
+            border-left: 3px solid rgba(16,185,129,0.35);
+        }
+        .ret-modal-hint strong { color: var(--text-primary); }
+        .ret-modal-hint code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: rgba(16,185,129,0.12);
+            padding: 1px 5px; border-radius: 4px;
+            color: #34d399;
+        }
+        .ret-input-wrap { display: flex; flex-direction: column; gap: 5px; }
+        .ret-input-label {
+            font-size: 0.72rem; font-weight: 600;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .ret-input-label i { color: #34d399; }
+        .ret-textarea {
+            width: 100%; padding: 0.6rem 0.85rem;
+            border-radius: 9px;
+            border: 1.5px solid rgba(16,185,129,0.25);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            outline: none;
+            resize: vertical;
+            min-height: 120px;
+            max-height: 300px;
+            line-height: 1.5;
+        }
+        .ret-textarea:focus {
+            border-color: rgba(16,185,129,0.55);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+        .ret-modal-footer {
+            padding: 0.7rem 1.1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        }
+        .ret-btn-cancel {
+            padding: 0.45rem 1rem; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .ret-btn-cancel:hover { background: var(--bg-card); color: var(--text-primary); }
+        .ret-btn-push {
+            padding: 0.45rem 1.1rem; border-radius: 7px;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+        }
+        .ret-btn-push:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(16,185,129,0.45);
         }
 
         /* Template Modal */
@@ -25516,29 +25752,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="saved-counter" id="savedCounter">0/0</span>
                 </div>
                 
-                <!-- Static Node: Quiz Question Generator (QST) -->
-                <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
-                    <div class="qst-glow-bar"></div>
-                    <div class="qst-inner">
-                        <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
-                            <input type="checkbox" id="qstCheckbox">
-                            <div class="qst-check-box"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="qst-body">
-                            <div class="qst-badges">
-                                <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
+                <!-- Static Nodes Row: QST + RET -->
+                <div class="static-nodes-row">
+                    <!-- Static Node: Quiz Question Generator (QST) -->
+                    <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
+                        <div class="qst-glow-bar"></div>
+                        <div class="qst-inner">
+                            <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
+                                <input type="checkbox" id="qstCheckbox">
+                                <div class="qst-check-box"><i class="fas fa-check"></i></div>
                             </div>
-                            <div class="qst-name">Quiz Question Generator</div>
-                            <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
+                            <div class="qst-body">
+                                <div class="qst-badges">
+                                    <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
+                                </div>
+                                <div class="qst-name">Quiz Question Generator</div>
+                                <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
+                            </div>
+                            <div class="qst-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="qst-actions" onclick="event.stopPropagation()">
-                            <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer & push">
-                                <i class="fas fa-bolt"></i>
-                            </button>
+                    </div>
+
+                    <!-- Static Node: Reverse Engineer (RET) -->
+                    <div class="ret-container" id="retContainer" onclick="retOpenModal()">
+                        <div class="ret-glow-bar"></div>
+                        <div class="ret-inner">
+                            <div class="ret-checkbox" id="retCheckboxWrap" onclick="event.stopPropagation(); retToggleDirect()">
+                                <input type="checkbox" id="retCheckbox">
+                                <div class="ret-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="ret-body">
+                                <div class="ret-badges">
+                                    <span class="ret-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="ret-badge-type"><i class="fas fa-sync-alt"></i> Reverse</span>
+                                </div>
+                                <div class="ret-name">Reverse Engineer</div>
+                                <div class="ret-preview">Code → Prompt — paste code to generate a recreation prompt</div>
+                            </div>
+                            <div class="ret-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="ret-action-btn ret-copy" onclick="retCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="ret-action-btn ret-push" onclick="retOpenModal()" title="Set code & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -25571,6 +25837,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="qst-modal-footer">
                         <button class="qst-btn-cancel" onclick="qstCloseModal()"><i class="fas fa-times"></i> Cancel</button>
                         <button class="qst-btn-push" onclick="qstConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RET Code Modal -->
+            <div class="ret-modal-overlay" id="retModalOverlay" onclick="retCloseModal()">
+                <div class="ret-modal" onclick="event.stopPropagation()">
+                    <div class="ret-modal-header">
+                        <div class="ret-modal-title">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Reverse Engineer</span>
+                        </div>
+                        <button class="ret-modal-close" onclick="retCloseModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="ret-modal-body">
+                        <p class="ret-modal-hint">Paste the <strong>code</strong> you want to reverse engineer. It will be injected into the <code>📝 THE CODE TO REVERSE ENGINEER</code> section before pushing to the editor.</p>
+                        <div class="ret-input-wrap">
+                            <label class="ret-input-label"><i class="fas fa-code"></i> The Code</label>
+                            <textarea id="retCodeInput" class="ret-textarea" placeholder="Paste your code here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="ret-modal-footer">
+                        <button class="ret-btn-cancel" onclick="retCloseModal()"><i class="fas fa-times"></i> Cancel</button>
+                        <button class="ret-btn-push" onclick="retConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
                     </div>
                 </div>
             </div>
@@ -33966,8 +34256,8 @@ in each section carefully and maintain proper connections between components.
         // Update prompt counter (includes static template)
         function updatePromptCounter() {
             const counter = document.getElementById('promptCounter');
-            const total = promptTemplates.length + 2; // +2 for static "Read the Application" + "Table Designer"
-            const selected = activePrompts.size + (sptActive ? 1 : 0) + (typeof tdtActive !== 'undefined' && tdtActive ? 1 : 0);
+            const total = promptTemplates.length + 3; // +3 for static "Read the Application" + "Table Designer" + "Reverse Engineer"
+            const selected = activePrompts.size + (sptActive ? 1 : 0) + (typeof tdtActive !== 'undefined' && tdtActive ? 1 : 0) + (typeof retActive !== 'undefined' && retActive ? 1 : 0);
             counter.textContent = `${selected}/${total}`;
             
             // Change color based on selection
@@ -34755,6 +35045,14 @@ in each section carefully and maintain proper connections between components.
             if (qstEl) qstEl.classList.remove('checked');
             const qstCb = document.getElementById('qstCheckbox');
             if (qstCb) qstCb.checked = false;
+
+            // Reset static node (Reverse Engineer)
+            if (typeof retActive !== 'undefined') retActive = false;
+            const retEl = document.getElementById('retContainer');
+            if (retEl) retEl.classList.remove('checked');
+            const retCb = document.getElementById('retCheckbox');
+            if (retCb) retCb.checked = false;
+            if (typeof retRemoveFromEditor === 'function') retRemoveFromEditor();
             
             updateCounts();
             updatePromptCounter();
@@ -61012,6 +61310,222 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         const overlay = document.getElementById('qstModalOverlay');
         if (overlay && overlay.classList.contains('active')) qstCloseModal();
+    }
+});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATIC NODE: Reverse Engineer (RET)
+// ═══════════════════════════════════════════════════════════════
+
+const RET_MARKER_START = '<!-- RET:REVERSE_ENGINEER -->';
+const RET_MARKER_END   = '<!-- /RET:REVERSE_ENGINEER -->';
+
+const RET_PROMPT_TEMPLATE = `# 🔄 REVERSE ENGINEER: CODE → PROMPT
+
+## YOUR MISSION:
+Analyze the following code and create a **comprehensive, detailed prompt** that, when given to any AI assistant, will generate **exactly the same code** (or functionally identical code).
+
+---
+
+## 📝 THE CODE TO REVERSE ENGINEER:
+
+\`\`\`
+{{CODE}}
+\`\`\`
+
+---
+
+## 📋 REQUIREMENTS FOR THE GENERATED PROMPT:
+
+### 1. PROMPT STRUCTURE:
+The prompt you create should include:
+- **Clear objective** - What the code is supposed to do
+- **Technical specifications** - Languages, frameworks, libraries used
+- **Detailed requirements** - Every feature, function, and behavior
+- **Design/Style guidelines** - If applicable (UI, formatting, naming conventions)
+- **Constraints** - Any limitations or specific approaches used
+- **Expected output** - File structure, naming, format
+
+### 2. LEVEL OF DETAIL:
+- 🎯 **Be extremely specific** - Don't leave room for interpretation
+- 📐 **Include exact values** - Colors, sizes, spacing, timing, etc.
+- 🔧 **Specify patterns** - Design patterns, coding style, architecture
+- 📦 **List all components** - Every class, function, variable purpose
+- 🔗 **Describe relationships** - How parts connect and interact
+
+### 3. PROMPT FORMAT:
+Structure the generated prompt with:
+- A clear title/header
+- Numbered sections for different aspects
+- Bullet points for specific requirements
+- Code examples where helpful (but not the full code)
+- Any necessary context or background
+
+### 4. VERIFICATION CRITERIA:
+The prompt should be good enough that:
+- ✅ Any capable AI can understand and execute it
+- ✅ The generated code will have the same functionality
+- ✅ The structure and organization will be similar
+- ✅ Edge cases and error handling are covered
+- ✅ No critical details are missing
+
+---
+
+## 🎯 OUTPUT FORMAT:
+
+Please provide the reverse-engineered prompt in this format:
+
+\`\`\`markdown
+# [Title of the Project/Code]
+
+## Overview
+[What this code does in 1-2 sentences]
+
+## Technical Requirements
+[Languages, frameworks, dependencies]
+
+## Detailed Specifications
+
+### [Section 1]
+- Requirement 1
+- Requirement 2
+...
+
+### [Section 2]
+...
+
+## Expected Output
+[What files/structure should be generated]
+
+## Additional Notes
+[Any important details]
+\`\`\`
+
+---
+
+## ⚠️ IMPORTANT NOTES:
+- **Don't include the original code** in your prompt - only describe it
+- **Be technology-agnostic** where possible, but specific when necessary
+- **Think like a product manager** - describe WHAT not HOW (unless the HOW is essential)
+- **Include edge cases** that the code handles
+- **Note any assumptions** the code makes
+
+---
+
+## 🚀 NOW REVERSE ENGINEER!
+
+Analyze the code above and generate a comprehensive prompt that will recreate it. The prompt should be clear, complete, and usable with any AI coding assistant.
+
+**Output the prompt inside a markdown code block so it's easy to copy.**`;
+
+let retActive = false;
+
+// ── Build content with code injected ──
+function retBuildContent(code) {
+    return RET_PROMPT_TEMPLATE.replace('{{CODE}}', code || '...');
+}
+
+// ── Open modal ──
+function retOpenModal() {
+    const overlay = document.getElementById('retModalOverlay');
+    overlay.classList.add('active');
+    setTimeout(() => {
+        document.getElementById('retCodeInput').focus();
+    }, 150);
+}
+
+// ── Close modal ──
+function retCloseModal() {
+    const overlay = document.getElementById('retModalOverlay');
+    overlay.classList.remove('active');
+    document.getElementById('retCodeInput').value = '';
+}
+
+// ── Confirm & push to editor ──
+function retConfirmPush() {
+    const codeInput = document.getElementById('retCodeInput').value.trim();
+    if (!codeInput) {
+        showToast('⚠️ Please paste the code to reverse engineer', 'error');
+        document.getElementById('retCodeInput').focus();
+        return;
+    }
+
+    const editor = document.getElementById('promptEditor');
+    const content = retBuildContent(codeInput);
+    const marked  = RET_MARKER_START + '\n' + content + '\n' + RET_MARKER_END;
+
+    // Remove old RET block if exists
+    retRemoveFromEditor();
+
+    const current = editor.value.trim();
+    editor.value  = current ? current + '\n\n' + marked : marked;
+
+    // Update UI state
+    retActive = true;
+    const container = document.getElementById('retContainer');
+    const checkbox  = document.getElementById('retCheckbox');
+    if (container) container.classList.add('checked');
+    if (checkbox)  checkbox.checked = true;
+
+    retCloseModal();
+
+    if (typeof updateCounts === 'function') updateCounts();
+    if (typeof updatePromptCounter === 'function') updatePromptCounter();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+
+    showToast('🔄 Reverse Engineer pushed to editor', 'success');
+}
+
+// ── Direct checkbox toggle (removes from editor if unchecked) ──
+function retToggleDirect() {
+    const container = document.getElementById('retContainer');
+    const checkbox  = document.getElementById('retCheckbox');
+    const isChecked = container.classList.contains('checked');
+
+    if (isChecked) {
+        container.classList.remove('checked');
+        checkbox.checked = false;
+        retActive = false;
+        retRemoveFromEditor();
+        if (typeof updateCounts === 'function') updateCounts();
+        if (typeof updatePromptCounter === 'function') updatePromptCounter();
+        if (typeof recordHistoryState === 'function') recordHistoryState(true);
+        showToast('🔄 Reverse Engineer removed from editor', 'info');
+    } else {
+        retOpenModal();
+    }
+}
+
+// ── Remove RET block from editor ──
+function retRemoveFromEditor() {
+    const editor  = document.getElementById('promptEditor');
+    const content = editor.value;
+    const startIdx = content.indexOf(RET_MARKER_START);
+    if (startIdx === -1) return;
+    const endIdx = content.indexOf(RET_MARKER_END, startIdx);
+    if (endIdx === -1) return;
+    const before = content.substring(0, startIdx).trimEnd();
+    const after  = content.substring(endIdx + RET_MARKER_END.length).trimStart();
+    editor.value = before + (before && after ? '\n\n' : '') + after;
+}
+
+// ── Copy prompt to clipboard (uses placeholder code) ──
+function retCopyPrompt() {
+    const content = retBuildContent('...');
+    navigator.clipboard.writeText(content).then(() => {
+        showToast('🔄 Reverse Engineer prompt copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+// ── Close modal on Escape key ──
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('retModalOverlay');
+        if (overlay && overlay.classList.contains('active')) retCloseModal();
     }
 });
 </script>
