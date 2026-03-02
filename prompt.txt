@@ -1,1 +1,138 @@
-Hello
+now I want you to do the exact same functionality of the static nodes under prompt templates but not in prompt templates I want it to be done and saved prompts and you will do the node don't make it the same height as this one that's that's very it's very high make the height less a little bit make it more cool and more professional looking make it nice and cool don't like make it very big make it a little bit smart kind of and the prompt will be like this also I don't have to tell you that you don't have to put any ad delete or anything it's static just pushes the content into prompt editor. 
+Please be notified that I want to add one extra feature in this prompt inside that static node. I want the answer that is in the prompt to be dynamically fed before a push. So I will click on the node. It will open a pop text to take the answer that the prompt will generate. It's question. You will find the answer inside the prompt under it two or three dots. I want the input that I put when I click on the node a pop-up form that I will put the input of the answer. And then it will send or push the whole thing injected to prompt editor with the answer dynamically fed. 
+This is the content that I want you to create the node, the static node upon. ---->
+
+
+# ❓ SIMPLE QUIZ QUESTION GENERATOR
+
+## MISSION:
+Create ONE simple, beautifully styled question in HTML/CSS. Just a title, question text, and hint. Nothing else.
+
+---
+
+## 🎯 THE ANSWER:
+
+```
+
+```
+
+---
+
+## 📋 WHAT I NEED (EXACTLY THIS, NOTHING MORE):
+
+1. **Title** - Short descriptive title for the quiz
+2. **Question** - ONE question sentence (Easy level)
+3. **Hint** - A helpful hint
+
+## ❌ DO NOT INCLUDE:
+- NO multiple difficulty levels (just Easy)
+- NO code blocks or code examples
+- NO blank lines or placeholder underscores
+- NO `<span class="blank">` elements
+- NO code context showing where answer goes
+- NO input fields
+- NO JavaScript
+- NO multiple questions
+
+---
+
+## 🎨 OUTPUT FORMAT:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Question</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 650px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            animation: fadeIn 0.6s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .question {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #334155;
+            margin-bottom: 24px;
+        }
+        
+        .hint {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 12px;
+            color: #0369a1;
+            font-size: 0.95rem;
+            border-left: 4px solid #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 class="title">📄 [Short Title Here]</h2>
+        <p class="question">[The question text - describe what the user needs to know to fill the blank, WITHOUT showing blanks or code]</p>
+        <div class="hint">💡 <strong>Hint:</strong> [Helpful hint here]</div>
+    </div>
+</body>
+</html>
+```
+
+---
+
+## ✅ GOOD EXAMPLE:
+
+If answer is: `<meta charset="UTF-8">`
+
+**Title:** 📄 HTML Character Encoding
+**Question:** What meta tag do you place in the head section to define UTF-8 character encoding for an HTML document?
+**Hint:** This tag uses the charset attribute and is essential for displaying special characters correctly.
+
+---
+
+## ❌ BAD EXAMPLE (DON'T DO THIS):
+
+- Showing code blocks with _______ blanks
+- Multiple difficulty levels
+- Code context like `<head> _____ </head>`
+- Multiple cards/questions
+
+---
+
+## 🎯 THE ANSWER IS: `hello`
+
+Generate ONE beautiful HTML page with:
+- A short title
+- ONE question sentence
+- ONE hint
+- A nice styled COPY BUTTON that allows the user to copy the question text when clicked
+
+Keep it simple and clean!

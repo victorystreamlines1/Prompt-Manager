@@ -4087,6 +4087,225 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 0.75rem 0;
         }
 
+        /* ═══════ Static Node: Quiz Question Generator (QST) ═══════ */
+        .qst-container {
+            margin-bottom: 0.6rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.07), rgba(139, 92, 246, 0.04));
+            border: 1.5px solid rgba(99, 102, 241, 0.22);
+            overflow: hidden;
+            transition: all 0.25s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .qst-glow-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa, #8b5cf6, #6366f1);
+            background-size: 200% 100%;
+            animation: qstShimmer 3s linear infinite;
+        }
+        @keyframes qstShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .qst-container:hover {
+            border-color: rgba(99, 102, 241, 0.42);
+            box-shadow: 0 2px 14px rgba(99, 102, 241, 0.12);
+            transform: translateY(-1px);
+        }
+        .qst-container.checked {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.13), rgba(139, 92, 246, 0.07));
+            box-shadow: 0 2px 18px rgba(99, 102, 241, 0.18);
+        }
+        .qst-inner {
+            display: flex;
+            align-items: center;
+            padding: 0.55rem 0.7rem;
+            gap: 0.45rem;
+        }
+        .qst-checkbox { flex-shrink: 0; cursor: pointer; }
+        .qst-checkbox input { display: none; }
+        .qst-check-box {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(99, 102, 241, 0.35);
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .qst-check-box i { font-size: 0.65rem; color: white; opacity: 0; transform: scale(0); transition: all 0.2s; }
+        .qst-container.checked .qst-check-box {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-color: #6366f1;
+        }
+        .qst-container.checked .qst-check-box i { opacity: 1; transform: scale(1); }
+        .qst-body { flex: 1; min-width: 0; }
+        .qst-badges {
+            display: flex; align-items: center; gap: 4px;
+            margin-bottom: 2px;
+        }
+        .qst-badge-static {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #a78bfa;
+            background: rgba(139, 92, 246, 0.12);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .qst-badge-type {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #818cf8;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .qst-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .qst-preview {
+            font-size: 0.67rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .qst-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.55; transition: opacity 0.2s;
+        }
+        .qst-container:hover .qst-actions { opacity: 1; }
+        .qst-action-btn {
+            width: 26px; height: 26px;
+            border-radius: 6px; border: none;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.7rem;
+        }
+        .qst-action-btn.qst-copy:hover {
+            background: rgba(16, 185, 129, 0.18); color: var(--success);
+            transform: scale(1.1);
+        }
+        .qst-action-btn.qst-push:hover {
+            background: rgba(99, 102, 241, 0.22); color: #818cf8;
+            transform: scale(1.1);
+        }
+
+        /* QST Answer Modal */
+        .qst-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10500;
+            display: none; align-items: center; justify-content: center;
+        }
+        .qst-modal-overlay.active { display: flex; }
+        .qst-modal {
+            background: var(--bg-primary);
+            border: 1.5px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            width: 420px; max-width: 95vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(99,102,241,0.08);
+            animation: qstModalIn 0.25s ease;
+            overflow: hidden;
+        }
+        @keyframes qstModalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .qst-modal-header {
+            padding: 0.9rem 1.1rem 0.75rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+            background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04));
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .qst-modal-title {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.92rem; font-weight: 700; color: var(--text-primary);
+        }
+        .qst-modal-title i { color: #818cf8; font-size: 0.9rem; }
+        .qst-modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 0.2s;
+        }
+        .qst-modal-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+        .qst-modal-body { padding: 1rem 1.1rem; }
+        .qst-modal-hint {
+            font-size: 0.75rem; color: var(--text-muted);
+            line-height: 1.55; margin-bottom: 0.85rem;
+            padding: 0.55rem 0.75rem;
+            background: rgba(99,102,241,0.06);
+            border-radius: 8px;
+            border-left: 3px solid rgba(99,102,241,0.35);
+        }
+        .qst-modal-hint strong { color: var(--text-primary); }
+        .qst-modal-hint code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: rgba(99,102,241,0.12);
+            padding: 1px 5px; border-radius: 4px;
+            color: #a78bfa;
+        }
+        .qst-input-wrap { display: flex; flex-direction: column; gap: 5px; }
+        .qst-input-label {
+            font-size: 0.72rem; font-weight: 600;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .qst-input-label i { color: #818cf8; }
+        .qst-input {
+            width: 100%; padding: 0.6rem 0.85rem;
+            border-radius: 9px;
+            border: 1.5px solid rgba(99,102,241,0.25);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .qst-input:focus {
+            border-color: rgba(99,102,241,0.55);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+        .qst-modal-footer {
+            padding: 0.7rem 1.1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        }
+        .qst-btn-cancel {
+            padding: 0.45rem 1rem; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .qst-btn-cancel:hover { background: var(--bg-card); color: var(--text-primary); }
+        .qst-btn-push {
+            padding: 0.45rem 1.1rem; border-radius: 7px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+        }
+        .qst-btn-push:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(99,102,241,0.45);
+        }
+
         /* Template Modal */
         .template-modal-overlay {
             position: fixed;
@@ -25297,11 +25516,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="saved-counter" id="savedCounter">0/0</span>
                 </div>
                 
+                <!-- Static Node: Quiz Question Generator (QST) -->
+                <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
+                    <div class="qst-glow-bar"></div>
+                    <div class="qst-inner">
+                        <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
+                            <input type="checkbox" id="qstCheckbox">
+                            <div class="qst-check-box"><i class="fas fa-check"></i></div>
+                        </div>
+                        <div class="qst-body">
+                            <div class="qst-badges">
+                                <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
+                            </div>
+                            <div class="qst-name">Quiz Question Generator</div>
+                            <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
+                        </div>
+                        <div class="qst-actions" onclick="event.stopPropagation()">
+                            <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer & push">
+                                <i class="fas fa-bolt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="saved-list" id="savedList">
                     <!-- Saved prompts will be loaded here -->
                 </div>
                 <div class="saved-scrollbar-track" id="savedScrollbarTrack">
                     <div class="saved-scrollbar-thumb" id="savedScrollbarThumb"></div>
+                </div>
+            </div>
+
+            <!-- QST Answer Modal -->
+            <div class="qst-modal-overlay" id="qstModalOverlay" onclick="qstCloseModal()">
+                <div class="qst-modal" onclick="event.stopPropagation()">
+                    <div class="qst-modal-header">
+                        <div class="qst-modal-title">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Quiz Question Generator</span>
+                        </div>
+                        <button class="qst-modal-close" onclick="qstCloseModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="qst-modal-body">
+                        <p class="qst-modal-hint">Enter the <strong>answer</strong> for the quiz. It will be injected into the <code>🎯 THE ANSWER IS:</code> field before pushing to the editor.</p>
+                        <div class="qst-input-wrap">
+                            <label class="qst-input-label"><i class="fas fa-key"></i> The Answer</label>
+                            <input type="text" id="qstAnswerInput" class="qst-input" placeholder="e.g. &lt;meta charset=&quot;UTF-8&quot;&gt;" autocomplete="off" onkeydown="if(event.key==='Enter') qstConfirmPush()">
+                        </div>
+                    </div>
+                    <div class="qst-modal-footer">
+                        <button class="qst-btn-cancel" onclick="qstCloseModal()"><i class="fas fa-times"></i> Cancel</button>
+                        <button class="qst-btn-push" onclick="qstConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
+                    </div>
                 </div>
             </div>
             
@@ -34479,6 +34749,12 @@ in each section carefully and maintain proper connections between components.
                 localStorage.setItem(TDT_ACTIVE_KEY, '0');
                 if (typeof tdtRemoveFromEditor === 'function') tdtRemoveFromEditor();
             }
+
+            // Reset static node (Quiz Question Generator)
+            const qstEl = document.getElementById('qstContainer');
+            if (qstEl) qstEl.classList.remove('checked');
+            const qstCb = document.getElementById('qstCheckbox');
+            if (qstCb) qstCb.checked = false;
             
             updateCounts();
             updatePromptCounter();
@@ -60489,6 +60765,254 @@ function tdtLoadFromStorage() {
 document.addEventListener('DOMContentLoaded', function() {
     tdtLoadFromStorage();
     if (typeof updatePromptCounter === 'function') updatePromptCounter();
+});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATIC NODE: Quiz Question Generator (QST)
+// ═══════════════════════════════════════════════════════════════
+
+const QST_MARKER_START = '<!-- QST:QUIZ_GENERATOR -->';
+const QST_MARKER_END   = '<!-- /QST:QUIZ_GENERATOR -->';
+
+const QST_PROMPT_TEMPLATE = `# ❓ SIMPLE QUIZ QUESTION GENERATOR
+
+## MISSION:
+Create ONE simple, beautifully styled question in HTML/CSS. Just a title, question text, and hint. Nothing else.
+
+---
+
+## 🎯 THE ANSWER:
+
+\`\`\`
+{{ANSWER}}
+\`\`\`
+
+---
+
+## 📋 WHAT I NEED (EXACTLY THIS, NOTHING MORE):
+
+1. **Title** - Short descriptive title for the quiz
+2. **Question** - ONE question sentence (Easy level)
+3. **Hint** - A helpful hint
+
+## ❌ DO NOT INCLUDE:
+- NO multiple difficulty levels (just Easy)
+- NO code blocks or code examples
+- NO blank lines or placeholder underscores
+- NO \`<span class="blank">\` elements
+- NO code context showing where answer goes
+- NO input fields
+- NO JavaScript
+- NO multiple questions
+
+---
+
+## 🎨 OUTPUT FORMAT:
+
+\`\`\`html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Question</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 650px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            animation: fadeIn 0.6s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .title {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .question {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: #334155;
+            margin-bottom: 24px;
+        }
+        
+        .hint {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 12px;
+            color: #0369a1;
+            font-size: 0.95rem;
+            border-left: 4px solid #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 class="title">📄 [Short Title Here]</h2>
+        <p class="question">[The question text - describe what the user needs to know to fill the blank, WITHOUT showing blanks or code]</p>
+        <div class="hint">💡 <strong>Hint:</strong> [Helpful hint here]</div>
+    </div>
+</body>
+</html>
+\`\`\`
+
+---
+
+## ✅ GOOD EXAMPLE:
+
+If answer is: \`<meta charset="UTF-8">\`
+
+**Title:** 📄 HTML Character Encoding
+**Question:** What meta tag do you place in the head section to define UTF-8 character encoding for an HTML document?
+**Hint:** This tag uses the charset attribute and is essential for displaying special characters correctly.
+
+---
+
+## ❌ BAD EXAMPLE (DON'T DO THIS):
+
+- Showing code blocks with _______ blanks
+- Multiple difficulty levels
+- Code context like \`<head> _____ </head>\`
+- Multiple cards/questions
+
+---
+
+## 🎯 THE ANSWER IS: \`{{ANSWER}}\`
+
+Generate ONE beautiful HTML page with:
+- A short title
+- ONE question sentence
+- ONE hint
+- A nice styled COPY BUTTON that allows the user to copy the question text when clicked
+
+Keep it simple and clean!`;
+
+// ── Build final prompt with injected answer ──
+function qstBuildContent(answer) {
+    const ans = (answer || '').trim() || '...';
+    return QST_PROMPT_TEMPLATE.replace(/{{ANSWER}}/g, ans);
+}
+
+// ── Open the answer modal ──
+function qstOpenModal() {
+    const overlay = document.getElementById('qstModalOverlay');
+    const input   = document.getElementById('qstAnswerInput');
+    overlay.classList.add('active');
+    setTimeout(() => input && input.focus(), 80);
+}
+
+// ── Close the answer modal ──
+function qstCloseModal() {
+    document.getElementById('qstModalOverlay').classList.remove('active');
+}
+
+// ── Confirm: inject answer and push to editor ──
+function qstConfirmPush() {
+    const answer  = document.getElementById('qstAnswerInput').value.trim();
+    if (!answer) {
+        document.getElementById('qstAnswerInput').focus();
+        document.getElementById('qstAnswerInput').style.borderColor = 'rgba(239,68,68,0.6)';
+        setTimeout(() => { document.getElementById('qstAnswerInput').style.borderColor = ''; }, 1200);
+        showToast('⚠️ Please enter the answer first', 'warning');
+        return;
+    }
+
+    const content = qstBuildContent(answer);
+    const marked  = `${QST_MARKER_START}\n${content}\n${QST_MARKER_END}`;
+    const editor  = document.getElementById('promptEditor');
+
+    // Remove any existing QST block first
+    qstRemoveFromEditor();
+
+    if (editor.value.trim()) {
+        editor.value = editor.value.trimEnd() + '\n\n' + marked;
+    } else {
+        editor.value = marked;
+    }
+
+    // Mark as checked
+    const container = document.getElementById('qstContainer');
+    container.classList.add('checked');
+    document.getElementById('qstCheckbox').checked = true;
+
+    qstCloseModal();
+    document.getElementById('qstAnswerInput').value = '';
+
+    if (typeof updateCounts === 'function') updateCounts();
+    if (typeof recordHistoryState === 'function') recordHistoryState(true);
+
+    showToast('❓ Quiz Question Generator pushed to editor', 'success');
+}
+
+// ── Direct checkbox toggle (removes from editor if unchecked) ──
+function qstToggleDirect() {
+    const container = document.getElementById('qstContainer');
+    const isChecked = container.classList.contains('checked');
+
+    if (isChecked) {
+        container.classList.remove('checked');
+        document.getElementById('qstCheckbox').checked = false;
+        qstRemoveFromEditor();
+        if (typeof updateCounts === 'function') updateCounts();
+        if (typeof recordHistoryState === 'function') recordHistoryState(true);
+        showToast('❓ Quiz Question Generator removed from editor', 'info');
+    } else {
+        qstOpenModal();
+    }
+}
+
+// ── Remove QST block from editor ──
+function qstRemoveFromEditor() {
+    const editor = document.getElementById('promptEditor');
+    const content = editor.value;
+    const startIdx = content.indexOf(QST_MARKER_START);
+    if (startIdx === -1) return;
+    const endIdx = content.indexOf(QST_MARKER_END, startIdx);
+    if (endIdx === -1) return;
+    const before = content.substring(0, startIdx).trimEnd();
+    const after  = content.substring(endIdx + QST_MARKER_END.length).trimStart();
+    editor.value  = before + (before && after ? '\n\n' : '') + after;
+}
+
+// ── Copy prompt to clipboard (uses placeholder answer) ──
+function qstCopyPrompt() {
+    const content = qstBuildContent('...');
+    navigator.clipboard.writeText(content).then(() => {
+        showToast('❓ Quiz prompt copied to clipboard', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
+// ── Close modal on Escape key ──
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('qstModalOverlay');
+        if (overlay && overlay.classList.contains('active')) qstCloseModal();
+    }
 });
 </script>
 
