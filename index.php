@@ -26102,11 +26102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p class="itc-modal-hint">Select the <strong>image(s)</strong> you want to convert to HTML/CSS. The image names will be placed directly into the prompt.</p>
                         <div class="itc-input-wrap">
                             <label class="itc-input-label"><i class="fas fa-images"></i> Select Image(s)</label>
-                            <div class="itc-file-zone" id="itcFileZone">
+                            <div class="itc-file-zone" id="itcFileZone" onclick="document.getElementById('itcFileInput').click()">
                                 <i class="fas fa-cloud-upload-alt itc-upload-icon"></i>
-                                <span class="itc-upload-text">Click or use the button below to select images</span>
+                                <span class="itc-upload-text">Click to select images</span>
                                 <span class="itc-upload-sub">PNG, JPG, GIF, SVG, WEBP — Multiple allowed</span>
-                                <input type="file" id="itcFileInput" multiple style="margin-top:8px; cursor:pointer;" onchange="itcFilesChanged(this)">
+                                <input type="file" id="itcFileInput" multiple style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0)" onchange="itcFilesChanged(this)" onclick="event.stopPropagation()">
                             </div>
                         </div>
                         <div class="itc-file-list" id="itcFileList" style="display:none">
@@ -61846,9 +61846,11 @@ function itcBuildContent(imagePaths) {
 // ── File selection changed ──
 function itcFilesChanged(input) {
     const files = Array.from(input.files);
-    alert('DEBUG: itcFilesChanged called! Files count: ' + files.length);
     itcSelectedFiles = files;
     itcRenderFileList();
+    if (files.length > 0) {
+        showToast(files.length + ' image' + (files.length > 1 ? 's' : '') + ' selected successfully', 'success');
+    }
 }
 
 // ── Remove a file from the list ──
@@ -61896,7 +61898,6 @@ function itcOpenModal() {
 
 // ── Close modal ──
 function itcCloseModal() {
-    alert('DEBUG: itcCloseModal called! Stack: ' + new Error().stack);
     const overlay = document.getElementById('itcModalOverlay');
     overlay.classList.remove('active');
     document.getElementById('itcFileInput').value = '';
