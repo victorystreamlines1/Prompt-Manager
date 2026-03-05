@@ -25874,32 +25874,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #94a3b8;
         }
         .scalar-dev-toggle.active {
-            background: rgba(99, 102, 241, 0.12);
-            color: #a5b4fc;
-            border-color: rgba(99, 102, 241, 0.25);
-        }
-        .scalar-dev-toggle .scalar-dev-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #334155;
-            transition: all 0.25s;
-        }
-        .scalar-dev-toggle.active .scalar-dev-dot {
-            background: #818cf8;
-            box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15), inset 0 0 8px rgba(99, 102, 241, 0.05);
         }
         .scalar-dev-dims { opacity: 0.6; font-size: 9px; }
 
-        /* ── Preview Grid ── */
+        /* ── Preview Grid (single device, centered) ── */
         .scalar-grid {
             display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            padding: 16px;
-            align-items: flex-start;
             justify-content: center;
-            overflow-y: auto;
+            align-items: flex-start;
+            padding: 20px;
+            overflow: auto;
             max-height: calc(100vh - 250px);
             min-height: 300px;
         }
@@ -26001,7 +25989,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Device Frame (bezel) */
         .scalar-device-frame {
             position: relative;
-            overflow: hidden;
+            overflow: auto;
             background: #0a0a1a;
             margin: 0;
         }
@@ -26012,30 +26000,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #fff;
         }
 
-        /* Orientation badge */
-        .scalar-orient-badge {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 4px;
-            color: #94a3b8;
-            font-size: 9px;
-            cursor: pointer;
-            z-index: 2;
-            transition: all 0.2s;
-            opacity: 0;
-        }
-        .scalar-device-card:hover .scalar-orient-badge { opacity: 1; }
-        .scalar-orient-badge:hover {
-            background: rgba(99, 102, 241, 0.4);
-            color: #e0e7ff;
-        }
+        /* Removed orient badge — orientation toggle now in card header */
 
         /* ── Empty State ── */
         .scalar-empty-state {
@@ -62658,6 +62623,8 @@ document.addEventListener('keydown', function(e) {
     'use strict';
 
     // ── Device Presets ──
+    // Each device has its OWN button. Phones & tablets show at realistic 1:1 size.
+    // Desktops are scaled down to fit.
     const SCALAR_DEVICES = [
         { id: 'iphone-se',       name: 'iPhone SE',         w: 375,  h: 667,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
         { id: 'iphone-14',       name: 'iPhone 14',         w: 390,  h: 844,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
@@ -62674,161 +62641,142 @@ document.addEventListener('keydown', function(e) {
         { id: 'desktop-2k',      name: 'Desktop 2K',        w: 2560, h: 1440, cat: 'desktop', icon: 'fas fa-desktop' },
     ];
 
-    const SCALAR_STORAGE_KEY  = 'scalar_history';
-    const SCALAR_DEVICES_KEY  = 'scalar_active_devices';
-    const SCALAR_SCALE_PHONE  = 0.38;
-    const SCALAR_SCALE_TABLET = 0.30;
-    const SCALAR_SCALE_DESK   = 0.22;
+    const SCALAR_STORAGE_KEY   = 'scalar_history';
+    const SCALAR_SELECTED_KEY  = 'scalar_selected_device';
+    const SCALAR_SCALE_DESK    = 0.45;
 
     let _scalarCurrentUrl = '';
-    let _scalarActiveDevices = {};
-    let _scalarOrientations = {};  // deviceId -> 'portrait' | 'landscape'
+    let _scalarSelectedDevice = null;   // only ONE device at a time
+    let _scalarOrientations = {};       // deviceId -> 'portrait' | 'landscape'
 
     // ── Initialization ──
     function scalarInit() {
-        _scalarLoadActiveDevices();
-        _scalarRenderDeviceToggles();
+        _scalarLoadSelectedDevice();
+        _scalarRenderDeviceButtons();
         _scalarRenderHistory();
-        // Show empty state initially
         var grid  = document.getElementById('scalarGrid');
         var empty = document.getElementById('scalarEmptyState');
         if (grid)  grid.style.display = 'none';
         if (empty) empty.style.display = 'flex';
     }
 
-    function _scalarLoadActiveDevices() {
+    function _scalarLoadSelectedDevice() {
         try {
-            var saved = localStorage.getItem(SCALAR_DEVICES_KEY);
-            if (saved) {
-                _scalarActiveDevices = JSON.parse(saved);
+            var saved = localStorage.getItem(SCALAR_SELECTED_KEY);
+            if (saved && SCALAR_DEVICES.some(function(d) { return d.id === saved; })) {
+                _scalarSelectedDevice = saved;
             } else {
-                // Default: show 4 devices
-                _scalarActiveDevices = {
-                    'iphone-14': true,
-                    'ipad-air': true,
-                    'laptop': true,
-                    'desktop-hd': true
-                };
+                _scalarSelectedDevice = 'iphone-14';
             }
         } catch(e) {
-            _scalarActiveDevices = { 'iphone-14': true, 'ipad-air': true, 'laptop': true, 'desktop-hd': true };
+            _scalarSelectedDevice = 'iphone-14';
         }
     }
 
-    function _scalarSaveActiveDevices() {
-        try { localStorage.setItem(SCALAR_DEVICES_KEY, JSON.stringify(_scalarActiveDevices)); } catch(e) {}
+    function _scalarSaveSelectedDevice() {
+        try { localStorage.setItem(SCALAR_SELECTED_KEY, _scalarSelectedDevice || ''); } catch(e) {}
     }
 
-    // ── Device Toggle Pills ──
-    function _scalarRenderDeviceToggles() {
+    // ── Device Buttons (radio-style: one at a time) ──
+    function _scalarRenderDeviceButtons() {
         var cont = document.getElementById('scalarDeviceToggles');
         if (!cont) return;
         cont.innerHTML = '';
         SCALAR_DEVICES.forEach(function(dev) {
             var btn = document.createElement('button');
-            btn.className = 'scalar-dev-toggle' + (_scalarActiveDevices[dev.id] ? ' active' : '');
+            btn.className = 'scalar-dev-toggle' + (_scalarSelectedDevice === dev.id ? ' active' : '');
             btn.setAttribute('data-dev', dev.id);
             btn.setAttribute('data-cat', dev.cat);
-            btn.innerHTML = '<span class="scalar-dev-dot"></span>' + dev.name +
-                            ' <span class="scalar-dev-dims">' + dev.w + 'x' + dev.h + '</span>';
+            btn.innerHTML = '<i class="' + dev.icon + '" style="font-size:10px;opacity:0.7;"></i> ' +
+                            dev.name +
+                            ' <span class="scalar-dev-dims">' + dev.w + ' x ' + dev.h + '</span>';
             btn.onclick = function() {
-                _scalarActiveDevices[dev.id] = !_scalarActiveDevices[dev.id];
-                btn.classList.toggle('active');
-                _scalarSaveActiveDevices();
-                if (_scalarCurrentUrl) _scalarRenderGrid();
+                // Radio behavior: deselect all, select this one
+                _scalarSelectedDevice = dev.id;
+                _scalarSaveSelectedDevice();
+                // Update button visuals
+                cont.querySelectorAll('.scalar-dev-toggle').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                if (_scalarCurrentUrl) _scalarRenderPreview();
             };
             cont.appendChild(btn);
         });
     }
 
-    // ── Category Filter ──
+    // ── Category Filter (filters which buttons are visible) ──
     window.scalarFilterCategory = function(cat) {
-        // Update button states
         document.querySelectorAll('.scalar-cat-btn').forEach(function(b) {
             b.classList.toggle('active', b.getAttribute('data-cat') === cat);
         });
-        // Show/hide device toggles
         document.querySelectorAll('.scalar-dev-toggle').forEach(function(b) {
-            if (cat === 'all') {
-                b.style.display = '';
-            } else {
-                b.style.display = b.getAttribute('data-cat') === cat ? '' : 'none';
-            }
-        });
-        // Filter visible cards
-        document.querySelectorAll('.scalar-device-card').forEach(function(card) {
-            if (cat === 'all') {
-                card.style.display = '';
-            } else {
-                card.style.display = card.getAttribute('data-cat') === cat ? '' : 'none';
-            }
+            b.style.display = (cat === 'all' || b.getAttribute('data-cat') === cat) ? '' : 'none';
         });
     };
 
-    // ── Scale factor by category ──
+    // ── Get scale: phones & tablets = 1 (realistic), desktops = scaled ──
     function _scalarGetScale(cat) {
-        if (cat === 'phone')  return SCALAR_SCALE_PHONE;
-        if (cat === 'tablet') return SCALAR_SCALE_TABLET;
+        if (cat === 'phone' || cat === 'tablet') return 1;
         return SCALAR_SCALE_DESK;
     }
 
-    // ── Render Grid ──
-    function _scalarRenderGrid() {
+    // ── Render Single Device Preview ──
+    function _scalarRenderPreview() {
         var grid  = document.getElementById('scalarGrid');
         var empty = document.getElementById('scalarEmptyState');
         if (!grid) return;
 
         grid.innerHTML = '';
 
-        var activeDevs = SCALAR_DEVICES.filter(function(d) { return _scalarActiveDevices[d.id]; });
-        if (!activeDevs.length || !_scalarCurrentUrl) {
+        if (!_scalarSelectedDevice || !_scalarCurrentUrl) {
             grid.style.display = 'none';
             if (empty) empty.style.display = 'flex';
             return;
         }
+
+        var dev = SCALAR_DEVICES.find(function(d) { return d.id === _scalarSelectedDevice; });
+        if (!dev) return;
+
         grid.style.display = 'flex';
         if (empty) empty.style.display = 'none';
 
-        activeDevs.forEach(function(dev, idx) {
-            var orient = _scalarOrientations[dev.id] || 'portrait';
-            var dw = orient === 'landscape' ? dev.h : dev.w;
-            var dh = orient === 'landscape' ? dev.w : dev.h;
-            var scale = _scalarGetScale(dev.cat);
-            var frameW = Math.round(dw * scale);
-            var frameH = Math.round(dh * scale);
+        var orient = _scalarOrientations[dev.id] || 'portrait';
+        var dw = orient === 'landscape' ? dev.h : dev.w;
+        var dh = orient === 'landscape' ? dev.w : dev.h;
+        var scale = _scalarGetScale(dev.cat);
+        var frameW = Math.round(dw * scale);
+        var frameH = Math.round(dh * scale);
 
-            var card = document.createElement('div');
-            card.className = 'scalar-device-card';
-            card.setAttribute('data-cat', dev.cat);
-            card.setAttribute('data-dev', dev.id);
-            card.style.animationDelay = (idx * 0.06) + 's';
-            card.style.width = frameW + 'px';
+        var card = document.createElement('div');
+        card.className = 'scalar-device-card';
+        card.setAttribute('data-cat', dev.cat);
+        card.setAttribute('data-dev', dev.id);
+        card.style.width = frameW + 'px';
 
-            // Header
-            card.innerHTML =
-                '<div class="scalar-card-header">' +
-                    '<div class="scalar-card-info">' +
-                        '<div class="scalar-card-icon ' + dev.cat + '"><i class="' + dev.icon + '"></i></div>' +
-                        '<span class="scalar-card-name">' + dev.name + '</span>' +
-                        '<span class="scalar-card-size">' + dw + ' x ' + dh + '</span>' +
-                    '</div>' +
-                    '<div class="scalar-card-actions">' +
-                        '<button class="scalar-card-action" onclick="scalarRefreshDevice(\'' + dev.id + '\')" title="Refresh"><i class="fas fa-sync-alt"></i></button>' +
-                        '<button class="scalar-card-action" onclick="scalarOpenExternal(\'' + dev.id + '\')" title="Open in new tab"><i class="fas fa-external-link-alt"></i></button>' +
-                    '</div>' +
+        // Device bezel type label
+        var sizeLabel = (scale === 1) ? 'Realistic 1:1' : 'Scaled ' + Math.round(scale * 100) + '%';
+
+        card.innerHTML =
+            '<div class="scalar-card-header">' +
+                '<div class="scalar-card-info">' +
+                    '<div class="scalar-card-icon ' + dev.cat + '"><i class="' + dev.icon + '"></i></div>' +
+                    '<span class="scalar-card-name">' + dev.name + '</span>' +
+                    '<span class="scalar-card-size">' + dw + ' x ' + dh + '</span>' +
+                    '<span class="scalar-card-size" style="color:#818cf8;">' + sizeLabel + '</span>' +
                 '</div>' +
-                '<div class="scalar-device-frame" style="width:' + frameW + 'px;height:' + frameH + 'px;">' +
-                    '<div class="scalar-orient-badge" onclick="scalarToggleOrientation(\'' + dev.id + '\')" title="Toggle orientation">' +
-                        '<i class="fas fa-redo"></i>' +
-                    '</div>' +
-                    '<iframe id="scalar-iframe-' + dev.id + '" ' +
-                        'src="' + _scalarEscHtml(_scalarCurrentUrl) + '" ' +
-                        'style="width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + scale + ');" ' +
-                        'loading="lazy" allowfullscreen></iframe>' +
-                '</div>';
+                '<div class="scalar-card-actions">' +
+                    '<button class="scalar-card-action" onclick="scalarToggleOrientation(\'' + dev.id + '\')" title="Toggle portrait/landscape"><i class="fas fa-redo"></i></button>' +
+                    '<button class="scalar-card-action" onclick="scalarRefreshDevice(\'' + dev.id + '\')" title="Refresh"><i class="fas fa-sync-alt"></i></button>' +
+                    '<button class="scalar-card-action" onclick="scalarOpenExternal()" title="Open in new tab"><i class="fas fa-external-link-alt"></i></button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="scalar-device-frame" style="width:' + frameW + 'px;height:' + frameH + 'px;overflow:auto;">' +
+                '<iframe id="scalar-iframe-' + dev.id + '" ' +
+                    'src="' + _scalarEscHtml(_scalarCurrentUrl) + '" ' +
+                    'style="width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + scale + ');transform-origin:top left;" ' +
+                    'allowfullscreen></iframe>' +
+            '</div>';
 
-            grid.appendChild(card);
-        });
+        grid.appendChild(card);
     }
 
     // ── URL Loading ──
@@ -62843,7 +62791,7 @@ document.addEventListener('keydown', function(e) {
         }
         _scalarCurrentUrl = url;
         _scalarAddHistory(url);
-        _scalarRenderGrid();
+        _scalarRenderPreview();
         _scalarCloseDropdown();
     };
 
@@ -62852,7 +62800,7 @@ document.addEventListener('keydown', function(e) {
         if (input) input.value = url;
         _scalarCurrentUrl = url;
         _scalarAddHistory(url);
-        _scalarRenderGrid();
+        _scalarRenderPreview();
     };
 
     window.scalarRefreshAll = function() {
@@ -62866,14 +62814,14 @@ document.addEventListener('keydown', function(e) {
         if (ifr) { try { ifr.src = ifr.src; } catch(e) {} }
     };
 
-    window.scalarOpenExternal = function(devId) {
+    window.scalarOpenExternal = function() {
         if (_scalarCurrentUrl) window.open(_scalarCurrentUrl, '_blank');
     };
 
     window.scalarToggleOrientation = function(devId) {
         var cur = _scalarOrientations[devId] || 'portrait';
         _scalarOrientations[devId] = cur === 'portrait' ? 'landscape' : 'portrait';
-        _scalarRenderGrid();
+        _scalarRenderPreview();
     };
 
     // ── URL Input ──
@@ -62915,7 +62863,6 @@ document.addEventListener('keydown', function(e) {
         if (dd) dd.classList.remove('open');
     }
 
-    // Close dropdown on outside click
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.scalar-url-wrapper')) _scalarCloseDropdown();
     });
