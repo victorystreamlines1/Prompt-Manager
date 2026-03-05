@@ -25637,6 +25637,626 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             cursor: default;
         }
         .tm-folder-path i { font-size: 10px; opacity: 0.7; }
+
+        /* ═══════════════════════════════════════════════════════════
+           iFrame Scalar — Responsive Preview Platform
+           ═══════════════════════════════════════════════════════════ */
+        .scalar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.6), rgba(20, 20, 45, 0.4));
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            position: relative;
+            min-height: 500px;
+        }
+
+        /* ── Header ── */
+        .scalar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, rgba(20, 20, 50, 0.95), rgba(15, 15, 40, 0.95));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            flex-wrap: wrap;
+        }
+        .scalar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #c4b5fd;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+        .scalar-brand i {
+            font-size: 16px;
+            background: linear-gradient(135deg, #818cf8, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .scalar-url-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .scalar-url-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+        .scalar-url-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(139, 92, 246, 0.5);
+            font-size: 12px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .scalar-url-input {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            background: rgba(15, 15, 35, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            color: #e0e7ff;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .scalar-url-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 0 20px rgba(99, 102, 241, 0.05);
+            background: rgba(15, 15, 35, 0.9);
+        }
+        .scalar-url-input::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+
+        /* URL Dropdown */
+        .scalar-url-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: rgba(20, 20, 50, 0.98);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+        }
+        .scalar-url-dropdown.open { display: block; }
+        .scalar-url-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            color: #c4b5fd;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.06);
+        }
+        .scalar-url-dropdown-item:last-child { border-bottom: none; }
+        .scalar-url-dropdown-item:hover {
+            background: rgba(99, 102, 241, 0.12);
+            color: #e0e7ff;
+        }
+        .scalar-url-dropdown-item i { color: rgba(139, 92, 246, 0.6); font-size: 11px; }
+
+        /* Go / Action Buttons */
+        .scalar-go-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        .scalar-go-btn:hover {
+            background: linear-gradient(135deg, #818cf8, #a78bfa);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+        .scalar-go-btn:active { transform: translateY(0); }
+
+        .scalar-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            color: #a5b4fc;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .scalar-action-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+        .scalar-action-btn.active {
+            background: rgba(99, 102, 241, 0.25);
+            color: #e0e7ff;
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        /* ── Device Bar ── */
+        .scalar-device-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(15, 15, 35, 0.5);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+        }
+        .scalar-category-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .scalar-cat-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 20px;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .scalar-cat-btn:hover {
+            background: rgba(99, 102, 241, 0.12);
+            color: #c4b5fd;
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+        .scalar-cat-btn.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+        }
+        .scalar-cat-btn i { font-size: 11px; }
+
+        .scalar-device-toggles {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .scalar-dev-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.08);
+            border-radius: 6px;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+        .scalar-dev-toggle:hover {
+            background: rgba(99, 102, 241, 0.08);
+            color: #94a3b8;
+        }
+        .scalar-dev-toggle.active {
+            background: rgba(99, 102, 241, 0.12);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+        .scalar-dev-toggle .scalar-dev-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #334155;
+            transition: all 0.25s;
+        }
+        .scalar-dev-toggle.active .scalar-dev-dot {
+            background: #818cf8;
+            box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+        }
+        .scalar-dev-dims { opacity: 0.6; font-size: 9px; }
+
+        /* ── Preview Grid ── */
+        .scalar-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            max-height: calc(100vh - 250px);
+            min-height: 300px;
+        }
+
+        /* Device Card */
+        .scalar-device-card {
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 15, 40, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.35s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            animation: scalarCardIn 0.4s ease both;
+        }
+        .scalar-device-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1), 0 4px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        @keyframes scalarCardIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Device Card Header */
+        .scalar-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(20, 20, 50, 0.9), rgba(25, 25, 55, 0.8));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .scalar-card-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scalar-card-icon {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .scalar-card-icon.phone {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.15));
+            color: #60a5fa;
+        }
+        .scalar-card-icon.tablet {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.15));
+            color: #34d399;
+        }
+        .scalar-card-icon.desktop {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.15));
+            color: #fbbf24;
+        }
+        .scalar-card-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #e0e7ff;
+            letter-spacing: 0.3px;
+        }
+        .scalar-card-size {
+            font-size: 10px;
+            color: #64748b;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            background: rgba(15, 15, 35, 0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .scalar-card-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .scalar-card-action {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            border-radius: 5px;
+            color: #64748b;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .scalar-card-action:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+        }
+
+        /* Device Frame (bezel) */
+        .scalar-device-frame {
+            position: relative;
+            overflow: hidden;
+            background: #0a0a1a;
+            margin: 0;
+        }
+        .scalar-device-frame iframe {
+            display: block;
+            border: none;
+            transform-origin: top left;
+            background: #fff;
+        }
+
+        /* Orientation badge */
+        .scalar-orient-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            color: #94a3b8;
+            font-size: 9px;
+            cursor: pointer;
+            z-index: 2;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+        .scalar-device-card:hover .scalar-orient-badge { opacity: 1; }
+        .scalar-orient-badge:hover {
+            background: rgba(99, 102, 241, 0.4);
+            color: #e0e7ff;
+        }
+
+        /* ── Empty State ── */
+        .scalar-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .scalar-empty-icon {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .scalar-empty-icon i {
+            font-size: 32px;
+            color: rgba(99, 102, 241, 0.25);
+            animation: scalarFloat 3s ease-in-out infinite;
+        }
+        .scalar-empty-icon i:nth-child(2) { animation-delay: 0.5s; font-size: 38px; color: rgba(99, 102, 241, 0.35); }
+        .scalar-empty-icon i:nth-child(3) { animation-delay: 1s; }
+        @keyframes scalarFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .scalar-empty-state h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #c4b5fd;
+            margin: 0 0 8px;
+        }
+        .scalar-empty-state p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 24px;
+        }
+        .scalar-quick-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .scalar-quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            color: #a5b4fc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .scalar-quick-btn:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+
+        /* ── History Panel ── */
+        .scalar-history-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 300px;
+            background: rgba(15, 15, 40, 0.98);
+            border-left: 1px solid rgba(99, 102, 241, 0.15);
+            backdrop-filter: blur(20px);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.3);
+        }
+        .scalar-history-panel.open {
+            transform: translateX(0);
+        }
+        .scalar-history-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        .scalar-history-head h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #c4b5fd;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scalar-history-head h3 i { font-size: 13px; }
+        .scalar-history-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 6px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .scalar-history-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        .scalar-history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .scalar-history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+        .scalar-history-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .scalar-history-item i {
+            color: rgba(139, 92, 246, 0.5);
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .scalar-history-item-url {
+            flex: 1;
+            font-size: 11px;
+            color: #a5b4fc;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .scalar-history-item-time {
+            font-size: 9px;
+            color: #475569;
+            flex-shrink: 0;
+        }
+        .scalar-history-item-del {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: #475569;
+            font-size: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .scalar-history-item:hover .scalar-history-item-del { opacity: 1; }
+        .scalar-history-item-del:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+        .scalar-clear-history {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            margin: 8px;
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .scalar-clear-history:hover {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ── Scrollbar for scalar panels ── */
+        .scalar-grid::-webkit-scrollbar,
+        .scalar-history-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .scalar-grid::-webkit-scrollbar-track,
+        .scalar-history-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scalar-grid::-webkit-scrollbar-thumb,
+        .scalar-history-list::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 4px;
+        }
+        .scalar-grid::-webkit-scrollbar-thumb:hover,
+        .scalar-history-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.35);
+        }
+
+        /* ── Responsive adjustments ── */
+        @media (max-width: 768px) {
+            .scalar-header { flex-direction: column; }
+            .scalar-grid { padding: 10px; gap: 10px; }
+            .scalar-history-panel { width: 100%; }
+            .scalar-go-btn span { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -25896,8 +26516,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="mc-tab-dot"></span>
                 </button>
                 <button class="mc-tab" data-mc-tab="iframe" onclick="mcSwitchTab('iframe')">
-                    <i class="fas fa-window-maximize"></i>
-                    <span>Iframe</span>
+                    <i class="fas fa-expand-arrows-alt"></i>
+                    <span>iFrame Scalar</span>
                     <span class="mc-tab-dot"></span>
                 </button>
             </div>
@@ -26897,136 +27517,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- Tab Panel: Iframe -->
+            <!-- Tab Panel: iFrame Scalar -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
-                <div class="iframe-workspace">
-                    <!-- Localhost Path Ghost (user-configurable) -->
-                    <div class="docroot-ghost" id="docrootGhost" title="Click the gear to set your localhost path">
-                        <i class="fas fa-server" id="docrootIcon"></i>
-                        <input type="text" id="docrootNavInput" class="docroot-nav-input" readonly
-                               placeholder="/ navigation path..." spellcheck="false">
-                        <span id="docrootText" class="docroot-display">Not configured</span>
-                        <input type="text" id="docrootInput" class="docroot-input" 
-                               placeholder="e.g. http://localhost/Prompt-Manager"
-                               spellcheck="false" autocomplete="off" style="display:none;">
-                        <button class="docroot-browse-btn" id="docrootBrowseBtn" onclick="openLocalhostFolderPicker()" title="Browse folders">
-                            <i class="fas fa-folder-open"></i>
-                        </button>
-                        <button class="docroot-config-btn" id="docrootConfigBtn" onclick="toggleDocrootEdit()" title="Configure localhost path manually">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <button class="docroot-save-btn" id="docrootSaveBtn" onclick="saveDocrootPath()" style="display:none;" title="Save path">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button class="docroot-cancel-btn" id="docrootCancelBtn" onclick="cancelDocrootEdit()" style="display:none;" title="Cancel">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <!-- Iframe Toolbar -->
-                    <div class="iframe-toolbar">
-                        <div class="iframe-toolbar-left">
-                            <button class="iframe-nav-btn" id="iframeBack" onclick="iframeGoBack()" title="Back" disabled>
-                                <i class="fas fa-arrow-left"></i>
+                <div class="scalar-container">
+
+                    <!-- Header: URL Bar + Actions -->
+                    <div class="scalar-header">
+                        <div class="scalar-brand">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                            <span>iFrame Scalar</span>
+                        </div>
+                        <div class="scalar-url-section">
+                            <div class="scalar-url-wrapper">
+                                <i class="fas fa-globe scalar-url-icon"></i>
+                                <input type="text" id="scalarUrlInput" class="scalar-url-input"
+                                       placeholder="Enter URL to preview (e.g. https://myapp.com)"
+                                       spellcheck="false" autocomplete="off"
+                                       onkeydown="scalarUrlKeydown(event)" oninput="scalarUrlAutocomplete()">
+                                <div class="scalar-url-dropdown" id="scalarUrlDropdown"></div>
+                            </div>
+                            <button class="scalar-go-btn" onclick="scalarLoadUrl()" title="Load URL in all devices">
+                                <i class="fas fa-play"></i> <span>Preview</span>
                             </button>
-                            <button class="iframe-nav-btn" id="iframeForward" onclick="iframeGoForward()" title="Forward" disabled>
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                            <button class="iframe-nav-btn" id="iframeRefresh" onclick="iframeReload()" title="Refresh">
+                            <button class="scalar-action-btn" onclick="scalarRefreshAll()" title="Refresh all iframes">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
-                            <button class="iframe-nav-btn" id="iframeHome" onclick="iframeGoHome()" title="Home">
-                                <i class="fas fa-home"></i>
-                            </button>
-                        </div>
-                        <div class="iframe-url-bar">
-                            <i class="fas fa-globe iframe-url-icon"></i>
-                            <div class="iframe-url-input-wrapper">
-                                <div class="iframe-url-ghost" id="iframeUrlGhost" aria-hidden="true"></div>
-                                <input type="text" class="iframe-url-input" id="iframeUrlInput" 
-                                       placeholder="Enter URL or local path (e.g. http://localhost:3000)" 
-                                       spellcheck="false" autocomplete="off"
-                                       onkeydown="iframeUrlKeydown(event)" oninput="iframeUrlAutocomplete()">
-                                <div class="iframe-url-dropdown" id="iframeUrlDropdown"></div>
-                            </div>
-                            <button class="iframe-go-btn" onclick="iframeNavigate()" title="Go">
-                                <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </div>
-                        <div class="iframe-toolbar-right">
-                            <button class="iframe-nav-btn" id="iframeNewTab" onclick="iframeOpenExternal()" title="Open in new tab">
-                                <i class="fas fa-external-link-alt"></i>
-                            </button>
-                            <button class="iframe-nav-btn iframe-fullscreen-btn" id="iframeFullscreen" onclick="iframeToggleFullscreen()" title="Fullscreen">
-                                <i class="fas fa-expand"></i>
+                            <button class="scalar-action-btn scalar-history-toggle" onclick="scalarToggleHistory()" title="URL History">
+                                <i class="fas fa-history"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Iframe Status Bar -->
-                    <div class="iframe-status-bar" id="iframeStatusBar">
-                        <div class="iframe-status-indicator" id="iframeStatusIndicator">
-                            <span class="iframe-status-dot"></span>
-                            <span class="iframe-status-text" id="iframeStatusText">Ready</span>
-                        </div>
-                        <div class="iframe-bookmarks" id="iframeBookmarks">
-                            <button class="iframe-bookmark-btn" onclick="iframeAddBookmark()" title="Bookmark this page">
-                                <i class="far fa-star" id="iframeBookmarkIcon"></i>
+                    <!-- Device Category Bar -->
+                    <div class="scalar-device-bar">
+                        <div class="scalar-category-filters">
+                            <button class="scalar-cat-btn active" data-cat="all" onclick="scalarFilterCategory('all')">
+                                <i class="fas fa-th"></i> All
                             </button>
-                            <div class="iframe-bookmark-list" id="iframeBookmarkList"></div>
+                            <button class="scalar-cat-btn" data-cat="phone" onclick="scalarFilterCategory('phone')">
+                                <i class="fas fa-mobile-alt"></i> Phones
+                            </button>
+                            <button class="scalar-cat-btn" data-cat="tablet" onclick="scalarFilterCategory('tablet')">
+                                <i class="fas fa-tablet-alt"></i> Tablets
+                            </button>
+                            <button class="scalar-cat-btn" data-cat="desktop" onclick="scalarFilterCategory('desktop')">
+                                <i class="fas fa-desktop"></i> Desktop
+                            </button>
+                        </div>
+                        <div class="scalar-device-toggles" id="scalarDeviceToggles">
+                            <!-- Generated by JS -->
                         </div>
                     </div>
 
-                    <!-- Breadcrumb Path Bar -->
-                    <div class="iframe-breadcrumb-bar" id="iframeBreadcrumbBar"></div>
-
-                    <!-- Current Path Display Box -->
-                    <div class="iframe-path-box" id="iframePathBox">
-                        <i class="fas fa-map-marker-alt iframe-path-icon"></i>
-                        <input type="text" id="iframePathText" readonly
-                               placeholder="Navigation path will appear here..."
-                               spellcheck="false">
+                    <!-- Previews Grid -->
+                    <div class="scalar-grid" id="scalarGrid">
+                        <!-- Device preview cards generated by JS -->
                     </div>
 
-                    <!-- Navigation Path Popup (appears outside iframe on navigation) -->
-                    <div class="iframe-nav-popup" id="iframeNavPopup">
-                        <div class="iframe-nav-popup-inner">
-                            <i class="fas fa-location-arrow iframe-nav-popup-icon"></i>
-                            <span class="iframe-nav-popup-path" id="iframeNavPopupPath"></span>
+                    <!-- Empty State -->
+                    <div class="scalar-empty-state" id="scalarEmptyState">
+                        <div class="scalar-empty-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                            <i class="fas fa-tablet-alt"></i>
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <h3>Responsive Preview</h3>
+                        <p>Enter a URL above to preview your app across different device sizes</p>
+                        <div class="scalar-quick-links">
+                            <button class="scalar-quick-btn" onclick="scalarQuickLoad('http://localhost')">
+                                <i class="fas fa-server"></i> Localhost
+                            </button>
+                            <button class="scalar-quick-btn" onclick="scalarQuickLoad('http://localhost/phpmyadmin')">
+                                <i class="fas fa-database"></i> phpMyAdmin
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Iframe Display -->
-                    <div class="iframe-display-wrapper" id="iframeDisplayWrapper">
-                        <div class="iframe-empty-state" id="iframeEmptyState">
-                            <div class="iframe-empty-icon">
-                                <i class="fas fa-globe-americas"></i>
-                            </div>
-                            <h3>Iframe Workspace</h3>
-                            <p>Enter a URL above to load content</p>
-                            <div class="iframe-quick-links">
-                                <span class="iframe-quick-label">Quick Links</span>
-                                <div class="iframe-quick-btns">
-                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('http://localhost')">
-                                        <i class="fas fa-server"></i> Localhost
-                                    </button>
-                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('http://localhost/phpmyadmin')">
-                                        <i class="fas fa-database"></i> phpMyAdmin
-                                    </button>
-                                    <button class="iframe-quick-btn" onclick="iframeLoadUrl('https://chat.openai.com')">
-                                        <i class="fas fa-robot"></i> ChatGPT
-                                    </button>
-                                </div>
-                            </div>
+                    <!-- History Sidebar -->
+                    <div class="scalar-history-panel" id="scalarHistoryPanel">
+                        <div class="scalar-history-head">
+                            <h3><i class="fas fa-history"></i> Recent URLs</h3>
+                            <button class="scalar-history-close" onclick="scalarToggleHistory()"><i class="fas fa-times"></i></button>
                         </div>
-                        <iframe id="iframeViewer" class="iframe-viewer" src="about:blank" 
-                                allowfullscreen></iframe>
-                        <div class="iframe-resize-handle" id="iframeResizeHandle" title="Drag to resize iframe">
-                            <i class="fas fa-grip-lines"></i>
-                            <span class="iframe-resize-size" id="iframeResizeSize"></span>
+                        <div class="scalar-history-list" id="scalarHistoryList">
+                            <!-- History items generated by JS -->
                         </div>
+                        <button class="scalar-clear-history" onclick="scalarClearHistory()">
+                            <i class="fas fa-trash-alt"></i> Clear History
+                        </button>
                     </div>
+
                 </div>
-            </div><!-- /mc-tab-panel iframe -->
+            </div><!-- /mc-tab-panel iFrame Scalar -->
             
         </main>
         
@@ -62067,6 +62649,370 @@ document.addEventListener('keydown', function(e) {
 </div>
 <!-- Autocomplete dropdown (positioned absolutely) -->
 <div class="tdt-autocomplete" id="tdtAutocomplete"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     iFrame Scalar — Responsive Preview Engine
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    // ── Device Presets ──
+    const SCALAR_DEVICES = [
+        { id: 'iphone-se',       name: 'iPhone SE',         w: 375,  h: 667,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
+        { id: 'iphone-14',       name: 'iPhone 14',         w: 390,  h: 844,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
+        { id: 'iphone-14-pro',   name: 'iPhone 14 Pro Max', w: 430,  h: 932,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
+        { id: 'pixel-7',         name: 'Pixel 7',           w: 412,  h: 915,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
+        { id: 'galaxy-s23',      name: 'Galaxy S23',        w: 360,  h: 780,  cat: 'phone',   icon: 'fas fa-mobile-alt' },
+        { id: 'ipad-mini',       name: 'iPad Mini',         w: 768,  h: 1024, cat: 'tablet',  icon: 'fas fa-tablet-alt' },
+        { id: 'ipad-air',        name: 'iPad Air',          w: 820,  h: 1180, cat: 'tablet',  icon: 'fas fa-tablet-alt' },
+        { id: 'ipad-pro-11',     name: 'iPad Pro 11"',      w: 834,  h: 1194, cat: 'tablet',  icon: 'fas fa-tablet-alt' },
+        { id: 'ipad-pro-13',     name: 'iPad Pro 12.9"',    w: 1024, h: 1366, cat: 'tablet',  icon: 'fas fa-tablet-alt' },
+        { id: 'surface-pro',     name: 'Surface Pro 7',     w: 912,  h: 1368, cat: 'tablet',  icon: 'fas fa-tablet-alt' },
+        { id: 'laptop',          name: 'Laptop',            w: 1366, h: 768,  cat: 'desktop', icon: 'fas fa-laptop' },
+        { id: 'desktop-hd',      name: 'Desktop HD',        w: 1920, h: 1080, cat: 'desktop', icon: 'fas fa-desktop' },
+        { id: 'desktop-2k',      name: 'Desktop 2K',        w: 2560, h: 1440, cat: 'desktop', icon: 'fas fa-desktop' },
+    ];
+
+    const SCALAR_STORAGE_KEY  = 'scalar_history';
+    const SCALAR_DEVICES_KEY  = 'scalar_active_devices';
+    const SCALAR_SCALE_PHONE  = 0.38;
+    const SCALAR_SCALE_TABLET = 0.30;
+    const SCALAR_SCALE_DESK   = 0.22;
+
+    let _scalarCurrentUrl = '';
+    let _scalarActiveDevices = {};
+    let _scalarOrientations = {};  // deviceId -> 'portrait' | 'landscape'
+
+    // ── Initialization ──
+    function scalarInit() {
+        _scalarLoadActiveDevices();
+        _scalarRenderDeviceToggles();
+        _scalarRenderHistory();
+        // Show empty state initially
+        var grid  = document.getElementById('scalarGrid');
+        var empty = document.getElementById('scalarEmptyState');
+        if (grid)  grid.style.display = 'none';
+        if (empty) empty.style.display = 'flex';
+    }
+
+    function _scalarLoadActiveDevices() {
+        try {
+            var saved = localStorage.getItem(SCALAR_DEVICES_KEY);
+            if (saved) {
+                _scalarActiveDevices = JSON.parse(saved);
+            } else {
+                // Default: show 4 devices
+                _scalarActiveDevices = {
+                    'iphone-14': true,
+                    'ipad-air': true,
+                    'laptop': true,
+                    'desktop-hd': true
+                };
+            }
+        } catch(e) {
+            _scalarActiveDevices = { 'iphone-14': true, 'ipad-air': true, 'laptop': true, 'desktop-hd': true };
+        }
+    }
+
+    function _scalarSaveActiveDevices() {
+        try { localStorage.setItem(SCALAR_DEVICES_KEY, JSON.stringify(_scalarActiveDevices)); } catch(e) {}
+    }
+
+    // ── Device Toggle Pills ──
+    function _scalarRenderDeviceToggles() {
+        var cont = document.getElementById('scalarDeviceToggles');
+        if (!cont) return;
+        cont.innerHTML = '';
+        SCALAR_DEVICES.forEach(function(dev) {
+            var btn = document.createElement('button');
+            btn.className = 'scalar-dev-toggle' + (_scalarActiveDevices[dev.id] ? ' active' : '');
+            btn.setAttribute('data-dev', dev.id);
+            btn.setAttribute('data-cat', dev.cat);
+            btn.innerHTML = '<span class="scalar-dev-dot"></span>' + dev.name +
+                            ' <span class="scalar-dev-dims">' + dev.w + 'x' + dev.h + '</span>';
+            btn.onclick = function() {
+                _scalarActiveDevices[dev.id] = !_scalarActiveDevices[dev.id];
+                btn.classList.toggle('active');
+                _scalarSaveActiveDevices();
+                if (_scalarCurrentUrl) _scalarRenderGrid();
+            };
+            cont.appendChild(btn);
+        });
+    }
+
+    // ── Category Filter ──
+    window.scalarFilterCategory = function(cat) {
+        // Update button states
+        document.querySelectorAll('.scalar-cat-btn').forEach(function(b) {
+            b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+        });
+        // Show/hide device toggles
+        document.querySelectorAll('.scalar-dev-toggle').forEach(function(b) {
+            if (cat === 'all') {
+                b.style.display = '';
+            } else {
+                b.style.display = b.getAttribute('data-cat') === cat ? '' : 'none';
+            }
+        });
+        // Filter visible cards
+        document.querySelectorAll('.scalar-device-card').forEach(function(card) {
+            if (cat === 'all') {
+                card.style.display = '';
+            } else {
+                card.style.display = card.getAttribute('data-cat') === cat ? '' : 'none';
+            }
+        });
+    };
+
+    // ── Scale factor by category ──
+    function _scalarGetScale(cat) {
+        if (cat === 'phone')  return SCALAR_SCALE_PHONE;
+        if (cat === 'tablet') return SCALAR_SCALE_TABLET;
+        return SCALAR_SCALE_DESK;
+    }
+
+    // ── Render Grid ──
+    function _scalarRenderGrid() {
+        var grid  = document.getElementById('scalarGrid');
+        var empty = document.getElementById('scalarEmptyState');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        var activeDevs = SCALAR_DEVICES.filter(function(d) { return _scalarActiveDevices[d.id]; });
+        if (!activeDevs.length || !_scalarCurrentUrl) {
+            grid.style.display = 'none';
+            if (empty) empty.style.display = 'flex';
+            return;
+        }
+        grid.style.display = 'flex';
+        if (empty) empty.style.display = 'none';
+
+        activeDevs.forEach(function(dev, idx) {
+            var orient = _scalarOrientations[dev.id] || 'portrait';
+            var dw = orient === 'landscape' ? dev.h : dev.w;
+            var dh = orient === 'landscape' ? dev.w : dev.h;
+            var scale = _scalarGetScale(dev.cat);
+            var frameW = Math.round(dw * scale);
+            var frameH = Math.round(dh * scale);
+
+            var card = document.createElement('div');
+            card.className = 'scalar-device-card';
+            card.setAttribute('data-cat', dev.cat);
+            card.setAttribute('data-dev', dev.id);
+            card.style.animationDelay = (idx * 0.06) + 's';
+            card.style.width = frameW + 'px';
+
+            // Header
+            card.innerHTML =
+                '<div class="scalar-card-header">' +
+                    '<div class="scalar-card-info">' +
+                        '<div class="scalar-card-icon ' + dev.cat + '"><i class="' + dev.icon + '"></i></div>' +
+                        '<span class="scalar-card-name">' + dev.name + '</span>' +
+                        '<span class="scalar-card-size">' + dw + ' x ' + dh + '</span>' +
+                    '</div>' +
+                    '<div class="scalar-card-actions">' +
+                        '<button class="scalar-card-action" onclick="scalarRefreshDevice(\'' + dev.id + '\')" title="Refresh"><i class="fas fa-sync-alt"></i></button>' +
+                        '<button class="scalar-card-action" onclick="scalarOpenExternal(\'' + dev.id + '\')" title="Open in new tab"><i class="fas fa-external-link-alt"></i></button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="scalar-device-frame" style="width:' + frameW + 'px;height:' + frameH + 'px;">' +
+                    '<div class="scalar-orient-badge" onclick="scalarToggleOrientation(\'' + dev.id + '\')" title="Toggle orientation">' +
+                        '<i class="fas fa-redo"></i>' +
+                    '</div>' +
+                    '<iframe id="scalar-iframe-' + dev.id + '" ' +
+                        'src="' + _scalarEscHtml(_scalarCurrentUrl) + '" ' +
+                        'style="width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + scale + ');" ' +
+                        'loading="lazy" allowfullscreen></iframe>' +
+                '</div>';
+
+            grid.appendChild(card);
+        });
+    }
+
+    // ── URL Loading ──
+    window.scalarLoadUrl = function() {
+        var input = document.getElementById('scalarUrlInput');
+        if (!input) return;
+        var url = input.value.trim();
+        if (!url) return;
+        if (!/^https?:\/\//i.test(url) && !/^about:/i.test(url)) {
+            url = 'http://' + url;
+            input.value = url;
+        }
+        _scalarCurrentUrl = url;
+        _scalarAddHistory(url);
+        _scalarRenderGrid();
+        _scalarCloseDropdown();
+    };
+
+    window.scalarQuickLoad = function(url) {
+        var input = document.getElementById('scalarUrlInput');
+        if (input) input.value = url;
+        _scalarCurrentUrl = url;
+        _scalarAddHistory(url);
+        _scalarRenderGrid();
+    };
+
+    window.scalarRefreshAll = function() {
+        document.querySelectorAll('.scalar-device-frame iframe').forEach(function(ifr) {
+            try { ifr.src = ifr.src; } catch(e) {}
+        });
+    };
+
+    window.scalarRefreshDevice = function(devId) {
+        var ifr = document.getElementById('scalar-iframe-' + devId);
+        if (ifr) { try { ifr.src = ifr.src; } catch(e) {} }
+    };
+
+    window.scalarOpenExternal = function(devId) {
+        if (_scalarCurrentUrl) window.open(_scalarCurrentUrl, '_blank');
+    };
+
+    window.scalarToggleOrientation = function(devId) {
+        var cur = _scalarOrientations[devId] || 'portrait';
+        _scalarOrientations[devId] = cur === 'portrait' ? 'landscape' : 'portrait';
+        _scalarRenderGrid();
+    };
+
+    // ── URL Input ──
+    window.scalarUrlKeydown = function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            scalarLoadUrl();
+        } else if (e.key === 'Escape') {
+            _scalarCloseDropdown();
+        }
+    };
+
+    window.scalarUrlAutocomplete = function() {
+        var input = document.getElementById('scalarUrlInput');
+        var dd    = document.getElementById('scalarUrlDropdown');
+        if (!input || !dd) return;
+        var val = input.value.trim().toLowerCase();
+        if (!val) { _scalarCloseDropdown(); return; }
+        var history = _scalarGetHistory();
+        var matches = history.filter(function(h) { return h.url.toLowerCase().indexOf(val) !== -1; }).slice(0, 8);
+        if (!matches.length) { _scalarCloseDropdown(); return; }
+        dd.innerHTML = '';
+        matches.forEach(function(m) {
+            var item = document.createElement('div');
+            item.className = 'scalar-url-dropdown-item';
+            item.innerHTML = '<i class="fas fa-history"></i><span>' + _scalarEscHtml(m.url) + '</span>';
+            item.onclick = function() {
+                input.value = m.url;
+                _scalarCloseDropdown();
+                scalarLoadUrl();
+            };
+            dd.appendChild(item);
+        });
+        dd.classList.add('open');
+    };
+
+    function _scalarCloseDropdown() {
+        var dd = document.getElementById('scalarUrlDropdown');
+        if (dd) dd.classList.remove('open');
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.scalar-url-wrapper')) _scalarCloseDropdown();
+    });
+
+    // ── History ──
+    function _scalarGetHistory() {
+        try {
+            var h = JSON.parse(localStorage.getItem(SCALAR_STORAGE_KEY) || '[]');
+            return Array.isArray(h) ? h : [];
+        } catch(e) { return []; }
+    }
+
+    function _scalarSaveHistory(arr) {
+        try { localStorage.setItem(SCALAR_STORAGE_KEY, JSON.stringify(arr)); } catch(e) {}
+    }
+
+    function _scalarAddHistory(url) {
+        var history = _scalarGetHistory();
+        history = history.filter(function(h) { return h.url !== url; });
+        history.unshift({ url: url, ts: Date.now() });
+        if (history.length > 50) history = history.slice(0, 50);
+        _scalarSaveHistory(history);
+        _scalarRenderHistory();
+    }
+
+    function _scalarRenderHistory() {
+        var list = document.getElementById('scalarHistoryList');
+        if (!list) return;
+        var history = _scalarGetHistory();
+        if (!history.length) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;color:#475569;font-size:12px;">No history yet</div>';
+            return;
+        }
+        list.innerHTML = '';
+        history.forEach(function(h, idx) {
+            var ago = _scalarTimeAgo(h.ts);
+            var item = document.createElement('div');
+            item.className = 'scalar-history-item';
+            item.innerHTML =
+                '<i class="fas fa-globe"></i>' +
+                '<span class="scalar-history-item-url" title="' + _scalarEscHtml(h.url) + '">' + _scalarEscHtml(h.url) + '</span>' +
+                '<span class="scalar-history-item-time">' + ago + '</span>' +
+                '<button class="scalar-history-item-del" onclick="event.stopPropagation();scalarDeleteHistory(' + idx + ')" title="Remove"><i class="fas fa-times"></i></button>';
+            item.onclick = function() {
+                var input = document.getElementById('scalarUrlInput');
+                if (input) input.value = h.url;
+                scalarLoadUrl();
+                scalarToggleHistory();
+            };
+            list.appendChild(item);
+        });
+    }
+
+    window.scalarToggleHistory = function() {
+        var panel = document.getElementById('scalarHistoryPanel');
+        var btn   = document.querySelector('.scalar-history-toggle');
+        if (!panel) return;
+        panel.classList.toggle('open');
+        if (btn) btn.classList.toggle('active', panel.classList.contains('open'));
+        _scalarRenderHistory();
+    };
+
+    window.scalarDeleteHistory = function(idx) {
+        var history = _scalarGetHistory();
+        history.splice(idx, 1);
+        _scalarSaveHistory(history);
+        _scalarRenderHistory();
+    };
+
+    window.scalarClearHistory = function() {
+        _scalarSaveHistory([]);
+        _scalarRenderHistory();
+    };
+
+    // ── Helpers ──
+    function _scalarEscHtml(str) {
+        var d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    function _scalarTimeAgo(ts) {
+        var diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    // ── Boot ──
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scalarInit);
+    } else {
+        scalarInit();
+    }
+})();
+</script>
 
 </body>
 </html>
