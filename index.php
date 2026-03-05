@@ -14,6 +14,11 @@ session_set_cookie_params([
 ]);
 session_start();
 
+// Prevent browser caching so JS changes take effect immediately
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // ============================================
 // SUPER ADMIN AUTHENTICATION
 // ============================================
@@ -36655,31 +36660,8 @@ in each section carefully and maintain proper connections between components.
             setTimeout(function() { box.classList.remove('path-updated'); }, 1200);
         }
 
-        // ── Push navigation path into Prompt Editor textarea ──
-        function _iframeShowNavPopup(url) {
-            var editor = document.getElementById('promptEditor');
-            if (!editor) return;
-            // Extract readable path from URL
-            var displayPath = url;
-            try {
-                var p = new URL(url);
-                displayPath = decodeURIComponent(p.pathname + p.search + p.hash) || '/';
-                displayPath = p.origin + displayPath;
-            } catch(e) {}
-            // Build the line to insert
-            var pathLine = '📂 ' + displayPath;
-            // Append to editor (add newline if editor has content)
-            var current = editor.value;
-            if (current && !current.endsWith('\n')) {
-                editor.value = current + '\n' + pathLine + '\n';
-            } else {
-                editor.value = (current || '') + pathLine + '\n';
-            }
-            // Scroll textarea to bottom to show the new path
-            editor.scrollTop = editor.scrollHeight;
-            // Trigger input event so any listeners (char count, autosave, etc.) update
-            editor.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+        // ── DISABLED: No longer pushes iframe navigation paths to Prompt Editor ──
+        function _iframeShowNavPopup(url) { /* disabled */ }
 
         // Attach a permanent load listener to catch ALL iframe navigations (including internal link clicks)
         function _iframeAttachLoadListener() {
@@ -36720,7 +36702,6 @@ in each section carefully and maintain proper connections between components.
                     _iframeUpdateBreadcrumb(resolvedUrl);
                     _docrootUpdateFromIframe(resolvedUrl);
                     _iframeUpdatePathBox(resolvedUrl);
-                    _iframeShowNavPopup(resolvedUrl);
                 } else {
                     // Cross-origin: can't read URL directly
                     // Bridge proxy + postMessage will provide the real URL — don't push stale data
@@ -36766,7 +36747,6 @@ in each section carefully and maintain proper connections between components.
             _iframeUpdateBreadcrumb(cleanUrl);
             _docrootUpdateFromIframe(cleanUrl);
             _iframeUpdatePathBox(cleanUrl);
-            _iframeShowNavPopup(cleanUrl);
 
             // Remove pulse if active (postMessage arrived with real URL)
             var ghost = document.getElementById('docrootGhost');

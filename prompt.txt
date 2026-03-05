@@ -1,0 +1,1 @@
+The path of the iFrame is still injecting the information inside the prompt editor. Please search more and try to find the problem. 
