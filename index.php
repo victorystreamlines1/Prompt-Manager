@@ -25989,10 +25989,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Device Frame (bezel) */
         .scalar-device-frame {
             position: relative;
-            overflow: auto;
+            overflow: hidden;
             background: #0a0a1a;
             margin: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .scalar-device-frame::-webkit-scrollbar { display: none; }
         .scalar-device-frame iframe {
             display: block;
             border: none;
@@ -62769,10 +62772,10 @@ document.addEventListener('keydown', function(e) {
                     '<button class="scalar-card-action" onclick="scalarOpenExternal()" title="Open in new tab"><i class="fas fa-external-link-alt"></i></button>' +
                 '</div>' +
             '</div>' +
-            '<div class="scalar-device-frame" style="width:' + frameW + 'px;height:' + frameH + 'px;overflow:auto;">' +
+            '<div class="scalar-device-frame" style="width:' + frameW + 'px;height:' + frameH + 'px;">' +
                 '<iframe id="scalar-iframe-' + dev.id + '" ' +
                     'src="' + _scalarEscHtml(_scalarCurrentUrl) + '" ' +
-                    'style="width:' + dw + 'px;height:' + dh + 'px;transform:scale(' + scale + ');transform-origin:top left;" ' +
+                    'style="width:' + (dw + 17) + 'px;height:' + dh + 'px;transform:scale(' + scale + ');transform-origin:top left;" ' +
                     'allowfullscreen></iframe>' +
             '</div>';
 
