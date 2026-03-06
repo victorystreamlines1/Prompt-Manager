@@ -27108,149 +27108,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <!-- Saved Prompts -->
-            <div class="saved-prompts-section">
-                <!-- Unified Actions Bar: Title + Select All + Search -->
-                <div class="saved-actions-bar">
-                    <h3 class="saved-bar-title"><i class="fas fa-bookmark"></i> Saved Prompts</h3>
-                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
-                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
-                        <span class="checkbox-custom"></span>
-                        <span class="checkbox-label">Select All</span>
-                    </label>
-                    <span class="saved-counter" id="savedCounter">0/0</span>
-                    <div class="search-box saved-search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchPrompts" placeholder="Search prompts...">
-                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Static Scrollbar (above static nodes) -->
-                <div class="static-scrollbar-track" id="staticScrollbarTrack">
-                    <div class="static-scrollbar-thumb" id="staticScrollbarThumb"></div>
-                </div>
-                
-                <!-- Static Nodes Row: QST + RET -->
-                <div class="static-nodes-row" id="staticNodesRow">
-                    <!-- Static Node: Quiz Question Generator (QST) -->
-                    <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
-                        <div class="qst-glow-bar"></div>
-                        <div class="qst-inner">
-                            <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
-                                <input type="checkbox" id="qstCheckbox">
-                                <div class="qst-check-box"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="qst-body">
-                                <div class="qst-badges">
-                                    <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                    <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
-                                </div>
-                                <div class="qst-name">Quiz Question Generator</div>
-                                <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
-                            </div>
-                            <div class="qst-actions" onclick="event.stopPropagation()">
-                                <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer & push">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Static Node: Reverse Engineer (RET) -->
-                    <div class="ret-container" id="retContainer" onclick="retOpenModal()">
-                        <div class="ret-glow-bar"></div>
-                        <div class="ret-inner">
-                            <div class="ret-checkbox" id="retCheckboxWrap" onclick="event.stopPropagation(); retToggleDirect()">
-                                <input type="checkbox" id="retCheckbox">
-                                <div class="ret-check-box"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="ret-body">
-                                <div class="ret-badges">
-                                    <span class="ret-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                    <span class="ret-badge-type"><i class="fas fa-sync-alt"></i> Reverse</span>
-                                </div>
-                                <div class="ret-name">Reverse Engineer</div>
-                                <div class="ret-preview">Code → Prompt — paste code to generate a recreation prompt</div>
-                            </div>
-                            <div class="ret-actions" onclick="event.stopPropagation()">
-                                <button type="button" class="ret-action-btn ret-copy" onclick="retCopyPrompt()" title="Copy prompt">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button type="button" class="ret-action-btn ret-push" onclick="retOpenModal()" title="Set code & push">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Static Node: Image to Code (ITC) -->
-                    <div class="itc-container" id="itcContainer" onclick="itcOpenModal()">
-                        <div class="itc-glow-bar"></div>
-                        <div class="itc-inner">
-                            <div class="itc-checkbox" id="itcCheckboxWrap" onclick="event.stopPropagation(); itcToggleDirect()">
-                                <input type="checkbox" id="itcCheckbox">
-                                <div class="itc-check-box"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="itc-body">
-                                <div class="itc-badges">
-                                    <span class="itc-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                    <span class="itc-badge-type"><i class="fas fa-image"></i> Image</span>
-                                </div>
-                                <div class="itc-name">Image to Code</div>
-                                <div class="itc-preview">Image → HTML/CSS — select images to generate recreation prompt</div>
-                            </div>
-                            <div class="itc-actions" onclick="event.stopPropagation()">
-                                <button type="button" class="itc-action-btn itc-copy" onclick="itcCopyPrompt()" title="Copy prompt">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button type="button" class="itc-action-btn itc-push" onclick="itcOpenModal()" title="Select images & push">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Static Node: Support Tutorial Generator (STG) -->
-                    <div class="stg-container" id="stgContainer" onclick="stgOpenModal()">
-                        <div class="stg-glow-bar"></div>
-                        <div class="stg-inner">
-                            <div class="stg-checkbox" id="stgCheckboxWrap" onclick="event.stopPropagation(); stgToggleDirect()">
-                                <input type="checkbox" id="stgCheckbox">
-                                <div class="stg-check-box"><i class="fas fa-check"></i></div>
-                            </div>
-                            <div class="stg-body">
-                                <div class="stg-badges">
-                                    <span class="stg-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                    <span class="stg-badge-type"><i class="fas fa-graduation-cap"></i> Tutorial</span>
-                                </div>
-                                <div class="stg-name">Support Tutorial</div>
-                                <div class="stg-preview">Images → HTML tutorial — enter filename to generate course</div>
-                            </div>
-                            <div class="stg-actions" onclick="event.stopPropagation()">
-                                <button type="button" class="stg-action-btn stg-copy" onclick="stgCopyPrompt()" title="Copy prompt">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button type="button" class="stg-action-btn stg-push" onclick="stgOpenModal()" title="Set filename & push">
-                                    <i class="fas fa-bolt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="saved-list" id="savedList">
-                    <!-- Saved prompts will be loaded here -->
-                </div>
-                <div class="saved-scrollbar-track" id="savedScrollbarTrack">
-                    <div class="saved-scrollbar-thumb" id="savedScrollbarThumb"></div>
-                </div>
-            </div>
 
             <!-- QST Answer Modal -->
             <div class="qst-modal-overlay" id="qstModalOverlay" onclick="qstCloseModal()">
@@ -27926,6 +27783,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div><!-- /mc-tab-panel workspace -->
 
+            <!-- Saved Prompts -->
+            <div class="saved-prompts-section">
+                <!-- Unified Actions Bar: Title + Select All + Search -->
+                <div class="saved-actions-bar">
+                    <h3 class="saved-bar-title"><i class="fas fa-bookmark"></i> Saved Prompts</h3>
+                    <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
+                        <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Select All</span>
+                    </label>
+                    <span class="saved-counter" id="savedCounter">0/0</span>
+                    <div class="search-box saved-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchPrompts" placeholder="Search prompts...">
+                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Static Scrollbar (above static nodes) -->
+                <div class="static-scrollbar-track" id="staticScrollbarTrack">
+                    <div class="static-scrollbar-thumb" id="staticScrollbarThumb"></div>
+                </div>
+                
+                <!-- Static Nodes Row: QST + RET -->
+                <div class="static-nodes-row" id="staticNodesRow">
+                    <!-- Static Node: Quiz Question Generator (QST) -->
+                    <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
+                        <div class="qst-glow-bar"></div>
+                        <div class="qst-inner">
+                            <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
+                                <input type="checkbox" id="qstCheckbox">
+                                <div class="qst-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="qst-body">
+                                <div class="qst-badges">
+                                    <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
+                                </div>
+                                <div class="qst-name">Quiz Question Generator</div>
+                                <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
+                            </div>
+                            <div class="qst-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Static Node: Reverse Engineer (RET) -->
+                    <div class="ret-container" id="retContainer" onclick="retOpenModal()">
+                        <div class="ret-glow-bar"></div>
+                        <div class="ret-inner">
+                            <div class="ret-checkbox" id="retCheckboxWrap" onclick="event.stopPropagation(); retToggleDirect()">
+                                <input type="checkbox" id="retCheckbox">
+                                <div class="ret-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="ret-body">
+                                <div class="ret-badges">
+                                    <span class="ret-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="ret-badge-type"><i class="fas fa-sync-alt"></i> Reverse</span>
+                                </div>
+                                <div class="ret-name">Reverse Engineer</div>
+                                <div class="ret-preview">Code → Prompt — paste code to generate a recreation prompt</div>
+                            </div>
+                            <div class="ret-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="ret-action-btn ret-copy" onclick="retCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="ret-action-btn ret-push" onclick="retOpenModal()" title="Set code & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Static Node: Image to Code (ITC) -->
+                    <div class="itc-container" id="itcContainer" onclick="itcOpenModal()">
+                        <div class="itc-glow-bar"></div>
+                        <div class="itc-inner">
+                            <div class="itc-checkbox" id="itcCheckboxWrap" onclick="event.stopPropagation(); itcToggleDirect()">
+                                <input type="checkbox" id="itcCheckbox">
+                                <div class="itc-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="itc-body">
+                                <div class="itc-badges">
+                                    <span class="itc-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="itc-badge-type"><i class="fas fa-image"></i> Image</span>
+                                </div>
+                                <div class="itc-name">Image to Code</div>
+                                <div class="itc-preview">Image → HTML/CSS — select images to generate recreation prompt</div>
+                            </div>
+                            <div class="itc-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="itc-action-btn itc-copy" onclick="itcCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="itc-action-btn itc-push" onclick="itcOpenModal()" title="Select images & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Static Node: Support Tutorial Generator (STG) -->
+                    <div class="stg-container" id="stgContainer" onclick="stgOpenModal()">
+                        <div class="stg-glow-bar"></div>
+                        <div class="stg-inner">
+                            <div class="stg-checkbox" id="stgCheckboxWrap" onclick="event.stopPropagation(); stgToggleDirect()">
+                                <input type="checkbox" id="stgCheckbox">
+                                <div class="stg-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="stg-body">
+                                <div class="stg-badges">
+                                    <span class="stg-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="stg-badge-type"><i class="fas fa-graduation-cap"></i> Tutorial</span>
+                                </div>
+                                <div class="stg-name">Support Tutorial</div>
+                                <div class="stg-preview">Images → HTML tutorial — enter filename to generate course</div>
+                            </div>
+                            <div class="stg-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="stg-action-btn stg-copy" onclick="stgCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="stg-action-btn stg-push" onclick="stgOpenModal()" title="Set filename & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="saved-list" id="savedList">
+                    <!-- Saved prompts will be loaded here -->
+                </div>
+                <div class="saved-scrollbar-track" id="savedScrollbarTrack">
+                    <div class="saved-scrollbar-thumb" id="savedScrollbarThumb"></div>
+                </div>
+            </div>
             <!-- Editor (always visible – excluded from tab toggle) -->
             <div class="editor-container">
                 <div class="editor-header">
