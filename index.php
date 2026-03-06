@@ -4099,7 +4099,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 0.6rem;
         }
         .static-nodes-row > .qst-container,
-        .static-nodes-row > .ret-container {
+        .static-nodes-row > .ret-container,
+        .static-nodes-row > .itc-container,
+        .static-nodes-row > .spt-container,
+        .static-nodes-row > .stg-container {
             flex: 1;
             min-width: 0;
             margin-bottom: 0;
@@ -4741,6 +4744,239 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .itc-btn-push:hover {
             transform: translateY(-1px);
             box-shadow: 0 6px 18px rgba(245,158,11,0.45);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           SUPPORT TUTORIAL GENERATOR (STG) — Static Node
+           ═══════════════════════════════════════════════════════════ */
+        .stg-container {
+            position: relative; border-radius: 10px; cursor: pointer;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.07), rgba(8, 145, 178, 0.04));
+            border: 1.5px solid rgba(6, 182, 212, 0.22);
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+        .stg-container:hover {
+            border-color: rgba(6, 182, 212, 0.42);
+            box-shadow: 0 2px 14px rgba(6, 182, 212, 0.12);
+            transform: translateY(-1px);
+        }
+        .stg-container.checked {
+            border-color: rgba(6, 182, 212, 0.6);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.13), rgba(8, 145, 178, 0.07));
+            box-shadow: 0 2px 18px rgba(6, 182, 212, 0.18);
+        }
+        .stg-glow-bar {
+            position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+            background: linear-gradient(90deg, #06b6d4, #0891b2, #22d3ee, #0891b2, #06b6d4);
+            background-size: 200% 100%;
+            animation: stgShimmer 3s linear infinite;
+        }
+        @keyframes stgShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .stg-inner {
+            display: flex; align-items: center;
+            padding: 0.55rem 0.7rem; gap: 0.45rem;
+        }
+        .stg-checkbox { flex-shrink: 0; cursor: pointer; }
+        .stg-checkbox input { display: none; }
+        .stg-check-box {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(6, 182, 212, 0.35);
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .stg-check-box i { font-size: 0.65rem; color: white; opacity: 0; transform: scale(0); transition: all 0.2s; }
+        .stg-container.checked .stg-check-box {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            border-color: #06b6d4;
+        }
+        .stg-container.checked .stg-check-box i { opacity: 1; transform: scale(1); }
+        .stg-body { flex: 1; min-width: 0; }
+        .stg-badges {
+            display: flex; align-items: center; gap: 4px;
+            margin-bottom: 2px;
+        }
+        .stg-badge-static {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #22d3ee;
+            background: rgba(6, 182, 212, 0.12);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .stg-badge-type {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #67e8f9;
+            background: rgba(6, 182, 212, 0.1);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .stg-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .stg-preview {
+            font-size: 0.67rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .stg-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.55; transition: opacity 0.2s;
+        }
+        .stg-container:hover .stg-actions { opacity: 1; }
+        .stg-action-btn {
+            width: 26px; height: 26px;
+            border-radius: 6px; border: none;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.7rem;
+        }
+        .stg-action-btn.stg-copy:hover {
+            background: rgba(6, 182, 212, 0.18); color: #22d3ee;
+            transform: scale(1.1);
+        }
+        .stg-action-btn.stg-push:hover {
+            background: rgba(6, 182, 212, 0.22); color: #67e8f9;
+            transform: scale(1.1);
+        }
+
+        /* STG Filename Modal */
+        .stg-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10500;
+            display: none; align-items: center; justify-content: center;
+        }
+        .stg-modal-overlay.active { display: flex; }
+        .stg-modal {
+            background: var(--bg-primary);
+            border: 1.5px solid rgba(6, 182, 212, 0.3);
+            border-radius: 16px;
+            width: 460px; max-width: 95vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(6,182,212,0.08);
+            animation: stgModalIn 0.25s ease;
+            overflow: hidden;
+        }
+        @keyframes stgModalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .stg-modal-header {
+            padding: 0.9rem 1.1rem 0.75rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.12);
+            background: linear-gradient(135deg, rgba(6,182,212,0.08), rgba(8,145,178,0.04));
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .stg-modal-title {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.92rem; font-weight: 700; color: var(--text-primary);
+        }
+        .stg-modal-title i { color: #22d3ee; font-size: 0.9rem; }
+        .stg-modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 0.2s;
+        }
+        .stg-modal-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+        .stg-modal-body { padding: 1rem 1.1rem; }
+        .stg-modal-hint {
+            font-size: 0.75rem; color: var(--text-muted);
+            line-height: 1.55; margin-bottom: 0.85rem;
+            padding: 0.55rem 0.75rem;
+            background: rgba(6,182,212,0.06);
+            border-radius: 8px;
+            border-left: 3px solid rgba(6,182,212,0.35);
+        }
+        .stg-modal-hint strong { color: var(--text-primary); }
+        .stg-modal-hint code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: rgba(6,182,212,0.12);
+            padding: 1px 5px; border-radius: 4px;
+            color: #22d3ee;
+        }
+        .stg-input-wrap { display: flex; flex-direction: column; gap: 5px; }
+        .stg-input-label {
+            font-size: 0.72rem; font-weight: 600;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .stg-input-label i { color: #22d3ee; }
+        .stg-input-group {
+            display: flex; align-items: center; gap: 0;
+        }
+        .stg-input {
+            flex: 1; padding: 0.6rem 0.85rem;
+            border-radius: 9px 0 0 9px;
+            border: 1.5px solid rgba(6,182,212,0.25);
+            border-right: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .stg-input:focus {
+            border-color: rgba(6,182,212,0.55);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+        }
+        .stg-input-suffix {
+            padding: 0.6rem 0.75rem;
+            border-radius: 0 9px 9px 0;
+            border: 1.5px solid rgba(6,182,212,0.25);
+            border-left: none;
+            background: rgba(6,182,212,0.08);
+            color: #22d3ee;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .stg-input:focus + .stg-input-suffix {
+            border-color: rgba(6,182,212,0.55);
+        }
+        .stg-modal-footer {
+            padding: 0.7rem 1.1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        }
+        .stg-btn-cancel {
+            padding: 0.45rem 1rem; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-secondary);
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .stg-btn-cancel:hover { background: var(--bg-card); color: var(--text-primary); }
+        .stg-btn-push {
+            padding: 0.45rem 1.1rem; border-radius: 7px;
+            border: none;
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(6,182,212,0.3);
+        }
+        .stg-btn-push:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.45);
         }
 
         /* Template Modal */
@@ -26730,6 +26966,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Static Node: Support Tutorial Generator (STG) -->
+                    <div class="stg-container" id="stgContainer" onclick="stgOpenModal()">
+                        <div class="stg-glow-bar"></div>
+                        <div class="stg-inner">
+                            <div class="stg-checkbox" id="stgCheckboxWrap" onclick="event.stopPropagation(); stgToggleDirect()">
+                                <input type="checkbox" id="stgCheckbox">
+                                <div class="stg-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="stg-body">
+                                <div class="stg-badges">
+                                    <span class="stg-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="stg-badge-type"><i class="fas fa-graduation-cap"></i> Tutorial</span>
+                                </div>
+                                <div class="stg-name">Support Tutorial</div>
+                                <div class="stg-preview">Images → HTML tutorial — enter filename to generate course</div>
+                            </div>
+                            <div class="stg-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="stg-action-btn stg-copy" onclick="stgCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="stg-action-btn stg-push" onclick="stgOpenModal()" title="Set filename & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="saved-list" id="savedList">
@@ -26820,6 +27083,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button class="itc-btn-cancel" onclick="itcCloseModal()"><i class="fas fa-times"></i> Cancel</button>
                             <button class="itc-btn-push" onclick="itcConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STG Filename Modal -->
+            <div class="stg-modal-overlay" id="stgModalOverlay" onclick="if(event.target===this) stgCloseModal()">
+                <div class="stg-modal" onclick="event.stopPropagation()">
+                    <div class="stg-modal-header">
+                        <div class="stg-modal-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Support Tutorial Generator</span>
+                        </div>
+                        <button class="stg-modal-close" onclick="stgCloseModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="stg-modal-body">
+                        <p class="stg-modal-hint">Enter the <strong>output filename</strong> for the tutorial. The prompt will reference this filename throughout. Example: <code>my-tutorial</code></p>
+                        <div class="stg-input-wrap">
+                            <label class="stg-input-label"><i class="fas fa-file-code"></i> Filename</label>
+                            <div class="stg-input-group">
+                                <input type="text" class="stg-input" id="stgFilenameInput" placeholder="support-prompt" autocomplete="off">
+                                <span class="stg-input-suffix">.html</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stg-modal-footer">
+                        <button class="stg-btn-cancel" onclick="stgCloseModal()"><i class="fas fa-times"></i> Cancel</button>
+                        <button class="stg-btn-push" onclick="stgConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
                     </div>
                 </div>
             </div>
@@ -62679,6 +62969,264 @@ document.addEventListener('keydown', function(e) {
         const overlay = document.getElementById('itcModalOverlay');
         if (overlay && overlay.classList.contains('active')) itcCloseModal();
     }
+});
+</script>
+
+<!-- ═══ Support Tutorial Generator (STG) — Static Node JS ═══ -->
+<script>
+const STG_MARKER_START = '<!-- STG:SUPPORT_TUTORIAL -->';
+const STG_MARKER_END   = '<!-- /STG:SUPPORT_TUTORIAL -->';
+let stgActive = false;
+
+const STG_PROMPT_TEMPLATE = `# 🎓 SUPPORT TUTORIAL GENERATOR
+
+This is an image-based tutorial where you'll convert images into an HTML report. Follow these guidelines:
+
+1. Process the attached images in the order provided
+2. Explain each image algorithmically and logically according to the subject sequence
+3. Add written annotations directly on images when appropriate, or place them adjacent (side, left, or bottom) as the layout requires
+4. Ensure all explanations follow the logical flow of the course material
+5. Convert all images to HTML format with corresponding demonstrations and explanations
+
+Create a comprehensive tutorial course that intelligently interprets the images and maintains their sequential logic throughout the report.
+
+# 🎓 SUPPORT TUTORIAL GENERATOR
+
+## YOUR MISSION:
+Create a **single, self-contained HTML file** called \\\`{{FILENAME}}.html\\\` that serves as an **interactive, fun, and comprehensive tutorial** explaining the following phrase/code/command.
+
+---
+
+## 📝 THE PHRASE/CODE TO EXPLAIN:
+
+\\\`\\\`\\\`
+
+\\\`\\\`\\\`
+
+---
+
+## 📋 REQUIREMENTS:
+
+### 1. FILE STRUCTURE (All-in-One HTML):
+- Single \\\`.html\\\` file with embedded \\\`<style>\\\` and \\\`<script>\\\` tags
+- No external dependencies (except optional CDN fonts/icons)
+- Must be viewable offline
+- File name: \\\`{{FILENAME}}.html\\\`
+
+### 2. CONTENT SECTIONS (Include ALL):
+1. **Hero Header** - Eye-catching animated title with the phrase
+2. **What Is It?** - Clear explanation of what this phrase/code means
+3. **Why Use It?** - Benefits and use cases
+4. **How Does It Work?** - Step-by-step breakdown
+5. **Live Demo/Example** - Interactive demonstration if applicable
+6. **Code Breakdown** - Syntax highlighting with annotations
+7. **Common Mistakes** - What NOT to do
+8. **Pro Tips** - Advanced usage tips
+9. **Practice Quiz** - Mini interactive quiz (2-3 questions)
+10. **Summary Card** - Quick reference cheat sheet
+11. **Footer** - Credits and "generated by AI Prompt Dictionary"
+
+### 3. DESIGN & AESTHETICS:
+- 🎨 **Color Scheme**: Dark mode with vibrant accent colors (purple/blue/green gradients)
+- ✨ **Animations**: Smooth fade-ins, hover effects, scroll animations
+- 🎮 **Gamification**: Progress indicators, achievement badges, interactive elements
+- 📱 **Responsive**: Works on mobile and desktop
+- 🌟 **Modern UI**: Glassmorphism, rounded corners, shadows
+- 🎭 **Fun Elements**: Emojis, icons, playful micro-interactions
+
+### 4. INTERACTIVITY:
+- Collapsible sections (accordion style)
+- Copy-to-clipboard buttons for code
+- Hover tooltips for technical terms
+- Tab switches for different examples
+- Smooth scroll navigation
+- Dark/Light theme toggle (optional)
+
+### 5. ENTERTAINMENT VALUE:
+- Use storytelling approach
+- Add relevant emojis throughout
+- Include encouraging messages
+- Make learning feel like a game
+- Celebrate correct quiz answers with confetti/animation
+
+### 6. TECHNICAL QUALITY:
+- Clean, semantic HTML5
+- Well-organized CSS with variables
+- Vanilla JavaScript (no frameworks needed)
+- Proper accessibility (aria labels, contrast)
+- Fast loading, optimized
+
+### 7. 📷 IMAGE INTEGRATION & COURSE DESIGN:
+
+**CRITICAL: This tutorial includes attached images that MUST be integrated.**
+
+- In the phrase area, you will find the steps and procedures for this functionality. Design the course according to these steps, breaking down the functionality to teach students how to implement it. I have attached pictures for each step that should be integrated throughout the course tutorial.
+
+- Place each image appropriately within the course design - whether as numbered steps, lettered procedures, or another format that best serves the teaching approach. Ensure all images are seamlessly integrated with the course content.
+
+- Structure the course by presenting initial steps at the beginning, followed by detailed explanations after covering the core concepts. **Do not omit any images** - all must be included in the final course.
+
+- Enhance the images as needed by resizing, adding indicators, arrows, or annotations to improve clarity. You may also create snapshots for itemized sections. Make whatever modifications are necessary to ensure the course is easy to understand.
+
+- Center most explanations around each image, describing what the image shows while maintaining a logical step-by-step order that guides students through the complete process.
+
+- If the text doesn't describe the images but images are present, interpret the logical sequence rather than writing detailed descriptions. Analyze the sequence based on the text, annotations, and visual cues. When the text doesn't fully explain the images, steps, or processes, derive meaning from the visual elements themselves.
+
+---
+
+## 🎯 OUTPUT EXAMPLE STRUCTURE:
+
+The HTML file should follow this structure:
+- DOCTYPE and html tags with lang="en"
+- Head with meta charset, viewport, title: " - Interactive Tutorial"
+- Embedded style tag with all CSS
+- Body with all HTML content
+- Embedded script tag at the end with all JavaScript
+
+---
+
+## ⚠️ IMPORTANT NOTES:
+- Make it **educational** but also **entertaining**
+- Assume the learner is a beginner
+- Use **simple language** with technical accuracy
+- The tutorial should take 5-10 minutes to complete
+- Include at least **3 interactive elements**
+- Make it memorable and shareable
+
+---
+
+## 🚀 START CREATING!
+
+Generate the complete \\\`{{FILENAME}}.html\\\` file now. Make it amazing, comprehensive, and fun! 🎉
+
+---
+
+## 📚 COMPREHENSIVE MODE ENABLED
+
+### PART A: Quick Overview (≈20%)
+First, provide a **short, clear, and user-friendly explanation** that covers all core concepts in a concise manner:
+- Summarize the main idea in simple terms
+- Explain the "what" and "why" briefly
+- Cover the essential points that a beginner needs to understand
+- Keep it friendly, approachable, and easy to digest
+- Use analogies or simple examples where helpful
+
+### PART B: In-Depth Comprehensive Guide (≈80%)
+Then, provide an **extremely detailed and comprehensive explanation** covering:
+- Deep dive into every aspect of the topic
+- Step-by-step breakdowns with thorough explanations
+- Edge cases, variations, and advanced scenarios
+- Best practices and professional tips
+- Common pitfalls and how to avoid them
+- Real-world applications and examples
+- Technical details and underlying mechanisms
+- Performance considerations if applicable
+- Accessibility and cross-browser/cross-platform notes
+- Complete code examples with detailed comments
+
+### ⚠️ TOKEN LIMIT HANDLING:
+**If the content exceeds the session token limit:**
+- Divide the response into clearly numbered parts (Part 1/3, Part 2/3, etc.)
+- End each part with "Continue to Part X for [next topic]..."
+- Ensure each part is self-contained but flows logically to the next
+- Prioritize completing the Quick Overview in Part 1 before starting the In-Depth Guide
+
+**Make this tutorial the most comprehensive resource on this topic!**`;
+
+// ── Build content with filename ──
+function stgBuildContent(filename) {
+    return STG_PROMPT_TEMPLATE.replace(/\{\{FILENAME\}\}/g, filename);
+}
+
+// ── Open modal ──
+function stgOpenModal() {
+    const overlay = document.getElementById('stgModalOverlay');
+    const input   = document.getElementById('stgFilenameInput');
+    input.value = '';
+    overlay.classList.add('active');
+    setTimeout(() => input.focus(), 150);
+}
+
+// ── Close modal ──
+function stgCloseModal() {
+    document.getElementById('stgModalOverlay').classList.remove('active');
+}
+
+// ── Confirm & push ──
+function stgConfirmPush() {
+    const raw = document.getElementById('stgFilenameInput').value.trim();
+    if (!raw) {
+        showToast('Please enter a filename', 'error');
+        document.getElementById('stgFilenameInput').focus();
+        return;
+    }
+    const filename = raw.replace(/\.html$/i, '');
+    const content  = stgBuildContent(filename);
+    const block    = '\n\n' + STG_MARKER_START + '\n' + content + '\n' + STG_MARKER_END;
+
+    const editor = document.getElementById('promptEditor');
+    // Remove existing block first
+    stgRemoveFromEditor();
+    editor.value = editor.value.replace(/\n+$/, '') + block + '\n';
+
+    stgActive = true;
+    document.getElementById('stgContainer').classList.add('checked');
+    document.getElementById('stgCheckbox').checked = true;
+    updatePromptCounter();
+    stgCloseModal();
+    showToast('Support Tutorial prompt pushed!', 'success');
+    if (typeof saveEditorContent === 'function') saveEditorContent();
+}
+
+// ── Toggle directly (checkbox) ──
+function stgToggleDirect() {
+    if (stgActive) {
+        stgRemoveFromEditor();
+        stgActive = false;
+        document.getElementById('stgContainer').classList.remove('checked');
+        document.getElementById('stgCheckbox').checked = false;
+        updatePromptCounter();
+        showToast('Support Tutorial removed from editor', 'info');
+        if (typeof saveEditorContent === 'function') saveEditorContent();
+    } else {
+        stgOpenModal();
+    }
+}
+
+// ── Remove from editor ──
+function stgRemoveFromEditor() {
+    const editor   = document.getElementById('promptEditor');
+    const startIdx = editor.value.indexOf(STG_MARKER_START);
+    const endIdx   = editor.value.indexOf(STG_MARKER_END);
+    if (startIdx !== -1 && endIdx !== -1) {
+        const before = editor.value.substring(0, startIdx).replace(/\n+$/, '');
+        const after  = editor.value.substring(endIdx + STG_MARKER_END.length).replace(/^\n+/, '');
+        editor.value = before + (after ? '\n\n' + after : '');
+    }
+}
+
+// ── Copy prompt ──
+function stgCopyPrompt() {
+    const text = STG_PROMPT_TEMPLATE.replace(/\{\{FILENAME\}\}/g, '(enter-filename)');
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Support Tutorial prompt copied!', 'success');
+    });
+}
+
+// ── Close modal on Escape ──
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('stgModalOverlay');
+        if (overlay && overlay.classList.contains('active')) stgCloseModal();
+    }
+});
+
+// ── Submit on Enter ──
+document.addEventListener('DOMContentLoaded', function() {
+    const inp = document.getElementById('stgFilenameInput');
+    if (inp) inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); stgConfirmPush(); }
+    });
 });
 </script>
 
