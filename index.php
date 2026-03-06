@@ -47338,17 +47338,16 @@ function initNotesResize() {
             window._notesManuallyResized = true;
             // Ensure scroll works after manual resize
             textarea.style.overflowY = 'auto';
-            // Save the height to localStorage
-            localStorage.setItem('projectNotesHeight', textarea.style.height);
+            // No longer persist height — resets on refresh
         }
     }
     
-    // Restore saved height
-    const savedHeight = localStorage.getItem('projectNotesHeight');
-    if (savedHeight) {
-        textarea.style.height = savedHeight;
-        window._notesManuallyResized = true;
-    }
+    // Always start collapsed to one line on page load
+    const oneLineHeight = Math.ceil(parseFloat(getComputedStyle(textarea).lineHeight) + parseFloat(getComputedStyle(textarea).paddingTop) + parseFloat(getComputedStyle(textarea).paddingBottom));
+    textarea.style.height = oneLineHeight + 'px';
+    textarea.style.overflowY = 'hidden';
+    window._notesManuallyResized = true;
+    localStorage.removeItem('projectNotesHeight');
     
     console.log('Notes resize initialized');
 }
