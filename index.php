@@ -20070,9 +20070,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
             line-height: 1.7;
-            resize: none; /* Disable native resize, use auto-expand */
+            resize: none; /* Disable native resize, use custom drag handle */
             outline: none;
-            overflow-y: hidden; /* Hidden to allow auto-expand */
+            overflow-y: auto; /* Allow scroll when manually resized */
             box-sizing: border-box;
             transition: height 0.1s ease;
         }
@@ -20087,21 +20087,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .project-notes-resize-handle {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 24px;
+            width: 100%;
+            height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to top, rgba(251, 191, 36, 0.12) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(251, 191, 36, 0.06) 0%, rgba(251, 191, 36, 0.14) 100%);
             cursor: ns-resize;
-            color: rgba(251, 191, 36, 0.5);
+            color: rgba(251, 191, 36, 0.45);
             font-size: 0.7rem;
             transition: all 0.2s ease;
-            z-index: 10;
             user-select: none;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 20;
         }
         
         .project-notes-resize-handle:hover {
@@ -47277,6 +47276,9 @@ function initNotesResize() {
     let startY = 0;
     let startHeight = 0;
     
+    // Flag to disable auto-expand after manual resize
+    window._notesManuallyResized = false;
+    
     // Get max height from CSS (80vh) or use window height as fallback
     const getMaxHeight = () => Math.floor(window.innerHeight * 0.8);
     const minHeight = 150; // Minimum usable height
@@ -47332,6 +47334,10 @@ function initNotesResize() {
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
             resizeHandle.style.color = '';
+            // Mark as manually resized so auto-expand won't override
+            window._notesManuallyResized = true;
+            // Ensure scroll works after manual resize
+            textarea.style.overflowY = 'auto';
             // Save the height to localStorage
             localStorage.setItem('projectNotesHeight', textarea.style.height);
         }
@@ -47341,6 +47347,7 @@ function initNotesResize() {
     const savedHeight = localStorage.getItem('projectNotesHeight');
     if (savedHeight) {
         textarea.style.height = savedHeight;
+        window._notesManuallyResized = true;
     }
     
     console.log('Notes resize initialized');
@@ -47405,19 +47412,25 @@ function initAutoExpand() {
         });
     }
     
-    // Project Notes auto-expand
+    // Project Notes auto-expand (skip if manually resized)
     if (projectNotes) {
-        // Initial adjustment
-        autoExpandTextarea(projectNotes, 150);
+        // Initial adjustment (only if not manually resized)
+        if (!window._notesManuallyResized) {
+            autoExpandTextarea(projectNotes, 150);
+        }
         
-        // On input
+        // On input — only auto-expand if not manually resized
         projectNotes.addEventListener('input', function() {
-            autoExpandTextarea(this, 150);
+            if (!window._notesManuallyResized) {
+                autoExpandTextarea(this, 150);
+            }
         });
         
         // On paste
         projectNotes.addEventListener('paste', function() {
-            setTimeout(() => autoExpandTextarea(this, 150), 10);
+            if (!window._notesManuallyResized) {
+                setTimeout(() => autoExpandTextarea(this, 150), 10);
+            }
         });
         
         // On value change (programmatic)
@@ -47425,7 +47438,9 @@ function initAutoExpand() {
         Object.defineProperty(projectNotes, 'value', {
             set: function(val) {
                 originalNotesSetter.call(this, val);
-                setTimeout(() => autoExpandTextarea(this, 150), 10);
+                if (!window._notesManuallyResized) {
+                    setTimeout(() => autoExpandTextarea(this, 150), 10);
+                }
             },
             get: function() {
                 return Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get.call(this);
