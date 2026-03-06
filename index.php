@@ -25375,6 +25375,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 8px rgba(99, 102, 241, 0.1);
         }
 
+        /* ═══ Inline Steps Widget (inside saved-actions-bar) ═══ */
+        .inline-steps-widget {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.2rem 0.55rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: 8px;
+            margin: 0;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .inline-steps-widget:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+        }
+        .inline-steps-widget.active {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(99, 102, 241, 0.06));
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.1);
+        }
+        .inline-steps-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            opacity: 0.85;
+        }
+        .inline-steps-label i {
+            color: var(--accent-primary);
+            font-size: 0.6rem;
+        }
+        .inline-steps-slider {
+            width: 90px;
+            flex-shrink: 0;
+        }
+        .inline-steps-slider .slider-track {
+            height: 4px;
+            border-radius: 2px;
+        }
+        .inline-steps-slider .slider-input {
+            height: 12px;
+        }
+        .inline-steps-slider .slider-input::-webkit-slider-thumb {
+            width: 10px;
+            height: 10px;
+            border-width: 1.5px;
+        }
+        .inline-steps-slider .slider-input::-moz-range-thumb {
+            width: 10px;
+            height: 10px;
+            border-width: 1.5px;
+        }
+        .inline-steps-widget .distribution-value {
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(99, 102, 241, 0.15);
+        }
+        .inline-steps-widget .value-number {
+            font-size: 0.7rem;
+        }
+        .inline-steps-widget .value-label {
+            font-size: 0.55rem;
+        }
+        .inline-steps-widget .dist-append-check {
+            margin-left: 0;
+            padding: 0.15rem 0.25rem;
+        }
+        .inline-steps-widget .dist-append-check .check-box {
+            width: 12px;
+            height: 12px;
+        }
+        .inline-steps-widget .dist-append-check .check-box i {
+            font-size: 0.5rem;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar {
@@ -27085,30 +27166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <!-- Tab Panel: Workspace -->
             <div class="mc-tab-panel active" id="mcPanelWorkspace" data-mc-panel="workspace">
 
-            <!-- Work Distribution Slider -->
-            <div class="distribution-section">
-                <div class="distribution-header">
-                    <div class="distribution-title">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Steps</span>
-                    </div>
-                    <div class="distribution-value" id="distributionValue">
-                        <span class="value-number" id="valueNumber">1</span>
-                        <span class="value-label">/ 30</span>
-                    </div>
-                    <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
-                        <input type="checkbox" id="distributionEnabled">
-                        <span class="check-box"><i class="fas fa-check"></i></span>
-                    </label>
-                </div>
-                
-                <div class="slider-container">
-                    <div class="slider-track">
-                        <div class="slider-fill" id="sliderFill"></div>
-                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
-                    </div>
-                </div>
-            </div>
+
             
 
             <!-- QST Answer Modal -->
@@ -27796,6 +27854,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span class="checkbox-label">Select All</span>
                     </label>
                     <span class="saved-counter" id="savedCounter">0/0</span>
+                    <!-- Inline Steps Widget -->
+                    <div class="distribution-section inline-steps-widget">
+                        <div class="inline-steps-label" title="Work Distribution Steps">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Steps</span>
+                        </div>
+                        <div class="inline-steps-slider">
+                            <div class="slider-track">
+                                <div class="slider-fill" id="sliderFill"></div>
+                                <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                            </div>
+                        </div>
+                        <div class="distribution-value" id="distributionValue">
+                            <span class="value-number" id="valueNumber">1</span>
+                            <span class="value-label">/ 30</span>
+                        </div>
+                        <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
+                            <input type="checkbox" id="distributionEnabled">
+                            <span class="check-box"><i class="fas fa-check"></i></span>
+                        </label>
+                    </div>
                     <div class="search-box saved-search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" id="searchPrompts" placeholder="Search prompts...">
@@ -45607,7 +45686,8 @@ in each section carefully and maintain proper connections between components.
         }
 
     </script>
-    
+    
+
 
 <!-- Database Manager Modal -->
 <div id="dbManagerModal" class="db-manager-modal" onclick="if(event.target === this) closeDbManager()">
