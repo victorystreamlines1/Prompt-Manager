@@ -5545,8 +5545,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 1.5rem;
-            gap: 1.5rem;
+            padding: 1rem 1.5rem;
+            gap: 0;
             background: var(--gradient-dark);
             max-width: calc(100vw - 320px - 400px);
             overflow-x: hidden;
@@ -16067,7 +16067,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
-            margin-top: 0.65rem;
+            margin-top: 0.25rem;
             order: 99;
         }
 
@@ -18778,7 +18778,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             flex-direction: column;
             position: relative;
-            margin-bottom: 1rem;
+            margin-top: 0.25rem;
+            margin-bottom: 0.35rem;
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
@@ -18800,7 +18801,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(99, 102, 241, 0.12);
             border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
             position: relative;
             max-width: 100%;
             width: 100%;
@@ -19002,7 +19003,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.25rem;
+            padding: 0.65rem 1.25rem;
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(139, 92, 246, 0.02) 50%, transparent 100%);
             border-bottom: 1px solid rgba(99, 102, 241, 0.1);
         }
@@ -19297,7 +19298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .dev-dashboard-content {
-            padding: 1rem 1.25rem;
+            padding: 0.4rem 1.25rem;
             background: linear-gradient(180deg, rgba(99, 102, 241, 0.015) 0%, transparent 100%);
         }
 
@@ -19316,12 +19317,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dashboard-sections-row {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.35rem;
         }
         
         /* Project Notes Section */
         .project-notes-section {
-            margin: 0.6rem 0 0.85rem 0;
+            margin: 0.25rem 0 0.25rem 0;
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(245, 158, 11, 0.03) 100%);
             border: 1px solid rgba(251, 191, 36, 0.2);
             border-radius: 10px;
@@ -20154,7 +20155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
             border: 1px solid rgba(99, 102, 241, 0.12);
             border-radius: 14px;
-            margin-top: 0.75rem;
+            margin-top: 0.4rem;
             position: relative;
         }
         
@@ -22052,7 +22053,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .dynamic-sections-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.75rem;
+            gap: 0.5rem;
             margin-top: 0;
             padding-top: 0;
         }
@@ -24146,6 +24147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 0.5rem 0.75rem;
+            margin-bottom: 0.35rem;
             position: relative;
         }
 
@@ -24252,7 +24254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 0.5rem;
             padding: 0.35rem 0.75rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.15rem;
             border-radius: 10px;
             background: linear-gradient(135deg, rgba(30, 30, 50, 0.6), rgba(20, 20, 40, 0.45));
             border: 1px solid rgba(139, 92, 246, 0.12);
@@ -24426,7 +24428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: stretch;
             gap: 0;
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.15rem;
             background: linear-gradient(135deg, rgba(15, 15, 35, 0.5), rgba(20, 20, 45, 0.35));
             border: 1px solid rgba(99, 102, 241, 0.12);
             border-radius: 12px;
@@ -45605,48 +45607,7 @@ in each section carefully and maintain proper connections between components.
         }
 
     </script>
-    
-<!-- Back to Catalog Button -->
-<a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-    </svg>
-</a>
-<style>
-@keyframes catalog-pulse {
-    0%, 100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 0 rgba(240, 147, 251, 0.4); }
-    50% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 10px rgba(240, 147, 251, 0); }
-}
-
-@keyframes logoFloat {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    25% { transform: translateY(-8px) rotate(-2deg); }
-    50% { transform: translateY(-12px) rotate(0deg); }
-    75% { transform: translateY(-8px) rotate(2deg); }
-}
-.catalog-back-btn::after {
-    content: 'Catalog';
-    position: absolute;
-    left: 85px;
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-.catalog-back-btn:hover::after {
-    opacity: 1;
-}
-</style>
-<!-- End Back to Catalog Button -->
+    
 
 <!-- Database Manager Modal -->
 <div id="dbManagerModal" class="db-manager-modal" onclick="if(event.target === this) closeDbManager()">
