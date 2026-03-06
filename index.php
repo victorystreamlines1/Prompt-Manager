@@ -22884,35 +22884,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-y: auto;
         }
 
-        /* Toast Notifications - Enhanced */
+        /* ══════════════════════════════════════════════════════
+           Toast Notifications — Premium Glassmorphism Design
+           ══════════════════════════════════════════════════════ */
         .toast-container {
             position: fixed;
             top: 1.5rem;
             right: 1.5rem;
-            z-index: 9999;
+            z-index: 99999;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.85rem;
             pointer-events: none;
         }
 
         .toast {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: rgba(30, 30, 60, 0.95);
-            border-radius: 14px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-            animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            min-width: 300px;
-            max-width: 420px;
-            backdrop-filter: blur(20px);
+            gap: 0.9rem;
+            padding: 1rem 1.25rem 1rem 1rem;
+            background: linear-gradient(135deg, rgba(15, 15, 40, 0.92), rgba(25, 25, 60, 0.88));
+            border-radius: 16px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: toastFloatIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            min-width: 320px;
+            max-width: 440px;
+            backdrop-filter: blur(24px) saturate(1.8);
+            -webkit-backdrop-filter: blur(24px) saturate(1.8);
             pointer-events: auto;
             position: relative;
             overflow: hidden;
+            transition: opacity 0.35s ease, transform 0.35s ease;
         }
 
+        /* Left accent bar */
         .toast::before {
             content: '';
             position: absolute;
@@ -22920,125 +22929,223 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             bottom: 0;
             width: 4px;
-            border-radius: 14px 0 0 14px;
+            border-radius: 16px 0 0 16px;
         }
 
+        /* Top shimmer effect */
+        .toast::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+            animation: toastShimmer 2.5s ease-in-out 0.5s;
+            pointer-events: none;
+        }
+
+        /* ── Success ── */
         .toast.success {
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(16, 185, 129, 0.08),
+                0 0 0 1px rgba(16, 185, 129, 0.15),
+                inset 0 1px 0 rgba(16, 185, 129, 0.1);
         }
         .toast.success::before {
-            background: linear-gradient(180deg, #10b981, #059669);
+            background: linear-gradient(180deg, #34d399, #10b981, #059669);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
         }
 
+        /* ── Error ── */
         .toast.error {
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(239, 68, 68, 0.08),
+                0 0 0 1px rgba(239, 68, 68, 0.15),
+                inset 0 1px 0 rgba(239, 68, 68, 0.1);
         }
         .toast.error::before {
-            background: linear-gradient(180deg, #ef4444, #dc2626);
+            background: linear-gradient(180deg, #f87171, #ef4444, #dc2626);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
         }
 
+        /* ── Info ── */
         .toast.info {
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(99, 102, 241, 0.08),
+                0 0 0 1px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(99, 102, 241, 0.1);
         }
         .toast.info::before {
-            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+            background: linear-gradient(180deg, #818cf8, #6366f1, #4f46e5);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
         }
 
+        /* ── Warning ── */
         .toast.warning {
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 8px 24px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(245, 158, 11, 0.08),
+                0 0 0 1px rgba(245, 158, 11, 0.15),
+                inset 0 1px 0 rgba(245, 158, 11, 0.1);
         }
         .toast.warning::before {
-            background: linear-gradient(180deg, #f59e0b, #d97706);
+            background: linear-gradient(180deg, #fbbf24, #f59e0b, #d97706);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
         }
 
+        /* ── Icon ── */
         .toast-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             flex-shrink: 0;
+            position: relative;
+            animation: toastIconPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
         }
 
         .toast.success .toast-icon {
-            background: rgba(16, 185, 129, 0.15);
-            color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+            color: #34d399;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
         }
-
         .toast.error .toast-icon {
-            background: rgba(239, 68, 68, 0.15);
-            color: #ef4444;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+            color: #f87171;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);
         }
-
         .toast.info .toast-icon {
-            background: rgba(99, 102, 241, 0.15);
-            color: #6366f1;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.1));
+            color: #818cf8;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
         }
-
         .toast.warning .toast-icon {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+            color: #fbbf24;
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
         }
 
+        /* ── Content ── */
         .toast-content {
             flex: 1;
             min-width: 0;
         }
 
         .toast-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #fff;
-            margin-bottom: 0.15rem;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: #f1f5f9;
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.01em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .toast-message {
-            font-size: 0.85rem;
-            color: #a1a1aa;
-            line-height: 1.4;
+            font-size: 0.82rem;
+            color: #94a3b8;
+            line-height: 1.45;
+            word-break: break-word;
         }
 
+        /* ── Close Button ── */
         .toast-close {
-            background: none;
-            border: none;
-            color: #6b7280;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #64748b;
             cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
+            padding: 0.35rem;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
         }
-
         .toast-close:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            transform: scale(1.1);
         }
 
+        /* ── Progress Bar ── */
         .toast-progress {
             position: absolute;
             bottom: 0;
             left: 0;
             height: 3px;
-            background: rgba(255, 255, 255, 0.3);
-            animation: toastProgress 3s linear forwards;
+            border-radius: 0 0 0 16px;
+            animation: toastProgress 3.5s linear forwards;
+        }
+        .toast.success .toast-progress {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+        .toast.error .toast-progress {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+        .toast.info .toast-progress {
+            background: linear-gradient(90deg, #6366f1, #818cf8);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+        }
+        .toast.warning .toast-progress {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
         }
 
-        @keyframes toastSlideIn {
-            from {
+        /* ── Animations ── */
+        @keyframes toastFloatIn {
+            0% {
                 opacity: 0;
-                transform: translateX(100%) scale(0.9);
+                transform: translateX(80px) translateY(-10px) scale(0.85);
+                filter: blur(4px);
             }
-            to {
+            60% {
                 opacity: 1;
-                transform: translateX(0) scale(1);
+                filter: blur(0);
             }
+            80% {
+                transform: translateX(-4px) translateY(0) scale(1.01);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes toastShimmer {
+            0%   { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        @keyframes toastIconPop {
+            0%   { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
         @keyframes toastProgress {
             from { width: 100%; }
-            to { width: 0%; }
+            to   { width: 0%; }
         }
 
         /* Modal */
@@ -30942,8 +31049,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Reset dashboard to default
-        function resetDashboard() {
-            if (!confirm('Reset all dashboard settings to default?')) return;
+        async function resetDashboard() {
+            const confirmed = typeof deConfirm === 'function'
+                ? await deConfirm({ title: 'Reset Dashboard', subtitle: 'Dashboard Settings', message: 'Reset all dashboard settings to default?', confirmText: 'Yes, Reset', cancelText: 'Cancel' })
+                : confirm('Reset all dashboard settings to default?');
+            if (!confirmed) return;
             
             // Clear localStorage
             localStorage.removeItem(DASHBOARD_STORAGE_KEY);
@@ -35703,7 +35813,7 @@ in each section carefully and maintain proper connections between components.
         }
 
         // Pull editor content to Template from preview modal
-        function pullTemplateContent() {
+        async function pullTemplateContent() {
             if (!currentPreviewTemplate) return;
             
             const editor = document.getElementById('promptEditor');
@@ -35715,9 +35825,10 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Confirm before overwriting
-            if (!confirm(`Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`)) {
-                return;
-            }
+            const confirmed = typeof deConfirm === 'function'
+                ? await deConfirm({ title: 'Overwrite Template', subtitle: currentPreviewTemplate.name, message: `Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`, confirmText: 'Yes, Overwrite', cancelText: 'Cancel' })
+                : confirm(`Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`);
+            if (!confirmed) return;
             
             // Send update to server
             const formData = new FormData();
@@ -42075,9 +42186,12 @@ in each section carefully and maintain proper connections between components.
             });
         }
 
-        function ftClearAll() {
+        async function ftClearAll() {
             if (ftFolderStore.size === 0) return;
-            if (!confirm('Remove all folders from the template?')) return;
+            const confirmed = typeof deConfirm === 'function'
+                ? await deConfirm({ title: 'Clear All Folders', subtitle: 'Folder Template', message: 'Remove all folders from the template?', confirmText: 'Yes, Remove All', cancelText: 'Cancel' })
+                : confirm('Remove all folders from the template?');
+            if (!confirmed) return;
             ftFolderStore.forEach((_, name) => {
                 const sid = ftGetSafeId(name);
                 ftClearNodeMapForSid(sid);
@@ -43583,7 +43697,7 @@ in each section carefully and maintain proper connections between components.
         }
         
         // Pull editor content to Saved Prompt from preview modal
-        function pullSavedContent() {
+        async function pullSavedContent() {
             if (!currentPreviewSaved) return;
             
             const editor = document.getElementById('promptEditor');
@@ -43595,9 +43709,10 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Confirm before overwriting
-            if (!confirm(`Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`)) {
-                return;
-            }
+            const confirmed = typeof deConfirm === 'function'
+                ? await deConfirm({ title: 'Overwrite Saved Prompt', subtitle: currentPreviewSaved.title, message: `Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`, confirmText: 'Yes, Overwrite', cancelText: 'Cancel' })
+                : confirm(`Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`);
+            if (!confirmed) return;
             
             // Send update to server
             const formData = new FormData();
@@ -43793,9 +43908,10 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
-        // Show toast notification - Enhanced
+        // Show toast notification — Premium Glassmorphism
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
 
@@ -43813,28 +43929,34 @@ in each section carefully and maintain proper connections between components.
                 warning: 'Warning'
             };
 
+            const dismissToast = () => {
+                if (toast._dismissed) return;
+                toast._dismissed = true;
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px) scale(0.85)';
+                toast.style.filter = 'blur(4px)';
+                setTimeout(() => toast.remove(), 350);
+            };
+
             toast.innerHTML = `
                 <div class="toast-icon">
-                    <i class="fas ${icons[type]}"></i>
+                    <i class="fas ${icons[type] || icons.info}"></i>
                 </div>
                 <div class="toast-content">
-                    <div class="toast-title">${titles[type]}</div>
+                    <div class="toast-title">${titles[type] || 'Notice'}</div>
                     <div class="toast-message">${message}</div>
                 </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">
+                <button class="toast-close" title="Dismiss">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="toast-progress"></div>
             `;
 
+            toast.querySelector('.toast-close').addEventListener('click', dismissToast);
             container.appendChild(toast);
 
-            // Auto remove after 3.5 seconds
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%) scale(0.9)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            // Auto dismiss after 4 seconds
+            setTimeout(dismissToast, 4000);
         }
         
         // ============ WORK DISTRIBUTION FUNCTIONS ============
