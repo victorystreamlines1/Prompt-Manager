@@ -20059,7 +20059,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .project-notes-textarea {
             width: 100%;
-            min-height: 150px;
+            min-height: 0;
             max-height: 80vh;
             height: auto; /* Auto-expand based on content */
             padding: 1rem;
@@ -47281,7 +47281,7 @@ function initNotesResize() {
     
     // Get max height from CSS (80vh) or use window height as fallback
     const getMaxHeight = () => Math.floor(window.innerHeight * 0.8);
-    const minHeight = 150; // Minimum usable height
+    const minHeight = 0; // Allow collapsing to zero
     
     // Mouse events
     resizeHandle.addEventListener('mousedown', startResize);

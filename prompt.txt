@@ -1,1 +1,1 @@
-I want you to fix the drag, the draggable functionality of the project prompts. It's not draggable, so I cannot increase or decrease the size of the container. It already has two lines or a hamburger to drag it, but it's not active. So please fix it. 
+make it zero by default and should reset to zero on any landing page or refresh. Zero, it means that only one line is enough for text. 
