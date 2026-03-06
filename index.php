@@ -39378,12 +39378,12 @@ in each section carefully and maintain proper connections between components.
                 btnFolder.classList.remove('connected');
                 btnFolder.classList.add('needs-reconnect');
                 btnFolder.title = `Click to reconnect to ${folderName}`;
-                btnSend.disabled = true;
-                btnPull.disabled = true;
-                if (btnSendNotes) btnSendNotes.disabled = true;
+                btnSend.disabled = false;
+                btnPull.disabled = false;
+                if (btnSendNotes) btnSendNotes.disabled = false;
                 btnClear.classList.add('show');
                 pathIndicator.classList.add('show', 'disconnected');
-                pathText.textContent = `${folderName}/prompt.txt (click Folder to reconnect)`;
+                pathText.textContent = `${folderName}/prompt.txt (will reconnect on use)`;
             } else {
                 // No saved folder
                 btnFolder.classList.remove('connected', 'needs-reconnect');
@@ -39393,6 +39393,41 @@ in each section carefully and maintain proper connections between components.
                 if (btnSendNotes) btnSendNotes.disabled = true;
                 btnClear.classList.remove('show');
                 pathIndicator.classList.remove('show', 'disconnected');
+            }
+        }
+        
+        // Try to reconnect to saved folder handle from IndexedDB
+        async function tryReconnectFolder() {
+            const savedFolderName = localStorage.getItem('promptFolderName');
+            if (!savedFolderName) return false;
+            
+            try {
+                const savedHandle = await getHandleFromDB('promptFolder');
+                if (savedHandle) {
+                    const perm = await savedHandle.requestPermission({ mode: 'readwrite' });
+                    if (perm === 'granted') {
+                        promptFolderHandle = savedHandle;
+                        try {
+                            promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: false });
+                        } catch (e) {
+                            promptFileHandle = await promptFolderHandle.getFileHandle('prompt.txt', { create: true });
+                        }
+                        updateFolderUI(savedFolderName, true);
+                        showToast(`✅ Reconnected to ${savedFolderName}`, 'success');
+                        return true;
+                    }
+                }
+            } catch (err) {
+                console.log('Reconnect attempt failed:', err.message);
+            }
+            
+            // IndexedDB reconnect failed, prompt user to re-select folder
+            showToast('🔄 Please re-select the folder to reconnect.', 'warning');
+            try {
+                await selectPromptFolder();
+                return !!promptFileHandle;
+            } catch (e) {
+                return false;
             }
         }
         
@@ -39408,8 +39443,14 @@ in each section carefully and maintain proper connections between components.
         // Send editor content to prompt.txt
         async function sendToPromptFile() {
             if (!promptFileHandle) {
-                showToast('❌ No folder connected. Please select a folder first.', 'error');
-                return;
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder first.', 'error');
+                    return;
+                }
             }
             
             const editor = document.getElementById('promptEditor');
@@ -39451,8 +39492,14 @@ in each section carefully and maintain proper connections between components.
         // Send Project Prompts content to prompt.txt
         async function sendNotesToPromptFile() {
             if (!promptFileHandle) {
-                showToast('❌ No folder connected. Please select a folder first.', 'error');
-                return;
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder first.', 'error');
+                    return;
+                }
             }
             
             const notesTextarea = document.getElementById('projectNotesTextarea');
@@ -39494,8 +39541,14 @@ in each section carefully and maintain proper connections between components.
         // Pull content from prompt.txt into editor
         async function pullFromPromptFile() {
             if (!promptFileHandle) {
-                showToast('❌ No folder connected. Please select a folder first.', 'error');
-                return;
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder first.', 'error');
+                    return;
+                }
             }
             
             try {
