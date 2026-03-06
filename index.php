@@ -4979,6 +4979,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 6px 18px rgba(6,182,212,0.45);
         }
 
+        /* STG Phrase/Code Textarea */
+        .stg-phrase-section {
+            padding: 0.85rem 1.1rem 0.6rem;
+            border-top: 1px solid rgba(6,182,212,0.1);
+        }
+        .stg-phrase-hint {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin: 0 0 8px;
+            line-height: 1.4;
+        }
+        .stg-phrase-hint code {
+            background: rgba(6,182,212,0.12);
+            color: #67e8f9;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.76rem;
+        }
+        .stg-phrase-textarea {
+            width: 100%;
+            min-height: 100px;
+            max-height: 260px;
+            padding: 12px 14px;
+            background: rgba(6,182,212,0.06);
+            border: 1.5px solid rgba(6,182,212,0.2);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            resize: vertical;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .stg-phrase-textarea::placeholder {
+            color: rgba(148,163,184,0.45);
+            font-style: italic;
+        }
+        .stg-phrase-textarea:focus {
+            border-color: rgba(6,182,212,0.5);
+            background: rgba(6,182,212,0.1);
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.1), 0 0 20px rgba(6,182,212,0.08);
+        }
+        .stg-phrase-textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        .stg-phrase-textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .stg-phrase-textarea::-webkit-scrollbar-thumb {
+            background: rgba(6,182,212,0.25);
+            border-radius: 3px;
+        }
+
+        /* STG Image Picker */
+        .stg-images-section {
+            padding: 0.85rem 1.1rem 0.6rem;
+            border-top: 1px solid rgba(6,182,212,0.1);
+        }
+        .stg-images-section .stg-input-label {
+            margin-bottom: 4px;
+        }
+        .stg-optional-tag {
+            font-size: 0.58rem; font-weight: 500;
+            color: var(--text-muted); opacity: 0.7;
+            text-transform: lowercase; letter-spacing: 0;
+            margin-left: 4px;
+        }
+        .stg-images-hint {
+            font-size: 0.68rem; color: var(--text-muted);
+            margin-bottom: 0.55rem; line-height: 1.4;
+        }
+        .stg-drop-zone {
+            border: 2px dashed rgba(6,182,212,0.28);
+            border-radius: 10px;
+            padding: 0.85rem;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(6,182,212,0.03);
+        }
+        .stg-drop-zone:hover, .stg-drop-zone.dragover {
+            border-color: #06b6d4;
+            background: rgba(6,182,212,0.08);
+            color: #22d3ee;
+            transform: scale(1.01);
+        }
+        .stg-drop-zone i {
+            font-size: 1.3rem; margin-bottom: 5px;
+            display: block; color: rgba(6,182,212,0.45);
+            transition: color 0.2s;
+        }
+        .stg-drop-zone:hover i { color: #22d3ee; }
+        .stg-browse {
+            color: #06b6d4; cursor: pointer;
+            text-decoration: underline; font-weight: 600;
+        }
+        .stg-browse:hover { color: #22d3ee; }
+        .stg-image-list {
+            margin-top: 0.5rem;
+            display: flex; flex-direction: column; gap: 4px;
+            max-height: 180px; overflow-y: auto;
+        }
+        .stg-image-list::-webkit-scrollbar { width: 4px; }
+        .stg-image-list::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.25); border-radius: 3px; }
+        .stg-image-item {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 8px;
+            background: var(--bg-card);
+            border: 1px solid rgba(6,182,212,0.15);
+            border-radius: 7px;
+            font-size: 0.72rem;
+            animation: stgImgFadeIn 0.2s ease;
+        }
+        @keyframes stgImgFadeIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .stg-image-item i.fa-image { color: #22d3ee; font-size: 0.75rem; }
+        .stg-image-item-name {
+            flex: 1; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+        }
+        .stg-image-item-remove {
+            width: 20px; height: 20px; border-radius: 5px;
+            border: none; background: rgba(239,68,68,0.1);
+            color: var(--text-muted); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .stg-image-item-remove:hover {
+            background: rgba(239,68,68,0.2); color: #ef4444;
+            transform: scale(1.1);
+        }
+        .stg-image-count {
+            font-size: 0.65rem; color: #22d3ee;
+            font-weight: 600; margin-top: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .stg-image-count i { font-size: 0.6rem; }
+        .stg-clear-images {
+            font-size: 0.62rem; color: var(--text-muted);
+            cursor: pointer; margin-left: auto;
+            background: none; border: none;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        .stg-clear-images:hover { color: #ef4444; }
+
         /* Template Modal */
         .template-modal-overlay {
             position: fixed;
@@ -27106,6 +27261,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="stg-input-suffix">.html</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="stg-phrase-section">
+                        <label class="stg-input-label"><i class="fas fa-code"></i> Phrase / Code to Explain</label>
+                        <p class="stg-phrase-hint">Paste the code, command, or concept you want the tutorial to explain. This fills the <code>📝 THE PHRASE/CODE TO EXPLAIN</code> section.</p>
+                        <textarea id="stgPhraseInput" class="stg-phrase-textarea" rows="5" placeholder="e.g. docker compose up -d --build&#10;or paste a code snippet..."></textarea>
+                    </div>
+                    <div class="stg-images-section">
+                        <label class="stg-input-label"><i class="fas fa-images"></i> Attach Image Names <span class="stg-optional-tag">optional</span></label>
+                        <p class="stg-images-hint">Select images from your PC. Only filenames will be injected — no upload.</p>
+                        <div class="stg-drop-zone" id="stgDropZone"
+                             ondragover="event.preventDefault(); this.classList.add('dragover')"
+                             ondragleave="this.classList.remove('dragover')"
+                             ondrop="event.preventDefault(); this.classList.remove('dragover'); stgHandleImageFiles(event.dataTransfer.files)"
+                             onclick="document.getElementById('stgImageFileInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Drop images here or <span class="stg-browse">browse</span></span>
+                            <input type="file" id="stgImageFileInput" multiple accept="image/*" style="display:none;" onchange="stgHandleImageFiles(this.files); this.value='';">
+                        </div>
+                        <div class="stg-image-list" id="stgImageList"></div>
                     </div>
                     <div class="stg-modal-footer">
                         <button class="stg-btn-cancel" onclick="stgCloseModal()"><i class="fas fa-times"></i> Cancel</button>
@@ -62977,6 +63151,7 @@ document.addEventListener('keydown', function(e) {
 const STG_MARKER_START = '<!-- STG:SUPPORT_TUTORIAL -->';
 const STG_MARKER_END   = '<!-- /STG:SUPPORT_TUTORIAL -->';
 let stgActive = false;
+let stgImageNames = [];
 
 const STG_PROMPT_TEMPLATE = `# 🎓 SUPPORT TUTORIAL GENERATOR
 
@@ -63000,7 +63175,7 @@ Create a **single, self-contained HTML file** called \\\`{{FILENAME}}.html\\\` t
 ## 📝 THE PHRASE/CODE TO EXPLAIN:
 
 \\\`\\\`\\\`
-
+{{PHRASE}}
 \\\`\\\`\\\`
 
 ---
@@ -63133,9 +63308,51 @@ Then, provide an **extremely detailed and comprehensive explanation** covering:
 
 **Make this tutorial the most comprehensive resource on this topic!**`;
 
-// ── Build content with filename ──
-function stgBuildContent(filename) {
-    return STG_PROMPT_TEMPLATE.replace(/\{\{FILENAME\}\}/g, filename);
+// ── Build content with filename & phrase ──
+function stgBuildContent(filename, phrase) {
+    return STG_PROMPT_TEMPLATE
+        .replace(/\{\{FILENAME\}\}/g, filename)
+        .replace(/\{\{PHRASE\}\}/g, phrase || '');
+}
+
+// ── Image file handling (names only, no upload) ──
+function stgHandleImageFiles(fileList) {
+    Array.from(fileList).forEach(f => {
+        if (f.type.startsWith('image/') && !stgImageNames.includes(f.name)) {
+            stgImageNames.push(f.name);
+        }
+    });
+    stgRenderImageList();
+}
+
+function stgRenderImageList() {
+    const list = document.getElementById('stgImageList');
+    if (!stgImageNames.length) { list.innerHTML = ''; return; }
+    let html = '';
+    stgImageNames.forEach((name, i) => {
+        html += `<div class="stg-image-item">
+            <i class="fas fa-image"></i>
+            <span class="stg-image-item-name" title="${name}">${name}</span>
+            <button class="stg-image-item-remove" onclick="event.stopPropagation(); stgRemoveImage(${i})" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>`;
+    });
+    html += `<div class="stg-image-count">
+        <i class="fas fa-images"></i> ${stgImageNames.length} image${stgImageNames.length > 1 ? 's' : ''} selected
+        <button class="stg-clear-images" onclick="event.stopPropagation(); stgClearImages()">Clear all</button>
+    </div>`;
+    list.innerHTML = html;
+}
+
+function stgRemoveImage(index) {
+    stgImageNames.splice(index, 1);
+    stgRenderImageList();
+}
+
+function stgClearImages() {
+    stgImageNames = [];
+    stgRenderImageList();
 }
 
 // ── Open modal ──
@@ -63143,6 +63360,10 @@ function stgOpenModal() {
     const overlay = document.getElementById('stgModalOverlay');
     const input   = document.getElementById('stgFilenameInput');
     input.value = '';
+    const phraseEl = document.getElementById('stgPhraseInput');
+    if (phraseEl) phraseEl.value = '';
+    stgImageNames = [];
+    stgRenderImageList();
     overlay.classList.add('active');
     setTimeout(() => input.focus(), 150);
 }
@@ -63161,8 +63382,20 @@ function stgConfirmPush() {
         return;
     }
     const filename = raw.replace(/\.html$/i, '');
-    const content  = stgBuildContent(filename);
-    const block    = '\n\n' + STG_MARKER_START + '\n' + content + '\n' + STG_MARKER_END;
+    const phraseEl = document.getElementById('stgPhraseInput');
+    const phrase = phraseEl ? phraseEl.value.trim() : '';
+    let content = stgBuildContent(filename, phrase);
+
+    // Append image filenames if any were selected
+    if (stgImageNames.length > 0) {
+        content += '\n\n## 📷 ATTACHED IMAGE FILES:\n\n';
+        stgImageNames.forEach((name, i) => {
+            content += `${i + 1}. \`${name}\`\n`;
+        });
+        content += '\n> **Note:** These image files are already available in the project root directory. Reference them by filename in the tutorial.';
+    }
+
+    const block = '\n\n' + STG_MARKER_START + '\n' + content + '\n' + STG_MARKER_END;
 
     const editor = document.getElementById('promptEditor');
     // Remove existing block first
@@ -63207,7 +63440,9 @@ function stgRemoveFromEditor() {
 
 // ── Copy prompt ──
 function stgCopyPrompt() {
-    const text = STG_PROMPT_TEMPLATE.replace(/\{\{FILENAME\}\}/g, '(enter-filename)');
+    const text = STG_PROMPT_TEMPLATE
+        .replace(/\{\{FILENAME\}\}/g, '(enter-filename)')
+        .replace(/\{\{PHRASE\}\}/g, '(enter-phrase-or-code)');
     navigator.clipboard.writeText(text).then(() => {
         showToast('Support Tutorial prompt copied!', 'success');
     });
