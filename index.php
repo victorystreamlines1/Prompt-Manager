@@ -18790,7 +18790,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .saved-actions-bar {
             padding: 0.5rem 1rem !important;
-            border-bottom: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
             flex-shrink: 0;
         }
 
@@ -23077,11 +23077,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Saved Prompts Actions Bar */
         .saved-actions-bar {
             display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
+            gap: 0.6rem;
+            padding: 0.5rem 0.85rem;
             background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border-color);
             align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .saved-bar-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .saved-bar-title i {
+            color: var(--success);
+            font-size: 0.85rem;
+        }
+
+        .saved-search-box {
+            flex: 1;
+            max-width: 220px;
+            margin-left: auto;
+        }
+
+        .saved-search-box input {
+            padding: 0.35rem 0.75rem 0.35rem 2rem;
+            font-size: 0.75rem;
+        }
+
+        .saved-search-box i {
+            font-size: 0.7rem;
+            left: 0.65rem;
         }
 
         .saved-action-btn {
@@ -27077,25 +27110,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <!-- Saved Prompts -->
             <div class="saved-prompts-section">
-                <div class="saved-header">
-                    <h3><i class="fas fa-bookmark"></i> Saved Prompts</h3>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchPrompts" placeholder="Search saved prompts...">
-                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Select/Deselect All for Saved Prompts -->
+                <!-- Unified Actions Bar: Title + Select All + Search -->
                 <div class="saved-actions-bar">
+                    <h3 class="saved-bar-title"><i class="fas fa-bookmark"></i> Saved Prompts</h3>
                     <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
                         <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
                         <span class="checkbox-custom"></span>
                         <span class="checkbox-label">Select All</span>
                     </label>
                     <span class="saved-counter" id="savedCounter">0/0</span>
+                    <div class="search-box saved-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchPrompts" placeholder="Search prompts...">
+                        <button type="button" class="search-clear-btn" id="savedSearchClear" onclick="clearSavedSearch()" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Static Scrollbar (above static nodes) -->
