@@ -4095,17 +4095,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ═══════ Static Nodes Row Container ═══════ */
         .static-nodes-row {
             display: flex;
+            flex-wrap: nowrap;
             gap: 6px;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.2rem;
+            padding: 0.4rem 0.75rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .static-nodes-row::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
         }
         .static-nodes-row > .qst-container,
         .static-nodes-row > .ret-container,
         .static-nodes-row > .itc-container,
         .static-nodes-row > .spt-container,
         .static-nodes-row > .stg-container {
-            flex: 1;
-            min-width: 0;
+            flex: 0 0 auto;
+            min-width: 220px;
             margin-bottom: 0;
+        }
+
+        /* ═══════ Static Scrollbar Track ═══════ */
+        .static-scrollbar-track {
+            width: calc(100% - 1.5rem);
+            height: 14px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 7px;
+            margin: 0.5rem 0.75rem 0.25rem 0.75rem;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+            box-sizing: border-box;
+        }
+        .static-scrollbar-thumb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 80px;
+            min-width: 50px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 6px;
+            cursor: grab;
+            transition: background 0.2s, box-shadow 0.2s, left 0.1s ease-out;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        .static-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, #818cf8, #a78bfa);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+            transform: scaleY(1.2);
+        }
+        .static-scrollbar-thumb:active,
+        .static-scrollbar-thumb.dragging {
+            cursor: grabbing;
+            background: linear-gradient(90deg, #a5b4fc, #c4b5fd);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+            transform: scaleY(1.3);
         }
 
         /* ═══════ Static Node: Quiz Question Generator (QST) ═══════ */
@@ -27039,8 +27098,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="saved-counter" id="savedCounter">0/0</span>
                 </div>
                 
+                <!-- Static Scrollbar (above static nodes) -->
+                <div class="static-scrollbar-track" id="staticScrollbarTrack">
+                    <div class="static-scrollbar-thumb" id="staticScrollbarThumb"></div>
+                </div>
+                
                 <!-- Static Nodes Row: QST + RET -->
-                <div class="static-nodes-row">
+                <div class="static-nodes-row" id="staticNodesRow">
                     <!-- Static Node: Quiz Question Generator (QST) -->
                     <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
                         <div class="qst-glow-bar"></div>
@@ -43908,6 +43972,143 @@ in each section carefully and maintain proper connections between components.
                 // MutationObserver for content changes
                 const observer = new MutationObserver(() => {
                     setTimeout(updateSavedScrollbar, 50);
+                });
+                observer.observe(list, { childList: true, subtree: true });
+            });
+        })();
+        
+        /* ═══════ Static Nodes Scrollbar ═══════ */
+        const staticScrollbar = {
+            list: null,
+            track: null,
+            thumb: null,
+            isDragging: false,
+            startX: 0,
+            startScrollLeft: 0
+        };
+        
+        function updateStaticScrollbar() {
+            const list = staticScrollbar.list || document.getElementById('staticNodesRow');
+            const track = staticScrollbar.track || document.getElementById('staticScrollbarTrack');
+            const thumb = staticScrollbar.thumb || document.getElementById('staticScrollbarThumb');
+            
+            if (!list || !track || !thumb) return;
+            
+            staticScrollbar.list = list;
+            staticScrollbar.track = track;
+            staticScrollbar.thumb = thumb;
+            
+            requestAnimationFrame(() => {
+                const listWidth = list.scrollWidth;
+                const viewWidth = list.clientWidth;
+                const trackWidth = track.clientWidth;
+                
+                if (listWidth <= viewWidth || listWidth === 0 || trackWidth === 0) {
+                    track.style.opacity = '0.3';
+                    thumb.style.width = '100%';
+                    thumb.style.left = '0px';
+                    return;
+                }
+                
+                track.style.opacity = '1';
+                
+                const ratio = viewWidth / listWidth;
+                const thumbWidth = Math.max(60, Math.min(trackWidth - 20, ratio * trackWidth));
+                thumb.style.width = thumbWidth + 'px';
+                
+                const maxScroll = listWidth - viewWidth;
+                const scrollRatio = maxScroll > 0 ? (list.scrollLeft / maxScroll) : 0;
+                const maxThumbLeft = trackWidth - thumbWidth;
+                const thumbLeft = Math.max(0, Math.min(maxThumbLeft, scrollRatio * maxThumbLeft));
+                thumb.style.left = thumbLeft + 'px';
+            });
+        }
+        
+        (function initStaticScrollbar() {
+            document.addEventListener('DOMContentLoaded', () => {
+                const list = document.getElementById('staticNodesRow');
+                const track = document.getElementById('staticScrollbarTrack');
+                const thumb = document.getElementById('staticScrollbarThumb');
+                
+                if (!list || !track || !thumb) return;
+                
+                staticScrollbar.list = list;
+                staticScrollbar.track = track;
+                staticScrollbar.thumb = thumb;
+                
+                function onThumbMouseDown(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    staticScrollbar.isDragging = true;
+                    staticScrollbar.startX = e.clientX;
+                    staticScrollbar.startScrollLeft = list.scrollLeft;
+                    thumb.classList.add('dragging');
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'grabbing';
+                }
+                
+                function onMouseMove(e) {
+                    if (!staticScrollbar.isDragging) return;
+                    
+                    const deltaX = e.clientX - staticScrollbar.startX;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const maxThumbLeft = trackWidth - thumbWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxThumbLeft > 0) {
+                        const scrollDelta = (deltaX / maxThumbLeft) * maxScroll;
+                        list.scrollLeft = staticScrollbar.startScrollLeft + scrollDelta;
+                    }
+                }
+                
+                function onMouseUp() {
+                    if (staticScrollbar.isDragging) {
+                        staticScrollbar.isDragging = false;
+                        thumb.classList.remove('dragging');
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                    }
+                }
+                
+                function onTrackClick(e) {
+                    if (e.target === thumb) return;
+                    
+                    const trackRect = track.getBoundingClientRect();
+                    const clickX = e.clientX - trackRect.left;
+                    const trackWidth = track.clientWidth;
+                    const thumbWidth = thumb.clientWidth;
+                    const listWidth = list.scrollWidth;
+                    const viewWidth = list.clientWidth;
+                    const maxScroll = listWidth - viewWidth;
+                    
+                    if (maxScroll <= 0) return;
+                    
+                    const targetRatio = Math.max(0, Math.min(1, (clickX - thumbWidth / 2) / (trackWidth - thumbWidth)));
+                    const targetScroll = targetRatio * maxScroll;
+                    
+                    list.scrollTo({
+                        left: targetScroll,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                thumb.addEventListener('mousedown', onThumbMouseDown);
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                track.addEventListener('click', onTrackClick);
+                
+                list.addEventListener('scroll', updateStaticScrollbar);
+                window.addEventListener('resize', updateStaticScrollbar);
+                
+                setTimeout(updateStaticScrollbar, 200);
+                setTimeout(updateStaticScrollbar, 500);
+                setTimeout(updateStaticScrollbar, 1000);
+                
+                const observer = new MutationObserver(() => {
+                    setTimeout(updateStaticScrollbar, 50);
                 });
                 observer.observe(list, { childList: true, subtree: true });
             });
