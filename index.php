@@ -344,6 +344,48 @@ function showLoginPage($error = null) {
             }
         }
     </script>
+
+<!-- Back to Catalog Button -->
+<a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+</a>
+<style>
+@keyframes catalog-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 0 rgba(240, 147, 251, 0.4); }
+    50% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 10px rgba(240, 147, 251, 0); }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-2deg); }
+    50% { transform: translateY(-12px) rotate(0deg); }
+    75% { transform: translateY(-8px) rotate(2deg); }
+}
+.catalog-back-btn::after {
+    content: 'Catalog';
+    position: absolute;
+    left: 85px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.catalog-back-btn:hover::after {
+    opacity: 1;
+}
+</style>
+<!-- End Back to Catalog Button -->
 </body>
 </html>
 <?php
@@ -5538,6 +5580,143 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
             font-weight: 600;
+        }
+
+        /* ═══════ Top Navigation Bar ═══════ */
+        .top-nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.5rem;
+            margin-bottom: 0.25rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.55), rgba(25, 20, 50, 0.45));
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .top-nav-bar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, rgba(139, 92, 246, 0.35) 30%, rgba(99, 102, 241, 0.4) 50%, rgba(139, 92, 246, 0.35) 70%, transparent 95%);
+            pointer-events: none;
+        }
+        .top-nav-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 10%, rgba(99, 102, 241, 0.12) 50%, transparent 90%);
+            pointer-events: none;
+        }
+        .tnb-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .tnb-brand:hover {
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+        }
+        .tnb-brand-icon {
+            font-size: 0.6rem;
+            color: rgba(167, 139, 250, 0.8);
+            filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.3));
+        }
+        .tnb-brand-text {
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tnb-sep {
+            width: 1px;
+            height: 16px;
+            background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.2), transparent);
+            margin: 0 0.15rem;
+            flex-shrink: 0;
+        }
+        .tnb-links {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .tnb-link {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            border: 1px solid transparent;
+            background: transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .tnb-link i {
+            font-size: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .tnb-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transform: translateY(-1px);
+        }
+        .tnb-link:hover i {
+            color: #a78bfa;
+            filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.4));
+        }
+        .tnb-link.active {
+            color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(99, 102, 241, 0.12));
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .tnb-link.active i {
+            color: #a78bfa;
+        }
+        .tnb-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%; right: 20%;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.6), rgba(99, 102, 241, 0.6));
+            box-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
+        }
+        .tnb-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 4px rgba(139, 92, 246, 0.2);
+            animation: tnbDotPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes tnbDotPulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
 
         /* Main Content Area */
@@ -24423,6 +24602,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             to { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ═══════ Inline Dictation Widget (inside Dev Dashboard header) ═══════ */
+        .gd-bar { display: none; }
+        .inline-dictation-widget {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(30, 30, 50, 0.5), rgba(20, 20, 40, 0.35));
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            backdrop-filter: blur(6px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .inline-dictation-widget:hover {
+            border-color: rgba(139, 92, 246, 0.22);
+            box-shadow: 0 1px 8px rgba(0, 0, 0, 0.12);
+        }
+        .ild-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.1));
+            color: rgba(167, 139, 250, 0.75);
+            font-size: 0.55rem;
+            flex-shrink: 0;
+        }
+        .ild-shortcut {
+            font-size: 0.45rem;
+            color: rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+            margin-left: 0.15rem;
+        }
+        .ild-shortcut kbd {
+            display: inline-block;
+            padding: 1px 3px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.42rem;
+            font-family: inherit;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
         /* ═══════ Main Content Tabs ═══════ */
         .mc-tabs {
             display: flex;
@@ -27131,23 +27357,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Global Dictation Bar -->
-            <div class="gd-bar">
-                <div class="gd-bar-icon"><i class="fas fa-headset"></i></div>
-                <span class="gd-bar-label">Dictation</span>
-                <div class="gd-bar-divider"></div>
-                <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field (Shift+E)">
-                    <i class="fas fa-microphone"></i>
-                    <span class="gd-label" id="gdLabelEn">English</span>
-                    <span class="gd-pulse" id="gdPulseEn"></span>
-                </button>
-                <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل (Shift+A)">
-                    <i class="fas fa-microphone"></i>
-                    <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
-                    <span class="gd-pulse" id="gdPulseAr"></span>
-                </button>
-                <span class="gd-bar-shortcut"><kbd>Shift</kbd>+<kbd>E</kbd> / <kbd>Shift</kbd>+<kbd>A</kbd></span>
-            </div>
+            <!-- Top Navigation Bar -->
+            <nav class="top-nav-bar">
+                <div class="tnb-brand">
+                    <span class="tnb-brand-icon"><i class="fas fa-terminal"></i></span>
+                    <span class="tnb-brand-text">PM</span>
+                </div>
+                <div class="tnb-sep"></div>
+                <div class="tnb-links">
+                    <a href="index.php" class="tnb-link active">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <span class="tnb-dot"></span>
+                    <a href="report-prompt-databases.php" class="tnb-link">
+                        <i class="fas fa-database"></i>
+                        <span>Databases</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Global Dictation moved into Development Dashboard header -->
 
             <!-- Main Content Tabs -->
             <div class="mc-tabs">
@@ -27308,6 +27538,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="dev-text">Development Dashboard</span>
                         </div>
                     </div>
+                    <!-- Inline Dictation Widget -->
+                    <div class="inline-dictation-widget">
+                        <div class="ild-icon" title="Global Dictation"><i class="fas fa-headset"></i></div>
+                        <button class="gd-btn gd-btn-en" id="gdBtnEn" onclick="gdToggleEn()" title="Global Dictate – speaks to any focused field (Shift+E)">
+                            <i class="fas fa-microphone"></i>
+                            <span class="gd-label" id="gdLabelEn">English</span>
+                            <span class="gd-pulse" id="gdPulseEn"></span>
+                        </button>
+                        <button class="gd-btn gd-btn-ar" id="gdBtnAr" onclick="gdToggleAr()" title="إملاء عام – تحدث بالعربية لأي حقل (Shift+A)">
+                            <i class="fas fa-microphone"></i>
+                            <span class="gd-label" id="gdLabelAr">إملاء</span><span class="gd-ar-flag">AR</span>
+                            <span class="gd-pulse" id="gdPulseAr"></span>
+                        </button>
+                        <span class="ild-shortcut"><kbd>Shift+E</kbd> / <kbd>Shift+A</kbd></span>
+                    </div>
+
                     <div class="dev-dashboard-actions">
                         <label class="dash-master-check" title="Select/Deselect All Sections" onclick="toggleDashMasterCheck()">
                             <input type="checkbox" id="dashMasterCheckbox">
@@ -62881,6 +63127,48 @@ Create ONE simple, beautifully styled question in HTML/CSS. Just a title, questi
         <p class="question">[The question text - describe what the user needs to know to fill the blank, WITHOUT showing blanks or code]</p>
         <div class="hint">💡 <strong>Hint:</strong> [Helpful hint here]</div>
     </div>
+
+<!-- Back to Catalog Button -->
+<a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+</a>
+<style>
+@keyframes catalog-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 0 rgba(240, 147, 251, 0.4); }
+    50% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 10px rgba(240, 147, 251, 0); }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-2deg); }
+    50% { transform: translateY(-12px) rotate(0deg); }
+    75% { transform: translateY(-8px) rotate(2deg); }
+}
+.catalog-back-btn::after {
+    content: 'Catalog';
+    position: absolute;
+    left: 85px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.catalog-back-btn:hover::after {
+    opacity: 1;
+}
+</style>
+<!-- End Back to Catalog Button -->
 </body>
 </html>
 \`\`\`
@@ -64194,6 +64482,48 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
+
+<!-- Back to Catalog Button -->
+<a href="prompt-manager.php" id="backToCatalogBtn" class="catalog-back-btn" style="position: fixed; bottom: 30px; left: 30px; width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); z-index: 9999; text-decoration: none; transition: all 0.3s ease; border: 3px solid rgba(255, 255, 255, 0.3); animation: catalog-pulse 2s infinite;" title="Back to Catalog" onmouseover="this.style.transform='scale(1.15) rotate(-10deg)'; this.style.boxShadow='0 10px 35px rgba(240, 147, 251, 0.7)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 8px 25px rgba(240, 147, 251, 0.5)';">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+</a>
+<style>
+@keyframes catalog-pulse {
+    0%, 100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 0 rgba(240, 147, 251, 0.4); }
+    50% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5), 0 0 0 10px rgba(240, 147, 251, 0); }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-8px) rotate(-2deg); }
+    50% { transform: translateY(-12px) rotate(0deg); }
+    75% { transform: translateY(-8px) rotate(2deg); }
+}
+.catalog-back-btn::after {
+    content: 'Catalog';
+    position: absolute;
+    left: 85px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.catalog-back-btn:hover::after {
+    opacity: 1;
+}
+</style>
+<!-- End Back to Catalog Button -->
 </body>
 </html>
 

@@ -3015,9 +3015,154 @@ if (isset($_GET['edit'])) {
                 flex-direction: column;
             }
         }
+        /* ═══════ Top Navigation Bar ═══════ */
+        .top-nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.65rem;
+            margin: 0.5rem auto 0.6rem;
+            max-width: 1200px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(15, 15, 35, 0.7), rgba(25, 20, 50, 0.55));
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+        .top-nav-bar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, rgba(139, 92, 246, 0.35) 30%, rgba(99, 102, 241, 0.4) 50%, rgba(139, 92, 246, 0.35) 70%, transparent 95%);
+            pointer-events: none;
+        }
+        .top-nav-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 10%, rgba(99, 102, 241, 0.12) 50%, transparent 90%);
+            pointer-events: none;
+        }
+        .tnb-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .tnb-brand:hover {
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+        }
+        .tnb-brand-icon {
+            font-size: 0.7rem;
+            filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.3));
+        }
+        .tnb-brand-text {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tnb-sep {
+            width: 1px;
+            height: 18px;
+            background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.2), transparent);
+            margin: 0 0.15rem;
+            flex-shrink: 0;
+        }
+        .tnb-links {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .tnb-link {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.22rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            border: 1px solid transparent;
+            background: transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .tnb-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transform: translateY(-1px);
+        }
+        .tnb-link.active {
+            color: rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(99, 102, 241, 0.12));
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .tnb-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 20%; right: 20%;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.6), rgba(99, 102, 241, 0.6));
+            box-shadow: 0 0 6px rgba(139, 92, 246, 0.3);
+        }
+        .tnb-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 4px rgba(139, 92, 246, 0.2);
+            animation: tnbDotPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes tnbDotPulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
     </style>
 </head>
 <body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav-bar">
+        <div class="tnb-brand">
+            <span class="tnb-brand-icon">⚡</span>
+            <span class="tnb-brand-text">PM</span>
+        </div>
+        <div class="tnb-sep"></div>
+        <div class="tnb-links">
+            <a href="index.php" class="tnb-link">
+                🏠 <span>Home</span>
+            </a>
+            <span class="tnb-dot"></span>
+            <a href="report-prompt-databases.php" class="tnb-link active">
+                🗄️ <span>Databases</span>
+            </a>
+        </div>
+    </nav>
+
     <!-- Database Connection Toggle Switch -->
     <div class="db-toggle-container" id="dbToggleContainer" title="Database Connection: Local (faster on server) / Remote (anywhere)">
         <span class="toggle-label local" id="labelLocal">🖥️</span>
