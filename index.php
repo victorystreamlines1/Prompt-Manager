@@ -20531,19 +20531,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
         
-        /* Reset Button - Orange (Icon only) */
+        /* Reset Button - Orange */
         .project-btn.reset-btn {
             background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.06) 100%);
             border-color: rgba(251, 146, 60, 0.25);
             color: #fb923c;
-            padding: 0.5rem;
         }
         
         .project-btn.reset-btn:hover {
             background: linear-gradient(135deg, rgba(251, 146, 60, 0.18) 0%, rgba(249, 115, 22, 0.12) 100%);
             border-color: rgba(251, 146, 60, 0.4);
             color: #fdba74;
-            transform: rotate(-180deg);
+            transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
         }
         
