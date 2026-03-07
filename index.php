@@ -4160,7 +4160,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .static-nodes-row > .ret-container,
         .static-nodes-row > .itc-container,
         .static-nodes-row > .spt-container,
-        .static-nodes-row > .stg-container {
+        .static-nodes-row > .stg-container,
+        .static-nodes-row > .exp-container {
             flex: 0 0 auto;
             min-width: 220px;
             margin-bottom: 0;
@@ -5234,6 +5235,288 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: color 0.2s;
         }
         .stg-clear-images:hover { color: #ef4444; }
+
+        /* ═══════════════════════════════════════════════════════════
+           EXPLAIN CODE (EXP) — Static Node
+           ═══════════════════════════════════════════════════════════ */
+        .exp-container {
+            position: relative; border-radius: 10px; cursor: pointer;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.07), rgba(124, 58, 237, 0.04));
+            border: 1.5px solid rgba(139, 92, 246, 0.22);
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+        .exp-container:hover {
+            border-color: rgba(139, 92, 246, 0.42);
+            box-shadow: 0 2px 14px rgba(139, 92, 246, 0.12);
+            transform: translateY(-1px);
+        }
+        .exp-container.checked {
+            border-color: rgba(139, 92, 246, 0.6);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.13), rgba(124, 58, 237, 0.07));
+            box-shadow: 0 2px 18px rgba(139, 92, 246, 0.18);
+        }
+        .exp-glow-bar {
+            position: absolute; top: 0; left: 0; right: 0; height: 2.5px;
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed, #a78bfa, #7c3aed, #8b5cf6);
+            background-size: 200% 100%;
+            animation: expShimmer 3s linear infinite;
+        }
+        @keyframes expShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .exp-inner {
+            display: flex; align-items: center;
+            padding: 0.55rem 0.7rem; gap: 0.45rem;
+        }
+        .exp-checkbox { flex-shrink: 0; cursor: pointer; }
+        .exp-checkbox input { display: none; }
+        .exp-check-box {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(139, 92, 246, 0.35);
+            border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            background: var(--bg-tertiary);
+        }
+        .exp-check-box i { font-size: 0.65rem; color: white; opacity: 0; transform: scale(0); transition: all 0.2s; }
+        .exp-container.checked .exp-check-box {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border-color: #8b5cf6;
+        }
+        .exp-container.checked .exp-check-box i { opacity: 1; transform: scale(1); }
+        .exp-body { flex: 1; min-width: 0; }
+        .exp-badges {
+            display: flex; align-items: center; gap: 4px;
+            margin-bottom: 2px;
+        }
+        .exp-badge-static {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #a78bfa;
+            background: rgba(139, 92, 246, 0.12);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .exp-badge-type {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 0.57rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 1px 6px; border-radius: 4px;
+        }
+        .exp-name {
+            font-size: 0.82rem; font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .exp-preview {
+            font-size: 0.67rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+        .exp-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0.55; transition: opacity 0.2s;
+        }
+        .exp-container:hover .exp-actions { opacity: 1; }
+        .exp-action-btn {
+            width: 26px; height: 26px;
+            border-radius: 6px; border: none;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 0.7rem;
+        }
+        .exp-action-btn.exp-copy:hover {
+            background: rgba(139, 92, 246, 0.18); color: #a78bfa;
+            transform: scale(1.1);
+        }
+        .exp-action-btn.exp-push:hover {
+            background: rgba(139, 92, 246, 0.22); color: #c4b5fd;
+            transform: scale(1.1);
+        }
+
+        /* EXP Modal */
+        .exp-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10500;
+            display: none; align-items: center; justify-content: center;
+        }
+        .exp-modal-overlay.active { display: flex; }
+        .exp-modal {
+            background: var(--bg-primary);
+            border: 1.5px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            width: 460px; max-width: 95vw;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 0 0 1px rgba(139,92,246,0.08);
+            animation: expModalIn 0.25s ease;
+            overflow: hidden;
+        }
+        @keyframes expModalIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .exp-modal-header {
+            padding: 0.9rem 1.1rem 0.75rem;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+            background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(124,58,237,0.04));
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .exp-modal-title {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 0.92rem; font-weight: 700; color: var(--text-primary);
+        }
+        .exp-modal-title i { color: #a78bfa; font-size: 0.9rem; }
+        .exp-modal-close {
+            width: 28px; height: 28px; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 0.2s;
+        }
+        .exp-modal-close:hover { background: rgba(239,68,68,0.15); color: var(--danger); border-color: rgba(239,68,68,0.3); }
+        .exp-modal-body { padding: 1rem 1.1rem; }
+        .exp-modal-hint {
+            font-size: 0.75rem; color: var(--text-muted);
+            line-height: 1.55; margin-bottom: 0.85rem;
+            padding: 0.55rem 0.75rem;
+            background: rgba(139,92,246,0.06);
+            border-radius: 8px;
+            border-left: 3px solid rgba(139,92,246,0.35);
+        }
+        .exp-modal-hint strong { color: var(--text-primary); }
+        .exp-modal-hint code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: rgba(139,92,246,0.12);
+            padding: 1px 5px; border-radius: 4px;
+            color: #a78bfa;
+        }
+        .exp-input-wrap { display: flex; flex-direction: column; gap: 5px; }
+        .exp-input-label {
+            font-size: 0.72rem; font-weight: 600;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .exp-input-label i { color: #a78bfa; }
+        .exp-input-group {
+            display: flex; align-items: center; gap: 0;
+        }
+        .exp-input {
+            flex: 1; padding: 0.6rem 0.85rem;
+            border-radius: 9px 0 0 9px;
+            border: 1.5px solid rgba(139,92,246,0.25);
+            border-right: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .exp-input:focus {
+            border-color: rgba(139,92,246,0.55);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+        }
+        .exp-input-suffix {
+            padding: 0.6rem 0.75rem;
+            border-radius: 0 9px 9px 0;
+            border: 1.5px solid rgba(139,92,246,0.25);
+            border-left: none;
+            background: rgba(139,92,246,0.08);
+            color: #a78bfa;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .exp-input:focus + .exp-input-suffix {
+            border-color: rgba(139,92,246,0.55);
+        }
+        .exp-phrase-section {
+            padding: 0.85rem 1.1rem 0.6rem;
+            border-top: 1px solid rgba(139,92,246,0.1);
+        }
+        .exp-phrase-hint {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin: 0 0 8px;
+            line-height: 1.4;
+        }
+        .exp-phrase-hint code {
+            background: rgba(139,92,246,0.12);
+            color: #c4b5fd;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.76rem;
+        }
+        .exp-phrase-textarea {
+            width: 100%;
+            min-height: 100px;
+            max-height: 260px;
+            padding: 12px 14px;
+            background: rgba(139,92,246,0.06);
+            border: 1.5px solid rgba(139,92,246,0.2);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            resize: vertical;
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .exp-phrase-textarea::placeholder {
+            color: rgba(148,163,184,0.45);
+            font-style: italic;
+        }
+        .exp-phrase-textarea:focus {
+            border-color: rgba(139,92,246,0.5);
+            background: rgba(139,92,246,0.1);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.1), 0 0 20px rgba(139,92,246,0.08);
+        }
+        .exp-phrase-textarea::-webkit-scrollbar { width: 6px; }
+        .exp-phrase-textarea::-webkit-scrollbar-track { background: transparent; }
+        .exp-phrase-textarea::-webkit-scrollbar-thumb {
+            background: rgba(139,92,246,0.25);
+            border-radius: 3px;
+        }
+        .exp-modal-footer {
+            padding: 0.7rem 1.1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+        }
+        .exp-btn-cancel {
+            padding: 0.45rem 1rem; border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary); color: var(--text-muted);
+            font-size: 0.78rem; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .exp-btn-cancel:hover { background: rgba(239,68,68,0.1); color: var(--danger); border-color: rgba(239,68,68,0.25); }
+        .exp-btn-push {
+            padding: 0.45rem 1.1rem; border-radius: 7px;
+            border: none;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white; font-weight: 600;
+            font-size: 0.78rem; cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(139,92,246,0.25);
+        }
+        .exp-btn-push:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(139,92,246,0.35);
+        }
 
         /* Template Modal */
         .template-modal-overlay {
@@ -27575,6 +27858,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+
+            <!-- EXP Explain Code Modal -->
+            <div class="exp-modal-overlay" id="expModalOverlay" onclick="if(event.target===this) expCloseModal()">
+                <div class="exp-modal" onclick="event.stopPropagation()">
+                    <div class="exp-modal-header">
+                        <div class="exp-modal-title">
+                            <i class="fas fa-code"></i>
+                            <span>Explain Code / Phrase</span>
+                        </div>
+                        <button class="exp-modal-close" onclick="expCloseModal()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="exp-modal-body">
+                        <p class="exp-modal-hint">Enter the <strong>output filename</strong> for the tutorial. The prompt will reference this filename throughout. Example: <code>my-tutorial</code></p>
+                        <div class="exp-input-wrap">
+                            <label class="exp-input-label"><i class="fas fa-file-code"></i> Filename</label>
+                            <div class="exp-input-group">
+                                <input type="text" class="exp-input" id="expFilenameInput" placeholder="support-prompt" autocomplete="off">
+                                <span class="exp-input-suffix">.html</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="exp-phrase-section">
+                        <label class="exp-input-label"><i class="fas fa-code"></i> Phrase / Code to Explain</label>
+                        <p class="exp-phrase-hint">Paste the code, command, or concept you want the tutorial to explain. This fills the <code>📝 THE PHRASE/CODE TO EXPLAIN</code> section.</p>
+                        <textarea id="expPhraseInput" class="exp-phrase-textarea" rows="5" placeholder="e.g. docker compose up -d --build&#10;or paste a code snippet..."></textarea>
+                    </div>
+                    <div class="exp-modal-footer">
+                        <button class="exp-btn-cancel" onclick="expCloseModal()"><i class="fas fa-times"></i> Cancel</button>
+                        <button class="exp-btn-push" onclick="expConfirmPush()"><i class="fas fa-arrow-right"></i> Push to Editor</button>
+                    </div>
+                </div>
+            </div>
             
             <!-- Development Dashboard -->
             <div class="dev-dashboard-section">
@@ -28207,6 +28522,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-copy"></i>
                                 </button>
                                 <button type="button" class="stg-action-btn stg-push" onclick="stgOpenModal()" title="Set filename & push">
+                                    <i class="fas fa-bolt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Static Node: Explain Code (EXP) -->
+                    <div class="exp-container" id="expContainer" onclick="expOpenModal()">
+                        <div class="exp-glow-bar"></div>
+                        <div class="exp-inner">
+                            <div class="exp-checkbox" id="expCheckboxWrap" onclick="event.stopPropagation(); expToggleDirect()">
+                                <input type="checkbox" id="expCheckbox">
+                                <div class="exp-check-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="exp-body">
+                                <div class="exp-badges">
+                                    <span class="exp-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                                    <span class="exp-badge-type"><i class="fas fa-code"></i> Explain</span>
+                                </div>
+                                <div class="exp-name">Explain Code</div>
+                                <div class="exp-preview">Code/Phrase → HTML tutorial — enter filename to generate</div>
+                            </div>
+                            <div class="exp-actions" onclick="event.stopPropagation()">
+                                <button type="button" class="exp-action-btn exp-copy" onclick="expCopyPrompt()" title="Copy prompt">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="exp-action-btn exp-push" onclick="expOpenModal()" title="Set filename & push">
                                     <i class="fas fa-bolt"></i>
                                 </button>
                             </div>
@@ -64005,6 +64347,210 @@ document.addEventListener('DOMContentLoaded', function() {
     const inp = document.getElementById('stgFilenameInput');
     if (inp) inp.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); stgConfirmPush(); }
+    });
+});
+</script>
+
+<!-- ═══ Explain Code (EXP) — Static Node JS ═══ -->
+<script>
+const EXP_MARKER_START = '<!-- EXP:EXPLAIN_CODE -->';
+const EXP_MARKER_END   = '<!-- /EXP:EXPLAIN_CODE -->';
+let expActive = false;
+
+const EXP_PROMPT_TEMPLATE = `# 🎓 SUPPORT TUTORIAL GENERATOR
+
+## YOUR MISSION:
+Create a **single, self-contained HTML file** called \\\`{{FILENAME}}.html\\\` that serves as an **interactive, fun, and comprehensive tutorial** explaining the following phrase/code/command.
+
+---
+
+## 📝 THE PHRASE/CODE TO EXPLAIN:
+
+\\\`\\\`\\\`
+{{PHRASE}}
+\\\`\\\`\\\`
+
+---
+
+## 📋 REQUIREMENTS:
+
+### 1. FILE STRUCTURE (All-in-One HTML):
+- Single \\\`.html\\\` file with embedded \\\`<style>\\\` and \\\`<script>\\\` tags
+- No external dependencies (except optional CDN fonts/icons)
+- Must be viewable offline
+- File name: \\\`{{FILENAME}}.html\\\`
+
+### 2. CONTENT SECTIONS (Include ALL):
+1. **Hero Header** - Eye-catching animated title with the phrase
+2. **What Is It?** - Clear explanation of what this phrase/code means
+3. **Why Use It?** - Benefits and use cases
+4. **How Does It Work?** - Step-by-step breakdown
+5. **Live Demo/Example** - Interactive demonstration if applicable
+6. **Code Breakdown** - Syntax highlighting with annotations
+7. **Common Mistakes** - What NOT to do
+8. **Pro Tips** - Advanced usage tips
+9. **Practice Quiz** - Mini interactive quiz (2-3 questions)
+10. **Summary Card** - Quick reference cheat sheet
+11. **Footer** - Credits and "generated by AI Prompt Dictionary"
+
+### 3. DESIGN & AESTHETICS:
+- 🎨 **Color Scheme**: Dark mode with vibrant accent colors (purple/blue/green gradients)
+- ✨ **Animations**: Smooth fade-ins, hover effects, scroll animations
+- 🎮 **Gamification**: Progress indicators, achievement badges, interactive elements
+- 📱 **Responsive**: Works on mobile and desktop
+- 🌟 **Modern UI**: Glassmorphism, rounded corners, shadows
+- 🎭 **Fun Elements**: Emojis, icons, playful micro-interactions
+
+### 4. INTERACTIVITY:
+- Collapsible sections (accordion style)
+- Copy-to-clipboard buttons for code
+- Hover tooltips for technical terms
+- Tab switches for different examples
+- Smooth scroll navigation
+- Dark/Light theme toggle (optional)
+
+### 5. ENTERTAINMENT VALUE:
+- Use storytelling approach
+- Add relevant emojis throughout
+- Include encouraging messages
+- Make learning feel like a game
+- Celebrate correct quiz answers with confetti/animation
+
+### 6. TECHNICAL QUALITY:
+- Clean, semantic HTML5
+- Well-organized CSS with variables
+- Vanilla JavaScript (no frameworks needed)
+- Proper accessibility (aria labels, contrast)
+- Fast loading, optimized
+
+---
+
+## 🎯 OUTPUT EXAMPLE STRUCTURE:
+
+The HTML file should follow this structure:
+- DOCTYPE and html tags with lang="en"
+- Head with meta charset, viewport, title: " - Interactive Tutorial"
+- Embedded style tag with all CSS
+- Body with all HTML content
+- Embedded script tag at the end with all JavaScript
+
+---
+
+## ⚠️ IMPORTANT NOTES:
+- Make it **educational** but also **entertaining**
+- Assume the learner is a beginner
+- Use **simple language** with technical accuracy
+- The tutorial should take 5-10 minutes to complete
+- Include at least **3 interactive elements**
+- Make it memorable and shareable
+
+---
+
+## 🚀 START CREATING!
+
+Generate the complete \\\`{{FILENAME}}.html\\\` file now. Make it amazing, comprehensive, and fun! 🎉`;
+
+// ── Build content with filename & phrase ──
+function expBuildContent(filename, phrase) {
+    return EXP_PROMPT_TEMPLATE
+        .replace(/\{\{FILENAME\}\}/g, filename)
+        .replace(/\{\{PHRASE\}\}/g, phrase || '');
+}
+
+// ── Open modal ──
+function expOpenModal() {
+    const overlay = document.getElementById('expModalOverlay');
+    const input   = document.getElementById('expFilenameInput');
+    input.value = '';
+    const phraseEl = document.getElementById('expPhraseInput');
+    if (phraseEl) phraseEl.value = '';
+    overlay.classList.add('active');
+    setTimeout(() => input.focus(), 150);
+}
+
+// ── Close modal ──
+function expCloseModal() {
+    document.getElementById('expModalOverlay').classList.remove('active');
+}
+
+// ── Confirm & push ──
+function expConfirmPush() {
+    const raw = document.getElementById('expFilenameInput').value.trim();
+    if (!raw) {
+        showToast('Please enter a filename', 'error');
+        document.getElementById('expFilenameInput').focus();
+        return;
+    }
+    const filename = raw.replace(/\.html$/i, '');
+    const phraseEl = document.getElementById('expPhraseInput');
+    const phrase = phraseEl ? phraseEl.value.trim() : '';
+    let content = expBuildContent(filename, phrase);
+
+    const block = '\n\n' + EXP_MARKER_START + '\n' + content + '\n' + EXP_MARKER_END;
+
+    const editor = document.getElementById('promptEditor');
+    expRemoveFromEditor();
+    editor.value = editor.value.replace(/\n+$/, '') + block + '\n';
+
+    expActive = true;
+    document.getElementById('expContainer').classList.add('checked');
+    document.getElementById('expCheckbox').checked = true;
+    updatePromptCounter();
+    expCloseModal();
+    showToast('Explain Code prompt pushed!', 'success');
+    if (typeof saveEditorContent === 'function') saveEditorContent();
+}
+
+// ── Toggle directly (checkbox) ──
+function expToggleDirect() {
+    if (expActive) {
+        expRemoveFromEditor();
+        expActive = false;
+        document.getElementById('expContainer').classList.remove('checked');
+        document.getElementById('expCheckbox').checked = false;
+        updatePromptCounter();
+        showToast('Explain Code removed from editor', 'info');
+        if (typeof saveEditorContent === 'function') saveEditorContent();
+    } else {
+        expOpenModal();
+    }
+}
+
+// ── Remove from editor ──
+function expRemoveFromEditor() {
+    const editor   = document.getElementById('promptEditor');
+    const startIdx = editor.value.indexOf(EXP_MARKER_START);
+    const endIdx   = editor.value.indexOf(EXP_MARKER_END);
+    if (startIdx !== -1 && endIdx !== -1) {
+        const before = editor.value.substring(0, startIdx).replace(/\n+$/, '');
+        const after  = editor.value.substring(endIdx + EXP_MARKER_END.length).replace(/^\n+/, '');
+        editor.value = before + (after ? '\n\n' + after : '');
+    }
+}
+
+// ── Copy prompt ──
+function expCopyPrompt() {
+    const text = EXP_PROMPT_TEMPLATE
+        .replace(/\{\{FILENAME\}\}/g, '(enter-filename)')
+        .replace(/\{\{PHRASE\}\}/g, '(enter-phrase-or-code)');
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Explain Code prompt copied!', 'success');
+    });
+}
+
+// ── Close modal on Escape ──
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('expModalOverlay');
+        if (overlay && overlay.classList.contains('active')) expCloseModal();
+    }
+});
+
+// ── Submit on Enter ──
+document.addEventListener('DOMContentLoaded', function() {
+    const inp = document.getElementById('expFilenameInput');
+    if (inp) inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); expConfirmPush(); }
     });
 });
 </script>
