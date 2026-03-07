@@ -20323,28 +20323,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         /* ═══════ End Notes Footer Toolbar ═══════ */
         
-        /* Dashboard Footer with Project Management & Generate Button */
-        .dashboard-footer {
+        /* Project Management Bar (merged into project-notes-section) */
+        .project-management-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1rem;
-            padding: 0.85rem 1.25rem;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
-            border: 1px solid rgba(99, 102, 241, 0.12);
-            border-radius: 14px;
-            margin-top: 0.4rem;
+            flex-wrap: wrap;
+            gap: 0.4rem 0.5rem;
+            padding: 0.45rem 0.75rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(251, 191, 36, 0.04) 50%, rgba(16, 185, 129, 0.03) 100%);
+            border-top: 1px solid rgba(251, 191, 36, 0.1);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.1);
             position: relative;
+            overflow-x: auto;
+            scrollbar-width: thin;
         }
         
-        .dashboard-footer::before {
+        .project-management-bar::before {
             content: '';
             position: absolute;
             top: 0;
             left: 10%;
             right: 10%;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+        }
+        
+        /* Legacy .dashboard-footer kept for backward compat but hidden */
+        .dashboard-footer {
+            display: none;
         }
         
         /* Project Management Group */
@@ -27826,6 +27833,128 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </button>
                                 </div>
                             </div>
+                            <!-- Merged Project Management Bar -->
+                            <div class="project-management-bar" id="projectManagementBar">
+                                <div class="project-management-group">
+                                    <div class="project-selector-wrap">
+                                        <select class="project-selector" id="projectSelector" onchange="onProjectSelect()">
+                                            <option value="">-- No Project --</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <button type="button" class="project-btn new-btn" onclick="openNewProjectPopup()" title="New Project">
+                                        <i class="fas fa-plus"></i>
+                                        <span>New</span>
+                                    </button>
+                                    <button type="button" class="project-btn save-btn" onclick="saveCurrentProject()" title="Save Project">
+                                        <i class="fas fa-save"></i>
+                                        <span>Save</span>
+                                    </button>
+                                    <button type="button" class="project-btn save-new-btn" onclick="saveAsNewProject()" title="Save as New Project">
+                                        <i class="fas fa-copy"></i>
+                                        <span>Save New</span>
+                                    </button>
+                                    <button type="button" class="project-btn rename-btn" onclick="renameCurrentProject()" title="Rename Project">
+                                        <i class="fas fa-pen"></i>
+                                        <span>Rename</span>
+                                    </button>
+                                    <button type="button" class="project-btn load-btn" onclick="openLoadProjectPopup()" title="Load Project">
+                                        <i class="fas fa-folder-open"></i>
+                                        <span>Load</span>
+                                    </button>
+                                    <button type="button" class="project-btn delete-btn" onclick="deleteCurrentProject()" title="Delete Project">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button type="button" class="project-btn reset-btn" onclick="resetDashboardProject()" title="Reset Dashboard">
+                                        <i class="fas fa-undo-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="footer-divider"></div>
+                                <div class="language-toggle-group" id="languageToggleGroup">
+                                    <label class="dash-section-check lang-check" onclick="event.stopPropagation();" title="Include Language">
+                                        <input type="checkbox" class="dash-sec-cb" data-section="language" onchange="onDashSectionCheckChange()">
+                                        <span class="dash-check-box"><i class="fas fa-check"></i></span>
+                                    </label>
+                                    <div class="language-toggle-label">
+                                        <i class="fas fa-language"></i>
+                                        <span>Lang</span>
+                                    </div>
+                                    <div class="language-toggle-switch">
+                                        <label class="lang-option arabic" onclick="setAppLanguage('arabic')">
+                                            <span class="lang-flag">🇸🇦</span>
+                                            <span>AR</span>
+                                        </label>
+                                        <label class="lang-option english active" onclick="setAppLanguage('english')">
+                                            <span class="lang-flag">🇺🇸</span>
+                                            <span>EN</span>
+                                        </label>
+                                        <label class="lang-option both" onclick="setAppLanguage('both')">
+                                            <span class="lang-flag">🌐</span>
+                                            <span>Both</span>
+                                        </label>
+                                        <label class="lang-option multi" onclick="setAppLanguage('multi')">
+                                            <span class="lang-flag">🗺️</span>
+                                            <span>Multi</span>
+                                        </label>
+                                    </div>
+                                    <div class="default-lang-selector" id="defaultLangSelector">
+                                        <span class="default-lang-label">Default:</span>
+                                        <div class="default-lang-buttons">
+                                            <button type="button" class="default-lang-btn" data-default="arabic" onclick="setDefaultLanguage('arabic')">
+                                                <span class="btn-flag">🇸🇦</span> AR
+                                            </button>
+                                            <button type="button" class="default-lang-btn selected" data-default="english" onclick="setDefaultLanguage('english')">
+                                                <span class="btn-flag">🇺🇸</span> EN
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="multi-lang-selector" id="multiLangSelector">
+                                        <div class="multi-lang-header">
+                                            <h4><i class="fas fa-globe"></i> Select Languages</h4>
+                                            <button type="button" class="multi-lang-close" onclick="closeMultiLangSelector()">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div class="multi-lang-grid" id="multiLangGrid">
+                                            <div class="multi-lang-item" data-lang="en" data-name="English" onclick="toggleMultiLang('en')"><span class="item-flag">🇺🇸</span><span class="item-code">EN</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="ar" data-name="Arabic" onclick="toggleMultiLang('ar')"><span class="item-flag">🇸🇦</span><span class="item-code">AR</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="fr" data-name="French" onclick="toggleMultiLang('fr')"><span class="item-flag">🇫🇷</span><span class="item-code">FR</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="es" data-name="Spanish" onclick="toggleMultiLang('es')"><span class="item-flag">🇪🇸</span><span class="item-code">ES</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="de" data-name="German" onclick="toggleMultiLang('de')"><span class="item-flag">🇩🇪</span><span class="item-code">DE</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="it" data-name="Italian" onclick="toggleMultiLang('it')"><span class="item-flag">🇮🇹</span><span class="item-code">IT</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="pt" data-name="Portuguese" onclick="toggleMultiLang('pt')"><span class="item-flag">🇵🇹</span><span class="item-code">PT</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="ru" data-name="Russian" onclick="toggleMultiLang('ru')"><span class="item-flag">🇷🇺</span><span class="item-code">RU</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="zh" data-name="Chinese" onclick="toggleMultiLang('zh')"><span class="item-flag">🇨🇳</span><span class="item-code">ZH</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="ja" data-name="Japanese" onclick="toggleMultiLang('ja')"><span class="item-flag">🇯🇵</span><span class="item-code">JA</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="ko" data-name="Korean" onclick="toggleMultiLang('ko')"><span class="item-flag">🇰🇷</span><span class="item-code">KO</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="hi" data-name="Hindi" onclick="toggleMultiLang('hi')"><span class="item-flag">🇮🇳</span><span class="item-code">HI</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="tr" data-name="Turkish" onclick="toggleMultiLang('tr')"><span class="item-flag">🇹🇷</span><span class="item-code">TR</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="nl" data-name="Dutch" onclick="toggleMultiLang('nl')"><span class="item-flag">🇳🇱</span><span class="item-code">NL</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="pl" data-name="Polish" onclick="toggleMultiLang('pl')"><span class="item-flag">🇵🇱</span><span class="item-code">PL</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="th" data-name="Thai" onclick="toggleMultiLang('th')"><span class="item-flag">🇹🇭</span><span class="item-code">TH</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="vi" data-name="Vietnamese" onclick="toggleMultiLang('vi')"><span class="item-flag">🇻🇳</span><span class="item-code">VI</span><i class="fas fa-check item-check"></i></div>
+                                            <div class="multi-lang-item" data-lang="id" data-name="Indonesian" onclick="toggleMultiLang('id')"><span class="item-flag">🇮🇩</span><span class="item-code">ID</span><i class="fas fa-check item-check"></i></div>
+                                        </div>
+                                        <div class="multi-lang-default" id="multiLangDefault" style="display: none;">
+                                            <div class="multi-lang-default-label">
+                                                <i class="fas fa-star"></i> Default Language:
+                                            </div>
+                                            <div class="multi-lang-default-options" id="multiLangDefaultOptions"></div>
+                                        </div>
+                                        <div class="multi-lang-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span id="multiLangCount">0 languages selected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="footer-divider"></div>
+                                <div class="generate-group">
+                                    <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
+                                        <i class="fas fa-magic"></i>
+                                        <span>Generate</span>
+                                    </button>
+                                </div>
+                            </div>
                             <div class="project-notes-body" id="projectNotesBody">
                                 <textarea class="project-notes-textarea" 
                                           id="projectNotesTextarea" 
@@ -27870,213 +27999,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         
-                        <!-- Dashboard Footer with Project Management & Generate Button -->
-                        <div class="dashboard-footer">
-                            <!-- Project Management Section (Left) -->
-                            <div class="project-management-group">
-                                <div class="project-selector-wrap">
-                                    <select class="project-selector" id="projectSelector" onchange="onProjectSelect()">
-                                        <option value="">-- No Project --</option>
-                                    </select>
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                <button type="button" class="project-btn new-btn" onclick="openNewProjectPopup()" title="New Project">
-                                    <i class="fas fa-plus"></i>
-                                    <span>New</span>
-                                </button>
-                                <button type="button" class="project-btn save-btn" onclick="saveCurrentProject()" title="Save Project">
-                                    <i class="fas fa-save"></i>
-                                    <span>Save</span>
-                                </button>
-                                <button type="button" class="project-btn save-new-btn" onclick="saveAsNewProject()" title="Save as New Project">
-                                    <i class="fas fa-copy"></i>
-                                    <span>Save New</span>
-                                </button>
-                                <button type="button" class="project-btn rename-btn" onclick="renameCurrentProject()" title="Rename Project">
-                                    <i class="fas fa-pen"></i>
-                                    <span>Rename</span>
-                                </button>
-                                <button type="button" class="project-btn load-btn" onclick="openLoadProjectPopup()" title="Load Project">
-                                    <i class="fas fa-folder-open"></i>
-                                    <span>Load</span>
-                                </button>
-                                <button type="button" class="project-btn delete-btn" onclick="deleteCurrentProject()" title="Delete Project">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button type="button" class="project-btn reset-btn" onclick="resetDashboardProject()" title="Reset Dashboard">
-                                    <i class="fas fa-undo-alt"></i>
-                                </button>
-                            </div>
-                            
-                            <!-- Divider -->
-                            <div class="footer-divider"></div>
-                            
-                            <!-- Language Toggle Section -->
-                            <div class="language-toggle-group" id="languageToggleGroup">
-                                <label class="dash-section-check lang-check" onclick="event.stopPropagation();" title="Include Language">
-                                    <input type="checkbox" class="dash-sec-cb" data-section="language" onchange="onDashSectionCheckChange()">
-                                    <span class="dash-check-box"><i class="fas fa-check"></i></span>
-                                </label>
-                                <div class="language-toggle-label">
-                                    <i class="fas fa-language"></i>
-                                    <span>Lang</span>
-                                </div>
-                                <div class="language-toggle-switch">
-                                    <label class="lang-option arabic" onclick="setAppLanguage('arabic')">
-                                        <span class="lang-flag">🇸🇦</span>
-                                        <span>AR</span>
-                                    </label>
-                                    <label class="lang-option english active" onclick="setAppLanguage('english')">
-                                        <span class="lang-flag">🇺🇸</span>
-                                        <span>EN</span>
-                                    </label>
-                                    <label class="lang-option both" onclick="setAppLanguage('both')">
-                                        <span class="lang-flag">🌐</span>
-                                        <span>Both</span>
-                                    </label>
-                                    <label class="lang-option multi" onclick="setAppLanguage('multi')">
-                                        <span class="lang-flag">🗺️</span>
-                                        <span>Multi</span>
-                                    </label>
-                                </div>
-                                <div class="default-lang-selector" id="defaultLangSelector">
-                                    <span class="default-lang-label">Default:</span>
-                                    <div class="default-lang-buttons">
-                                        <button type="button" class="default-lang-btn" data-default="arabic" onclick="setDefaultLanguage('arabic')">
-                                            <span class="btn-flag">🇸🇦</span> AR
-                                        </button>
-                                        <button type="button" class="default-lang-btn selected" data-default="english" onclick="setDefaultLanguage('english')">
-                                            <span class="btn-flag">🇺🇸</span> EN
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Multi-language Selector Panel -->
-                                <div class="multi-lang-selector" id="multiLangSelector">
-                                    <div class="multi-lang-header">
-                                        <h4><i class="fas fa-globe"></i> Select Languages</h4>
-                                        <button type="button" class="multi-lang-close" onclick="closeMultiLangSelector()">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                    <div class="multi-lang-grid" id="multiLangGrid">
-                                        <div class="multi-lang-item" data-lang="en" data-name="English" onclick="toggleMultiLang('en')">
-                                            <span class="item-flag">🇺🇸</span>
-                                            <span class="item-code">EN</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="ar" data-name="Arabic" onclick="toggleMultiLang('ar')">
-                                            <span class="item-flag">🇸🇦</span>
-                                            <span class="item-code">AR</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="fr" data-name="French" onclick="toggleMultiLang('fr')">
-                                            <span class="item-flag">🇫🇷</span>
-                                            <span class="item-code">FR</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="es" data-name="Spanish" onclick="toggleMultiLang('es')">
-                                            <span class="item-flag">🇪🇸</span>
-                                            <span class="item-code">ES</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="de" data-name="German" onclick="toggleMultiLang('de')">
-                                            <span class="item-flag">🇩🇪</span>
-                                            <span class="item-code">DE</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="it" data-name="Italian" onclick="toggleMultiLang('it')">
-                                            <span class="item-flag">🇮🇹</span>
-                                            <span class="item-code">IT</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="pt" data-name="Portuguese" onclick="toggleMultiLang('pt')">
-                                            <span class="item-flag">🇵🇹</span>
-                                            <span class="item-code">PT</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="ru" data-name="Russian" onclick="toggleMultiLang('ru')">
-                                            <span class="item-flag">🇷🇺</span>
-                                            <span class="item-code">RU</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="zh" data-name="Chinese" onclick="toggleMultiLang('zh')">
-                                            <span class="item-flag">🇨🇳</span>
-                                            <span class="item-code">ZH</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="ja" data-name="Japanese" onclick="toggleMultiLang('ja')">
-                                            <span class="item-flag">🇯🇵</span>
-                                            <span class="item-code">JA</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="ko" data-name="Korean" onclick="toggleMultiLang('ko')">
-                                            <span class="item-flag">🇰🇷</span>
-                                            <span class="item-code">KO</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="hi" data-name="Hindi" onclick="toggleMultiLang('hi')">
-                                            <span class="item-flag">🇮🇳</span>
-                                            <span class="item-code">HI</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="tr" data-name="Turkish" onclick="toggleMultiLang('tr')">
-                                            <span class="item-flag">🇹🇷</span>
-                                            <span class="item-code">TR</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="nl" data-name="Dutch" onclick="toggleMultiLang('nl')">
-                                            <span class="item-flag">🇳🇱</span>
-                                            <span class="item-code">NL</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="pl" data-name="Polish" onclick="toggleMultiLang('pl')">
-                                            <span class="item-flag">🇵🇱</span>
-                                            <span class="item-code">PL</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="th" data-name="Thai" onclick="toggleMultiLang('th')">
-                                            <span class="item-flag">🇹🇭</span>
-                                            <span class="item-code">TH</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="vi" data-name="Vietnamese" onclick="toggleMultiLang('vi')">
-                                            <span class="item-flag">🇻🇳</span>
-                                            <span class="item-code">VI</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                        <div class="multi-lang-item" data-lang="id" data-name="Indonesian" onclick="toggleMultiLang('id')">
-                                            <span class="item-flag">🇮🇩</span>
-                                            <span class="item-code">ID</span>
-                                            <i class="fas fa-check item-check"></i>
-                                        </div>
-                                    </div>
-                                    <div class="multi-lang-default" id="multiLangDefault" style="display: none;">
-                                        <div class="multi-lang-default-label">
-                                            <i class="fas fa-star"></i> Default Language:
-                                        </div>
-                                        <div class="multi-lang-default-options" id="multiLangDefaultOptions">
-                                            <!-- Options will be populated dynamically -->
-                                        </div>
-                                    </div>
-                                    <div class="multi-lang-info">
-                                        <i class="fas fa-info-circle"></i>
-                                        <span id="multiLangCount">0 languages selected</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Divider -->
-                            <div class="footer-divider"></div>
-                            
-                            <!-- Generate Section (Right) -->
-                            <div class="generate-group">
-                                <button type="button" class="dash-generate-btn" id="dashGenerateBtn" onclick="generateComprehensivePrompt()">
-                                    <i class="fas fa-magic"></i>
-                                    <span>Generate</span>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Dashboard footer merged into project-notes-section above -->
                     </div>
                     
                     <div class="dash-db-empty" id="dbNoConnections" style="display: none;">
