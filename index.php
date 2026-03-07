@@ -27819,7 +27819,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="stg-modal-header">
                         <div class="stg-modal-title">
                             <i class="fas fa-graduation-cap"></i>
-                            <span>Support Tutorial Generator</span>
+                            <span>Image Course Generator</span>
                         </div>
                         <button class="stg-modal-close" onclick="stgCloseModal()"><i class="fas fa-times"></i></button>
                     </div>
@@ -27865,7 +27865,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="exp-modal-header">
                         <div class="exp-modal-title">
                             <i class="fas fa-code"></i>
-                            <span>Explain Code / Phrase</span>
+                            <span>Full Course Generator</span>
                         </div>
                         <button class="exp-modal-close" onclick="expCloseModal()"><i class="fas fa-times"></i></button>
                     </div>
@@ -28514,7 +28514,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span class="stg-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
                                     <span class="stg-badge-type"><i class="fas fa-graduation-cap"></i> Tutorial</span>
                                 </div>
-                                <div class="stg-name">Support Tutorial</div>
+                                <div class="stg-name">Image Course</div>
                                 <div class="stg-preview">Images → HTML tutorial — enter filename to generate course</div>
                             </div>
                             <div class="stg-actions" onclick="event.stopPropagation()">
@@ -28539,9 +28539,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="exp-body">
                                 <div class="exp-badges">
                                     <span class="exp-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
-                                    <span class="exp-badge-type"><i class="fas fa-code"></i> Explain</span>
+                                    <span class="exp-badge-type"><i class="fas fa-book-open"></i> Course</span>
                                 </div>
-                                <div class="exp-name">Explain Code</div>
+                                <div class="exp-name">Full Course</div>
                                 <div class="exp-preview">Code/Phrase → HTML tutorial — enter filename to generate</div>
                             </div>
                             <div class="exp-actions" onclick="event.stopPropagation()">
@@ -64293,7 +64293,7 @@ function stgConfirmPush() {
     document.getElementById('stgCheckbox').checked = true;
     updatePromptCounter();
     stgCloseModal();
-    showToast('Support Tutorial prompt pushed!', 'success');
+    showToast('Image Course prompt pushed!', 'success');
     if (typeof saveEditorContent === 'function') saveEditorContent();
 }
 
@@ -64305,7 +64305,7 @@ function stgToggleDirect() {
         document.getElementById('stgContainer').classList.remove('checked');
         document.getElementById('stgCheckbox').checked = false;
         updatePromptCounter();
-        showToast('Support Tutorial removed from editor', 'info');
+        showToast('Image Course removed from editor', 'info');
         if (typeof saveEditorContent === 'function') saveEditorContent();
     } else {
         stgOpenModal();
@@ -64330,7 +64330,7 @@ function stgCopyPrompt() {
         .replace(/\{\{FILENAME\}\}/g, '(enter-filename)')
         .replace(/\{\{PHRASE\}\}/g, '(enter-phrase-or-code)');
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Support Tutorial prompt copied!', 'success');
+        showToast('Image Course prompt copied!', 'success');
     });
 }
 
@@ -64497,7 +64497,7 @@ function expConfirmPush() {
     document.getElementById('expCheckbox').checked = true;
     updatePromptCounter();
     expCloseModal();
-    showToast('Explain Code prompt pushed!', 'success');
+    showToast('Full Course prompt pushed!', 'success');
     if (typeof saveEditorContent === 'function') saveEditorContent();
 }
 
@@ -64509,7 +64509,7 @@ function expToggleDirect() {
         document.getElementById('expContainer').classList.remove('checked');
         document.getElementById('expCheckbox').checked = false;
         updatePromptCounter();
-        showToast('Explain Code removed from editor', 'info');
+        showToast('Full Course removed from editor', 'info');
         if (typeof saveEditorContent === 'function') saveEditorContent();
     } else {
         expOpenModal();
@@ -64534,7 +64534,7 @@ function expCopyPrompt() {
         .replace(/\{\{FILENAME\}\}/g, '(enter-filename)')
         .replace(/\{\{PHRASE\}\}/g, '(enter-phrase-or-code)');
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Explain Code prompt copied!', 'success');
+        showToast('Full Course prompt copied!', 'success');
     });
 }
 
