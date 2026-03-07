@@ -19681,6 +19681,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: rgba(251, 191, 36, 0.6);
             transform: scale(1.08);
         }
+
+        .notes-push-arrow {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .notes-push-arrow:hover {
+            background: rgba(251, 191, 36, 0.2);
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
         
         .notes-btn {
             width: 24px;
@@ -27818,6 +27838,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             onclick="document.getElementById('notesFilePicker').click()" 
                                             title="Select files">
                                         <i class="fas fa-file-medical"></i>
+                                    </button>
+                                    <button type="button" class="notes-push-arrow" onclick="pushNotesToPrompt()" title="Push to Prompt Editor">
+                                        <i class="fas fa-arrow-down"></i>
                                     </button>
                                     <div class="notes-selected-files" id="notesSelectedFiles"></div>
                                     <button type="button" 
