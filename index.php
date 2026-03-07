@@ -16234,20 +16234,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
         }
 
-        /* Editor Container (always visible – excluded from tab toggle) */
+        /* Editor Container – Now inside unified-editor-section */
         .editor-container {
             display: flex;
             flex-direction: column;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
+            background: transparent;
+            border: none;
+            border-radius: 0 0 16px 16px;
             overflow: visible;
-            box-shadow: var(--shadow-card);
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
-            margin-top: 0.25rem;
-            order: 99;
+            margin: 0;
         }
 
         .editor-header {
@@ -16261,14 +16259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .editor-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
-            border-radius: 16px 16px 0 0;
+            display: none;
         }
 
         .editor-title {
@@ -18948,17 +18939,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-secondary);
         }
 
-        /* Saved Prompts Section - Horizontal Layout */
-        .saved-prompts-section {
+        /* ═══════════════════════════════════════════════════════════════
+           UNIFIED EDITOR SECTION – Saved Prompts + Prompt Editor
+           ═══════════════════════════════════════════════════════════════ */
+        .unified-editor-section {
+            display: flex;
+            flex-direction: column;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 16px;
+            overflow: visible;
+            box-shadow: var(--shadow-card);
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 0.25rem;
+            order: 99;
+            position: relative;
+        }
+
+        .unified-editor-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4);
+            border-radius: 16px 16px 0 0;
+            z-index: 1;
+        }
+
+        /* Saved Prompts Section - Now inside unified wrapper */
+        .saved-prompts-section {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 0;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             position: relative;
-            margin-top: 0.25rem;
-            margin-bottom: 0.35rem;
+            margin: 0;
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
@@ -28011,7 +28033,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div><!-- /mc-tab-panel workspace -->
 
-            <!-- Saved Prompts -->
+            <!-- Unified: Saved Prompts + Prompt Editor -->
+            <div class="unified-editor-section">
             <div class="saved-prompts-section">
                 <!-- Unified Actions Bar: Title + Select All + Search -->
                 <div class="saved-actions-bar">
@@ -28398,6 +28421,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+            </div><!-- /unified-editor-section -->
 
             <!-- Tab Panel: iFrame Scalar -->
             <div class="mc-tab-panel" id="mcPanelIframe" data-mc-panel="iframe">
