@@ -6004,6 +6004,366 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ── Auth Buttons (Login / Sign Up) in Top Nav ── */
+        .tnb-auth {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .tnb-login-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+            color: rgba(255, 255, 255, 0.7);
+            background: transparent;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+        .tnb-login-btn i { font-size: 0.5rem; }
+        .tnb-login-btn:hover {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(99, 102, 241, 0.08));
+            border-color: rgba(139, 92, 246, 0.35);
+            box-shadow: 0 2px 10px rgba(139, 92, 246, 0.15);
+            transform: translateY(-1px);
+        }
+        .tnb-signup-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .tnb-signup-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .tnb-signup-btn i { font-size: 0.5rem; }
+        .tnb-signup-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+        .tnb-signup-btn:hover::before { opacity: 1; }
+
+        /* ── Account Nav Link ── */
+        .tnb-link.tnb-account {
+            display: flex;
+        }
+
+        /* ═════════════════════════════════════════════════════
+           AUTH MODALS (Login / Sign Up)
+           ═════════════════════════════════════════════════════ */
+        .auth-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 5, 10, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99990;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .auth-modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .auth-modal {
+            background: linear-gradient(145deg, #13131e 0%, #0d0d14 100%);
+            border: 1.5px solid rgba(99, 102, 241, 0.2);
+            border-radius: 18px;
+            padding: 0;
+            width: 400px;
+            max-width: 92vw;
+            box-shadow:
+                0 0 60px rgba(99, 102, 241, 0.1),
+                0 20px 50px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-modal-overlay.active .auth-modal {
+            transform: translateY(0) scale(1);
+        }
+        .auth-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #06b6d4);
+        }
+
+        .auth-modal-header {
+            padding: 1.8rem 2rem 0.8rem;
+            text-align: center;
+        }
+        .auth-modal-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.8rem;
+            animation: authIconPulse 3s ease-in-out infinite;
+        }
+        .auth-modal-icon i {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes authIconPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.25); }
+        }
+        .auth-modal-header h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a5b4fc, #c4b5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.2rem;
+        }
+        .auth-modal-header p {
+            font-size: 0.72rem;
+            color: rgba(160, 160, 176, 0.7);
+        }
+
+        .auth-modal-body {
+            padding: 1rem 2rem 1.5rem;
+        }
+        .auth-field {
+            margin-bottom: 0.9rem;
+        }
+        .auth-field label {
+            display: block;
+            font-size: 0.68rem;
+            color: rgba(160, 160, 176, 0.8);
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .auth-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .auth-input-wrap i.field-icon {
+            position: absolute;
+            left: 12px;
+            color: rgba(160, 160, 176, 0.4);
+            font-size: 0.75rem;
+            transition: color 0.3s ease;
+            pointer-events: none;
+        }
+        .auth-input-wrap input {
+            width: 100%;
+            padding: 0.65rem 2.5rem 0.65rem 2.3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1.5px solid rgba(99, 102, 241, 0.15);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.82rem;
+            transition: all 0.3s ease;
+        }
+        .auth-input-wrap input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.04);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.08);
+        }
+        .auth-input-wrap input:focus ~ i.field-icon {
+            color: #a5b4fc;
+        }
+        .auth-input-wrap input::placeholder {
+            color: rgba(160, 160, 176, 0.35);
+        }
+        .auth-toggle-pw {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: rgba(160, 160, 176, 0.4);
+            cursor: pointer;
+            font-size: 0.78rem;
+            padding: 4px;
+            transition: color 0.3s ease;
+        }
+        .auth-toggle-pw:hover { color: #a5b4fc; }
+
+        .auth-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .auth-remember {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: rgba(160, 160, 176, 0.7);
+        }
+        .auth-remember input[type="checkbox"] {
+            width: 14px; height: 14px;
+            accent-color: #6366f1;
+            cursor: pointer;
+        }
+        .auth-forgot {
+            font-size: 0.68rem;
+            color: #818cf8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+            cursor: pointer;
+        }
+        .auth-forgot:hover { color: #a5b4fc; }
+
+        .auth-submit-btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .auth-submit-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .auth-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(99, 102, 241, 0.3);
+        }
+        .auth-submit-btn:hover::before { opacity: 1; }
+        .auth-submit-btn:active { transform: translateY(0); }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 1rem 0;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .auth-divider span {
+            font-size: 0.6rem;
+            color: rgba(160, 160, 176, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .auth-social-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .auth-social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0.55rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            border-radius: 8px;
+            color: rgba(160, 160, 176, 0.7);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: not-allowed;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .auth-modal-footer {
+            padding: 0 2rem 1.5rem;
+            text-align: center;
+        }
+        .auth-modal-footer p {
+            font-size: 0.72rem;
+            color: rgba(160, 160, 176, 0.6);
+        }
+        .auth-modal-footer a {
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .auth-modal-footer a:hover { color: #a5b4fc; }
+
+        .auth-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: rgba(160, 160, 176, 0.4);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+            z-index: 2;
+        }
+        .auth-close-btn:hover {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
         /* Main Content Area */
         .main-content {
             flex: 1;
@@ -27724,6 +28084,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i class="fas fa-database"></i>
                         <span>Databases</span>
                     </a>
+                    <span class="tnb-dot"></span>
+                    <a href="#" class="tnb-link tnb-account">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Account</span>
+                    </a>
+                </div>
+                <div class="tnb-auth">
+                    <button class="tnb-login-btn" onclick="authOpenModal('login')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </button>
+                    <button class="tnb-signup-btn" onclick="authOpenModal('signup')">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Sign Up</span>
+                    </button>
                 </div>
             </nav>
 
@@ -65074,6 +65449,160 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 <!-- End Back to Catalog Button -->
+
+<!-- ═══════════════════════════════════════════════════════
+     AUTH MODALS (Login / Sign Up)
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Login Modal -->
+<div class="auth-modal-overlay" id="authLoginOverlay" onclick="authCloseModal('login')">
+    <div class="auth-modal" onclick="event.stopPropagation()">
+        <button class="auth-close-btn" onclick="authCloseModal('login')"><i class="fas fa-times"></i></button>
+        <div class="auth-modal-header">
+            <div class="auth-modal-icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <h2>Welcome Back</h2>
+            <p>Sign in to your Prompt Manager account</p>
+        </div>
+        <div class="auth-modal-body">
+            <form id="authLoginForm" onsubmit="return false;">
+                <div class="auth-field">
+                    <label>Email or Username</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-envelope field-icon"></i>
+                        <input type="text" placeholder="Enter your email or username" autocomplete="username">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>Password</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="authLoginPw" placeholder="Enter your password" autocomplete="current-password">
+                        <button type="button" class="auth-toggle-pw" onclick="authTogglePw('authLoginPw', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="auth-options">
+                    <label class="auth-remember">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a class="auth-forgot">Forgot password?</a>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <i class="fas fa-arrow-right"></i>&nbsp; Sign In
+                </button>
+            </form>
+            <div class="auth-divider"><span>or continue with</span></div>
+            <div class="auth-social-row">
+                <button class="auth-social-btn"><i class="fab fa-google"></i> Google</button>
+                <button class="auth-social-btn"><i class="fab fa-github"></i> GitHub</button>
+            </div>
+        </div>
+        <div class="auth-modal-footer">
+            <p>Don't have an account? <a onclick="authSwitchModal('login','signup')">Create Account</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Sign Up Modal -->
+<div class="auth-modal-overlay" id="authSignupOverlay" onclick="authCloseModal('signup')">
+    <div class="auth-modal" onclick="event.stopPropagation()">
+        <button class="auth-close-btn" onclick="authCloseModal('signup')"><i class="fas fa-times"></i></button>
+        <div class="auth-modal-header">
+            <div class="auth-modal-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h2>Create Account</h2>
+            <p>Join Prompt Manager and start building</p>
+        </div>
+        <div class="auth-modal-body">
+            <form id="authSignupForm" onsubmit="return false;">
+                <div class="auth-field">
+                    <label>Full Name</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-user field-icon"></i>
+                        <input type="text" placeholder="Enter your full name" autocomplete="name">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>Email Address</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-envelope field-icon"></i>
+                        <input type="email" placeholder="Enter your email address" autocomplete="email">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>Username</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-at field-icon"></i>
+                        <input type="text" placeholder="Choose a username" autocomplete="username">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>Password</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="authSignupPw" placeholder="Create a strong password" autocomplete="new-password">
+                        <button type="button" class="auth-toggle-pw" onclick="authTogglePw('authSignupPw', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label>Confirm Password</label>
+                    <div class="auth-input-wrap">
+                        <i class="fas fa-shield-alt field-icon"></i>
+                        <input type="password" id="authSignupPwConfirm" placeholder="Confirm your password" autocomplete="new-password">
+                        <button type="button" class="auth-toggle-pw" onclick="authTogglePw('authSignupPwConfirm', this)"><i class="fas fa-eye"></i></button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <i class="fas fa-rocket"></i>&nbsp; Create Account
+                </button>
+            </form>
+            <div class="auth-divider"><span>or sign up with</span></div>
+            <div class="auth-social-row">
+                <button class="auth-social-btn"><i class="fab fa-google"></i> Google</button>
+                <button class="auth-social-btn"><i class="fab fa-github"></i> GitHub</button>
+            </div>
+        </div>
+        <div class="auth-modal-footer">
+            <p>Already have an account? <a onclick="authSwitchModal('signup','login')">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Auth Modal Open / Close / Switch ── */
+function authOpenModal(type) {
+    const id = type === 'login' ? 'authLoginOverlay' : 'authSignupOverlay';
+    document.getElementById(id).classList.add('active');
+}
+function authCloseModal(type) {
+    const id = type === 'login' ? 'authLoginOverlay' : 'authSignupOverlay';
+    document.getElementById(id).classList.remove('active');
+}
+function authSwitchModal(from, to) {
+    authCloseModal(from);
+    setTimeout(() => authOpenModal(to), 200);
+}
+function authTogglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        authCloseModal('login');
+        authCloseModal('signup');
+    }
+});
+</script>
+
 </body>
 </html>
 

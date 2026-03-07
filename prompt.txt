@@ -1,4 +1,1 @@
-This is the button I'm speaking about and it is inactive, it's not working. I tried to click on it, it's not taking me to any admin page. If you put it in any other place, please remove it and put it in this button. ----><div class="tnb-brand snipcss-Ehcy7">
-    <span class="tnb-brand-icon"><i class="fas fa-terminal"></i></span>
-    <span class="tnb-brand-text">PM</span>
-</div>
+Now I wanted to create a sign up button in the menu bar and an account button. Put the sign up where it should be. I think in the utmost right. and next to it I think add the login or the login button. Also add an account button next to the database button. This account should now show but later on it will show if the person is logged in. But for now just keep it because we will not do any coding functionality. this is just CSS and the login should have a form to login and a button to create account make it nice aesthetic and compatible with the theme put it put the buttons where they should be according to the normal course of acting action and best best practice make it user-friendly and easy to not add any functionalities just add the CSS for it to prepare it so we can do it later 
