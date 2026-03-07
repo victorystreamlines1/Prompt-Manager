@@ -5906,6 +5906,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid rgba(139, 92, 246, 0.12);
             flex-shrink: 0;
             transition: all 0.3s ease;
+            text-decoration: none;
+            cursor: pointer;
         }
         .tnb-brand:hover {
             border-color: rgba(139, 92, 246, 0.25);
@@ -27707,10 +27709,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <main class="main-content">
             <!-- Top Navigation Bar -->
             <nav class="top-nav-bar">
-                <div class="tnb-brand">
+                <a href="super-admin.php" class="tnb-brand" title="Super Admin Panel">
                     <span class="tnb-brand-icon"><i class="fas fa-terminal"></i></span>
                     <span class="tnb-brand-text">PM</span>
-                </div>
+                </a>
                 <div class="tnb-sep"></div>
                 <div class="tnb-links">
                     <a href="index.php" class="tnb-link active">
