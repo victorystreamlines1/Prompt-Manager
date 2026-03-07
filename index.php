@@ -27850,7 +27850,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span>Clear</span>
                                     </button>
                                     <button type="button" class="notes-btn collapse-notes-btn" onclick="toggleProjectNotes()" title="Collapse/Expand">
-                                        <i class="fas fa-chevron-up" id="notesCollapseIcon"></i>
+                                        <i class="fas fa-chevron-down" id="notesCollapseIcon"></i>
                                     </button>
                                 </div>
                             </div>
@@ -27977,7 +27977,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </button>
                                 </div>
                             </div>
-                            <div class="project-notes-body" id="projectNotesBody">
+                            <div class="project-notes-body collapsed" id="projectNotesBody">
                                 <textarea class="project-notes-textarea" 
                                           id="projectNotesTextarea" 
                                           placeholder="Generated prompts will appear here. You can also add custom instructions..."

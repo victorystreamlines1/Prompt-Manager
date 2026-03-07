@@ -1,1 +1,1 @@
-Now I want you to change the location or switch the locations between the saved prompts container and the development dashboard. Put the development dashboard in the saved prompts container and pull up the saved prompts container in the place of the development dashboard. So switch the places of these two. 
+Now, I want you to collapse the project prompts. It's by default not collapsed. There is a button on the top right of the project prompts container for collapsing. Keep it by default collapsed. If the user wants to open it, he will de-collapse it. 
