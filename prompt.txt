@@ -1,0 +1,1 @@
+When I delete everything in the dynamic saved prompts container, the container of the dynamic saved prompts becomes very large. Therefore, either there is a node saved or no node saved, make sure that it preserves the space vertically in the saved prompt container, the upper part. 

@@ -23461,6 +23461,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             white-space: nowrap;
         }
 
+        /* Compact empty state inside saved-list */
+        .saved-list .empty-state {
+            padding: 0.6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        .saved-list .empty-state i {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+            opacity: 0.4;
+        }
+        .saved-list .empty-state p {
+            font-size: 0.75rem;
+            margin: 0;
+        }
+
         /* Custom Scrollbar Track - Full Width Bar */
         .saved-scrollbar-track {
             width: calc(100% - 1.5rem);
