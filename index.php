@@ -27867,6 +27867,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </button>
                                     <button type="button" class="project-btn reset-btn" onclick="resetDashboardProject()" title="Reset Dashboard">
                                         <i class="fas fa-undo-alt"></i>
+                                        <span>Reset</span>
                                     </button>
                                 </div>
                                 <div class="footer-divider"></div>
