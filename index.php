@@ -21110,6 +21110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .project-notes-textarea {
+            position: relative;
+            z-index: 2;
             width: 100%;
             min-height: 0;
             max-height: 80vh;
@@ -21137,7 +21139,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .project-notes-textarea:focus {
             background: rgba(251, 191, 36, 0.03);
         }
-        
+
+        /* Project Prompts textarea transparent text when searching */
+        .project-notes-textarea.searching {
+            color: transparent !important;
+            caret-color: var(--text-primary);
+        }
+
+        /* ═══ Project Prompts Search Bar ═══ */
+        .notes-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            max-width: 320px;
+            flex: 1;
+        }
+        .notes-search-bar:focus-within {
+            border-color: rgba(251, 191, 36, 0.5);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.15);
+            background: rgba(251, 191, 36, 0.12);
+        }
+        .notes-search-bar.has-results {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.12);
+        }
+        .notes-search-bar.no-results {
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.12);
+        }
+        .notes-search-icon {
+            font-size: 0.55rem;
+            color: rgba(251, 191, 36, 0.5);
+            flex-shrink: 0;
+        }
+        .notes-search-input {
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            outline: none;
+            width: 100%;
+            min-width: 60px;
+        }
+        .notes-search-input::placeholder {
+            color: rgba(251, 191, 36, 0.35);
+        }
+        .notes-search-badge {
+            font-size: 0.55rem;
+            color: rgba(251, 191, 36, 0.7);
+            white-space: nowrap;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+        }
+        .notes-search-bar.has-results .notes-search-badge {
+            color: #22c55e;
+        }
+        .notes-search-bar.no-results .notes-search-badge {
+            color: #ef4444;
+        }
+        .notes-search-nav {
+            display: flex;
+            gap: 1px;
+            flex-shrink: 0;
+        }
+        .notes-search-nav-btn {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 4px;
+            color: rgba(251, 191, 36, 0.6);
+            cursor: pointer;
+            font-size: 0.5rem;
+            transition: all 0.15s ease;
+        }
+        .notes-search-nav-btn:hover {
+            background: rgba(251, 191, 36, 0.25);
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+        .notes-search-clear-btn {
+            width: 18px;
+            height: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 50%;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.45rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .notes-search-bar.has-value .notes-search-clear-btn {
+            display: flex;
+        }
+        .notes-search-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.15) rotate(90deg);
+        }
+
+        /* ═══ Project Prompts Highlight Overlay ═══ */
+        .notes-highlight-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 1rem;
+            padding-bottom: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: hidden;
+            pointer-events: none;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            box-sizing: border-box;
+            z-index: 1;
+            display: none;
+        }
+        .project-notes-body.searching .notes-highlight-overlay {
+            display: block;
+        }
+        .notes-highlight-overlay mark {
+            background: #fef08a;
+            color: #1a1a1a !important;
+            border-radius: 3px;
+            padding: 1px 3px;
+            box-shadow: 0 0 0 2px #fef08a;
+            font-weight: 600;
+        }
+        .notes-highlight-overlay mark.current {
+            background: #f97316;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 3px #f97316, 0 0 12px rgba(249, 115, 22, 0.5);
+            font-weight: 700;
+            border-radius: 3px;
+            animation: currentMatchPulse 0.3s ease;
+        }
+
         .project-notes-resize-handle {
             width: 100%;
             height: 18px;
@@ -28899,6 +29055,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="project-notes-title">
                                     <i class="fas fa-terminal"></i>
                                     <span>Project Prompts</span>
+                                    
+                                    <!-- Project Prompts Search Bar -->
+                                    <div class="notes-search-bar" id="notesSearchBar">
+                                        <i class="fas fa-search notes-search-icon"></i>
+                                        <input type="text" 
+                                               class="notes-search-input" 
+                                               id="notesSearchInput" 
+                                               placeholder="Search..." 
+                                               autocomplete="off"
+                                               spellcheck="false">
+                                        <span class="notes-search-badge" id="notesSearchBadge">0 of 0</span>
+                                        <div class="notes-search-nav">
+                                            <button type="button" class="notes-search-nav-btn" onclick="notesSearchPrev()" title="Previous (Shift+Enter)">
+                                                <i class="fas fa-chevron-up"></i>
+                                            </button>
+                                            <button type="button" class="notes-search-nav-btn" onclick="notesSearchNext()" title="Next (Enter)">
+                                                <i class="fas fa-chevron-down"></i>
+                                            </button>
+                                        </div>
+                                        <button type="button" class="notes-search-clear-btn" id="notesSearchClearBtn" onclick="clearNotesSearch()" title="Clear search (Esc)">
+                                            <i class="fas fa-times" style="font-weight: 900;"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <!-- File Picker for Notes -->
@@ -29076,6 +29255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                             <div class="project-notes-body collapsed" id="projectNotesBody">
+                                <div class="notes-highlight-overlay" id="notesHighlightOverlay"></div>
                                 <textarea class="project-notes-textarea" 
                                           id="projectNotesTextarea" 
                                           placeholder="Generated prompts will appear here. You can also add custom instructions..."
@@ -46806,7 +46986,264 @@ in each section carefully and maintain proper connections between components.
 
         // Initialize editor search on page load
         document.addEventListener('DOMContentLoaded', initEditorSearch);
-        
+
+
+        // ═══════════════════════════════════════════
+        // PROJECT PROMPTS SEARCH SYSTEM (Ctrl+F style)
+        // ═══════════════════════════════════════════
+        const notesSearch = {
+            matches: [],
+            currentIndex: -1,
+            searchTerm: '',
+            debounceTimer: null
+        };
+
+        function initNotesSearch() {
+            const searchInput = document.getElementById('notesSearchInput');
+            const textarea = document.getElementById('projectNotesTextarea');
+            const searchBar = document.getElementById('notesSearchBar');
+            if (!searchInput || !textarea) return;
+
+            // Debounced search on input
+            searchInput.addEventListener('input', function() {
+                const val = this.value;
+                searchBar.classList.toggle('has-value', val.length > 0);
+                clearTimeout(notesSearch.debounceTimer);
+                notesSearch.debounceTimer = setTimeout(() => performNotesSearch(val), 150);
+            });
+
+            // Keyboard shortcuts inside search input
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    notesSearchNext();
+                } else if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+                    notesSearchPrev();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    clearNotesSearch();
+                    textarea.focus();
+                }
+            });
+
+            // Ctrl+F inside textarea focuses the notes search
+            textarea.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            });
+
+            // Sync overlay scroll when textarea scrolls
+            textarea.addEventListener('scroll', syncNotesOverlayScroll);
+
+            // Re-search when textarea content changes
+            textarea.addEventListener('input', function() {
+                if (notesSearch.searchTerm) {
+                    clearTimeout(notesSearch.debounceTimer);
+                    notesSearch.debounceTimer = setTimeout(() => performNotesSearch(notesSearch.searchTerm), 200);
+                }
+            });
+        }
+
+        function syncNotesOverlayScroll() {
+            const textarea = document.getElementById('projectNotesTextarea');
+            const overlay = document.getElementById('notesHighlightOverlay');
+            if (textarea && overlay) {
+                overlay.scrollTop = textarea.scrollTop;
+                overlay.scrollLeft = textarea.scrollLeft;
+            }
+        }
+
+        function clearNotesHighlightOverlay() {
+            const overlay = document.getElementById('notesHighlightOverlay');
+            const textarea = document.getElementById('projectNotesTextarea');
+            const notesBody = document.getElementById('projectNotesBody');
+            if (overlay) overlay.innerHTML = '';
+            if (textarea) textarea.classList.remove('searching');
+            if (notesBody) notesBody.classList.remove('searching');
+        }
+
+        function updateNotesHighlightOverlay() {
+            const textarea = document.getElementById('projectNotesTextarea');
+            const overlay = document.getElementById('notesHighlightOverlay');
+            const notesBody = document.getElementById('projectNotesBody');
+            if (!textarea || !overlay) return;
+
+            const text = textarea.value;
+            if (notesSearch.matches.length === 0) {
+                clearNotesHighlightOverlay();
+                return;
+            }
+
+            let html = '';
+            let lastIndex = 0;
+
+            notesSearch.matches.forEach((match, idx) => {
+                html += escapeHtmlForOverlay(text.substring(lastIndex, match.start));
+                const matchText = text.substring(match.start, match.end);
+                const isCurrent = idx === notesSearch.currentIndex;
+                html += `<mark${isCurrent ? ' class="current"' : ''}>${escapeHtmlForOverlay(matchText)}</mark>`;
+                lastIndex = match.end;
+            });
+
+            html += escapeHtmlForOverlay(text.substring(lastIndex));
+
+            overlay.innerHTML = html;
+            textarea.classList.add('searching');
+            if (notesBody) notesBody.classList.add('searching');
+
+            syncNotesOverlayScroll();
+        }
+
+        function performNotesSearch(searchTerm) {
+            const textarea = document.getElementById('projectNotesTextarea');
+            const searchBar = document.getElementById('notesSearchBar');
+            const badge = document.getElementById('notesSearchBadge');
+
+            notesSearch.searchTerm = searchTerm;
+            notesSearch.matches = [];
+            notesSearch.currentIndex = -1;
+
+            searchBar.classList.remove('has-results', 'no-results');
+
+            if (!searchTerm || searchTerm.length === 0) {
+                badge.textContent = '0 of 0';
+                clearNotesHighlightOverlay();
+                return;
+            }
+
+            const text = textarea.value;
+            const lowerText = text.toLowerCase();
+            const lowerSearch = searchTerm.toLowerCase();
+
+            let index = 0;
+            while ((index = lowerText.indexOf(lowerSearch, index)) !== -1) {
+                notesSearch.matches.push({ start: index, end: index + searchTerm.length });
+                index += 1;
+            }
+
+            if (notesSearch.matches.length > 0) {
+                searchBar.classList.add('has-results');
+                notesSearch.currentIndex = 0;
+                badge.textContent = `1 of ${notesSearch.matches.length}`;
+                updateNotesHighlightOverlay();
+                scrollToCurrentNotesMatch();
+            } else {
+                searchBar.classList.add('no-results');
+                badge.textContent = '0 of 0';
+                clearNotesHighlightOverlay();
+            }
+        }
+
+        function scrollToCurrentNotesMatch() {
+            if (notesSearch.matches.length === 0 || notesSearch.currentIndex < 0) return;
+
+            requestAnimationFrame(() => {
+                const textarea = document.getElementById('projectNotesTextarea');
+                const overlay = document.getElementById('notesHighlightOverlay');
+                if (!overlay || !textarea) return;
+
+                const currentMark = overlay.querySelector('mark.current');
+                if (!currentMark) return;
+
+                // Scroll textarea so the match is vertically centered
+                const markTop = currentMark.offsetTop;
+                const markHeight = currentMark.offsetHeight;
+                const visibleH = textarea.clientHeight;
+                const targetScroll = markTop - (visibleH / 2) + (markHeight / 2);
+                textarea.scrollTop = Math.max(0, targetScroll);
+
+                syncNotesOverlayScroll();
+
+                // Scroll the page if needed
+                requestAnimationFrame(() => {
+                    const rect = currentMark.getBoundingClientRect();
+                    const headerOffset = 100;
+                    const bottomMargin = 80;
+                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
+                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
+                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        function notesSearchNext() {
+            if (notesSearch.matches.length === 0) return;
+
+            const prevIndex = notesSearch.currentIndex;
+            notesSearch.currentIndex = (notesSearch.currentIndex + 1) % notesSearch.matches.length;
+
+            const badge = document.getElementById('notesSearchBadge');
+            badge.textContent = `${notesSearch.currentIndex + 1} of ${notesSearch.matches.length}`;
+
+            if (prevIndex === notesSearch.matches.length - 1 && notesSearch.currentIndex === 0) {
+                flashNotesSearchWrap('↻ Wrapped to top');
+            }
+
+            updateNotesHighlightOverlay();
+            scrollToCurrentNotesMatch();
+        }
+
+        function notesSearchPrev() {
+            if (notesSearch.matches.length === 0) return;
+
+            const prevIndex = notesSearch.currentIndex;
+            notesSearch.currentIndex = notesSearch.currentIndex - 1;
+            if (notesSearch.currentIndex < 0) {
+                notesSearch.currentIndex = notesSearch.matches.length - 1;
+            }
+
+            const badge = document.getElementById('notesSearchBadge');
+            badge.textContent = `${notesSearch.currentIndex + 1} of ${notesSearch.matches.length}`;
+
+            if (prevIndex === 0 && notesSearch.currentIndex === notesSearch.matches.length - 1) {
+                flashNotesSearchWrap('↻ Wrapped to bottom');
+            }
+
+            updateNotesHighlightOverlay();
+            scrollToCurrentNotesMatch();
+        }
+
+        function flashNotesSearchWrap(message) {
+            const searchBar = document.getElementById('notesSearchBar');
+            if (!searchBar) return;
+
+            const existing = searchBar.querySelector('.search-wrap-indicator');
+            if (existing) existing.remove();
+
+            const indicator = document.createElement('span');
+            indicator.className = 'search-wrap-indicator';
+            indicator.textContent = message;
+            indicator.style.cssText = 'font-size:0.6rem;color:#fbbf24;font-weight:600;white-space:nowrap;opacity:1;transition:opacity 0.5s ease;';
+            searchBar.appendChild(indicator);
+
+            setTimeout(() => { indicator.style.opacity = '0'; }, 1200);
+            setTimeout(() => { indicator.remove(); }, 1800);
+        }
+
+        function clearNotesSearch() {
+            const searchInput = document.getElementById('notesSearchInput');
+            const searchBar = document.getElementById('notesSearchBar');
+            const badge = document.getElementById('notesSearchBadge');
+
+            searchInput.value = '';
+            notesSearch.matches = [];
+            notesSearch.currentIndex = -1;
+            notesSearch.searchTerm = '';
+
+            searchBar.classList.remove('has-results', 'no-results', 'has-value');
+            badge.textContent = '0 of 0';
+
+            clearNotesHighlightOverlay();
+        }
+
+        // Initialize notes search on page load
+        document.addEventListener('DOMContentLoaded', initNotesSearch);
+
 
         // ============================================
         // DATABASE CONNECTION TOGGLE & SPEED MONITOR
