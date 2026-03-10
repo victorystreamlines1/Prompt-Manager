@@ -68624,6 +68624,21 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
+<script>
+// Auto-scroll to bottom on page load so all 3 containers are visible
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        // Scroll the entire page to the bottom
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        // Also scroll main-content if it has its own scrollbar
+        const main = document.querySelector('.main-content');
+        if (main) {
+            main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+        }
+    }, 500);
+});
+</script>
+
 </body>
 </html>
 
