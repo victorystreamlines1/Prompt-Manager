@@ -48355,6 +48355,7 @@ in each section carefully and maintain proper connections between components.
                 const currentMark = overlay.querySelector('mark.current');
                 if (!currentMark) return;
 
+                // Scroll only within the textarea, not the page
                 const markTop = currentMark.offsetTop;
                 const markHeight = currentMark.offsetHeight;
                 const visibleH = textarea.clientHeight;
@@ -48362,16 +48363,6 @@ in each section carefully and maintain proper connections between components.
                 textarea.scrollTop = Math.max(0, targetScroll);
 
                 syncAnalyticsOverlayScroll();
-
-                requestAnimationFrame(() => {
-                    const rect = currentMark.getBoundingClientRect();
-                    const headerOffset = 100;
-                    const bottomMargin = 80;
-                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
-                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
-                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-                    }
-                });
             });
         }
 
@@ -48634,6 +48625,7 @@ in each section carefully and maintain proper connections between components.
                 const currentMark = overlay.querySelector('mark.regex-match.current');
                 if (!currentMark) return;
 
+                // Scroll only within the textarea, not the page
                 const markTop = currentMark.offsetTop;
                 const markHeight = currentMark.offsetHeight;
                 const visibleH = textarea.clientHeight;
@@ -48642,16 +48634,6 @@ in each section carefully and maintain proper connections between components.
 
                 syncAnalyticsOverlayScroll();
                 syncAnalyticsRegexOverlayScroll();
-
-                requestAnimationFrame(() => {
-                    const rect = currentMark.getBoundingClientRect();
-                    const headerOffset = 100;
-                    const bottomMargin = 80;
-                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
-                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
-                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-                    }
-                });
             });
         }
 
