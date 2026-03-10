@@ -17353,13 +17353,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .search-results-badge {
             display: none;
-            padding: 0.15rem 0.5rem;
+            align-items: center;
+            padding: 0.15rem 0.55rem;
             background: rgba(99, 102, 241, 0.2);
             border-radius: 10px;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--accent-primary);
             white-space: nowrap;
+            min-width: 42px;
+            justify-content: center;
+            letter-spacing: 0.02em;
         }
 
         .editor-search-bar.has-results .search-results-badge {
@@ -18891,7 +18895,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             left: 0;
             right: 0;
-            bottom: 20px; /* Account for resize handle */
+            bottom: 0;
             padding: 1.5rem;
             padding-bottom: 2rem;
             font-family: 'JetBrains Mono', monospace;
@@ -18923,10 +18927,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .editor-highlight-overlay mark.current {
-            background: #facc15;
-            color: #000000 !important;
-            box-shadow: 0 0 0 3px #facc15, 0 0 10px rgba(250, 204, 21, 0.6);
+            background: #f97316;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 3px #f97316, 0 0 12px rgba(249, 115, 22, 0.5);
             font-weight: 700;
+            border-radius: 3px;
+            animation: currentMatchPulse 0.3s ease;
+        }
+
+        @keyframes currentMatchPulse {
+            0% { transform: scale(1.15); }
+            100% { transform: scale(1); }
         }
 
         #promptEditor {
@@ -29328,7 +29339,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                    placeholder="Search..." 
                                    autocomplete="off"
                                    spellcheck="false">
-                            <span class="search-results-badge" id="searchResultsBadge">0/0</span>
+                            <span class="search-results-badge" id="searchResultsBadge">0 of 0</span>
                             <div class="search-nav-btns">
                                 <button type="button" class="search-nav-btn" onclick="editorSearchPrev()" title="Previous (Shift+Enter)">
                                     <i class="fas fa-chevron-up"></i>
@@ -46473,7 +46484,7 @@ in each section carefully and maintain proper connections between components.
         document.addEventListener('DOMContentLoaded', initSavedResize);
 
         // ============================================
-        // EDITOR SEARCH SYSTEM (with Yellow Highlight Overlay)
+        // EDITOR SEARCH SYSTEM — Windows Ctrl+F Behavior
         // ============================================
         const editorSearch = {
             matches: [],
@@ -46501,7 +46512,7 @@ in each section carefully and maintain proper connections between components.
                 }
             });
             
-            // Dynamic search on input - cursor stays in search box
+            // Dynamic search on input — live as-you-type like Ctrl+F
             searchInput.addEventListener('input', (e) => {
                 const value = e.target.value;
                 
@@ -46517,10 +46528,10 @@ in each section carefully and maintain proper connections between components.
                 clearTimeout(editorSearch.debounceTimer);
                 editorSearch.debounceTimer = setTimeout(() => {
                     performEditorSearch(value);
-                }, 80);
+                }, 60);
             });
             
-            // Keyboard shortcuts - cursor stays in search box
+            // Keyboard shortcuts — Enter=Next, Shift+Enter=Prev, Escape=Close
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -46529,21 +46540,27 @@ in each section carefully and maintain proper connections between components.
                     } else {
                         editorSearchNext();
                     }
-                    // Keep focus in search input
                     searchInput.focus();
                 } else if (e.key === 'Escape') {
                     clearEditorSearch();
+                    editor.focus();
                 }
             });
             
-            // Ctrl+F to focus search
+            // Ctrl+F / Cmd+F to focus search — works globally
             document.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                    const editorArea = document.querySelector('.editor-container');
-                    if (editorArea && editorArea.contains(document.activeElement)) {
+                    const editorSection = document.querySelector('.editor-container');
+                    const editorRect = editorSection ? editorSection.getBoundingClientRect() : null;
+                    // Activate if editor is at least partially visible or focused
+                    const editorVisible = editorRect && editorRect.top < window.innerHeight && editorRect.bottom > 0;
+                    const editorFocused = editorSection && editorSection.contains(document.activeElement);
+                    if (editorFocused || editorVisible) {
                         e.preventDefault();
                         searchInput.focus();
                         searchInput.select();
+                        // Scroll search bar into view if needed
+                        searchBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }
                 }
             });
@@ -46568,10 +46585,11 @@ in each section carefully and maintain proper connections between components.
         // Clear the highlight overlay
         function clearHighlightOverlay() {
             const editor = document.getElementById('promptEditor');
+            if (!editor) return;
             const editorBody = editor.closest('.editor-body');
             const overlay = document.getElementById('editorHighlightOverlay');
             
-            overlay.innerHTML = '';
+            if (overlay) overlay.innerHTML = '';
             editor.classList.remove('searching');
             if (editorBody) editorBody.classList.remove('searching');
         }
@@ -46617,7 +46635,7 @@ in each section carefully and maintain proper connections between components.
             syncOverlayScroll();
         }
 
-        // Perform the search - NO focus change, just highlight
+        // Perform the search — find all matches, highlight, jump to first
         function performEditorSearch(searchTerm) {
             const editor = document.getElementById('promptEditor');
             const searchBar = document.getElementById('editorSearchBar');
@@ -46631,7 +46649,7 @@ in each section carefully and maintain proper connections between components.
             searchBar.classList.remove('has-results', 'no-results');
             
             if (!searchTerm || searchTerm.length === 0) {
-                badge.textContent = '0/0';
+                badge.textContent = '0 of 0';
                 clearHighlightOverlay();
                 return;
             }
@@ -46640,7 +46658,7 @@ in each section carefully and maintain proper connections between components.
             const lowerText = text.toLowerCase();
             const lowerSearch = searchTerm.toLowerCase();
             
-            // Find all matches (case-insensitive)
+            // Find all matches (case-insensitive), ordered top-to-bottom
             let index = 0;
             while ((index = lowerText.indexOf(lowerSearch, index)) !== -1) {
                 editorSearch.matches.push({
@@ -46654,78 +46672,122 @@ in each section carefully and maintain proper connections between components.
             if (editorSearch.matches.length > 0) {
                 searchBar.classList.add('has-results');
                 editorSearch.currentIndex = 0;
-                badge.textContent = `1/${editorSearch.matches.length}`;
+                badge.textContent = `1 of ${editorSearch.matches.length}`;
                 
                 // Update overlay with highlights
                 updateHighlightOverlay();
                 
-                // Scroll to first match (no focus change)
-                scrollToMatch(editorSearch.currentIndex);
+                // Scroll to first match
+                scrollToCurrentMatch();
             } else {
                 searchBar.classList.add('no-results');
-                badge.textContent = '0/0';
+                badge.textContent = '0 of 0';
                 clearHighlightOverlay();
             }
         }
 
-        // Scroll to a specific match without changing focus
-        function scrollToMatch(matchIndex) {
-            const editor = document.getElementById('promptEditor');
+        // Scroll the textarea + page to bring the current match into view
+        function scrollToCurrentMatch() {
+            if (editorSearch.matches.length === 0 || editorSearch.currentIndex < 0) return;
             
-            if (editorSearch.matches.length === 0 || matchIndex < 0) return;
-            
-            const match = editorSearch.matches[matchIndex];
-            const text = editor.value.substring(0, match.start);
-            const lines = text.split('\n');
-            const lineNumber = lines.length;
-            
-            // Calculate scroll position (line height ~22px)
-            const lineHeight = 22;
-            const editorHeight = editor.clientHeight;
-            const targetScroll = Math.max(0, (lineNumber - 1) * lineHeight - editorHeight / 3);
-            
-            editor.scrollTop = targetScroll;
-            
-            // Sync overlay
-            syncOverlayScroll();
+            requestAnimationFrame(() => {
+                const editor = document.getElementById('promptEditor');
+                const overlay = document.getElementById('editorHighlightOverlay');
+                if (!overlay || !editor) return;
+                
+                const currentMark = overlay.querySelector('mark.current');
+                if (!currentMark) return;
+                
+                // 1) Scroll the textarea so the match is vertically centered inside it
+                const markTop = currentMark.offsetTop;
+                const markHeight = currentMark.offsetHeight;
+                const editorVisibleH = editor.clientHeight;
+                const targetScroll = markTop - (editorVisibleH / 2) + (markHeight / 2);
+                editor.scrollTop = Math.max(0, targetScroll);
+                
+                // Sync overlay scroll
+                syncOverlayScroll();
+                
+                // 2) Scroll the page so the editor area is visible in the viewport
+                requestAnimationFrame(() => {
+                    const rect = currentMark.getBoundingClientRect();
+                    const headerOffset = 100;
+                    const bottomMargin = 80;
+                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
+                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
+                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    }
+                });
+            });
         }
 
-        // Go to next match - cursor stays in search box
+        // Go to next match — wraps around like Ctrl+F
         function editorSearchNext() {
             if (editorSearch.matches.length === 0) return;
             
+            const prevIndex = editorSearch.currentIndex;
             editorSearch.currentIndex = (editorSearch.currentIndex + 1) % editorSearch.matches.length;
             
             const badge = document.getElementById('searchResultsBadge');
-            badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
+            badge.textContent = `${editorSearch.currentIndex + 1} of ${editorSearch.matches.length}`;
+            
+            // Flash wrap indicator when wrapping from last to first
+            if (prevIndex === editorSearch.matches.length - 1 && editorSearch.currentIndex === 0) {
+                flashSearchWrap('↻ Wrapped to top');
+            }
             
             // Update overlay to show new current match
             updateHighlightOverlay();
             
             // Scroll to match
-            scrollToMatch(editorSearch.currentIndex);
+            scrollToCurrentMatch();
         }
 
-        // Go to previous match - cursor stays in search box
+        // Go to previous match — wraps around like Ctrl+F
         function editorSearchPrev() {
             if (editorSearch.matches.length === 0) return;
             
+            const prevIndex = editorSearch.currentIndex;
             editorSearch.currentIndex = editorSearch.currentIndex - 1;
             if (editorSearch.currentIndex < 0) {
                 editorSearch.currentIndex = editorSearch.matches.length - 1;
             }
             
             const badge = document.getElementById('searchResultsBadge');
-            badge.textContent = `${editorSearch.currentIndex + 1}/${editorSearch.matches.length}`;
+            badge.textContent = `${editorSearch.currentIndex + 1} of ${editorSearch.matches.length}`;
+            
+            // Flash wrap indicator when wrapping from first to last
+            if (prevIndex === 0 && editorSearch.currentIndex === editorSearch.matches.length - 1) {
+                flashSearchWrap('↻ Wrapped to bottom');
+            }
             
             // Update overlay to show new current match
             updateHighlightOverlay();
             
             // Scroll to match
-            scrollToMatch(editorSearch.currentIndex);
+            scrollToCurrentMatch();
         }
 
-        // Clear search
+        // Brief wrap indicator when search wraps around
+        function flashSearchWrap(message) {
+            const searchBar = document.getElementById('editorSearchBar');
+            if (!searchBar) return;
+            
+            // Remove any existing wrap indicator
+            const existing = searchBar.querySelector('.search-wrap-indicator');
+            if (existing) existing.remove();
+            
+            const indicator = document.createElement('span');
+            indicator.className = 'search-wrap-indicator';
+            indicator.textContent = message;
+            indicator.style.cssText = 'font-size:0.6rem;color:#fbbf24;font-weight:600;white-space:nowrap;opacity:1;transition:opacity 0.5s ease;';
+            searchBar.appendChild(indicator);
+            
+            setTimeout(() => { indicator.style.opacity = '0'; }, 1200);
+            setTimeout(() => { indicator.remove(); }, 1800);
+        }
+
+        // Clear search — Escape key behavior
         function clearEditorSearch() {
             const searchInput = document.getElementById('editorSearchInput');
             const searchBar = document.getElementById('editorSearchBar');
@@ -46737,7 +46799,7 @@ in each section carefully and maintain proper connections between components.
             editorSearch.searchTerm = '';
             
             searchBar.classList.remove('has-results', 'no-results', 'has-value');
-            badge.textContent = '0/0';
+            badge.textContent = '0 of 0';
             
             clearHighlightOverlay();
         }
