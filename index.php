@@ -21861,6 +21861,175 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.15) rotate(90deg);
         }
 
+        /* ═══ Analytics Search Group ═══ */
+        .analytics-search-group {
+            display: flex;
+            gap: 0.4rem;
+            flex: 1;
+            margin-left: 0.6rem;
+            margin-right: 0.4rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .analytics-search-bar {
+            margin-left: 0;
+        }
+
+        /* ═══ Analytics Regex Search Bar ═══ */
+        .analytics-regex-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.2rem 0.45rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            max-width: 340px;
+            flex: 1;
+            min-width: 180px;
+            position: relative;
+        }
+        .analytics-regex-bar:focus-within {
+            border-color: rgba(168, 85, 247, 0.55);
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.18), inset 0 0 6px rgba(168, 85, 247, 0.05);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(139, 92, 246, 0.06) 100%);
+        }
+        .analytics-regex-bar.has-results {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.12);
+        }
+        .analytics-regex-bar.no-results {
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.12);
+        }
+        .analytics-regex-bar.has-error {
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+            animation: regexErrorPulse 2s ease-in-out infinite;
+        }
+        @keyframes regexErrorPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.15); }
+            50% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.25); }
+        }
+        .analytics-regex-slash {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: rgba(168, 85, 247, 0.6);
+            flex-shrink: 0;
+            user-select: none;
+            line-height: 1;
+        }
+        .analytics-regex-bar:focus-within .analytics-regex-slash {
+            color: rgba(168, 85, 247, 0.9);
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+        }
+        .analytics-regex-input {
+            border: none;
+            background: transparent;
+            color: #c084fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            outline: none;
+            width: 100%;
+            min-width: 40px;
+            letter-spacing: 0.02em;
+        }
+        .analytics-regex-input::placeholder {
+            color: rgba(168, 85, 247, 0.3);
+            font-style: italic;
+        }
+        .analytics-regex-flags {
+            border: none;
+            background: rgba(168, 85, 247, 0.1);
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 600;
+            outline: none;
+            width: 28px;
+            min-width: 22px;
+            max-width: 36px;
+            text-align: center;
+            border-radius: 4px;
+            padding: 0.1rem 0.15rem;
+            flex-shrink: 0;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+        }
+        .analytics-regex-flags:focus {
+            background: rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 6px rgba(168, 85, 247, 0.2);
+        }
+        .analytics-regex-flags::placeholder {
+            color: rgba(168, 85, 247, 0.3);
+        }
+        .analytics-regex-badge {
+            font-size: 0.55rem;
+            color: rgba(168, 85, 247, 0.7);
+            white-space: nowrap;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+            min-width: 14px;
+            text-align: center;
+        }
+        .analytics-regex-bar.has-results .analytics-regex-badge {
+            color: #22c55e;
+        }
+        .analytics-regex-bar.no-results .analytics-regex-badge {
+            color: #ef4444;
+        }
+        .analytics-regex-bar .analytics-search-nav-btn {
+            background: rgba(168, 85, 247, 0.1);
+            border-color: rgba(168, 85, 247, 0.2);
+            color: rgba(168, 85, 247, 0.6);
+        }
+        .analytics-regex-bar .analytics-search-nav-btn:hover {
+            background: rgba(168, 85, 247, 0.25);
+            color: #c084fc;
+        }
+        .analytics-regex-bar .analytics-search-clear-btn {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.25);
+            color: #c084fc;
+        }
+        .analytics-regex-bar.has-value .analytics-search-clear-btn {
+            display: flex;
+        }
+        .analytics-regex-bar .analytics-search-clear-btn:hover {
+            background: rgba(168, 85, 247, 0.35);
+        }
+        .analytics-regex-error {
+            font-size: 0.5rem;
+            color: #f59e0b;
+            flex-shrink: 0;
+            display: none;
+            cursor: help;
+        }
+        .analytics-regex-bar.has-error .analytics-regex-error {
+            display: inline-flex;
+            align-items: center;
+        }
+        .analytics-regex-error::before {
+            content: '⚠';
+            font-size: 0.6rem;
+        }
+
+        /* Regex highlight marks - purple theme */
+        .analytics-highlight-overlay mark.regex-match {
+            background: rgba(168, 85, 247, 0.3);
+            border-bottom: 2px solid rgba(168, 85, 247, 0.6);
+            border-radius: 2px;
+            color: transparent;
+        }
+        .analytics-highlight-overlay mark.regex-match.current {
+            background: rgba(168, 85, 247, 0.5);
+            border-bottom-color: #c084fc;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+        }
+
         /* ═══ Analytics Body & Textarea ═══ */
         .analytics-body {
             position: relative;
@@ -30252,16 +30421,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span class="analytics-badge">Analyzer</span>
                     </div>
 
-                    <!-- Analytics Search Bar -->
-                    <div class="analytics-search-bar" id="analyticsSearchBar">
-                        <i class="fas fa-search analytics-search-icon"></i>
-                        <input type="text" class="analytics-search-input" id="analyticsSearchInput" placeholder="Search analytics..." autocomplete="off">
-                        <span class="analytics-search-badge" id="analyticsSearchBadge">0 of 0</span>
-                        <div class="analytics-search-nav">
-                            <button class="analytics-search-nav-btn" onclick="analyticsSearchPrev()" title="Previous (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
-                            <button class="analytics-search-nav-btn" onclick="analyticsSearchNext()" title="Next (Enter)"><i class="fas fa-chevron-down"></i></button>
+                    <!-- Analytics Search Bars Group -->
+                    <div class="analytics-search-group">
+                        <!-- Normal Search Bar -->
+                        <div class="analytics-search-bar" id="analyticsSearchBar">
+                            <i class="fas fa-search analytics-search-icon"></i>
+                            <input type="text" class="analytics-search-input" id="analyticsSearchInput" placeholder="Search analytics..." autocomplete="off">
+                            <span class="analytics-search-badge" id="analyticsSearchBadge">0 of 0</span>
+                            <div class="analytics-search-nav">
+                                <button class="analytics-search-nav-btn" onclick="analyticsSearchPrev()" title="Previous (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                                <button class="analytics-search-nav-btn" onclick="analyticsSearchNext()" title="Next (Enter)"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsSearch()" title="Clear search"><i class="fas fa-times"></i></button>
                         </div>
-                        <button class="analytics-search-clear-btn" onclick="clearAnalyticsSearch()" title="Clear search"><i class="fas fa-times"></i></button>
+
+                        <!-- Regex Search Bar -->
+                        <div class="analytics-regex-bar" id="analyticsRegexBar">
+                            <span class="analytics-regex-slash">/</span>
+                            <input type="text" class="analytics-regex-input" id="analyticsRegexInput" placeholder="regex pattern..." autocomplete="off" spellcheck="false">
+                            <span class="analytics-regex-slash">/</span>
+                            <input type="text" class="analytics-regex-flags" id="analyticsRegexFlags" value="gi" placeholder="gi" maxlength="6" spellcheck="false" title="Flags: g(lobal) i(gnoreCase) m(ultiline) s(dotAll)">
+                            <span class="analytics-regex-badge" id="analyticsRegexBadge">0</span>
+                            <div class="analytics-search-nav">
+                                <button class="analytics-search-nav-btn" onclick="analyticsRegexPrev()" title="Previous regex match (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                                <button class="analytics-search-nav-btn" onclick="analyticsRegexNext()" title="Next regex match (Enter)"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsRegex()" title="Clear regex"><i class="fas fa-times"></i></button>
+                            <span class="analytics-regex-error" id="analyticsRegexError" title=""></span>
+                        </div>
                     </div>
 
                     <div class="analytics-actions">
@@ -30287,6 +30474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="analytics-body" id="analyticsBody">
                     <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
+                    <div class="analytics-highlight-overlay analytics-regex-overlay" id="analyticsRegexOverlay"></div>
                     <textarea 
                         class="analytics-textarea" 
                         id="analyticsTextarea" 
@@ -48257,6 +48445,289 @@ in each section carefully and maintain proper connections between components.
             clearAnalyticsHighlightOverlay();
         }
 
+        // ═══════════════════════════════════════════
+        // ANALYTICS REGEX SEARCH ENGINE
+        // ═══════════════════════════════════════════
+        const analyticsRegex = {
+            matches: [],
+            currentIndex: -1,
+            pattern: '',
+            flags: 'gi',
+            debounceTimer: null,
+            hasError: false
+        };
+
+        function initAnalyticsRegex() {
+            const patternInput = document.getElementById('analyticsRegexInput');
+            const flagsInput = document.getElementById('analyticsRegexFlags');
+            const textarea = document.getElementById('analyticsTextarea');
+            const regexBar = document.getElementById('analyticsRegexBar');
+            if (!patternInput || !textarea) return;
+
+            patternInput.addEventListener('input', function() {
+                const val = this.value;
+                regexBar.classList.toggle('has-value', val.length > 0);
+                clearTimeout(analyticsRegex.debounceTimer);
+                analyticsRegex.debounceTimer = setTimeout(() => performAnalyticsRegex(), 200);
+            });
+
+            flagsInput.addEventListener('input', function() {
+                clearTimeout(analyticsRegex.debounceTimer);
+                analyticsRegex.debounceTimer = setTimeout(() => performAnalyticsRegex(), 200);
+            });
+
+            patternInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    analyticsRegexNext();
+                } else if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+                    analyticsRegexPrev();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    clearAnalyticsRegex();
+                    textarea.focus();
+                }
+            });
+
+            flagsInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performAnalyticsRegex();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    clearAnalyticsRegex();
+                    textarea.focus();
+                }
+            });
+
+            textarea.addEventListener('input', function() {
+                if (analyticsRegex.pattern) {
+                    clearTimeout(analyticsRegex.debounceTimer);
+                    analyticsRegex.debounceTimer = setTimeout(() => performAnalyticsRegex(), 250);
+                }
+            });
+
+            textarea.addEventListener('scroll', syncAnalyticsRegexOverlayScroll);
+        }
+
+        function syncAnalyticsRegexOverlayScroll() {
+            const textarea = document.getElementById('analyticsTextarea');
+            const overlay = document.getElementById('analyticsRegexOverlay');
+            if (textarea && overlay) {
+                overlay.scrollTop = textarea.scrollTop;
+                overlay.scrollLeft = textarea.scrollLeft;
+            }
+        }
+
+        function clearAnalyticsRegexOverlay() {
+            const overlay = document.getElementById('analyticsRegexOverlay');
+            if (overlay) overlay.innerHTML = '';
+        }
+
+        function updateAnalyticsRegexOverlay() {
+            const textarea = document.getElementById('analyticsTextarea');
+            const overlay = document.getElementById('analyticsRegexOverlay');
+            if (!textarea || !overlay) return;
+
+            const text = textarea.value;
+            if (analyticsRegex.matches.length === 0) {
+                clearAnalyticsRegexOverlay();
+                return;
+            }
+
+            let html = '';
+            let lastIndex = 0;
+
+            analyticsRegex.matches.forEach((match, idx) => {
+                html += escapeHtmlForOverlay(text.substring(lastIndex, match.start));
+                const matchText = text.substring(match.start, match.end);
+                const isCurrent = idx === analyticsRegex.currentIndex;
+                html += `<mark class="regex-match${isCurrent ? ' current' : ''}">${escapeHtmlForOverlay(matchText)}</mark>`;
+                lastIndex = match.end;
+            });
+
+            html += escapeHtmlForOverlay(text.substring(lastIndex));
+            overlay.innerHTML = html;
+            syncAnalyticsRegexOverlayScroll();
+        }
+
+        function performAnalyticsRegex() {
+            const patternInput = document.getElementById('analyticsRegexInput');
+            const flagsInput = document.getElementById('analyticsRegexFlags');
+            const textarea = document.getElementById('analyticsTextarea');
+            const regexBar = document.getElementById('analyticsRegexBar');
+            const badge = document.getElementById('analyticsRegexBadge');
+            const errorSpan = document.getElementById('analyticsRegexError');
+
+            const pattern = patternInput.value;
+            const flags = flagsInput.value;
+
+            analyticsRegex.pattern = pattern;
+            analyticsRegex.flags = flags;
+            analyticsRegex.matches = [];
+            analyticsRegex.currentIndex = -1;
+            analyticsRegex.hasError = false;
+
+            regexBar.classList.remove('has-results', 'no-results', 'has-error');
+            errorSpan.title = '';
+
+            if (!pattern || pattern.length === 0) {
+                badge.textContent = '0';
+                clearAnalyticsRegexOverlay();
+                return;
+            }
+
+            let regex;
+            try {
+                // Ensure 'g' flag is present for findAll
+                let effectiveFlags = flags;
+                if (!effectiveFlags.includes('g')) effectiveFlags += 'g';
+                regex = new RegExp(pattern, effectiveFlags);
+            } catch (err) {
+                analyticsRegex.hasError = true;
+                regexBar.classList.add('has-error');
+                errorSpan.title = err.message;
+                badge.textContent = '!';
+                clearAnalyticsRegexOverlay();
+                return;
+            }
+
+            const text = textarea.value;
+            let match;
+            let safetyCounter = 0;
+            const maxMatches = 10000;
+
+            while ((match = regex.exec(text)) !== null && safetyCounter < maxMatches) {
+                if (match[0].length === 0) {
+                    regex.lastIndex++;
+                    continue;
+                }
+                analyticsRegex.matches.push({
+                    start: match.index,
+                    end: match.index + match[0].length
+                });
+                safetyCounter++;
+            }
+
+            if (analyticsRegex.matches.length > 0) {
+                regexBar.classList.add('has-results');
+                analyticsRegex.currentIndex = 0;
+                badge.textContent = `1/${analyticsRegex.matches.length}`;
+                updateAnalyticsRegexOverlay();
+                scrollToCurrentAnalyticsRegexMatch();
+            } else {
+                regexBar.classList.add('no-results');
+                badge.textContent = '0';
+                clearAnalyticsRegexOverlay();
+            }
+        }
+
+        function scrollToCurrentAnalyticsRegexMatch() {
+            if (analyticsRegex.matches.length === 0 || analyticsRegex.currentIndex < 0) return;
+
+            requestAnimationFrame(() => {
+                const textarea = document.getElementById('analyticsTextarea');
+                const overlay = document.getElementById('analyticsRegexOverlay');
+                if (!overlay || !textarea) return;
+
+                const currentMark = overlay.querySelector('mark.regex-match.current');
+                if (!currentMark) return;
+
+                const markTop = currentMark.offsetTop;
+                const markHeight = currentMark.offsetHeight;
+                const visibleH = textarea.clientHeight;
+                const targetScroll = markTop - (visibleH / 2) + (markHeight / 2);
+                textarea.scrollTop = Math.max(0, targetScroll);
+
+                syncAnalyticsOverlayScroll();
+                syncAnalyticsRegexOverlayScroll();
+
+                requestAnimationFrame(() => {
+                    const rect = currentMark.getBoundingClientRect();
+                    const headerOffset = 100;
+                    const bottomMargin = 80;
+                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
+                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
+                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        function analyticsRegexNext() {
+            if (analyticsRegex.matches.length === 0) return;
+
+            const prevIndex = analyticsRegex.currentIndex;
+            analyticsRegex.currentIndex = (analyticsRegex.currentIndex + 1) % analyticsRegex.matches.length;
+
+            const badge = document.getElementById('analyticsRegexBadge');
+            badge.textContent = `${analyticsRegex.currentIndex + 1}/${analyticsRegex.matches.length}`;
+
+            if (prevIndex === analyticsRegex.matches.length - 1 && analyticsRegex.currentIndex === 0) {
+                flashAnalyticsRegexWrap('↻ Top');
+            }
+
+            updateAnalyticsRegexOverlay();
+            scrollToCurrentAnalyticsRegexMatch();
+        }
+
+        function analyticsRegexPrev() {
+            if (analyticsRegex.matches.length === 0) return;
+
+            const prevIndex = analyticsRegex.currentIndex;
+            analyticsRegex.currentIndex = analyticsRegex.currentIndex - 1;
+            if (analyticsRegex.currentIndex < 0) {
+                analyticsRegex.currentIndex = analyticsRegex.matches.length - 1;
+            }
+
+            const badge = document.getElementById('analyticsRegexBadge');
+            badge.textContent = `${analyticsRegex.currentIndex + 1}/${analyticsRegex.matches.length}`;
+
+            if (prevIndex === 0 && analyticsRegex.currentIndex === analyticsRegex.matches.length - 1) {
+                flashAnalyticsRegexWrap('↻ Bottom');
+            }
+
+            updateAnalyticsRegexOverlay();
+            scrollToCurrentAnalyticsRegexMatch();
+        }
+
+        function flashAnalyticsRegexWrap(message) {
+            const regexBar = document.getElementById('analyticsRegexBar');
+            if (!regexBar) return;
+
+            const existing = regexBar.querySelector('.search-wrap-indicator');
+            if (existing) existing.remove();
+
+            const indicator = document.createElement('span');
+            indicator.className = 'search-wrap-indicator';
+            indicator.textContent = message;
+            indicator.style.cssText = 'font-size:0.55rem;color:#c084fc;font-weight:600;white-space:nowrap;opacity:1;transition:opacity 0.5s ease;';
+            regexBar.appendChild(indicator);
+
+            setTimeout(() => { indicator.style.opacity = '0'; }, 1000);
+            setTimeout(() => { indicator.remove(); }, 1500);
+        }
+
+        function clearAnalyticsRegex() {
+            const patternInput = document.getElementById('analyticsRegexInput');
+            const regexBar = document.getElementById('analyticsRegexBar');
+            const badge = document.getElementById('analyticsRegexBadge');
+            const errorSpan = document.getElementById('analyticsRegexError');
+
+            patternInput.value = '';
+            analyticsRegex.matches = [];
+            analyticsRegex.currentIndex = -1;
+            analyticsRegex.pattern = '';
+            analyticsRegex.hasError = false;
+
+            regexBar.classList.remove('has-results', 'no-results', 'has-error', 'has-value');
+            badge.textContent = '0';
+            errorSpan.title = '';
+
+            clearAnalyticsRegexOverlay();
+        }
+
         // ═══ Analytics Utility Functions ═══
         function toggleAnalyticsCollapse() {
             const body = document.getElementById('analyticsBody');
@@ -48346,9 +48817,10 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
-        // Initialize analytics search + resize on page load
+        // Initialize analytics search + regex + resize on page load
         document.addEventListener('DOMContentLoaded', function() {
             initAnalyticsSearch();
+            initAnalyticsRegex();
             initAnalyticsResize();
         });
 
