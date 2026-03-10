@@ -21647,7 +21647,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ═══ Analytics Textarea Section (Teal/Cyan)  ═══ */
         /* ═══════════════════════════════════════════════════ */
         .analytics-section {
-            margin: 0.25rem 0 0.25rem 0;
+            margin: 1.75rem 0 0.25rem 0;
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, rgba(8, 145, 178, 0.03) 100%);
             border: 1px solid rgba(6, 182, 212, 0.2);
             border-radius: 10px;
@@ -21971,6 +21971,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-resize-handle:active {
             background: linear-gradient(to top, rgba(6, 182, 212, 0.35) 0%, transparent 100%);
             color: #22d3ee;
+        }
+
+        /* ═══ Analytics Footer ═══ */
+        .analytics-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.75rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(8, 145, 178, 0.04) 100%);
+            border-top: 1px solid rgba(6, 182, 212, 0.12);
+            flex-wrap: wrap;
+        }
+        .analytics-footer-group {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .analytics-footer-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: rgba(6, 182, 212, 0.7);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            padding: 0 0.15rem;
+        }
+        .analytics-footer-divider {
+            width: 1px;
+            height: 18px;
+            background: rgba(6, 182, 212, 0.2);
+            margin: 0 0.35rem;
+        }
+        .analytics-footer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.6rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .analytics-footer-btn i {
+            font-size: 0.55rem;
+        }
+        /* Push button (teal outline) */
+        .analytics-footer-btn.push-btn {
+            background: rgba(6, 182, 212, 0.08);
+            color: #67e8f9;
+        }
+        .analytics-footer-btn.push-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.5);
+            color: #22d3ee;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
+        }
+        /* Pull button (teal filled) */
+        .analytics-footer-btn.pull-btn {
+            background: rgba(6, 182, 212, 0.12);
+            color: #a5f3fc;
+        }
+        .analytics-footer-btn.pull-btn:hover {
+            background: rgba(6, 182, 212, 0.25);
+            border-color: rgba(6, 182, 212, 0.5);
+            color: #22d3ee;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
+        }
+        .analytics-footer-btn:active {
+            transform: scale(0.96);
         }
         /* ═══════ End Analytics Section ═══════ */
 
@@ -30220,6 +30294,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         oninput="onAnalyticsChange()"></textarea>
                     <div class="analytics-resize-handle" id="analyticsResizeHandle">
                         <i class="fas fa-grip-lines"></i>
+                    </div>
+                </div>
+
+                <!-- Analytics Footer: Pull/Push to Editor & Project Prompts -->
+                <div class="analytics-footer">
+                    <div class="analytics-footer-group">
+                        <span class="analytics-footer-label"><i class="fas fa-pen-fancy"></i> Editor</span>
+                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromEditor()" title="Pull content from Prompt Editor into Analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToEditor()" title="Push Analytics content to Prompt Editor">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
+                    </div>
+
+                    <div class="analytics-footer-divider"></div>
+
+                    <div class="analytics-footer-group">
+                        <span class="analytics-footer-label"><i class="fas fa-project-diagram"></i> Project Prompts</span>
+                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromProjectPrompts()" title="Pull content from Project Prompts into Analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToProjectPrompts()" title="Push Analytics content to Project Prompts">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
                     </div>
                 </div>
             </div>
@@ -42317,6 +42416,79 @@ in each section carefully and maintain proper connections between components.
                     showToast('❌ Error reading file: ' + err.message, 'error');
                 }
             }
+        }
+        
+        // ============================================
+        // Analytics ↔ Editor & Project Prompts Transfer
+        // ============================================
+        
+        // Pull content from Prompt Editor into Analytics
+        function analyticsPullFromEditor() {
+            const editor = document.getElementById('promptEditor');
+            const analytics = document.getElementById('analyticsTextarea');
+            if (!editor || !analytics) return;
+            
+            const content = editor.value;
+            if (!content.trim()) {
+                showToast('📄 Prompt Editor is empty', 'info');
+                return;
+            }
+            
+            analytics.value = content;
+            if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+            showToast('✅ Content pulled from Prompt Editor into Analytics!', 'success');
+        }
+        
+        // Push Analytics content to Prompt Editor
+        function analyticsPushToEditor() {
+            const editor = document.getElementById('promptEditor');
+            const analytics = document.getElementById('analyticsTextarea');
+            if (!editor || !analytics) return;
+            
+            const content = analytics.value;
+            if (!content.trim()) {
+                showToast('📄 Analytics is empty', 'info');
+                return;
+            }
+            
+            editor.value = content;
+            if (typeof updateCounts === 'function') updateCounts();
+            if (typeof autoExpandTextarea === 'function') autoExpandTextarea(editor);
+            showToast('✅ Analytics content pushed to Prompt Editor!', 'success');
+        }
+        
+        // Pull content from Project Prompts into Analytics
+        function analyticsPullFromProjectPrompts() {
+            const notes = document.getElementById('projectNotesTextarea');
+            const analytics = document.getElementById('analyticsTextarea');
+            if (!notes || !analytics) return;
+            
+            const content = notes.value;
+            if (!content.trim()) {
+                showToast('📄 Project Prompts is empty', 'info');
+                return;
+            }
+            
+            analytics.value = content;
+            if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+            showToast('✅ Content pulled from Project Prompts into Analytics!', 'success');
+        }
+        
+        // Push Analytics content to Project Prompts
+        function analyticsPushToProjectPrompts() {
+            const notes = document.getElementById('projectNotesTextarea');
+            const analytics = document.getElementById('analyticsTextarea');
+            if (!notes || !analytics) return;
+            
+            const content = analytics.value;
+            if (!content.trim()) {
+                showToast('📄 Analytics is empty', 'info');
+                return;
+            }
+            
+            notes.value = content;
+            if (typeof autoExpandTextarea === 'function') autoExpandTextarea(notes);
+            showToast('✅ Analytics content pushed to Project Prompts!', 'success');
         }
         
         // ============================================

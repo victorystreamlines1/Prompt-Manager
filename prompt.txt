@@ -1,1 +1,1 @@
-Hi, how are you? How's it going? 
+Now I want you to add to the analytic container another search next to the native search. There is a search, a normal search in the header of the analytic container. Add another search, but this one I want it to be regex. or just like 101 regex that searched exactly the regex sent to it. Make sure that it's professional and it goes ahead and searches the regex. Exactly like 101 regexn the search box. 
