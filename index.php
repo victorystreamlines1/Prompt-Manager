@@ -22114,6 +22114,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-body.searching .analytics-highlight-overlay {
             display: block;
         }
+        /* Keep regex overlay hidden during normal search — only show via regex-active */
+        .analytics-body.searching .analytics-highlight-overlay.analytics-regex-overlay {
+            display: none;
+        }
+        .analytics-body.regex-active .analytics-highlight-overlay.analytics-regex-overlay {
+            display: block;
+        }
         .analytics-highlight-overlay mark {
             background: #67e8f9;
             color: #0e1525 !important;
