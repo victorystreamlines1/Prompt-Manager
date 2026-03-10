@@ -15105,6 +15105,360 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #94a3b8;
         }
 
+        /* ═══════════════════════════════════════════════
+           Registration Prompt Editor Popup
+           ═══════════════════════════════════════════════ */
+        .dt-reg-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100001;
+            align-items: center;
+            justify-content: center;
+            animation: dtRegFadeIn 0.25s ease;
+        }
+        .dt-reg-overlay.show { display: flex; }
+
+        @keyframes dtRegFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes dtRegSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .dt-reg-modal {
+            position: relative;
+            background: linear-gradient(165deg, rgba(15, 23, 42, 0.98) 0%, rgba(10, 15, 30, 0.99) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 20px;
+            width: 94%;
+            max-width: 720px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(139, 92, 246, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            animation: dtRegSlideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        /* Top gradient bar */
+        .dt-reg-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #06b6d4);
+            border-radius: 20px 20px 0 0;
+        }
+
+        /* Header */
+        .dt-reg-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px 14px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+            position: relative;
+        }
+        .dt-reg-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dt-reg-title-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.12));
+            border: 1.5px solid rgba(139, 92, 246, 0.25);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dt-reg-title-icon i {
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, #818cf8, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dt-reg-title-text h3 {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .dt-reg-title-text span {
+            font-size: 0.6rem;
+            color: rgba(148, 163, 184, 0.6);
+        }
+        .dt-reg-close {
+            width: 30px; height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: rgba(148, 163, 184, 0.6);
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        .dt-reg-close:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        /* Credentials strip */
+        .dt-reg-creds {
+            display: flex;
+            gap: 8px;
+            padding: 12px 22px;
+            background: rgba(139, 92, 246, 0.04);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+            align-items: flex-end;
+        }
+        .dt-reg-cred-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .dt-reg-cred-field label {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: rgba(148, 163, 184, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .dt-reg-cred-field label i {
+            font-size: 0.5rem;
+            color: #818cf8;
+        }
+        .dt-reg-cred-field input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 7px;
+            padding: 6px 10px;
+            color: #e2e8f0;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', 'Space Grotesk', monospace;
+            transition: all 0.2s ease;
+            outline: none;
+            width: 100%;
+        }
+        .dt-reg-cred-field input:focus {
+            border-color: rgba(139, 92, 246, 0.45);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+        }
+        .dt-reg-cred-field input::placeholder {
+            color: rgba(148, 163, 184, 0.3);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Toolbar */
+        .dt-reg-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 22px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.06);
+        }
+        .dt-reg-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dt-reg-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dt-reg-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            color: rgba(148, 163, 184, 0.7);
+            font-size: 0.58rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .dt-reg-tool-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+        }
+        .dt-reg-tool-btn i { font-size: 0.5rem; }
+        .dt-reg-tool-btn.active {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.35);
+            color: #a78bfa;
+        }
+        .dt-reg-char-info {
+            font-size: 0.55rem;
+            color: rgba(148, 163, 184, 0.45);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Prompt textarea */
+        .dt-reg-editor-wrap {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            min-height: 0;
+        }
+        .dt-reg-textarea {
+            width: 100%;
+            height: 100%;
+            min-height: 320px;
+            max-height: 50vh;
+            padding: 16px 22px;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            font-size: 0.74rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            line-height: 1.65;
+            resize: none;
+            outline: none;
+            overflow-y: auto;
+        }
+        .dt-reg-textarea::placeholder {
+            color: rgba(148, 163, 184, 0.25);
+        }
+        .dt-reg-textarea::-webkit-scrollbar { width: 5px; }
+        .dt-reg-textarea::-webkit-scrollbar-track { background: transparent; }
+        .dt-reg-textarea::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+        }
+        .dt-reg-textarea::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.35);
+        }
+
+        /* Edit indicator */
+        .dt-reg-edit-badge {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.2);
+            border-radius: 5px;
+            font-size: 0.52rem;
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .dt-reg-edit-badge.visible { display: flex; }
+
+        /* Footer */
+        .dt-reg-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 22px;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+            background: rgba(139, 92, 246, 0.02);
+        }
+        .dt-reg-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dt-reg-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dt-reg-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            border: none;
+        }
+        .dt-reg-btn.save {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+        }
+        .dt-reg-btn.save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35);
+        }
+        .dt-reg-btn.push {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.1));
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+        .dt-reg-btn.push:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+            border-color: rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
+        }
+        .dt-reg-btn.reset {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(148, 163, 184, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dt-reg-btn.reset:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+        }
+        .dt-reg-btn.copy {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(148, 163, 184, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dt-reg-btn.copy:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.25);
+            color: #38bdf8;
+        }
+        .dt-reg-btn i { font-size: 0.58rem; }
+
+        /* Light theme overrides */
+        [data-theme="light"] .dt-reg-modal {
+            background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15), 0 0 30px rgba(139, 92, 246, 0.06);
+        }
+        [data-theme="light"] .dt-reg-title-text h3 { color: #1e293b; }
+        [data-theme="light"] .dt-reg-creds { background: rgba(139, 92, 246, 0.03); }
+        [data-theme="light"] .dt-reg-cred-field input {
+            background: #f1f5f9;
+            border-color: rgba(139, 92, 246, 0.15);
+            color: #1e293b;
+        }
+        [data-theme="light"] .dt-reg-textarea { color: #334155; }
+        [data-theme="light"] .dt-reg-footer { background: rgba(139, 92, 246, 0.02); }
+
         /* Instructions Button for Static Template */
         .dt-instructions-btn {
             display: inline-flex;
@@ -60472,22 +60826,46 @@ function dtGetProcessedContent(content, templateId) {
     if (templateId === 'static_2' && content === '__TREE_DYNAMIC__') {
         processed = dtBuildTreePrompt();
     }
-    // Handle static_1: Registration System (credential replacement)
+    // Handle static_1: Registration System — use edited prompt if saved, else apply credentials
+    else if (templateId === 'static_1') {
+        const editedPrompt = localStorage.getItem('dtRegPromptEdited');
+        if (editedPrompt) {
+            processed = editedPrompt;
+        } else {
+            const savedCreds = localStorage.getItem('dtAdminCredentials');
+            if (savedCreds) {
+                try {
+                    const creds = JSON.parse(savedCreds);
+                    if (creds.username && creds.email && creds.password) {
+                        processed = processed.replace(
+                            /Create initial super_admin account \([^)]+\)/g,
+                            `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
+                        );
+                    }
+                    if (creds.email) {
+                        processed = processed.replace(/admin@site\.com/g, creds.email);
+                    }
+                    if (creds.password) {
+                        processed = processed.replace(/ChangeMe123!/g, creds.password);
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse admin credentials:', e);
+                }
+            }
+        }
+    }
+    // Handle other templates: apply credentials generically
     else {
         const savedCreds = localStorage.getItem('dtAdminCredentials');
         if (savedCreds) {
             try {
                 const creds = JSON.parse(savedCreds);
-                
-                // First: replace the full seed data line with all three credentials (most specific match)
                 if (creds.username && creds.email && creds.password) {
                     processed = processed.replace(
                         /Create initial super_admin account \([^)]+\)/g,
                         `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
                     );
                 }
-                
-                // Then: replace individual default values throughout the prompt
                 if (creds.email) {
                     processed = processed.replace(/admin@site\.com/g, creds.email);
                 }
@@ -60717,104 +61095,264 @@ IMPORTANT: Implement all of the above in clean, modular, well-documented code. U
     return prompt;
 }
 
-// Open credentials modal
+// ============ REGISTRATION PROMPT EDITOR POPUP ============
+
+// Track if the prompt has been user-edited
+let _dtRegIsEdited = false;
+let _dtRegOriginalContent = '';
+
+// Open the Registration Prompt Editor popup
 function dtOpenCredentialsModal() {
-    // Create modal if it doesn't exist yet
-    let overlay = document.getElementById('dtCredOverlay');
+    let overlay = document.getElementById('dtRegOverlay');
     if (!overlay) {
-        dtCreateCredentialsModal();
-        overlay = document.getElementById('dtCredOverlay');
+        dtCreateRegEditorModal();
+        overlay = document.getElementById('dtRegOverlay');
     }
     
-    // Load saved data into fields
+    // Load credentials into the input fields
     const savedCreds = localStorage.getItem('dtAdminCredentials');
     if (savedCreds) {
         try {
             const creds = JSON.parse(savedCreds);
-            document.getElementById('dtCredUsername').value = creds.username || '';
-            document.getElementById('dtCredEmail').value = creds.email || '';
-            document.getElementById('dtCredPassword').value = creds.password || '';
-        } catch (e) {
-            console.warn('Failed to load credentials:', e);
-        }
+            document.getElementById('dtRegUsername').value = creds.username || '';
+            document.getElementById('dtRegEmail').value = creds.email || '';
+            document.getElementById('dtRegPassword').value = creds.password || '';
+        } catch (e) {}
     }
     
-    dtUpdateCredStatus();
+    // Load the prompt content: user-edited version OR default with credentials applied
+    const textarea = document.getElementById('dtRegTextarea');
+    if (textarea) {
+        const savedEdited = localStorage.getItem('dtRegPromptEdited');
+        if (savedEdited) {
+            textarea.value = savedEdited;
+            _dtRegIsEdited = true;
+        } else {
+            textarea.value = dtRegBuildProcessedPrompt();
+            _dtRegIsEdited = false;
+        }
+        _dtRegOriginalContent = textarea.value;
+    }
+    
+    dtRegUpdateEditBadge();
+    dtRegUpdateCharCount();
     overlay.classList.add('show');
     
-    // Focus first empty field
     setTimeout(() => {
-        const usernameField = document.getElementById('dtCredUsername');
-        const emailField = document.getElementById('dtCredEmail');
-        if (!usernameField.value) usernameField.focus();
-        else if (!emailField.value) emailField.focus();
-        else document.getElementById('dtCredPassword').focus();
-    }, 100);
+        if (textarea) textarea.focus();
+    }, 200);
 }
 
-// Close credentials modal
+// Close the popup
 function dtCloseCredentialsModal() {
-    const overlay = document.getElementById('dtCredOverlay');
+    const overlay = document.getElementById('dtRegOverlay');
     if (overlay) overlay.classList.remove('show');
 }
 
-// Save credentials
-function dtSaveCredentials() {
-    const username = document.getElementById('dtCredUsername').value.trim();
-    const email = document.getElementById('dtCredEmail').value.trim();
-    const password = document.getElementById('dtCredPassword').value.trim();
+// Build the processed prompt content with credentials replaced
+function dtRegBuildProcessedPrompt() {
+    const staticTemplate = DT_STATIC_TEMPLATES.find(t => t.id === 'static_1');
+    if (!staticTemplate) return '';
     
-    if (!username && !email && !password) {
-        showToast('⚠️ Please enter at least one credential field', 'warning');
-        return;
-    }
+    let content = staticTemplate.content;
     
-    const creds = { username, email, password };
-    localStorage.setItem('dtAdminCredentials', JSON.stringify(creds));
-    
-    dtUpdateCredStatus();
-    dtUpdateInputButtons();
-    dtCloseCredentialsModal();
-    showToast('✅ Admin credentials saved successfully', 'success');
-}
-
-// Clear credentials
-function dtClearCredentials() {
-    localStorage.removeItem('dtAdminCredentials');
-    
-    document.getElementById('dtCredUsername').value = '';
-    document.getElementById('dtCredEmail').value = '';
-    document.getElementById('dtCredPassword').value = '';
-    
-    dtUpdateCredStatus();
-    dtUpdateInputButtons();
-    showToast('🗑️ Admin credentials cleared', 'info');
-}
-
-// Update status indicator in modal
-function dtUpdateCredStatus() {
-    const statusEl = document.getElementById('dtCredStatus');
-    if (!statusEl) return;
-    
+    // Apply credentials
     const savedCreds = localStorage.getItem('dtAdminCredentials');
     if (savedCreds) {
         try {
             const creds = JSON.parse(savedCreds);
-            statusEl.className = 'dt-cred-status';
-            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Saved: <strong>${creds.username || '—'}</strong> · ${creds.email || '—'}`;
-        } catch (e) {
-            statusEl.className = 'dt-cred-status empty';
-            statusEl.innerHTML = '<i class="fas fa-info-circle"></i> No credentials set — using defaults';
+            if (creds.username && creds.email && creds.password) {
+                content = content.replace(
+                    /Create initial super_admin account \([^)]+\)/g,
+                    `Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`
+                );
+            }
+            if (creds.email) content = content.replace(/admin@site\.com/g, creds.email);
+            if (creds.password) content = content.replace(/ChangeMe123!/g, creds.password);
+        } catch (e) {}
+    }
+    
+    // Append extra instructions if any
+    const extraInstr = localStorage.getItem(dtInstrKey('static_1'));
+    if (extraInstr) {
+        content += `\n\n📝 ADDITIONAL INSTRUCTIONS\n──────────────────────────\n${extraInstr}`;
+    }
+    
+    return content;
+}
+
+// Save everything: credentials + prompt text
+function dtRegSaveAll() {
+    // Save credentials
+    const username = document.getElementById('dtRegUsername').value.trim();
+    const email = document.getElementById('dtRegEmail').value.trim();
+    const password = document.getElementById('dtRegPassword').value.trim();
+    
+    if (username || email || password) {
+        localStorage.setItem('dtAdminCredentials', JSON.stringify({ username, email, password }));
+    }
+    
+    // Save the edited prompt text
+    const textarea = document.getElementById('dtRegTextarea');
+    if (textarea) {
+        const currentText = textarea.value.trim();
+        const defaultText = dtRegBuildProcessedPrompt().trim();
+        
+        if (currentText && currentText !== defaultText) {
+            localStorage.setItem('dtRegPromptEdited', currentText);
+            _dtRegIsEdited = true;
+        } else {
+            localStorage.removeItem('dtRegPromptEdited');
+            _dtRegIsEdited = false;
         }
+    }
+    
+    dtRegUpdateEditBadge();
+    dtUpdateInputButtons();
+    showToast('✅ Registration prompt & credentials saved', 'success');
+}
+
+// Apply credentials to the prompt (refresh from default + credentials)
+function dtRegApplyCredentials() {
+    const textarea = document.getElementById('dtRegTextarea');
+    if (!textarea) return;
+    
+    // Rebuild from default template with new credentials applied
+    const username = document.getElementById('dtRegUsername').value.trim();
+    const email = document.getElementById('dtRegEmail').value.trim();
+    const password = document.getElementById('dtRegPassword').value.trim();
+    
+    // Temporarily save creds so the builder uses them
+    if (username || email || password) {
+        localStorage.setItem('dtAdminCredentials', JSON.stringify({ username, email, password }));
+    }
+    
+    textarea.value = dtRegBuildProcessedPrompt();
+    _dtRegIsEdited = false;
+    localStorage.removeItem('dtRegPromptEdited');
+    dtRegUpdateEditBadge();
+    dtRegUpdateCharCount();
+    showToast('🔄 Credentials applied to prompt', 'info');
+}
+
+// Reset to default prompt (remove all edits)
+function dtRegResetPrompt() {
+    const textarea = document.getElementById('dtRegTextarea');
+    if (!textarea) return;
+    
+    // Clear saved edits
+    localStorage.removeItem('dtRegPromptEdited');
+    localStorage.removeItem('dtAdminCredentials');
+    
+    // Clear credential fields
+    document.getElementById('dtRegUsername').value = '';
+    document.getElementById('dtRegEmail').value = '';
+    document.getElementById('dtRegPassword').value = '';
+    
+    // Reset textarea to original default
+    textarea.value = DT_STATIC_TEMPLATES.find(t => t.id === 'static_1')?.content || '';
+    _dtRegIsEdited = false;
+    
+    dtRegUpdateEditBadge();
+    dtRegUpdateCharCount();
+    dtUpdateInputButtons();
+    showToast('🗑️ Reset to default prompt', 'info');
+}
+
+// Copy prompt content
+function dtRegCopyPrompt() {
+    const textarea = document.getElementById('dtRegTextarea');
+    if (!textarea || !textarea.value.trim()) return;
+    
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        showToast('📋 Prompt copied to clipboard', 'success');
+    }).catch(() => {
+        textarea.select();
+        document.execCommand('copy');
+        showToast('📋 Prompt copied to clipboard', 'success');
+    });
+}
+
+// Push prompt to Project Prompts textarea
+function dtRegPushToNotes() {
+    const textarea = document.getElementById('dtRegTextarea');
+    if (!textarea || !textarea.value.trim()) {
+        showToast('⚠️ No prompt content to push', 'warning');
+        return;
+    }
+    
+    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
+    if (!projectNotesTextarea) return;
+    
+    let content = '\n\n🔐 REGISTRATION SYSTEM\n';
+    content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    content += textarea.value;
+    
+    projectNotesTextarea.value = projectNotesTextarea.value + content;
+    
+    if (typeof autoResizeTextarea === 'function') {
+        autoResizeTextarea(projectNotesTextarea);
+    }
+    
+    // Auto-expand Project Notes if collapsed
+    const notesBody = document.getElementById('projectNotesBody');
+    const notesIcon = document.getElementById('notesCollapseIcon');
+    if (notesBody && notesBody.classList.contains('collapsed')) {
+        notesBody.classList.remove('collapsed');
+        if (notesIcon) {
+            notesIcon.classList.remove('fa-chevron-down');
+            notesIcon.classList.add('fa-chevron-up');
+        }
+    }
+    
+    if (typeof saveProjectNotesToStorage === 'function') {
+        saveProjectNotesToStorage();
+    }
+    
+    dtCloseCredentialsModal();
+    showToast('🔐 Registration prompt pushed to Project Prompts', 'success');
+    
+    setTimeout(() => projectNotesTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+}
+
+// Update the edit badge indicator
+function dtRegUpdateEditBadge() {
+    const badge = document.getElementById('dtRegEditBadge');
+    if (!badge) return;
+    
+    if (_dtRegIsEdited || localStorage.getItem('dtRegPromptEdited')) {
+        badge.classList.add('visible');
     } else {
-        statusEl.className = 'dt-cred-status empty';
-        statusEl.innerHTML = '<i class="fas fa-info-circle"></i> No credentials set — using defaults';
+        badge.classList.remove('visible');
+    }
+}
+
+// Update character/line count
+function dtRegUpdateCharCount() {
+    const textarea = document.getElementById('dtRegTextarea');
+    const counter = document.getElementById('dtRegCharInfo');
+    if (!textarea || !counter) return;
+    
+    const chars = textarea.value.length;
+    const lines = textarea.value.split('\n').length;
+    counter.textContent = `${chars.toLocaleString()} chars · ${lines} lines`;
+}
+
+// Handle text change in the prompt textarea
+function dtRegOnTextChange() {
+    dtRegUpdateCharCount();
+    const textarea = document.getElementById('dtRegTextarea');
+    if (textarea) {
+        const currentText = textarea.value.trim();
+        const defaultText = dtRegBuildProcessedPrompt().trim();
+        _dtRegIsEdited = (currentText !== defaultText);
+        dtRegUpdateEditBadge();
     }
 }
 
 // Update Input button appearance across all static templates
 function dtUpdateInputButtons() {
-    const hasData = localStorage.getItem('dtAdminCredentials') ? true : false;
+    const hasData = localStorage.getItem('dtAdminCredentials') || localStorage.getItem('dtRegPromptEdited');
     document.querySelectorAll('.dt-input-btn').forEach(btn => {
         if (hasData) {
             btn.classList.add('has-data');
@@ -60824,48 +61362,89 @@ function dtUpdateInputButtons() {
     });
 }
 
-// Create the credentials modal HTML dynamically
-function dtCreateCredentialsModal() {
+// Create the Registration Prompt Editor modal HTML
+function dtCreateRegEditorModal() {
     const overlay = document.createElement('div');
-    overlay.id = 'dtCredOverlay';
-    overlay.className = 'dt-cred-overlay';
+    overlay.id = 'dtRegOverlay';
+    overlay.className = 'dt-reg-overlay';
     overlay.onclick = function(e) { if (e.target === this) dtCloseCredentialsModal(); };
     
     overlay.innerHTML = `
-        <div class="dt-cred-modal">
-            <div class="dt-cred-header">
-                <div class="dt-cred-title">
-                    <i class="fas fa-user-shield"></i>
-                    <span>Admin Credentials</span>
+        <div class="dt-reg-modal">
+            <!-- Header -->
+            <div class="dt-reg-header">
+                <div class="dt-reg-title">
+                    <div class="dt-reg-title-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="dt-reg-title-text">
+                        <h3>Registration Prompt Editor</h3>
+                        <span>Edit prompt, set credentials & push to project</span>
+                    </div>
                 </div>
-                <button class="dt-cred-close" onclick="dtCloseCredentialsModal()">
+                <button class="dt-reg-close" onclick="dtCloseCredentialsModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <div id="dtCredStatus" class="dt-cred-status empty">
-                <i class="fas fa-info-circle"></i> No credentials set — using defaults
+            <!-- Credentials Strip -->
+            <div class="dt-reg-creds">
+                <div class="dt-reg-cred-field">
+                    <label><i class="fas fa-user"></i> Username</label>
+                    <input type="text" id="dtRegUsername" placeholder="super_admin" autocomplete="off">
+                </div>
+                <div class="dt-reg-cred-field">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="dtRegEmail" placeholder="admin@yoursite.com" autocomplete="off">
+                </div>
+                <div class="dt-reg-cred-field">
+                    <label><i class="fas fa-key"></i> Password</label>
+                    <input type="text" id="dtRegPassword" placeholder="MySecureP@ss123" autocomplete="off">
+                </div>
+                <button class="dt-reg-tool-btn" onclick="dtRegApplyCredentials()" title="Apply credentials to prompt text" style="margin-bottom: 1px; white-space: nowrap;">
+                    <i class="fas fa-sync-alt"></i> Apply
+                </button>
             </div>
             
-            <div class="dt-cred-form">
-                <div class="dt-cred-field">
-                    <label><i class="fas fa-user"></i> Username</label>
-                    <input type="text" id="dtCredUsername" placeholder="e.g. super_admin" autocomplete="off">
+            <!-- Toolbar -->
+            <div class="dt-reg-toolbar">
+                <div class="dt-reg-toolbar-left">
+                    <span id="dtRegEditBadge" class="dt-reg-edit-badge">
+                        <i class="fas fa-pen"></i> Edited
+                    </span>
+                    <span id="dtRegCharInfo" class="dt-reg-char-info">0 chars · 0 lines</span>
                 </div>
-                <div class="dt-cred-field">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="dtCredEmail" placeholder="e.g. admin@yoursite.com" autocomplete="off">
-                </div>
-                <div class="dt-cred-field">
-                    <label><i class="fas fa-key"></i> Password</label>
-                    <input type="text" id="dtCredPassword" placeholder="e.g. MySecureP@ss123" autocomplete="off">
-                </div>
-                <div class="dt-cred-actions">
-                    <button class="dt-cred-btn clear" onclick="dtClearCredentials()">
-                        <i class="fas fa-trash-alt"></i> Clear
+                <div class="dt-reg-toolbar-right">
+                    <button class="dt-reg-tool-btn" onclick="dtRegCopyPrompt()" title="Copy prompt to clipboard">
+                        <i class="fas fa-copy"></i> Copy
                     </button>
-                    <button class="dt-cred-btn save" onclick="dtSaveCredentials()">
-                        <i class="fas fa-save"></i> Save
+                    <button class="dt-reg-tool-btn" onclick="dtRegResetPrompt()" title="Reset to default prompt">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Editable Prompt Textarea -->
+            <div class="dt-reg-editor-wrap">
+                <textarea 
+                    id="dtRegTextarea" 
+                    class="dt-reg-textarea" 
+                    placeholder="Registration system prompt will appear here..."
+                    oninput="dtRegOnTextChange()"
+                    spellcheck="false"
+                ></textarea>
+            </div>
+            
+            <!-- Footer -->
+            <div class="dt-reg-footer">
+                <div class="dt-reg-footer-left">
+                    <button class="dt-reg-btn push" onclick="dtRegPushToNotes()" title="Push to Project Prompts">
+                        <i class="fas fa-arrow-down"></i> Push to Project
+                    </button>
+                </div>
+                <div class="dt-reg-footer-right">
+                    <button class="dt-reg-btn save" onclick="dtRegSaveAll()" title="Save credentials & prompt edits">
+                        <i class="fas fa-save"></i> Save All
                     </button>
                 </div>
             </div>
@@ -60874,6 +61453,13 @@ function dtCreateCredentialsModal() {
     
     document.body.appendChild(overlay);
 }
+
+// Legacy aliases for backward compatibility
+function dtCloseCredentialsModal_legacy() {}
+function dtSaveCredentials() { dtRegSaveAll(); }
+function dtClearCredentials() { dtRegResetPrompt(); }
+function dtUpdateCredStatus() {}
+function dtCreateCredentialsModal() { dtCreateRegEditorModal(); }
 
 // ============ INSTRUCTIONS MODAL SYSTEM ============
 
