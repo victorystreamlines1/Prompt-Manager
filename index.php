@@ -22019,15 +22019,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* Regex highlight marks - purple theme */
         .analytics-highlight-overlay mark.regex-match {
-            background: rgba(168, 85, 247, 0.3);
-            border-bottom: 2px solid rgba(168, 85, 247, 0.6);
-            border-radius: 2px;
-            color: transparent;
+            background: #c084fc;
+            color: #0e1525 !important;
+            border-radius: 3px;
+            padding: 1px 3px;
+            box-shadow: 0 0 0 2px #c084fc;
+            font-weight: 600;
         }
         .analytics-highlight-overlay mark.regex-match.current {
-            background: rgba(168, 85, 247, 0.5);
-            border-bottom-color: #c084fc;
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+            background: #9333ea;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 3px #9333ea, 0 0 12px rgba(147, 51, 234, 0.5);
+            font-weight: 700;
+            border-radius: 3px;
+            animation: currentMatchPulse 0.3s ease;
+        }
+
+        /* Show regex overlay when regex-active */
+        .analytics-body.regex-active .analytics-regex-overlay {
+            display: block;
+        }
+        .analytics-textarea.regex-active {
+            color: transparent !important;
+            caret-color: var(--text-primary);
         }
 
         /* ═══ Analytics Body & Textarea ═══ */
@@ -22069,7 +22083,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-textarea:focus {
             background: rgba(6, 182, 212, 0.03);
         }
-        .analytics-textarea.searching {
+        .analytics-textarea.searching,
+        .analytics-textarea.regex-active {
             color: transparent !important;
             caret-color: var(--text-primary);
         }
@@ -48513,12 +48528,17 @@ in each section carefully and maintain proper connections between components.
 
         function clearAnalyticsRegexOverlay() {
             const overlay = document.getElementById('analyticsRegexOverlay');
+            const textarea = document.getElementById('analyticsTextarea');
+            const body = document.getElementById('analyticsBody');
             if (overlay) overlay.innerHTML = '';
+            if (textarea) textarea.classList.remove('regex-active');
+            if (body) body.classList.remove('regex-active');
         }
 
         function updateAnalyticsRegexOverlay() {
             const textarea = document.getElementById('analyticsTextarea');
             const overlay = document.getElementById('analyticsRegexOverlay');
+            const body = document.getElementById('analyticsBody');
             if (!textarea || !overlay) return;
 
             const text = textarea.value;
@@ -48540,6 +48560,8 @@ in each section carefully and maintain proper connections between components.
 
             html += escapeHtmlForOverlay(text.substring(lastIndex));
             overlay.innerHTML = html;
+            textarea.classList.add('regex-active');
+            if (body) body.classList.add('regex-active');
             syncAnalyticsRegexOverlayScroll();
         }
 
@@ -48708,6 +48730,11 @@ in each section carefully and maintain proper connections between components.
             errorSpan.title = '';
 
             clearAnalyticsRegexOverlay();
+
+            const textarea = document.getElementById('analyticsTextarea');
+            const body = document.getElementById('analyticsBody');
+            if (textarea) textarea.classList.remove('regex-active');
+            if (body) body.classList.remove('regex-active');
         }
 
         // ═══ Analytics Utility Functions ═══
