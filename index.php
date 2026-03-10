@@ -30191,6 +30191,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <div class="analytics-actions">
+                        <button class="btn btn-send" id="btnSendAnalytics" onclick="sendAnalyticsToPromptFile()" disabled title="Send analytics to prompt.txt">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                        <button class="btn btn-pull" id="btnPullToAnalytics" onclick="pullToAnalyticsFromPromptFile()" disabled title="Pull from prompt.txt into analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
                         <button class="analytics-btn analytics-copy-btn" onclick="copyAnalyticsContent()" title="Copy analytics content">
                             <i class="fas fa-copy"></i>
                             <span>Copy</span>
@@ -41990,6 +41996,10 @@ in each section carefully and maintain proper connections between components.
             // Also update the Project Prompts Send button
             const btnSendNotes = document.getElementById('btnSendNotesToFile');
             
+            // Also update Analytics Send/Pull buttons
+            const btnSendAnalytics = document.getElementById('btnSendAnalytics');
+            const btnPullAnalytics = document.getElementById('btnPullToAnalytics');
+            
             if (isConnected) {
                 btnFolder.classList.add('connected');
                 btnFolder.classList.remove('needs-reconnect');
@@ -41997,6 +42007,8 @@ in each section carefully and maintain proper connections between components.
                 btnSend.disabled = false;
                 btnPull.disabled = false;
                 if (btnSendNotes) btnSendNotes.disabled = false;
+                if (btnSendAnalytics) btnSendAnalytics.disabled = false;
+                if (btnPullAnalytics) btnPullAnalytics.disabled = false;
                 btnClear.classList.add('show');
                 pathIndicator.classList.add('show');
                 pathIndicator.classList.remove('disconnected');
@@ -42009,6 +42021,8 @@ in each section carefully and maintain proper connections between components.
                 btnSend.disabled = false;
                 btnPull.disabled = false;
                 if (btnSendNotes) btnSendNotes.disabled = false;
+                if (btnSendAnalytics) btnSendAnalytics.disabled = false;
+                if (btnPullAnalytics) btnPullAnalytics.disabled = false;
                 btnClear.classList.add('show');
                 pathIndicator.classList.add('show', 'disconnected');
                 pathText.textContent = `${folderName}/prompt.txt (will reconnect on use)`;
@@ -42019,6 +42033,8 @@ in each section carefully and maintain proper connections between components.
                 btnSend.disabled = true;
                 btnPull.disabled = true;
                 if (btnSendNotes) btnSendNotes.disabled = true;
+                if (btnSendAnalytics) btnSendAnalytics.disabled = true;
+                if (btnPullAnalytics) btnPullAnalytics.disabled = true;
                 btnClear.classList.remove('show');
                 pathIndicator.classList.remove('show', 'disconnected');
             }
@@ -42208,6 +42224,92 @@ in each section carefully and maintain proper connections between components.
                 if (err.name === 'NotAllowedError') {
                     showToast('❌ Permission denied. Please select the folder again.', 'error');
                     // Reset connection
+                    promptFolderHandle = null;
+                    promptFileHandle = null;
+                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
+                } else {
+                    showToast('❌ Error reading file: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Send Analytics content to prompt.txt
+        async function sendAnalyticsToPromptFile() {
+            if (!promptFileHandle) {
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder from Prompt Editor first.', 'error');
+                    return;
+                }
+            }
+            
+            const textarea = document.getElementById('analyticsTextarea');
+            const content = textarea ? textarea.value : '';
+            
+            try {
+                const writable = await promptFileHandle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                
+                const folderName = localStorage.getItem('promptFolderName') || 'folder';
+                if (content.trim()) {
+                    showToast(`✅ Analytics synced to ${folderName}/prompt.txt`, 'success');
+                } else {
+                    showToast(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
+                }
+                console.log('📤 Analytics synced to prompt.txt, length:', content.length);
+                
+            } catch (err) {
+                console.error('Error writing Analytics to prompt.txt:', err);
+                if (err.name === 'NotAllowedError') {
+                    showToast('❌ Permission denied. Please select the folder again.', 'error');
+                    promptFolderHandle = null;
+                    promptFileHandle = null;
+                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
+                } else {
+                    showToast('❌ Error writing to file: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Pull content from prompt.txt into Analytics
+        async function pullToAnalyticsFromPromptFile() {
+            if (!promptFileHandle) {
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder from Prompt Editor first.', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                const file = await promptFileHandle.getFile();
+                const content = await file.text();
+                
+                const textarea = document.getElementById('analyticsTextarea');
+                
+                if (content.trim() === '') {
+                    showToast('📄 prompt.txt is empty', 'info');
+                    return;
+                }
+                
+                textarea.value = content;
+                
+                if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+                
+                showToast('✅ Content pulled from prompt.txt into Analytics!', 'success');
+                console.log('📥 Analytics pulled from prompt.txt, length:', content.length);
+                
+            } catch (err) {
+                console.error('Error reading from prompt.txt into Analytics:', err);
+                if (err.name === 'NotAllowedError') {
+                    showToast('❌ Permission denied. Please select the folder again.', 'error');
                     promptFolderHandle = null;
                     promptFileHandle = null;
                     updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
