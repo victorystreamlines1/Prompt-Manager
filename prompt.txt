@@ -1,1 +1,362 @@
-Now we'll go back to the registration node under design enhancer under the section design templates. So back again I want to add now some control features. I want to start doing like a dashboard, a small dashboard header But for now only one toggle I want in this dashboard To control the prompt For example, I want the prompt to have a nice scroll pretty toggle button that scrolls right and left and if I toggle it to the one side it should remove the control the control prompt or the role prompt sorry the role prompt and the prompt and the registration prompt there is roles So if I toggle to the right, it should remove the roles prompt from the request. And if I toggle left, it will put it back. Make it spontaneous on the same moment where the person toggles on-off. It will add and remove. and the registration prompt editor pop-up that you made previously 
+No, you did it wrong. You're still not removing it. It's between development dashboard container and above saved prompts. Remove it from the in-between location and put it under the saved prompts container. As the last one I'll give you the HTML of the Save prompts container So you put it under it...>
+
+
+
+<div class="unified-editor-section snipcss-BGpUJ">
+    <div class="saved-prompts-section">
+        <div class="saved-actions-bar">
+            <h3 class="saved-bar-title"><i class="fas fa-bookmark"></i> Saved Prompts</h3>
+            <label class="select-all-checkbox" title="Select/Deselect All Saved Prompts">
+                <input type="checkbox" id="selectAllSavedCheckbox" onchange="toggleAllSavedPrompts(this.checked)">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-label">Select All</span>
+            </label>
+            <span class="saved-counter style-chkF9" id="savedCounter">0/0</span>
+            <div class="distribution-section inline-steps-widget">
+                <div class="inline-steps-label" title="Work Distribution Steps">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Steps</span>
+                </div>
+                <div class="inline-steps-slider">
+                    <div class="slider-track">
+                        <div class="slider-fill style-ven7C" id="sliderFill"></div>
+                        <input type="range" min="1" max="30" value="1" class="slider-input" id="distributionSlider" oninput="updateDistribution(this.value)">
+                    </div>
+                </div>
+                <div class="distribution-value" id="distributionValue">
+                    <span class="value-number" id="valueNumber">1</span>
+                    <span class="value-label">/ 30</span>
+                </div>
+                <label class="dist-append-check" id="distAppendCheck" onclick="toggleDistributionAppend(event)" title="Append steps to prompt">
+                    <input type="checkbox" id="distributionEnabled">
+                    <span class="check-box"><i class="fas fa-check"></i></span>
+                </label>
+            </div>
+            <div class="search-box saved-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchPrompts" placeholder="Search prompts...">
+                <button type="button" class="search-clear-btn style-eNgcb" id="savedSearchClear" onclick="clearSavedSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="static-scrollbar-track style-GlVJv" id="staticScrollbarTrack">
+            <div class="static-scrollbar-thumb style-3ijIh" id="staticScrollbarThumb"></div>
+        </div>
+        <div class="static-nodes-row" id="staticNodesRow">
+            <div class="qst-container" id="qstContainer" onclick="qstOpenModal()">
+                <div class="qst-glow-bar"></div>
+                <div class="qst-inner">
+                    <div class="qst-checkbox" id="qstCheckboxWrap" onclick="event.stopPropagation(); qstToggleDirect()">
+                        <input type="checkbox" id="qstCheckbox">
+                        <div class="qst-check-box"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="qst-body">
+                        <div class="qst-badges">
+                            <span class="qst-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                            <span class="qst-badge-type"><i class="fas fa-question-circle"></i> Quiz</span>
+                        </div>
+                        <div class="qst-name">Quiz Question Generator</div>
+                        <div class="qst-preview">Generates a styled HTML quiz question — enter your answer to inject</div>
+                    </div>
+                    <div class="qst-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="qst-action-btn qst-copy" onclick="qstCopyPrompt()" title="Copy prompt">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button type="button" class="qst-action-btn qst-push" onclick="qstOpenModal()" title="Set answer &amp; push">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="ret-container" id="retContainer" onclick="retOpenModal()">
+                <div class="ret-glow-bar"></div>
+                <div class="ret-inner">
+                    <div class="ret-checkbox" id="retCheckboxWrap" onclick="event.stopPropagation(); retToggleDirect()">
+                        <input type="checkbox" id="retCheckbox">
+                        <div class="ret-check-box"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="ret-body">
+                        <div class="ret-badges">
+                            <span class="ret-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                            <span class="ret-badge-type"><i class="fas fa-sync-alt"></i> Reverse</span>
+                        </div>
+                        <div class="ret-name">Reverse Engineer</div>
+                        <div class="ret-preview">Code → Prompt — paste code to generate a recreation prompt</div>
+                    </div>
+                    <div class="ret-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="ret-action-btn ret-copy" onclick="retCopyPrompt()" title="Copy prompt">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button type="button" class="ret-action-btn ret-push" onclick="retOpenModal()" title="Set code &amp; push">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="itc-container" id="itcContainer" onclick="itcOpenModal()">
+                <div class="itc-glow-bar"></div>
+                <div class="itc-inner">
+                    <div class="itc-checkbox" id="itcCheckboxWrap" onclick="event.stopPropagation(); itcToggleDirect()">
+                        <input type="checkbox" id="itcCheckbox">
+                        <div class="itc-check-box"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="itc-body">
+                        <div class="itc-badges">
+                            <span class="itc-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                            <span class="itc-badge-type"><i class="fas fa-image"></i> Image</span>
+                        </div>
+                        <div class="itc-name">Image to Code</div>
+                        <div class="itc-preview">Image → HTML/CSS — select images to generate recreation prompt</div>
+                    </div>
+                    <div class="itc-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="itc-action-btn itc-copy" onclick="itcCopyPrompt()" title="Copy prompt">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button type="button" class="itc-action-btn itc-push" onclick="itcOpenModal()" title="Select images &amp; push">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="stg-container" id="stgContainer" onclick="stgOpenModal()">
+                <div class="stg-glow-bar"></div>
+                <div class="stg-inner">
+                    <div class="stg-checkbox" id="stgCheckboxWrap" onclick="event.stopPropagation(); stgToggleDirect()">
+                        <input type="checkbox" id="stgCheckbox">
+                        <div class="stg-check-box"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="stg-body">
+                        <div class="stg-badges">
+                            <span class="stg-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                            <span class="stg-badge-type"><i class="fas fa-graduation-cap"></i> Tutorial</span>
+                        </div>
+                        <div class="stg-name">Image Course</div>
+                        <div class="stg-preview">Images → HTML tutorial — enter filename to generate course</div>
+                    </div>
+                    <div class="stg-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="stg-action-btn stg-copy" onclick="stgCopyPrompt()" title="Copy prompt">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button type="button" class="stg-action-btn stg-push" onclick="stgOpenModal()" title="Set filename &amp; push">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="exp-container" id="expContainer" onclick="expOpenModal()">
+                <div class="exp-glow-bar"></div>
+                <div class="exp-inner">
+                    <div class="exp-checkbox" id="expCheckboxWrap" onclick="event.stopPropagation(); expToggleDirect()">
+                        <input type="checkbox" id="expCheckbox">
+                        <div class="exp-check-box"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="exp-body">
+                        <div class="exp-badges">
+                            <span class="exp-badge-static"><i class="fas fa-thumbtack"></i> Static</span>
+                            <span class="exp-badge-type"><i class="fas fa-book-open"></i> Course</span>
+                        </div>
+                        <div class="exp-name">Full Course</div>
+                        <div class="exp-preview">Code/Phrase → HTML tutorial — enter filename to generate</div>
+                    </div>
+                    <div class="exp-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="exp-action-btn exp-copy" onclick="expCopyPrompt()" title="Copy prompt">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button type="button" class="exp-action-btn exp-push" onclick="expOpenModal()" title="Set filename &amp; push">
+                            <i class="fas fa-bolt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="saved-list" id="savedList">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No saved prompts yet</p>
+            </div>
+        </div>
+        <div class="saved-scrollbar-track style-bDBLG" id="savedScrollbarTrack">
+            <div class="saved-scrollbar-thumb style-rm9wp" id="savedScrollbarThumb"></div>
+        </div>
+    </div>
+    <div class="editor-container">
+        <div class="editor-header">
+            <div class="editor-title">
+                <i class="fas fa-terminal"></i>
+                <span>Prompt Editor</span>
+                <div class="editor-search-bar" id="editorSearchBar">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="editor-search-input" id="editorSearchInput" placeholder="Search..." autocomplete="off" spellcheck="false">
+                    <span class="search-results-badge" id="searchResultsBadge">0 of 0</span>
+                    <div class="search-nav-btns">
+                        <button type="button" class="search-nav-btn" onclick="editorSearchPrev()" title="Previous (Shift+Enter)">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button type="button" class="search-nav-btn" onclick="editorSearchNext()" title="Next (Enter)">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    <button type="button" class="search-clear-btn" id="searchClearBtn" onclick="clearEditorSearch()" title="Clear search (Esc)">
+                        <i class="fas fa-times style-GtCWN" id="style-GtCWN"></i>
+                    </button>
+                </div>
+                <a href="?logout=1" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+            <div class="history-navigation">
+                <button type="button" class="history-btn undo" id="btnUndo" onclick="historyUndo()" disabled title="Nothing to undo">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="history-badge" id="undoCount">0</span>
+                </button>
+                <div class="history-divider"></div>
+                <div class="history-info">
+                    <span class="history-position" id="historyPosition">1/1</span>
+                    <span class="history-label">History</span>
+                </div>
+                <div class="history-divider"></div>
+                <button type="button" class="history-btn redo" id="btnRedo" onclick="historyRedo()" disabled title="Nothing to redo">
+                    <i class="fas fa-arrow-right"></i>
+                    <span class="history-badge" id="redoCount">0</span>
+                </button>
+                <div class="history-divider"></div>
+                <button type="button" class="history-btn clear" id="btnClearHistory" onclick="resetHistory()" title="Clear History">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="editor-actions">
+                <button class="btn btn-primary" onclick="copyPrompt()">
+                    <i class="fas fa-copy"></i> Copy </button>
+                <button class="btn btn-paste" onclick="pasteToEditor()">
+                    <i class="fas fa-paste"></i> Paste </button>
+                <button class="btn btn-success" onclick="openSaveModal()">
+                    <i class="fas fa-save"></i> Save Prompt </button>
+                <button class="btn btn-save-template" onclick="openSaveTemplateModal()">
+                    <i class="fas fa-layer-group"></i> Save Template </button>
+                <div class="folder-picker-group">
+                    <button class="btn btn-folder connected" id="btnFolderPicker" onclick="selectPromptFolder()" title="Connected to Prompt-Manager/prompt.txt">
+                        <i class="fas fa-folder-open"></i> Folder <span class="folder-status"></span>
+                    </button>
+                    <button class="btn-clear-picker show" id="btnClearFolder" onclick="clearFolderSelection()" title="Clear folder selection">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button class="btn btn-send" id="btnSendToFile" onclick="sendToPromptFile()" title="Send to prompt.txt">
+                        <i class="fas fa-paper-plane"></i> Send </button>
+                    <button class="btn btn-pull" id="btnPullFromFile" onclick="pullFromPromptFile()" title="Pull from prompt.txt">
+                        <i class="fas fa-download"></i> Pull </button>
+                </div>
+                <button class="btn btn-secondary" onclick="clearEditor()">
+                    <i class="fas fa-eraser"></i> Clear </button>
+            </div>
+        </div>
+        <div class="editor-body">
+            <div class="pull-success-banner style-R6NLZ" id="pullSuccessBanner"></div>
+            <div class="editor-highlight-overlay" id="editorHighlightOverlay"></div>
+            <textarea id="promptEditor" placeholder="Your generated prompt will appear here...
+
+Check the prompt templates on the left to build your prompt, or type directly." class="style-OkBGT"></textarea>
+            <div class="resize-handle" id="resizeHandle" title="Drag to resize">
+                <i class="fas fa-grip-lines"></i>
+            </div>
+        </div>
+        <div class="file-transfer-section">
+            <div class="file-transfer-group left">
+                <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
+                    <i class="fas fa-file"></i>
+                    <span class="file-name" id="fileNameLeft">Select File</span>
+                </button>
+                <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
+                    <i class="fas fa-download"></i> Pull </button>
+                <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
+                    <i class="fas fa-upload"></i> Push </button>
+            </div>
+            <div class="move-folder-group">
+                <button class="btn-move-folder" onclick="openMoveFolderModal()" title="Move folder to another location">
+                    <i class="fas fa-folder-open"></i>
+                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-folder"></i> Move </button>
+            </div>
+            <div class="file-management-group">
+                <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
+                    <i class="fas fa-file-medical"></i>
+                </button>
+                <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete files">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+                <button class="btn-file-manage btn-folder" onclick="createNewFolder()" title="Create new folder">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button class="btn-file-manage btn-delete-folder" onclick="deleteFolderModal()" title="Delete folder">
+                    <i class="fas fa-folder-minus"></i>
+                </button>
+                <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+            <div class="move-folder-group">
+                <button class="btn-move-folder style-P1wef" onclick="openMoveFilesModal()" title="Move files to another folder" id="style-P1wef">
+                    <i class="fas fa-file"></i>
+                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-folder"></i> Move </button>
+            </div>
+            <div class="file-transfer-group right">
+                <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
+                    <i class="fas fa-download"></i> Pull </button>
+                <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
+                    <i class="fas fa-upload"></i> Push </button>
+                <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
+                    <i class="fas fa-file"></i>
+                    <span class="file-name" id="fileNameRight">Select File</span>
+                </button>
+                <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="editor-footer">
+            <div class="char-count">
+                <i class="fas fa-font"></i>
+                <span id="charCount">0</span> characters
+            </div>
+            <div class="footer-voice-tools">
+                <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
+                    <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
+                    <div class="tts-progress" id="ttsProgress"></div>
+                </button>
+                <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
+                    <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
+                    <div class="tts-ar-progress" id="ttsArProgress"></div>
+                </button>
+                <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
+                    <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
+                    <span class="stt-dot"></span>
+                </button>
+                <button class="btn btn-stt-ar" id="btnSttAr" onclick="sttArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
+                    <i class="fas fa-microphone"></i> <span id="sttArLabel">إملاء</span><span class="stt-ar-flag">AR</span>
+                    <span class="stt-ar-dot"></span>
+                </button>
+                <button class="btn btn-copy-editor" id="btnCopyEditor" onclick="copyEditorText()" title="Copy prompt to clipboard">
+                    <i class="fas fa-copy"></i> <span id="copyEditorLabel">Copy</span>
+                </button>
+                <button class="btn btn-paste-editor" id="btnPasteEditor" onclick="pasteEditorText()" title="Paste from clipboard">
+                    <i class="fas fa-paste"></i> <span id="pasteEditorLabel">Paste</span>
+                </button>
+                <button class="btn btn-clear-editor" id="btnClearEditor" onclick="clearEditorText()" title="Clear prompt editor">
+                    <i class="fas fa-eraser"></i> <span id="clearEditorLabel">Clear</span>
+                </button>
+            </div>
+            <button class="btn-dir-toggle" id="btnDirToggle" onclick="toggleEditorDir()" title="Toggle text direction (LTR / RTL)">
+                <i class="fas fa-exchange-alt"></i>
+                <span id="dirLabel">LTR</span>
+            </button>
+            <div class="word-count">
+                <i class="fas fa-text-width"></i>
+                <span id="wordCount">0</span> words
+            </div>
+        </div>
+    </div>
+</div>

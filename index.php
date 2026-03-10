@@ -15459,6 +15459,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         [data-theme="light"] .dt-reg-textarea { color: #334155; }
         [data-theme="light"] .dt-reg-footer { background: rgba(139, 92, 246, 0.02); }
 
+        /* Registration Editor Dashboard Bar */
+        .dt-reg-dashboard {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 22px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.03));
+            border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+        }
+        .dt-reg-dashboard-label {
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: rgba(148, 163, 184, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .dt-reg-dashboard-label i {
+            font-size: 0.5rem;
+            color: rgba(139, 92, 246, 0.5);
+        }
+        .dt-reg-toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .dt-reg-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dt-reg-toggle-text {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: rgba(148, 163, 184, 0.45);
+            white-space: nowrap;
+            transition: color 0.35s ease;
+            user-select: none;
+        }
+        .dt-reg-toggle-item.active .dt-reg-toggle-text {
+            color: #a78bfa;
+        }
+
+        /* iOS-style Toggle Switch */
+        .dt-reg-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            cursor: pointer;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .dt-reg-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .dt-reg-switch-track {
+            position: absolute;
+            inset: 0;
+            background: rgba(100, 116, 139, 0.3);
+            border-radius: 999px;
+            border: 1.5px solid rgba(100, 116, 139, 0.15);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dt-reg-switch-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 13px;
+            height: 13px;
+            background: linear-gradient(145deg, #94a3b8, #64748b);
+            border-radius: 50%;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .dt-reg-switch input:checked + .dt-reg-switch-track {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25), 0 0 24px rgba(139, 92, 246, 0.08);
+        }
+        .dt-reg-switch input:checked + .dt-reg-switch-track::after {
+            transform: translateX(16px);
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            box-shadow: 0 1px 5px rgba(99, 102, 241, 0.35);
+        }
+        .dt-reg-switch:hover .dt-reg-switch-track {
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+        .dt-reg-switch:active .dt-reg-switch-track::after {
+            width: 16px;
+        }
+
+        /* Light theme */
+        [data-theme="light"] .dt-reg-dashboard {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(139, 92, 246, 0.02));
+        }
+        [data-theme="light"] .dt-reg-toggle-item.active .dt-reg-toggle-text {
+            color: #7c3aed;
+        }
+        [data-theme="light"] .dt-reg-switch-track {
+            background: rgba(148, 163, 184, 0.25);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        [data-theme="light"] .dt-reg-switch-track::after {
+            background: linear-gradient(145deg, #cbd5e1, #94a3b8);
+        }
+
         /* Instructions Button for Static Template */
         .dt-instructions-btn {
             display: inline-flex;
@@ -21530,7 +21642,338 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.2; }
         }
         /* ═══════ End Notes Footer Toolbar ═══════ */
-        
+
+        /* ═══════════════════════════════════════════════════ */
+        /* ═══ Analytics Textarea Section (Teal/Cyan)  ═══ */
+        /* ═══════════════════════════════════════════════════ */
+        .analytics-section {
+            margin: 0.25rem 0 0.25rem 0;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, rgba(8, 145, 178, 0.03) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .analytics-section:hover {
+            border-color: rgba(6, 182, 212, 0.35);
+            box-shadow: 0 2px 12px rgba(6, 182, 212, 0.1);
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(8, 145, 178, 0.06) 100%);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.15);
+        }
+        .analytics-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #22d3ee;
+        }
+        .analytics-title i {
+            font-size: 0.7rem;
+        }
+        .analytics-title .analytics-badge {
+            font-size: 0.55rem;
+            padding: 0.15rem 0.4rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.12));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 10px;
+            color: #67e8f9;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .analytics-actions {
+            display: flex;
+            gap: 0.35rem;
+        }
+        .analytics-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 6px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.6rem;
+        }
+        .analytics-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: scale(1.05);
+        }
+        .analytics-btn.analytics-clear-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        .analytics-btn.analytics-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        }
+        .analytics-btn.analytics-clear-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
+        }
+        .analytics-btn.analytics-copy-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #22d3ee;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        .analytics-btn.analytics-copy-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+        }
+        .analytics-btn.analytics-copy-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
+        }
+
+        /* ═══ Analytics Search Bar ═══ */
+        .analytics-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            max-width: 320px;
+            flex: 1;
+        }
+        .analytics-search-bar:focus-within {
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.15);
+            background: rgba(6, 182, 212, 0.12);
+        }
+        .analytics-search-bar.has-results {
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.12);
+        }
+        .analytics-search-bar.no-results {
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.12);
+        }
+        .analytics-search-icon {
+            font-size: 0.55rem;
+            color: rgba(6, 182, 212, 0.5);
+            flex-shrink: 0;
+        }
+        .analytics-search-input {
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            outline: none;
+            width: 100%;
+            min-width: 60px;
+        }
+        .analytics-search-input::placeholder {
+            color: rgba(6, 182, 212, 0.35);
+        }
+        .analytics-search-badge {
+            font-size: 0.55rem;
+            color: rgba(6, 182, 212, 0.7);
+            white-space: nowrap;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            flex-shrink: 0;
+        }
+        .analytics-search-bar.has-results .analytics-search-badge {
+            color: #22c55e;
+        }
+        .analytics-search-bar.no-results .analytics-search-badge {
+            color: #ef4444;
+        }
+        .analytics-search-nav {
+            display: flex;
+            gap: 1px;
+            flex-shrink: 0;
+        }
+        .analytics-search-nav-btn {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 4px;
+            color: rgba(6, 182, 212, 0.6);
+            cursor: pointer;
+            font-size: 0.5rem;
+            transition: all 0.15s ease;
+        }
+        .analytics-search-nav-btn:hover {
+            background: rgba(6, 182, 212, 0.25);
+            color: #22d3ee;
+            transform: scale(1.1);
+        }
+        .analytics-search-clear-btn {
+            width: 18px;
+            height: 18px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 50%;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.45rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .analytics-search-bar.has-value .analytics-search-clear-btn {
+            display: flex;
+        }
+        .analytics-search-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.15) rotate(90deg);
+        }
+
+        /* ═══ Analytics Body & Textarea ═══ */
+        .analytics-body {
+            position: relative;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            overflow: visible;
+        }
+        .analytics-body.collapsed {
+            max-height: 0 !important;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .analytics-textarea {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            min-height: 0;
+            max-height: 80vh;
+            height: auto;
+            padding: 1rem;
+            padding-bottom: 2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            resize: none;
+            outline: none;
+            overflow-y: auto;
+            box-sizing: border-box;
+            transition: height 0.1s ease;
+        }
+        .analytics-textarea::placeholder {
+            color: rgba(6, 182, 212, 0.4);
+            font-style: italic;
+        }
+        .analytics-textarea:focus {
+            background: rgba(6, 182, 212, 0.03);
+        }
+        .analytics-textarea.searching {
+            color: transparent !important;
+            caret-color: var(--text-primary);
+        }
+
+        /* ═══ Analytics Highlight Overlay ═══ */
+        .analytics-highlight-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 1rem;
+            padding-bottom: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: hidden;
+            pointer-events: none;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            box-sizing: border-box;
+            z-index: 1;
+            display: none;
+        }
+        .analytics-body.searching .analytics-highlight-overlay {
+            display: block;
+        }
+        .analytics-highlight-overlay mark {
+            background: #67e8f9;
+            color: #0e1525 !important;
+            border-radius: 3px;
+            padding: 1px 3px;
+            box-shadow: 0 0 0 2px #67e8f9;
+            font-weight: 600;
+        }
+        .analytics-highlight-overlay mark.current {
+            background: #0891b2;
+            color: #ffffff !important;
+            box-shadow: 0 0 0 3px #0891b2, 0 0 12px rgba(8, 145, 178, 0.5);
+            font-weight: 700;
+            border-radius: 3px;
+            animation: currentMatchPulse 0.3s ease;
+        }
+
+        /* ═══ Analytics Resize Handle ═══ */
+        .analytics-resize-handle {
+            width: 100%;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.06) 0%, rgba(6, 182, 212, 0.14) 100%);
+            cursor: ns-resize;
+            color: rgba(6, 182, 212, 0.45);
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+            user-select: none;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 20;
+        }
+        .analytics-resize-handle:hover {
+            background: linear-gradient(to top, rgba(6, 182, 212, 0.25) 0%, transparent 100%);
+            color: rgba(6, 182, 212, 0.9);
+        }
+        .analytics-resize-handle:active {
+            background: linear-gradient(to top, rgba(6, 182, 212, 0.35) 0%, transparent 100%);
+            color: #22d3ee;
+        }
+        /* ═══════ End Analytics Section ═══════ */
+
         /* Project Management Bar (merged into project-notes-section) */
         .project-management-bar {
             display: flex;
@@ -29726,6 +30169,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+            <!-- ═══ Analytics Textarea Section ═══ -->
+            <div class="analytics-section" id="analyticsSection">
+                <div class="analytics-header">
+                    <div class="analytics-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                        <span class="analytics-badge">Analyzer</span>
+                    </div>
+
+                    <!-- Analytics Search Bar -->
+                    <div class="analytics-search-bar" id="analyticsSearchBar">
+                        <i class="fas fa-search analytics-search-icon"></i>
+                        <input type="text" class="analytics-search-input" id="analyticsSearchInput" placeholder="Search analytics..." autocomplete="off">
+                        <span class="analytics-search-badge" id="analyticsSearchBadge">0 of 0</span>
+                        <div class="analytics-search-nav">
+                            <button class="analytics-search-nav-btn" onclick="analyticsSearchPrev()" title="Previous (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                            <button class="analytics-search-nav-btn" onclick="analyticsSearchNext()" title="Next (Enter)"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <button class="analytics-search-clear-btn" onclick="clearAnalyticsSearch()" title="Clear search"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div class="analytics-actions">
+                        <button class="analytics-btn analytics-copy-btn" onclick="copyAnalyticsContent()" title="Copy analytics content">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                        <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Clear</span>
+                        </button>
+                        <button class="analytics-btn" id="analyticsCollapseBtn" onclick="toggleAnalyticsCollapse()" title="Collapse/Expand">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="analytics-body" id="analyticsBody">
+                    <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
+                    <textarea 
+                        class="analytics-textarea" 
+                        id="analyticsTextarea" 
+                        placeholder="Analytics output will appear here. This area analyzes the relationship between the Prompt Editor and Project Prompts..."
+                        oninput="onAnalyticsChange()"></textarea>
+                    <div class="analytics-resize-handle" id="analyticsResizeHandle">
+                        <i class="fas fa-grip-lines"></i>
+                    </div>
+                </div>
+            </div>
+
             </div><!-- /unified-editor-section -->
 
             <!-- Tab Panel: iFrame Scalar -->
@@ -47245,6 +47737,348 @@ in each section carefully and maintain proper connections between components.
         document.addEventListener('DOMContentLoaded', initNotesSearch);
 
 
+        // ═══════════════════════════════════════════
+        // ANALYTICS TEXTAREA SEARCH SYSTEM (Ctrl+F style)
+        // ═══════════════════════════════════════════
+        const analyticsSearch = {
+            matches: [],
+            currentIndex: -1,
+            searchTerm: '',
+            debounceTimer: null
+        };
+
+        function initAnalyticsSearch() {
+            const searchInput = document.getElementById('analyticsSearchInput');
+            const textarea = document.getElementById('analyticsTextarea');
+            const searchBar = document.getElementById('analyticsSearchBar');
+            if (!searchInput || !textarea) return;
+
+            searchInput.addEventListener('input', function() {
+                const val = this.value;
+                searchBar.classList.toggle('has-value', val.length > 0);
+                clearTimeout(analyticsSearch.debounceTimer);
+                analyticsSearch.debounceTimer = setTimeout(() => performAnalyticsSearch(val), 150);
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    analyticsSearchNext();
+                } else if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+                    analyticsSearchPrev();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    clearAnalyticsSearch();
+                    textarea.focus();
+                }
+            });
+
+            textarea.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            });
+
+            textarea.addEventListener('scroll', syncAnalyticsOverlayScroll);
+
+            textarea.addEventListener('input', function() {
+                if (analyticsSearch.searchTerm) {
+                    clearTimeout(analyticsSearch.debounceTimer);
+                    analyticsSearch.debounceTimer = setTimeout(() => performAnalyticsSearch(analyticsSearch.searchTerm), 200);
+                }
+            });
+        }
+
+        function syncAnalyticsOverlayScroll() {
+            const textarea = document.getElementById('analyticsTextarea');
+            const overlay = document.getElementById('analyticsHighlightOverlay');
+            if (textarea && overlay) {
+                overlay.scrollTop = textarea.scrollTop;
+                overlay.scrollLeft = textarea.scrollLeft;
+            }
+        }
+
+        function clearAnalyticsHighlightOverlay() {
+            const overlay = document.getElementById('analyticsHighlightOverlay');
+            const textarea = document.getElementById('analyticsTextarea');
+            const body = document.getElementById('analyticsBody');
+            if (overlay) overlay.innerHTML = '';
+            if (textarea) textarea.classList.remove('searching');
+            if (body) body.classList.remove('searching');
+        }
+
+        function updateAnalyticsHighlightOverlay() {
+            const textarea = document.getElementById('analyticsTextarea');
+            const overlay = document.getElementById('analyticsHighlightOverlay');
+            const body = document.getElementById('analyticsBody');
+            if (!textarea || !overlay) return;
+
+            const text = textarea.value;
+            if (analyticsSearch.matches.length === 0) {
+                clearAnalyticsHighlightOverlay();
+                return;
+            }
+
+            let html = '';
+            let lastIndex = 0;
+
+            analyticsSearch.matches.forEach((match, idx) => {
+                html += escapeHtmlForOverlay(text.substring(lastIndex, match.start));
+                const matchText = text.substring(match.start, match.end);
+                const isCurrent = idx === analyticsSearch.currentIndex;
+                html += `<mark${isCurrent ? ' class="current"' : ''}>${escapeHtmlForOverlay(matchText)}</mark>`;
+                lastIndex = match.end;
+            });
+
+            html += escapeHtmlForOverlay(text.substring(lastIndex));
+
+            overlay.innerHTML = html;
+            textarea.classList.add('searching');
+            if (body) body.classList.add('searching');
+
+            syncAnalyticsOverlayScroll();
+        }
+
+        function performAnalyticsSearch(searchTerm) {
+            const textarea = document.getElementById('analyticsTextarea');
+            const searchBar = document.getElementById('analyticsSearchBar');
+            const badge = document.getElementById('analyticsSearchBadge');
+
+            analyticsSearch.searchTerm = searchTerm;
+            analyticsSearch.matches = [];
+            analyticsSearch.currentIndex = -1;
+
+            searchBar.classList.remove('has-results', 'no-results');
+
+            if (!searchTerm || searchTerm.length === 0) {
+                badge.textContent = '0 of 0';
+                clearAnalyticsHighlightOverlay();
+                return;
+            }
+
+            const text = textarea.value;
+            const lowerText = text.toLowerCase();
+            const lowerSearch = searchTerm.toLowerCase();
+
+            let index = 0;
+            while ((index = lowerText.indexOf(lowerSearch, index)) !== -1) {
+                analyticsSearch.matches.push({ start: index, end: index + searchTerm.length });
+                index += 1;
+            }
+
+            if (analyticsSearch.matches.length > 0) {
+                searchBar.classList.add('has-results');
+                analyticsSearch.currentIndex = 0;
+                badge.textContent = `1 of ${analyticsSearch.matches.length}`;
+                updateAnalyticsHighlightOverlay();
+                scrollToCurrentAnalyticsMatch();
+            } else {
+                searchBar.classList.add('no-results');
+                badge.textContent = '0 of 0';
+                clearAnalyticsHighlightOverlay();
+            }
+        }
+
+        function scrollToCurrentAnalyticsMatch() {
+            if (analyticsSearch.matches.length === 0 || analyticsSearch.currentIndex < 0) return;
+
+            requestAnimationFrame(() => {
+                const textarea = document.getElementById('analyticsTextarea');
+                const overlay = document.getElementById('analyticsHighlightOverlay');
+                if (!overlay || !textarea) return;
+
+                const currentMark = overlay.querySelector('mark.current');
+                if (!currentMark) return;
+
+                const markTop = currentMark.offsetTop;
+                const markHeight = currentMark.offsetHeight;
+                const visibleH = textarea.clientHeight;
+                const targetScroll = markTop - (visibleH / 2) + (markHeight / 2);
+                textarea.scrollTop = Math.max(0, targetScroll);
+
+                syncAnalyticsOverlayScroll();
+
+                requestAnimationFrame(() => {
+                    const rect = currentMark.getBoundingClientRect();
+                    const headerOffset = 100;
+                    const bottomMargin = 80;
+                    if (rect.top < headerOffset || rect.bottom > window.innerHeight - bottomMargin) {
+                        const targetY = window.scrollY + rect.top - (window.innerHeight / 3);
+                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        function analyticsSearchNext() {
+            if (analyticsSearch.matches.length === 0) return;
+
+            const prevIndex = analyticsSearch.currentIndex;
+            analyticsSearch.currentIndex = (analyticsSearch.currentIndex + 1) % analyticsSearch.matches.length;
+
+            const badge = document.getElementById('analyticsSearchBadge');
+            badge.textContent = `${analyticsSearch.currentIndex + 1} of ${analyticsSearch.matches.length}`;
+
+            if (prevIndex === analyticsSearch.matches.length - 1 && analyticsSearch.currentIndex === 0) {
+                flashAnalyticsSearchWrap('↻ Wrapped to top');
+            }
+
+            updateAnalyticsHighlightOverlay();
+            scrollToCurrentAnalyticsMatch();
+        }
+
+        function analyticsSearchPrev() {
+            if (analyticsSearch.matches.length === 0) return;
+
+            const prevIndex = analyticsSearch.currentIndex;
+            analyticsSearch.currentIndex = analyticsSearch.currentIndex - 1;
+            if (analyticsSearch.currentIndex < 0) {
+                analyticsSearch.currentIndex = analyticsSearch.matches.length - 1;
+            }
+
+            const badge = document.getElementById('analyticsSearchBadge');
+            badge.textContent = `${analyticsSearch.currentIndex + 1} of ${analyticsSearch.matches.length}`;
+
+            if (prevIndex === 0 && analyticsSearch.currentIndex === analyticsSearch.matches.length - 1) {
+                flashAnalyticsSearchWrap('↻ Wrapped to bottom');
+            }
+
+            updateAnalyticsHighlightOverlay();
+            scrollToCurrentAnalyticsMatch();
+        }
+
+        function flashAnalyticsSearchWrap(message) {
+            const searchBar = document.getElementById('analyticsSearchBar');
+            if (!searchBar) return;
+
+            const existing = searchBar.querySelector('.search-wrap-indicator');
+            if (existing) existing.remove();
+
+            const indicator = document.createElement('span');
+            indicator.className = 'search-wrap-indicator';
+            indicator.textContent = message;
+            indicator.style.cssText = 'font-size:0.6rem;color:#22d3ee;font-weight:600;white-space:nowrap;opacity:1;transition:opacity 0.5s ease;';
+            searchBar.appendChild(indicator);
+
+            setTimeout(() => { indicator.style.opacity = '0'; }, 1200);
+            setTimeout(() => { indicator.remove(); }, 1800);
+        }
+
+        function clearAnalyticsSearch() {
+            const searchInput = document.getElementById('analyticsSearchInput');
+            const searchBar = document.getElementById('analyticsSearchBar');
+            const badge = document.getElementById('analyticsSearchBadge');
+
+            searchInput.value = '';
+            analyticsSearch.matches = [];
+            analyticsSearch.currentIndex = -1;
+            analyticsSearch.searchTerm = '';
+
+            searchBar.classList.remove('has-results', 'no-results', 'has-value');
+            badge.textContent = '0 of 0';
+
+            clearAnalyticsHighlightOverlay();
+        }
+
+        // ═══ Analytics Utility Functions ═══
+        function toggleAnalyticsCollapse() {
+            const body = document.getElementById('analyticsBody');
+            const btn = document.getElementById('analyticsCollapseBtn');
+            if (!body || !btn) return;
+            const icon = btn.querySelector('i');
+
+            if (body.classList.contains('collapsed')) {
+                body.classList.remove('collapsed');
+                if (icon) { icon.className = 'fas fa-chevron-up'; }
+            } else {
+                body.classList.add('collapsed');
+                if (icon) { icon.className = 'fas fa-chevron-down'; }
+            }
+        }
+
+        function copyAnalyticsContent() {
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!textarea || !textarea.value.trim()) {
+                if (typeof showToast === 'function') showToast('Nothing to copy', 'warning');
+                return;
+            }
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                if (typeof showToast === 'function') showToast('Analytics content copied!', 'success');
+            });
+        }
+
+        function clearAnalyticsContent() {
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!textarea) return;
+            if (!textarea.value.trim()) return;
+            textarea.value = '';
+            onAnalyticsChange();
+            if (typeof showToast === 'function') showToast('Analytics cleared', 'info');
+        }
+
+        function onAnalyticsChange() {
+            autoExpandAnalyticsTextarea();
+        }
+
+        function autoExpandAnalyticsTextarea() {
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, window.innerHeight * 0.8);
+            textarea.style.height = newHeight + 'px';
+
+            // Keep overlay in sync
+            const overlay = document.getElementById('analyticsHighlightOverlay');
+            if (overlay) {
+                overlay.style.height = textarea.style.height;
+            }
+        }
+
+        // ═══ Analytics Resize Handle ═══
+        function initAnalyticsResize() {
+            const handle = document.getElementById('analyticsResizeHandle');
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!handle || !textarea) return;
+
+            let startY, startH;
+
+            handle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                startY = e.clientY;
+                startH = textarea.offsetHeight;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            function onMouseMove(e) {
+                const delta = e.clientY - startY;
+                const newH = Math.max(60, startH + delta);
+                textarea.style.height = newH + 'px';
+                textarea.style.overflow = 'auto';
+                const overlay = document.getElementById('analyticsHighlightOverlay');
+                if (overlay) overlay.style.height = newH + 'px';
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        }
+
+        // Initialize analytics search + resize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initAnalyticsSearch();
+            initAnalyticsResize();
+        });
+
+
         // ============================================
         // DATABASE CONNECTION TOGGLE & SPEED MONITOR
         // ============================================
@@ -61633,6 +62467,20 @@ function dtOpenCredentialsModal() {
         _dtRegOriginalContent = textarea.value;
     }
     
+    // Restore Roles & RBAC toggle state
+    const rolesToggle = document.getElementById('dtRegRolesToggle');
+    const toggleItem = document.getElementById('dtRegRolesToggleItem');
+    const savedRolesState = localStorage.getItem('dtRegIncludeRoles');
+    if (rolesToggle) {
+        const include = savedRolesState !== '0'; // default ON
+        rolesToggle.checked = include;
+        if (toggleItem) toggleItem.classList.toggle('active', include);
+        // If roles were toggled off, strip them from the loaded content
+        if (!include && textarea) {
+            textarea.value = dtRegStripRoles(textarea.value);
+        }
+    }
+    
     dtRegUpdateEditBadge();
     dtRegUpdateCharCount();
     overlay.classList.add('show');
@@ -61678,6 +62526,154 @@ function dtRegBuildProcessedPrompt() {
     }
     
     return content;
+}
+
+// ============ ROLES & RBAC TOGGLE ============
+
+// Toggle roles sections in the registration prompt
+function dtRegToggleRoles() {
+    const toggle = document.getElementById('dtRegRolesToggle');
+    const textarea = document.getElementById('dtRegTextarea');
+    const toggleItem = document.getElementById('dtRegRolesToggleItem');
+    if (!toggle || !textarea) return;
+    
+    const include = toggle.checked;
+    localStorage.setItem('dtRegIncludeRoles', include ? '1' : '0');
+    
+    if (toggleItem) {
+        toggleItem.classList.toggle('active', include);
+    }
+    
+    if (!include) {
+        textarea.value = dtRegStripRoles(textarea.value);
+    } else {
+        textarea.value = dtRegAddRoles(textarea.value);
+    }
+    
+    dtRegOnTextChange();
+    dtRegUpdateCharCount();
+    showToast(include ? '🔐 Roles & RBAC sections added' : '🔓 Roles & RBAC sections removed', 'info');
+}
+
+// Strip all roles-related content from the prompt text
+function dtRegStripRoles(text) {
+    // 1. Remove roles-related database tables (roles, permissions, role_permissions, user_roles, page_access_control)
+    text = text.replace(/\n*▶ TABLE: roles\n[\s\S]*?(?=▶ TABLE: user_sessions)/, '\n');
+    
+    // 2. Remove Section 7: RBAC (entire section including header)
+    text = text.replace(/\n*═+\n7\. ROLE-BASED ACCESS CONTROL \(RBAC\)\n═+\n[\s\S]*?(?=\n═+\n8\.)/, '');
+    
+    // 3. Remove seed data roles lines
+    text = text.replace(/\n- Roles:[^\n]*\n- Permissions:[^\n]*\n- Assign all permissions[^\n]*\n- Set 'user' role[^\n]*/g, '');
+    
+    // 4. Remove role API endpoints
+    text = text.replace(/\nGET  \/admin\/roles[^\n]*\nPOST \/admin\/roles[^\n]*\nPUT  \/admin\/roles[^\n]*\nDELETE \/admin\/roles[^\n]*\nPOST \/admin\/users\/:id\/roles[^\n]*\nDELETE \/admin\/users\/:id\/roles\/:roleId[^\n]*/g, '');
+    
+    // 5. Remove "Auto-assign default role" line
+    text = text.replace(/\n- Auto-assign default role[^\n]*/g, '');
+    
+    // 6. Modify intro line: remove "and role-based access control"
+    text = text.replace(
+        /registration, login, and role-based access control system\. The implementation must cover database schema, backend logic, frontend pages, session management, and admin controls\./g,
+        'registration and login system. The implementation must cover database schema, backend logic, frontend pages, and session management.'
+    );
+    
+    // 7. Strip role references from Admin User Management section
+    text = text.replace(/roles \(badges\), /g, '');
+    text = text.replace(/- Filter by role, status,/g, '- Filter by status,');
+    text = text.replace(/, assign role/g, '');
+    text = text.replace(/, role assignments,/g, ',');
+    
+    // 8. Remove page_access_control seed data line (contains role-based routing)
+    text = text.replace(/\n- Define page_access_control entries[^\n]*/g, '');
+    
+    // Clean up triple+ newlines
+    text = text.replace(/\n{3,}/g, '\n\n');
+    
+    return text;
+}
+
+// Re-add roles content from the default template at anchor positions
+function dtRegAddRoles(text) {
+    const tmpl = DT_STATIC_TEMPLATES.find(t => t.id === 'static_1');
+    if (!tmpl) return text;
+    const src = tmpl.content;
+    
+    // 1. Re-insert roles tables before user_sessions table
+    if (!text.includes('TABLE: roles')) {
+        const m = src.match(/(▶ TABLE: roles[\s\S]*?)(?=▶ TABLE: user_sessions)/);
+        if (m && text.includes('▶ TABLE: user_sessions')) {
+            text = text.replace('▶ TABLE: user_sessions', m[1] + '▶ TABLE: user_sessions');
+        }
+    }
+    
+    // 2. Re-insert RBAC section before section 8
+    if (!text.includes('ROLE-BASED ACCESS CONTROL')) {
+        const m = src.match(/(═+\n7\. ROLE-BASED ACCESS CONTROL[\s\S]*?\n)\n(═+\n8\.)/);
+        if (m) {
+            const anchor = text.match(/═+\n8\./);
+            if (anchor) {
+                text = text.replace(anchor[0], '\n' + m[1] + '\n' + anchor[0]);
+            }
+        }
+    }
+    
+    // 3. Re-insert seed data roles lines before super_admin account line
+    if (!text.includes('Roles: super_admin')) {
+        const m = src.match(/(- Roles:[^\n]*\n- Permissions:[^\n]*\n- Assign all permissions[^\n]*\n- Set 'user' role[^\n]*\n)/);
+        if (m && text.includes('Create initial super_admin account')) {
+            text = text.replace(/- Create initial super_admin account/, m[1] + '- Create initial super_admin account');
+        }
+    }
+    
+    // 4. Re-insert role API endpoints before IMPORTANT line
+    if (!text.includes('/admin/roles')) {
+        const m = src.match(/(GET  \/admin\/roles[^\n]*\nPOST \/admin\/roles[^\n]*\nPUT  \/admin\/roles[^\n]*\nDELETE \/admin\/roles[^\n]*\nPOST \/admin\/users\/:id\/roles[^\n]*\nDELETE \/admin\/users\/:id\/roles\/:roleId[^\n]*\n)/);
+        if (m && text.includes('\nIMPORTANT:')) {
+            text = text.replace('\nIMPORTANT:', '\n' + m[1] + '\nIMPORTANT:');
+        }
+    }
+    
+    // 5. Re-insert "Auto-assign default role" line
+    if (!text.includes('Auto-assign default role')) {
+        if (text.includes('- Store hashed password only')) {
+            text = text.replace('- Store hashed password only', "- Auto-assign default role ('user') upon registration\n- Store hashed password only");
+        }
+    }
+    
+    // 6. Restore intro line with role-based access control
+    if (!text.includes('role-based access control')) {
+        text = text.replace(
+            /registration and login system\. The implementation must cover database schema, backend logic, frontend pages, and session management\./g,
+            'registration, login, and role-based access control system. The implementation must cover database schema, backend logic, frontend pages, session management, and admin controls.'
+        );
+    }
+    
+    // 7. Restore role references in Admin User Management section
+    if (!text.includes('roles (badges)')) {
+        text = text.replace(/avatar, name, email, status/g, 'avatar, name, email, roles (badges), status');
+    }
+    if (!text.includes('Filter by role')) {
+        text = text.replace(/- Filter by status, registration date/g, '- Filter by role, status, registration date');
+    }
+    if (!text.includes('assign role')) {
+        text = text.replace(/activate, deactivate, delete\n/g, 'activate, deactivate, delete, assign role\n');
+    }
+    if (!text.includes('role assignments')) {
+        text = text.replace(/full profile info, login history/g, 'full profile info, role assignments, login history');
+    }
+    
+    // 8. Restore page_access_control seed data line
+    if (!text.includes('page_access_control entries')) {
+        if (text.includes('Create initial super_admin account')) {
+            text = text.replace(
+                /- Create initial super_admin account/,
+                "- Define page_access_control entries for: /dashboard (user+), /admin (admin+), /settings (admin+), /users (moderator+), /reports (editor+), /profile (user+), /login (public), /register (public)\n- Create initial super_admin account"
+            );
+        }
+    }
+    
+    return text;
 }
 
 // Save everything: credentials + prompt text
@@ -61890,6 +62886,23 @@ function dtCreateRegEditorModal() {
                 <button class="dt-reg-tool-btn" onclick="dtRegApplyCredentials()" title="Apply credentials to prompt text" style="margin-bottom: 1px; white-space: nowrap;">
                     <i class="fas fa-sync-alt"></i> Apply
                 </button>
+            </div>
+            
+            <!-- Dashboard Controls -->
+            <div class="dt-reg-dashboard">
+                <div class="dt-reg-dashboard-label">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Prompt Controls</span>
+                </div>
+                <div class="dt-reg-toggle-group">
+                    <div class="dt-reg-toggle-item active" id="dtRegRolesToggleItem">
+                        <span class="dt-reg-toggle-text">Roles & RBAC</span>
+                        <label class="dt-reg-switch" title="Toggle roles & permissions sections in the prompt">
+                            <input type="checkbox" id="dtRegRolesToggle" checked onchange="dtRegToggleRoles()">
+                            <span class="dt-reg-switch-track"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
             
             <!-- Toolbar -->
