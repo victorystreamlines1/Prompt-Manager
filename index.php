@@ -21647,7 +21647,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ═══ Analytics Textarea Section (Teal/Cyan)  ═══ */
         /* ═══════════════════════════════════════════════════ */
         .analytics-section {
-            order: -1;
             margin: 0.25rem 0 1rem 0;
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, rgba(8, 145, 178, 0.03) 100%);
             border: 1px solid rgba(6, 182, 212, 0.2);
@@ -22237,6 +22236,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .analytics-footer-btn:active {
             transform: scale(0.96);
+        }
+        /* Compare Diff button (amber/orange accent) */
+        .analytics-compare-group {
+            flex: 0 0 auto;
+        }
+        .analytics-footer-btn.compare-btn {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.25rem 0.65rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .analytics-footer-btn.compare-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        .analytics-footer-btn.compare-btn:hover::before {
+            left: 100%;
+        }
+        .analytics-footer-btn.compare-btn:hover {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.18) 100%);
+            border-color: rgba(251, 191, 36, 0.55);
+            color: #fcd34d;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.2), 0 0 4px rgba(251, 191, 36, 0.1);
+        }
+        .analytics-footer-btn.compare-btn:active {
+            transform: scale(0.94);
+            box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+        }
+        .analytics-footer-btn.compare-btn i {
+            transition: transform 0.3s ease;
+        }
+        .analytics-footer-btn.compare-btn:hover i {
+            transform: rotate(180deg);
         }
         /* ═══════ End Analytics Section ═══════ */
 
@@ -30020,6 +30062,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div><!-- /mc-tab-panel workspace -->
 
+            <!-- ═══ Analytics Textarea Section ═══ -->
+            <div class="analytics-section" id="analyticsSection">
+                <div class="analytics-header">
+                    <div class="analytics-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                        <span class="analytics-badge">Analyzer</span>
+                    </div>
+
+                    <!-- Analytics Search Bars Group -->
+                    <div class="analytics-search-group">
+                        <!-- Normal Search Bar -->
+                        <div class="analytics-search-bar" id="analyticsSearchBar">
+                            <i class="fas fa-search analytics-search-icon"></i>
+                            <input type="text" class="analytics-search-input" id="analyticsSearchInput" placeholder="Search analytics..." autocomplete="off">
+                            <span class="analytics-search-badge" id="analyticsSearchBadge">0 of 0</span>
+                            <div class="analytics-search-nav">
+                                <button class="analytics-search-nav-btn" onclick="analyticsSearchPrev()" title="Previous (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                                <button class="analytics-search-nav-btn" onclick="analyticsSearchNext()" title="Next (Enter)"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsSearch()" title="Clear search"><i class="fas fa-times"></i></button>
+                        </div>
+
+                        <!-- Regex Search Bar -->
+                        <div class="analytics-regex-bar" id="analyticsRegexBar">
+                            <span class="analytics-regex-slash">/</span>
+                            <input type="text" class="analytics-regex-input" id="analyticsRegexInput" placeholder="regex pattern..." autocomplete="off" spellcheck="false">
+                            <span class="analytics-regex-slash">/</span>
+                            <input type="text" class="analytics-regex-flags" id="analyticsRegexFlags" value="gi" placeholder="gi" maxlength="6" spellcheck="false" title="Flags: g(lobal) i(gnoreCase) m(ultiline) s(dotAll)">
+                            <span class="analytics-regex-badge" id="analyticsRegexBadge">0</span>
+                            <div class="analytics-search-nav">
+                                <button class="analytics-search-nav-btn" onclick="analyticsRegexPrev()" title="Previous regex match (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
+                                <button class="analytics-search-nav-btn" onclick="analyticsRegexNext()" title="Next regex match (Enter)"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsRegex()" title="Clear regex"><i class="fas fa-times"></i></button>
+                            <span class="analytics-regex-error" id="analyticsRegexError" title=""></span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-actions">
+                        <button class="btn btn-send" id="btnSendAnalytics" onclick="sendAnalyticsToPromptFile()" disabled title="Send analytics to prompt.txt">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                        <button class="btn btn-pull" id="btnPullToAnalytics" onclick="pullToAnalyticsFromPromptFile()" disabled title="Pull from prompt.txt into analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="analytics-btn analytics-copy-btn" onclick="copyAnalyticsContent()" title="Copy analytics content">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                        <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Clear</span>
+                        </button>
+                        <button class="analytics-btn" id="analyticsCollapseBtn" onclick="toggleAnalyticsCollapse()" title="Collapse/Expand">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="analytics-body" id="analyticsBody">
+                    <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
+                    <div class="analytics-highlight-overlay analytics-regex-overlay" id="analyticsRegexOverlay"></div>
+                    <textarea 
+                        class="analytics-textarea" 
+                        id="analyticsTextarea" 
+                        placeholder="Analytics output will appear here. This area analyzes the relationship between the Prompt Editor and Project Prompts..."
+                        oninput="onAnalyticsChange()"></textarea>
+                    <div class="analytics-resize-handle" id="analyticsResizeHandle">
+                        <i class="fas fa-grip-lines"></i>
+                    </div>
+                </div>
+
+                <!-- Analytics Footer: Pull/Push to Editor & Project Prompts -->
+                <div class="analytics-footer">
+                    <div class="analytics-footer-group">
+                        <span class="analytics-footer-label"><i class="fas fa-pen-fancy"></i> Editor</span>
+                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromEditor()" title="Pull content from Prompt Editor into Analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToEditor()" title="Push Analytics content to Prompt Editor">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
+                    </div>
+
+                    <div class="analytics-footer-divider"></div>
+
+                    <div class="analytics-footer-group analytics-compare-group">
+                        <button class="analytics-footer-btn compare-btn" onclick="analyticsCompareDiff()" title="Compare differences between Prompt Editor and Project Prompts">
+                            <i class="fas fa-exchange-alt"></i> Compare Diff
+                        </button>
+                    </div>
+
+                    <div class="analytics-footer-divider"></div>
+
+                    <div class="analytics-footer-group">
+                        <span class="analytics-footer-label"><i class="fas fa-project-diagram"></i> Project Prompts</span>
+                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromProjectPrompts()" title="Pull content from Project Prompts into Analytics">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToProjectPrompts()" title="Push Analytics content to Project Prompts">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Unified: Saved Prompts + Prompt Editor -->
             <div class="unified-editor-section">
             <div class="saved-prompts-section">
@@ -30435,105 +30584,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
-            <!-- ═══ Analytics Textarea Section ═══ -->
-            <div class="analytics-section" id="analyticsSection">
-                <div class="analytics-header">
-                    <div class="analytics-title">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Analytics</span>
-                        <span class="analytics-badge">Analyzer</span>
-                    </div>
-
-                    <!-- Analytics Search Bars Group -->
-                    <div class="analytics-search-group">
-                        <!-- Normal Search Bar -->
-                        <div class="analytics-search-bar" id="analyticsSearchBar">
-                            <i class="fas fa-search analytics-search-icon"></i>
-                            <input type="text" class="analytics-search-input" id="analyticsSearchInput" placeholder="Search analytics..." autocomplete="off">
-                            <span class="analytics-search-badge" id="analyticsSearchBadge">0 of 0</span>
-                            <div class="analytics-search-nav">
-                                <button class="analytics-search-nav-btn" onclick="analyticsSearchPrev()" title="Previous (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
-                                <button class="analytics-search-nav-btn" onclick="analyticsSearchNext()" title="Next (Enter)"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsSearch()" title="Clear search"><i class="fas fa-times"></i></button>
-                        </div>
-
-                        <!-- Regex Search Bar -->
-                        <div class="analytics-regex-bar" id="analyticsRegexBar">
-                            <span class="analytics-regex-slash">/</span>
-                            <input type="text" class="analytics-regex-input" id="analyticsRegexInput" placeholder="regex pattern..." autocomplete="off" spellcheck="false">
-                            <span class="analytics-regex-slash">/</span>
-                            <input type="text" class="analytics-regex-flags" id="analyticsRegexFlags" value="gi" placeholder="gi" maxlength="6" spellcheck="false" title="Flags: g(lobal) i(gnoreCase) m(ultiline) s(dotAll)">
-                            <span class="analytics-regex-badge" id="analyticsRegexBadge">0</span>
-                            <div class="analytics-search-nav">
-                                <button class="analytics-search-nav-btn" onclick="analyticsRegexPrev()" title="Previous regex match (Shift+Enter)"><i class="fas fa-chevron-up"></i></button>
-                                <button class="analytics-search-nav-btn" onclick="analyticsRegexNext()" title="Next regex match (Enter)"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                            <button class="analytics-search-clear-btn" onclick="clearAnalyticsRegex()" title="Clear regex"><i class="fas fa-times"></i></button>
-                            <span class="analytics-regex-error" id="analyticsRegexError" title=""></span>
-                        </div>
-                    </div>
-
-                    <div class="analytics-actions">
-                        <button class="btn btn-send" id="btnSendAnalytics" onclick="sendAnalyticsToPromptFile()" disabled title="Send analytics to prompt.txt">
-                            <i class="fas fa-paper-plane"></i> Send
-                        </button>
-                        <button class="btn btn-pull" id="btnPullToAnalytics" onclick="pullToAnalyticsFromPromptFile()" disabled title="Pull from prompt.txt into analytics">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="analytics-btn analytics-copy-btn" onclick="copyAnalyticsContent()" title="Copy analytics content">
-                            <i class="fas fa-copy"></i>
-                            <span>Copy</span>
-                        </button>
-                        <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
-                            <i class="fas fa-trash-alt"></i>
-                            <span>Clear</span>
-                        </button>
-                        <button class="analytics-btn" id="analyticsCollapseBtn" onclick="toggleAnalyticsCollapse()" title="Collapse/Expand">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="analytics-body" id="analyticsBody">
-                    <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
-                    <div class="analytics-highlight-overlay analytics-regex-overlay" id="analyticsRegexOverlay"></div>
-                    <textarea 
-                        class="analytics-textarea" 
-                        id="analyticsTextarea" 
-                        placeholder="Analytics output will appear here. This area analyzes the relationship between the Prompt Editor and Project Prompts..."
-                        oninput="onAnalyticsChange()"></textarea>
-                    <div class="analytics-resize-handle" id="analyticsResizeHandle">
-                        <i class="fas fa-grip-lines"></i>
-                    </div>
-                </div>
-
-                <!-- Analytics Footer: Pull/Push to Editor & Project Prompts -->
-                <div class="analytics-footer">
-                    <div class="analytics-footer-group">
-                        <span class="analytics-footer-label"><i class="fas fa-pen-fancy"></i> Editor</span>
-                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromEditor()" title="Pull content from Prompt Editor into Analytics">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToEditor()" title="Push Analytics content to Prompt Editor">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
-                    </div>
-
-                    <div class="analytics-footer-divider"></div>
-
-                    <div class="analytics-footer-group">
-                        <span class="analytics-footer-label"><i class="fas fa-project-diagram"></i> Project Prompts</span>
-                        <button class="analytics-footer-btn pull-btn" onclick="analyticsPullFromProjectPrompts()" title="Pull content from Project Prompts into Analytics">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="analytics-footer-btn push-btn" onclick="analyticsPushToProjectPrompts()" title="Push Analytics content to Project Prompts">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             </div><!-- /unified-editor-section -->
 
             <!-- Tab Panel: iFrame Scalar -->
@@ -42702,6 +42752,129 @@ in each section carefully and maintain proper connections between components.
             showToast('✅ Analytics content pushed to Project Prompts!', 'success');
         }
         
+        // ============================================
+        // COMPARE DIFF: Prompt Editor vs Project Prompts
+        // ============================================
+        function analyticsCompareDiff() {
+            const editor = document.getElementById('promptEditor');
+            const notes = document.getElementById('projectNotesTextarea');
+            const analytics = document.getElementById('analyticsTextarea');
+            if (!editor || !notes || !analytics) return;
+
+            const editorText = editor.value;
+            const notesText = notes.value;
+
+            if (!editorText.trim() && !notesText.trim()) {
+                analytics.value = '⚠️  Both Prompt Editor and Project Prompts are empty. Nothing to compare.';
+                if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+                showToast('⚠️ Both containers are empty', 'info');
+                return;
+            }
+
+            const editorLines = editorText.split('\n');
+            const notesLines = notesText.split('\n');
+
+            // LCS-based diff
+            const lcs = _computeLCS(editorLines, notesLines);
+            const diffOps = _buildDiff(editorLines, notesLines, lcs);
+
+            // Build output report
+            const timestamp = new Date().toLocaleTimeString();
+            let output = [];
+            output.push('╔══════════════════════════════════════════════════════════════╗');
+            output.push('║           📊  COMPARISON REPORT  —  Diff Analysis           ║');
+            output.push('╠══════════════════════════════════════════════════════════════╣');
+            output.push('║  [A] = Prompt Editor        [B] = Project Prompts           ║');
+            output.push('║  [=] = Identical in both     Time: ' + timestamp.padEnd(24) + '║');
+            output.push('╚══════════════════════════════════════════════════════════════╝');
+            output.push('');
+
+            let editorOnlyCount = 0;
+            let notesOnlyCount = 0;
+            let commonCount = 0;
+            let lineNum = 0;
+
+            for (const op of diffOps) {
+                lineNum++;
+                const num = String(lineNum).padStart(4, ' ');
+                if (op.type === 'equal') {
+                    commonCount++;
+                    output.push(`  ${num}  [=]  ${op.line}`);
+                } else if (op.type === 'editor') {
+                    editorOnlyCount++;
+                    output.push(`  ${num}  [A+] ${op.line}`);
+                } else if (op.type === 'notes') {
+                    notesOnlyCount++;
+                    output.push(`  ${num}  [B+] ${op.line}`);
+                }
+            }
+
+            output.push('');
+            output.push('┌──────────────────────────────────────────────────────────────┐');
+            output.push('│  📈  SUMMARY                                                │');
+            output.push('├──────────────────────────────────────────────────────────────┤');
+            output.push(`│  ✅  Common lines ............ ${String(commonCount).padStart(5)}                          │`);
+            output.push(`│  🔵  Only in Prompt Editor ... ${String(editorOnlyCount).padStart(5)}  [A+]                     │`);
+            output.push(`│  🟠  Only in Project Prompts . ${String(notesOnlyCount).padStart(5)}  [B+]                     │`);
+            output.push(`│  📝  Total diff lines ........ ${String(lineNum).padStart(5)}                          │`);
+            output.push('└──────────────────────────────────────────────────────────────┘');
+
+            if (editorOnlyCount === 0 && notesOnlyCount === 0) {
+                output.push('');
+                output.push('  ✅  RESULT: Both containers have IDENTICAL content!');
+            } else {
+                output.push('');
+                if (editorOnlyCount > 0) {
+                    output.push(`  🔵  Prompt Editor has ${editorOnlyCount} unique line(s) not in Project Prompts.`);
+                }
+                if (notesOnlyCount > 0) {
+                    output.push(`  🟠  Project Prompts has ${notesOnlyCount} unique line(s) not in Prompt Editor.`);
+                }
+            }
+
+            analytics.value = output.join('\n');
+            if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+            showToast('📊 Comparison complete!', 'success');
+        }
+
+        // Compute LCS table for two arrays of lines
+        function _computeLCS(a, b) {
+            const m = a.length;
+            const n = b.length;
+            const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (a[i - 1] === b[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            return dp;
+        }
+
+        // Build diff operations from LCS table
+        function _buildDiff(a, b, dp) {
+            const ops = [];
+            let i = a.length;
+            let j = b.length;
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+                    ops.push({ type: 'equal', line: a[i - 1] });
+                    i--; j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    ops.push({ type: 'notes', line: b[j - 1] });
+                    j--;
+                } else {
+                    ops.push({ type: 'editor', line: a[i - 1] });
+                    i--;
+                }
+            }
+            ops.reverse();
+            return ops;
+        }
+
         // ============================================
         // FILE TRANSFER SYSTEM (Left/Right Files)
         // ============================================
