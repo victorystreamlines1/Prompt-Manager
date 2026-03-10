@@ -21225,7 +21225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
             z-index: 2;
             width: 100%;
-            min-height: 0;
+            min-height: 60px;
             max-height: 80vh;
             height: auto; /* Auto-expand based on content */
             padding: 1rem;
@@ -21647,7 +21647,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* ═══ Analytics Textarea Section (Teal/Cyan)  ═══ */
         /* ═══════════════════════════════════════════════════ */
         .analytics-section {
-            margin: 1.75rem 0 0.25rem 0;
+            order: -1;
+            margin: 0.25rem 0 1rem 0;
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.06) 0%, rgba(8, 145, 178, 0.03) 100%);
             border: 1px solid rgba(6, 182, 212, 0.2);
             border-radius: 10px;
@@ -29835,7 +29836,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span>Clear</span>
                                     </button>
                                     <button type="button" class="notes-btn collapse-notes-btn" onclick="toggleProjectNotes()" title="Collapse/Expand">
-                                        <i class="fas fa-chevron-down" id="notesCollapseIcon"></i>
+                                        <i class="fas fa-chevron-up" id="notesCollapseIcon"></i>
                                     </button>
                                 </div>
                             </div>
@@ -29962,7 +29963,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </button>
                                 </div>
                             </div>
-                            <div class="project-notes-body collapsed" id="projectNotesBody">
+                            <div class="project-notes-body" id="projectNotesBody">
                                 <div class="notes-highlight-overlay" id="notesHighlightOverlay"></div>
                                 <textarea class="project-notes-textarea" 
                                           id="projectNotesTextarea" 
