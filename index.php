@@ -61273,7 +61273,7 @@ function dtRegCopyPrompt() {
     });
 }
 
-// Push prompt to Project Prompts textarea
+// Push prompt to Prompt Editor textarea
 function dtRegPushToNotes() {
     const textarea = document.getElementById('dtRegTextarea');
     if (!textarea || !textarea.value.trim()) {
@@ -61281,38 +61281,25 @@ function dtRegPushToNotes() {
         return;
     }
     
-    const projectNotesTextarea = document.getElementById('projectNotesTextarea');
-    if (!projectNotesTextarea) return;
+    const promptEditor = document.getElementById('promptEditor');
+    if (!promptEditor) return;
     
     let content = '\n\n🔐 REGISTRATION SYSTEM\n';
     content += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
     content += textarea.value;
     
-    projectNotesTextarea.value = projectNotesTextarea.value + content;
+    promptEditor.value = promptEditor.value + content;
+    promptEditor.dispatchEvent(new Event('input', { bubbles: true }));
     
     if (typeof autoResizeTextarea === 'function') {
-        autoResizeTextarea(projectNotesTextarea);
-    }
-    
-    // Auto-expand Project Notes if collapsed
-    const notesBody = document.getElementById('projectNotesBody');
-    const notesIcon = document.getElementById('notesCollapseIcon');
-    if (notesBody && notesBody.classList.contains('collapsed')) {
-        notesBody.classList.remove('collapsed');
-        if (notesIcon) {
-            notesIcon.classList.remove('fa-chevron-down');
-            notesIcon.classList.add('fa-chevron-up');
-        }
-    }
-    
-    if (typeof saveProjectNotesToStorage === 'function') {
-        saveProjectNotesToStorage();
+        autoResizeTextarea(promptEditor);
     }
     
     dtCloseCredentialsModal();
-    showToast('🔐 Registration prompt pushed to Project Prompts', 'success');
+    showToast('🔐 Registration prompt pushed to Prompt Editor', 'success');
     
-    setTimeout(() => projectNotesTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    promptEditor.scrollTop = promptEditor.scrollHeight;
+    setTimeout(() => promptEditor.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
 }
 
 // Update the edit badge indicator
