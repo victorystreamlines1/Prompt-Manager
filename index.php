@@ -6004,6 +6004,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 1; transform: scale(1.2); }
         }
 
+        /* ── Clear All Button in Top Nav ── */
+        .tnb-clear-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            color: rgba(239, 68, 68, 0.85);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.05));
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .tnb-clear-all-btn i {
+            font-size: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .tnb-clear-all-btn:hover {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.18));
+            border-color: rgba(239, 68, 68, 0.45);
+            box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+        .tnb-clear-all-btn:hover i {
+            color: #f87171;
+            filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+            animation: tnbClearSpin 0.5s ease;
+        }
+        .tnb-clear-all-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
+        }
+        .tnb-clear-all-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(239, 68, 68, 0.06) 100%);
+            pointer-events: none;
+        }
+        @keyframes tnbClearSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+
         /* ── Auth Buttons (Login / Sign Up) in Top Nav ── */
         .tnb-auth {
             display: flex;
@@ -29362,6 +29413,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <span>Account</span>
                     </a>
                 </div>
+                <button class="tnb-clear-all-btn" onclick="clearAllWorkspace()" title="Clear All: Reset Dashboard, Analytics, Editor &amp; Design Enhancer">
+                    <i class="fas fa-broom"></i>
+                    <span>Clear All</span>
+                </button>
                 <div class="tnb-auth">
                     <button class="tnb-login-btn" onclick="authOpenModal('login')">
                         <i class="fas fa-sign-in-alt"></i>
@@ -42086,6 +42141,73 @@ in each section carefully and maintain proper connections between components.
                 if (label) label.textContent = 'Clear';
                 if (icon) icon.className = 'fas fa-eraser';
             }, 2200);
+        }
+
+        // ═══════ Clear All Workspace ═══════
+        async function clearAllWorkspace() {
+            // Single confirmation for all 4 actions
+            const confirmed = typeof deConfirm === 'function'
+                ? await deConfirm({
+                    title: 'Clear All Workspace',
+                    subtitle: 'Full Reset',
+                    message: 'This will reset the entire workspace including Dashboard, Analytics, Prompt Editor, and Design Enhancer.',
+                    warning: 'All unsaved content will be lost.',
+                    confirmText: 'Clear All',
+                    icon: 'fa-broom'
+                })
+                : confirm('Clear entire workspace? This will reset Dashboard, Analytics, Editor & Design Enhancer.');
+
+            if (!confirmed) return;
+
+            // Suppress individual toasts during bulk clear
+            const _origToast = window.showToast;
+            window.showToast = function() {};
+
+            // 1. Reset Project Prompts (Development Dashboard)
+            if (typeof resetDashboardProject === 'function') {
+                try { resetDashboardProject(); } catch(e) { console.error('Clear All - Dashboard reset error:', e); }
+            }
+
+            // 2. Clear Analytics container
+            if (typeof clearAnalyticsContent === 'function') {
+                try { clearAnalyticsContent(); } catch(e) { console.error('Clear All - Analytics clear error:', e); }
+            }
+
+            // 3. Clear Prompt Editor
+            try {
+                const ta = document.getElementById('promptEditor');
+                if (ta) {
+                    ta.value = '';
+                    ta.dispatchEvent(new Event('input', { bubbles: true }));
+                    // Clear server-side prompt.txt
+                    try {
+                        const fd = new FormData();
+                        fd.append('action', 'clear_prompt_file');
+                        fetch('', { method: 'POST', body: fd });
+                    } catch(e) {}
+                    // Clear local file handle
+                    if (typeof promptFileHandle !== 'undefined' && promptFileHandle) {
+                        try {
+                            const writable = await promptFileHandle.createWritable();
+                            await writable.write('');
+                            await writable.close();
+                        } catch(e) {}
+                    }
+                }
+            } catch(e) { console.error('Clear All - Editor clear error:', e); }
+
+            // 4. Reset Design Enhancer (bypass its internal confirm)
+            try {
+                const _origConfirm = window.deConfirm;
+                window.deConfirm = function() { return Promise.resolve(true); };
+                if (typeof deResetAll === 'function') await deResetAll();
+                window.deConfirm = _origConfirm;
+            } catch(e) { console.error('Clear All - Design Enhancer reset error:', e); }
+
+            // Restore toasts and show single completion toast
+            window.showToast = _origToast;
+            showToast('Workspace fully cleared!', 'success');
+            console.log('Clear All: Dashboard, Analytics, Editor & Design Enhancer reset complete');
         }
 
         // ═══════ Copy – Project Prompts ═══════
