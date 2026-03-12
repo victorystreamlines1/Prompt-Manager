@@ -63558,6 +63558,26 @@ function dtOpenCredentialsModal() {
         }
     }
     
+    // Restore Super Admin toggle state
+    const saToggle = document.getElementById('dtRegSuperAdminToggle');
+    const saToggleItem = document.getElementById('dtRegSuperAdminToggleItem');
+    const credsStrip = document.querySelector('.dt-reg-creds');
+    const savedSAState = localStorage.getItem('dtRegIncludeSuperAdmin');
+    if (saToggle) {
+        const includeSA = savedSAState !== '0'; // default ON
+        saToggle.checked = includeSA;
+        if (saToggleItem) saToggleItem.classList.toggle('active', includeSA);
+        // Dim credentials strip if super admin is off
+        if (credsStrip) {
+            credsStrip.style.opacity = includeSA ? '1' : '0.35';
+            credsStrip.style.pointerEvents = includeSA ? 'auto' : 'none';
+        }
+        // If super admin was toggled off, strip from the loaded content
+        if (!includeSA && textarea) {
+            textarea.value = dtRegStripSuperAdmin(textarea.value);
+        }
+    }
+    
     dtRegUpdateEditBadge();
     dtRegUpdateCharCount();
     overlay.classList.add('show');
@@ -63746,6 +63766,148 @@ function dtRegAddRoles(text) {
             text = text.replace(
                 /- Create initial super_admin account/,
                 "- Define page_access_control entries for: /dashboard (user+), /admin (admin+), /settings (admin+), /users (moderator+), /reports (editor+), /profile (user+), /login (public), /register (public)\n- Create initial super_admin account"
+            );
+        }
+    }
+    
+    return text;
+}
+
+// ============ SUPER ADMIN TOGGLE ============
+
+// Toggle super admin sections in the registration prompt
+function dtRegToggleSuperAdmin() {
+    const toggle = document.getElementById('dtRegSuperAdminToggle');
+    const textarea = document.getElementById('dtRegTextarea');
+    const toggleItem = document.getElementById('dtRegSuperAdminToggleItem');
+    const credsStrip = document.querySelector('.dt-reg-creds');
+    if (!toggle || !textarea) return;
+    
+    const include = toggle.checked;
+    localStorage.setItem('dtRegIncludeSuperAdmin', include ? '1' : '0');
+    
+    if (toggleItem) {
+        toggleItem.classList.toggle('active', include);
+    }
+    
+    // Show/hide credentials strip (only relevant for super admin)
+    if (credsStrip) {
+        credsStrip.style.opacity = include ? '1' : '0.35';
+        credsStrip.style.pointerEvents = include ? 'auto' : 'none';
+    }
+    
+    if (!include) {
+        textarea.value = dtRegStripSuperAdmin(textarea.value);
+    } else {
+        textarea.value = dtRegAddSuperAdmin(textarea.value);
+    }
+    
+    dtRegOnTextChange();
+    dtRegUpdateCharCount();
+    showToast(include ? '🔐 Super Admin account included' : '🚫 Super Admin account removed', 'info');
+}
+
+// Strip all super admin-related content from the prompt text
+function dtRegStripSuperAdmin(text) {
+    // 1. Remove 'super_admin' from role name enum list in DB schema
+    text = text.replace(/'super_admin',\s*/g, '');
+    
+    // 2. Remove super_admin from roles seed list
+    text = text.replace(/- Roles: super_admin, /g, '- Roles: ');
+    
+    // 3. Change hierarchy: remove super_admin from the chain
+    text = text.replace(/super_admin > admin/g, 'admin');
+    
+    // 4. Change "Assign all permissions to super_admin role" → "Assign all permissions to admin role"
+    text = text.replace(/Assign all permissions to super_admin role/g, 'Assign all permissions to admin role');
+    
+    // 5. Remove the "Create initial super_admin account" line entirely
+    text = text.replace(/\n- Create initial super_admin account[^\n]*/g, '');
+    
+    // 6. Remove "Set 'user' role as default for new registrations" is fine, keep it
+    
+    // 7. Remove impersonate user line (super admin feature)
+    text = text.replace(/\n\s*•\s*Impersonate user \(admin only[^\n]*/g, '');
+    
+    // 8. Change page_access_control: remove (admin+) references tied to super admin
+    // Keep admin routes but they become accessible to admin role (which is now top-level)
+    
+    // 9. Remove credentials placeholder line if present
+    text = text.replace(/\n- Default admin credentials:[^\n]*/g, '');
+    
+    // Clean up triple+ newlines
+    text = text.replace(/\n{3,}/g, '\n\n');
+    
+    return text;
+}
+
+// Re-add super admin content from the default template at anchor positions
+function dtRegAddSuperAdmin(text) {
+    const tmpl = DT_STATIC_TEMPLATES.find(t => t.id === 'static_1');
+    if (!tmpl) return text;
+    const src = tmpl.content;
+    
+    // 1. Re-add 'super_admin' to role name enum in DB schema
+    if (!text.includes("'super_admin'")) {
+        text = text.replace(/'admin','moderator'/g, "'super_admin','admin','moderator'");
+    }
+    
+    // 2. Re-add super_admin to roles seed list
+    if (!text.includes('Roles: super_admin')) {
+        text = text.replace(/- Roles: admin,/g, '- Roles: super_admin, admin,');
+    }
+    
+    // 3. Re-add super_admin to hierarchy
+    if (!text.includes('super_admin > admin')) {
+        text = text.replace(/Hierarchy: admin > moderator/g, 'Hierarchy: super_admin > admin > moderator');
+        // Also handle case where "Hierarchy: admin" appears at start of hierarchy
+        if (!text.includes('super_admin > admin')) {
+            text = text.replace(/Hierarchy: admin/g, 'Hierarchy: super_admin > admin');
+        }
+    }
+    
+    // 4. Restore "Assign all permissions to super_admin role"
+    if (text.includes('Assign all permissions to admin role')) {
+        text = text.replace(/Assign all permissions to admin role/g, 'Assign all permissions to super_admin role');
+    }
+    
+    // 5. Re-add "Create initial super_admin account" line
+    if (!text.includes('Create initial super_admin account')) {
+        // Find the anchor in seed data
+        const srcMatch = src.match(/- Create initial super_admin account[^\n]*/);
+        if (srcMatch) {
+            // Apply current credentials to the line
+            let accountLine = srcMatch[0];
+            const savedCreds = localStorage.getItem('dtAdminCredentials');
+            if (savedCreds) {
+                try {
+                    const creds = JSON.parse(savedCreds);
+                    if (creds.username && creds.email && creds.password) {
+                        accountLine = `- Create initial super_admin account (username: ${creds.username}, email: ${creds.email}, password: ${creds.password})`;
+                    }
+                } catch (e) {}
+            }
+            // Insert after "Assign all permissions" or before page_access_control
+            if (text.includes('Assign all permissions to super_admin role')) {
+                text = text.replace(
+                    /- Assign all permissions to super_admin role/,
+                    `- Assign all permissions to super_admin role\n${accountLine}`
+                );
+            } else if (text.includes('Define page_access_control')) {
+                text = text.replace(
+                    /- Define page_access_control/,
+                    `${accountLine}\n- Define page_access_control`
+                );
+            }
+        }
+    }
+    
+    // 6. Re-add impersonate line in RBAC admin panel section
+    if (!text.includes('Impersonate user')) {
+        if (text.includes('Force password reset for any user')) {
+            text = text.replace(
+                /Force password reset for any user/,
+                'Force password reset for any user\n  • Impersonate user (admin only, with logging)'
             );
         }
     }
@@ -63976,6 +64138,13 @@ function dtCreateRegEditorModal() {
                         <span class="dt-reg-toggle-text">Roles & RBAC</span>
                         <label class="dt-reg-switch" title="Toggle roles & permissions sections in the prompt">
                             <input type="checkbox" id="dtRegRolesToggle" checked onchange="dtRegToggleRoles()">
+                            <span class="dt-reg-switch-track"></span>
+                        </label>
+                    </div>
+                    <div class="dt-reg-toggle-item active" id="dtRegSuperAdminToggleItem">
+                        <span class="dt-reg-toggle-text">Super Admin</span>
+                        <label class="dt-reg-switch" title="Toggle super admin account creation in the prompt">
+                            <input type="checkbox" id="dtRegSuperAdminToggle" checked onchange="dtRegToggleSuperAdmin()">
                             <span class="dt-reg-switch-track"></span>
                         </label>
                     </div>
