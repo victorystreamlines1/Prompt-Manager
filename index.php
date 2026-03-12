@@ -42900,63 +42900,82 @@ in each section carefully and maintain proper connections between components.
             const lcs = _computeLCS(editorLines, notesLines);
             const diffOps = _buildDiff(editorLines, notesLines, lcs);
 
-            // Build output report
-            const timestamp = new Date().toLocaleTimeString();
-            let output = [];
-            output.push('╔══════════════════════════════════════════════════════════════╗');
-            output.push('║           📊  COMPARISON REPORT  —  Diff Analysis           ║');
-            output.push('╠══════════════════════════════════════════════════════════════╣');
-            output.push('║  [A] = Prompt Editor        [B] = Project Prompts           ║');
-            output.push('║  [=] = Identical in both     Time: ' + timestamp.padEnd(24) + '║');
-            output.push('╚══════════════════════════════════════════════════════════════╝');
-            output.push('');
-
-            let editorOnlyCount = 0;
-            let notesOnlyCount = 0;
+            // Separate unique lines per container (skip common/identical)
+            const editorOnlyLines = [];
+            const notesOnlyLines = [];
             let commonCount = 0;
-            let lineNum = 0;
 
             for (const op of diffOps) {
-                lineNum++;
-                const num = String(lineNum).padStart(4, ' ');
-                if (op.type === 'equal') {
-                    commonCount++;
-                    output.push(`  ${num}  [=]  ${op.line}`);
-                } else if (op.type === 'editor') {
-                    editorOnlyCount++;
-                    output.push(`  ${num}  [A+] ${op.line}`);
+                if (op.type === 'editor') {
+                    editorOnlyLines.push(op.line);
                 } else if (op.type === 'notes') {
-                    notesOnlyCount++;
-                    output.push(`  ${num}  [B+] ${op.line}`);
+                    notesOnlyLines.push(op.line);
+                } else {
+                    commonCount++;
                 }
             }
 
-            output.push('');
-            output.push('┌──────────────────────────────────────────────────────────────┐');
-            output.push('│  📈  SUMMARY                                                │');
-            output.push('├──────────────────────────────────────────────────────────────┤');
-            output.push(`│  ✅  Common lines ............ ${String(commonCount).padStart(5)}                          │`);
-            output.push(`│  🔵  Only in Prompt Editor ... ${String(editorOnlyCount).padStart(5)}  [A+]                     │`);
-            output.push(`│  🟠  Only in Project Prompts . ${String(notesOnlyCount).padStart(5)}  [B+]                     │`);
-            output.push(`│  📝  Total diff lines ........ ${String(lineNum).padStart(5)}                          │`);
-            output.push('└──────────────────────────────────────────────────────────────┘');
+            // Build output — differences only, no common lines
+            const timestamp = new Date().toLocaleTimeString();
+            let output = [];
+            output.push('╔══════════════════════════════════════════════════════════════╗');
+            output.push('║          📊  DIFFERENCE REPORT  —  Unique Content Only      ║');
+            output.push('╠══════════════════════════════════════════════════════════════╣');
+            output.push('║  Common/identical lines are excluded from this report.       ║');
+            output.push('║  Time: ' + timestamp.padEnd(53) + '║');
+            output.push('╚══════════════════════════════════════════════════════════════╝');
 
-            if (editorOnlyCount === 0 && notesOnlyCount === 0) {
+            if (editorOnlyLines.length === 0 && notesOnlyLines.length === 0) {
                 output.push('');
                 output.push('  ✅  RESULT: Both containers have IDENTICAL content!');
+                output.push(`  📝  ${commonCount} common line(s) — no differences found.`);
             } else {
+                // Section 1: Project Prompts Difference
                 output.push('');
-                if (editorOnlyCount > 0) {
-                    output.push(`  🔵  Prompt Editor has ${editorOnlyCount} unique line(s) not in Project Prompts.`);
+                output.push('┌──────────────────────────────────────────────────────────────┐');
+                output.push('│  🟠  PROJECT PROMPTS DIFFERENCE                              │');
+                output.push('│  Lines unique to Project Prompts (not in Prompt Editor)       │');
+                output.push('├──────────────────────────────────────────────────────────────┤');
+                if (notesOnlyLines.length === 0) {
+                    output.push('│  (none — no unique lines in Project Prompts)                 │');
+                } else {
+                    for (let i = 0; i < notesOnlyLines.length; i++) {
+                        const num = String(i + 1).padStart(4, ' ');
+                        output.push(`  ${num}  ${notesOnlyLines[i]}`);
+                    }
                 }
-                if (notesOnlyCount > 0) {
-                    output.push(`  🟠  Project Prompts has ${notesOnlyCount} unique line(s) not in Prompt Editor.`);
+                output.push('└──────────────────────────────────────────────────────────────┘');
+
+                // Section 2: Prompt Editor Difference
+                output.push('');
+                output.push('┌──────────────────────────────────────────────────────────────┐');
+                output.push('│  🔵  PROMPT EDITOR DIFFERENCE                                │');
+                output.push('│  Lines unique to Prompt Editor (not in Project Prompts)       │');
+                output.push('├──────────────────────────────────────────────────────────────┤');
+                if (editorOnlyLines.length === 0) {
+                    output.push('│  (none — no unique lines in Prompt Editor)                   │');
+                } else {
+                    for (let i = 0; i < editorOnlyLines.length; i++) {
+                        const num = String(i + 1).padStart(4, ' ');
+                        output.push(`  ${num}  ${editorOnlyLines[i]}`);
+                    }
                 }
+                output.push('└──────────────────────────────────────────────────────────────┘');
+
+                // Summary
+                output.push('');
+                output.push('┌──────────────────────────────────────────────────────────────┐');
+                output.push('│  📈  SUMMARY                                                │');
+                output.push('├──────────────────────────────────────────────────────────────┤');
+                output.push(`│  🟠  Project Prompts unique .. ${String(notesOnlyLines.length).padStart(5)} line(s)                  │`);
+                output.push(`│  🔵  Prompt Editor unique .... ${String(editorOnlyLines.length).padStart(5)} line(s)                  │`);
+                output.push(`│  ⬚   Common (hidden) ........ ${String(commonCount).padStart(5)} line(s)                  │`);
+                output.push('└──────────────────────────────────────────────────────────────┘');
             }
 
             analytics.value = output.join('\n');
             if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
-            showToast('📊 Comparison complete!', 'success');
+            showToast('📊 Difference comparison complete!', 'success');
         }
 
         // Compute LCS table for two arrays of lines
