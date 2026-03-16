@@ -22914,6 +22914,143 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.7rem;
         }
 
+        /* Save To... button */
+        .preview-saveto-btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 10px;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+            color: #fcd34d;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .preview-saveto-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.22) 100%);
+            border-color: rgba(245, 158, 11, 0.65);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.2), 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            color: #fde68a;
+        }
+
+        .preview-saveto-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.15);
+        }
+
+        .preview-saveto-btn i {
+            font-size: 0.7rem;
+        }
+
+        .preview-saveto-btn.active {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(217, 119, 6, 0.22) 100%);
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Save To Panel */
+        .preview-saveto-panel {
+            padding: 0.55rem 1rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(217, 119, 6, 0.03) 100%);
+            border-top: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 0 0 16px 16px;
+            animation: saveToSlideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes saveToSlideDown {
+            from { opacity: 0; transform: translateY(-6px); max-height: 0; }
+            to { opacity: 1; transform: translateY(0); max-height: 80px; }
+        }
+
+        .saveto-panel-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .saveto-panel-icon {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            opacity: 0.8;
+        }
+
+        .saveto-path-input {
+            flex: 1;
+            padding: 0.4rem 0.65rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            color: #fde68a;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .saveto-path-input:focus {
+            border-color: rgba(245, 158, 11, 0.6);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.12);
+        }
+
+        .saveto-path-input::placeholder {
+            color: rgba(251, 191, 36, 0.35);
+        }
+
+        .saveto-confirm-btn {
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid rgba(34, 197, 94, 0.45);
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(22, 163, 74, 0.12) 100%);
+            color: #86efac;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .saveto-confirm-btn:hover {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.4) 0%, rgba(22, 163, 74, 0.25) 100%);
+            border-color: rgba(34, 197, 94, 0.65);
+            box-shadow: 0 0 14px rgba(34, 197, 94, 0.2), 0 3px 10px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+            color: #bbf7d0;
+        }
+
+        .saveto-confirm-btn:active {
+            transform: translateY(0);
+        }
+
+        .saveto-confirm-btn i {
+            font-size: 0.68rem;
+        }
+
+        .saveto-panel-hint {
+            margin-top: 0.35rem;
+            font-size: 0.62rem;
+            color: rgba(251, 191, 36, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .saveto-panel-hint i {
+            font-size: 0.58rem;
+        }
+
         .preview-empty-state {
             display: flex;
             flex-direction: column;
@@ -51198,9 +51335,24 @@ in each section carefully and maintain proper connections between components.
                             '<option value="sql">sql</option>' +
                         '</select>' +
                     '</div>' +
-                    '<button class="preview-save-btn" onclick="savePreviewFile()" title="Save file to your PC">' +
+                    '<button class="preview-save-btn" onclick="savePreviewFile()" title="Download file to Downloads folder">' +
                         '<i class="fas fa-download"></i> <span>Save File</span>' +
                     '</button>' +
+                    '<button class="preview-saveto-btn" onclick="toggleSaveToPanel()" title="Save to a specific folder on your PC">' +
+                        '<i class="fas fa-folder-open"></i> <span>Save To...</span>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="preview-saveto-panel" id="previewSaveToPanel" style="display:none;">' +
+                    '<div class="saveto-panel-row">' +
+                        '<i class="fas fa-folder-open saveto-panel-icon"></i>' +
+                        '<input type="text" id="previewSavePath" class="saveto-path-input" placeholder="e.g. C:\\Users\\YourName\\Desktop" spellcheck="false" />' +
+                        '<button class="saveto-confirm-btn" onclick="savePreviewFileTo()" title="Save to this folder">' +
+                            '<i class="fas fa-save"></i> Save Here' +
+                        '</button>' +
+                    '</div>' +
+                    '<div class="saveto-panel-hint">' +
+                        '<i class="fas fa-info-circle"></i> Enter the full folder path where you want to save the file' +
+                    '</div>' +
                 '</div>' +
             '</div>';
 
@@ -51299,6 +51451,111 @@ in each section carefully and maintain proper connections between components.
             }
 
             showToast('\ud83d\udcbe File "' + filename + '.' + ext + '" is downloading...', 'success');
+        }
+
+        function toggleSaveToPanel() {
+            const panel = document.getElementById('previewSaveToPanel');
+            const btn = document.querySelector('.preview-saveto-btn');
+            if (!panel) return;
+
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if (btn) btn.classList.add('active');
+                // Restore last used path from localStorage
+                const lastPath = localStorage.getItem('previewSaveToPath') || '';
+                const pathInput = document.getElementById('previewSavePath');
+                if (pathInput && lastPath) pathInput.value = lastPath;
+                if (pathInput) setTimeout(() => pathInput.focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if (btn) btn.classList.remove('active');
+            }
+        }
+
+        async function savePreviewFileTo() {
+            const analyticsTA = document.getElementById('analyticsTextarea');
+            if (!analyticsTA) {
+                showToast('\u26a0\ufe0f Analytics textarea not found', 'warning');
+                return;
+            }
+
+            const content = analyticsTA.value.trim();
+            if (!content) {
+                showToast('\u26a0\ufe0f No content to save', 'warning');
+                return;
+            }
+
+            const filenameInput = document.getElementById('previewSaveFilename');
+            const extSelect = document.getElementById('previewSaveExtension');
+            const pathInput = document.getElementById('previewSavePath');
+            const filename = (filenameInput ? filenameInput.value.trim() : '') || 'preview';
+            const ext = extSelect ? extSelect.value : 'html';
+            const dirPath = pathInput ? pathInput.value.trim() : '';
+
+            if (!dirPath) {
+                showToast('\u26a0\ufe0f Please enter a folder path', 'warning');
+                if (pathInput) pathInput.focus();
+                return;
+            }
+
+            // Build full HTML document if extension is html/htm
+            let fileContent = content;
+            if (ext === 'html' || ext === 'htm') {
+                fileContent = '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + filename + '</title>\n    <style>\n        body { margin: 16px; font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #222; line-height: 1.6; }\n        img { max-width: 100%; height: auto; display: block; margin: 8px 0; border-radius: 8px; }\n    </style>\n</head>\n<body>\n' + content + '\n</body>\n</html>';
+            }
+
+            // Save path to localStorage for next time
+            localStorage.setItem('previewSaveToPath', dirPath);
+
+            const confirmBtn = document.querySelector('.saveto-confirm-btn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('content', fileContent);
+                formData.append('filename', filename);
+                formData.append('extension', ext);
+                formData.append('directory', dirPath);
+
+                const resp = await fetch('save_file_to.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await resp.json();
+
+                if (result.success) {
+                    const sizeStr = result.size < 1024 ? result.size + ' B' : (result.size / 1024).toFixed(1) + ' KB';
+                    showToast('\u2705 Saved "' + result.filename + '" (' + sizeStr + ') to ' + dirPath, 'success');
+
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                        confirmBtn.style.borderColor = 'rgba(34, 197, 94, 0.7)';
+                        confirmBtn.style.color = '#4ade80';
+                        setTimeout(() => {
+                            confirmBtn.innerHTML = '<i class="fas fa-save"></i> Save Here';
+                            confirmBtn.style.borderColor = '';
+                            confirmBtn.style.color = '';
+                            confirmBtn.disabled = false;
+                        }, 2000);
+                    }
+                } else {
+                    showToast('\u274c ' + (result.error || 'Failed to save file'), 'error');
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-save"></i> Save Here';
+                        confirmBtn.disabled = false;
+                    }
+                }
+            } catch (err) {
+                showToast('\u274c Network error: ' + err.message, 'error');
+                if (confirmBtn) {
+                    confirmBtn.innerHTML = '<i class="fas fa-save"></i> Save Here';
+                    confirmBtn.disabled = false;
+                }
+            }
         }
 
         function readFileAsBase64(file) {
