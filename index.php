@@ -29345,6 +29345,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="file" id="sptFileInput" multiple style="display:none;" onchange="sptHandleFiles(this.files); this.value='';">
                         </div>
                         <div class="spt-file-list" id="sptFileList"></div>
+                        <button type="button" class="spt-clear-all-btn" id="sptClearAllBtn" onclick="sptClearAllFiles()" style="display:none;">
+                            <i class="fas fa-trash-alt"></i> Clear All Files
+                        </button>
                     </div>
                 </div>
 
@@ -38643,7 +38646,7 @@ in each section carefully and maintain proper connections between components.
             if (!fileList || fileList.length === 0) return;
             
             const dropZone = document.getElementById('sptDropZone');
-            dropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span>';
+            dropZone.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Uploading...</span><input type="file" id="sptFileInput" multiple style="display:none;" onchange="sptHandleFiles(this.files); this.value=\'\';">';
             
             try {
                 const formData = new FormData();
@@ -38681,7 +38684,7 @@ in each section carefully and maintain proper connections between components.
             }
             
             // Restore drop zone
-            dropZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Drop files here or <span class="spt-browse">browse</span></span>';
+            dropZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><span>Drop files here or <span class="spt-browse">browse</span></span><input type="file" id="sptFileInput" multiple style="display:none;" onchange="sptHandleFiles(this.files); this.value=\'\';">';
         }
         
         // Remove a file
@@ -38730,15 +38733,43 @@ in each section carefully and maintain proper connections between components.
         function sptUpdateFileBadge() {
             const badge = document.getElementById('sptFileBadge');
             const btn = document.getElementById('sptFilesBtn');
+            const clearBtn = document.getElementById('sptClearAllBtn');
             
             if (sptFiles.length > 0) {
                 badge.textContent = sptFiles.length;
                 badge.style.display = 'flex';
                 btn.classList.add('has-files');
+                if (clearBtn) clearBtn.style.display = 'flex';
             } else {
                 badge.style.display = 'none';
                 btn.classList.remove('has-files');
+                if (clearBtn) clearBtn.style.display = 'none';
             }
+        }
+        
+        // Clear all uploaded files
+        async function sptClearAllFiles() {
+            if (sptFiles.length === 0) return;
+            
+            const count = sptFiles.length;
+            
+            // Delete all files from server
+            for (const file of sptFiles) {
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'spt_delete_file');
+                    formData.append('storedName', file.storedName);
+                    await fetch(window.location.href, { method: 'POST', body: formData });
+                } catch (e) {
+                    console.warn('Failed to delete file from server:', e);
+                }
+            }
+            
+            sptFiles = [];
+            sptRenderFileList();
+            sptUpdateFileBadge();
+            sptRefreshEditor();
+            showToast(`🗑️ ${count} file(s) cleared`, 'info');
         }
         
         // Format file size
