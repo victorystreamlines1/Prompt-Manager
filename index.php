@@ -24035,20 +24035,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 1px 4px rgba(168, 85, 247, 0.4), 0 0 6px rgba(168, 85, 247, 0.2);
         }
 
+        /* ═══ Analytics Content Wrapper (Split Layout) ═══ */
+        .analytics-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .analytics-content-wrapper.split-mode {
+            flex-direction: row;
+        }
+        .analytics-content-wrapper.split-mode .analytics-body {
+            flex: 3;
+            min-width: 0;
+            border-right: 2px solid rgba(168, 85, 247, 0.3);
+        }
+        .analytics-content-wrapper.split-mode .analytics-image-preview {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+            border-radius: 0;
+            border: none;
+            margin-top: 0;
+            min-height: 180px;
+            max-height: none;
+            animation: splitSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes splitSlideIn {
+            from { opacity: 0; transform: translateX(12px); flex: 0; }
+            to { opacity: 1; transform: translateX(0); flex: 1; }
+        }
+
         /* Analytics Image Preview Area */
         .analytics-image-preview {
             display: none;
             flex-wrap: wrap;
             gap: 0.5rem;
-            padding: 0.5rem;
-            margin-top: 0.25rem;
-            background: rgba(15, 23, 42, 0.4);
+            padding: 0.75rem;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.3) 100%);
             border: 1px dashed rgba(168, 85, 247, 0.25);
             border-radius: 8px;
             min-height: 60px;
             align-items: flex-start;
-            max-height: 300px;
+            align-content: flex-start;
+            max-height: 500px;
             overflow-y: auto;
+            outline: none;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+        .analytics-image-preview::-webkit-scrollbar {
+            width: 5px;
+        }
+        .analytics-image-preview::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+        }
+        .analytics-image-preview:focus {
+            background: linear-gradient(180deg, rgba(168, 85, 247, 0.08) 0%, rgba(15, 23, 42, 0.4) 100%);
+            box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.05);
         }
         .analytics-image-preview.visible {
             display: flex;
@@ -24066,9 +24111,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
         }
         .analytics-image-preview-item img {
-            max-width: 200px;
-            max-height: 150px;
+            max-width: 100%;
+            max-height: 180px;
             display: block;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .analytics-content-wrapper.split-mode .analytics-image-preview-item {
+            width: 100%;
+        }
+        .analytics-content-wrapper.split-mode .analytics-image-preview-item img {
+            max-width: 100%;
+            max-height: 200px;
+            width: 100%;
             object-fit: contain;
         }
         .analytics-image-preview-item .remove-preview {
@@ -24101,28 +24156,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-style: italic;
         }
 
-        /* Analytics Body hidden when in Image mode */
-        .analytics-body.hidden-mode {
-            display: none !important;
-        }
-
-        /* Image preview fills the textarea area when visible */
-        .analytics-image-preview.visible {
-            display: flex;
-            min-height: 180px;
-            max-height: 500px;
-            animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes fadeSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Split mode vertical border glow effect */
+        .analytics-content-wrapper.split-mode .analytics-body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -2px;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(168, 85, 247, 0.5) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(168, 85, 247, 0.5) 100%);
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+            z-index: 10;
+            pointer-events: none;
         }
         /* ═══════ End Analytics Section ═══════ */
 
@@ -32049,23 +32094,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <div class="analytics-body" id="analyticsBody">
-                    <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
-                    <div class="analytics-highlight-overlay analytics-regex-overlay" id="analyticsRegexOverlay"></div>
-                    <textarea 
-                        class="analytics-textarea" 
-                        id="analyticsTextarea" 
-                        placeholder="Analytics output will appear here. This area analyzes the relationship between the Prompt Editor and Project Prompts..."
-                        oninput="onAnalyticsChange()"></textarea>
-                    <div class="analytics-resize-handle" id="analyticsResizeHandle">
-                        <i class="fas fa-grip-lines"></i>
+                <div class="analytics-content-wrapper" id="analyticsContentWrapper">
+                    <div class="analytics-body" id="analyticsBody">
+                        <div class="analytics-highlight-overlay" id="analyticsHighlightOverlay"></div>
+                        <div class="analytics-highlight-overlay analytics-regex-overlay" id="analyticsRegexOverlay"></div>
+                        <textarea 
+                            class="analytics-textarea" 
+                            id="analyticsTextarea" 
+                            placeholder="Analytics output will appear here. This area analyzes the relationship between the Prompt Editor and Project Prompts..."
+                            oninput="onAnalyticsChange()"></textarea>
+                        <div class="analytics-resize-handle" id="analyticsResizeHandle">
+                            <i class="fas fa-grip-lines"></i>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Analytics Image Preview (visible in Image mode) -->
-                <div class="analytics-image-preview" id="analyticsImagePreview" tabindex="0">
-                    <div class="analytics-image-preview-empty" id="analyticsImagePreviewEmpty">
-                        <i class="fas fa-images"></i> Pasted images will appear here
+                    <!-- Analytics Image Preview (visible in Image split mode) -->
+                    <div class="analytics-image-preview" id="analyticsImagePreview" tabindex="0">
+                        <div class="analytics-image-preview-empty" id="analyticsImagePreviewEmpty">
+                            <i class="fas fa-images"></i> Paste images here
+                        </div>
                     </div>
                 </div>
 
@@ -51379,27 +51426,27 @@ in each section carefully and maintain proper connections between components.
             const labelCode = document.getElementById('pasteToggleLabelCode');
             const labelImage = document.getElementById('pasteToggleLabelImage');
             const preview = document.getElementById('analyticsImagePreview');
-            const body = document.getElementById('analyticsBody');
+            const wrapper = document.getElementById('analyticsContentWrapper');
 
             if (analyticsPasteMode === 'code') {
                 analyticsPasteMode = 'image';
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
-                // Show image preview, hide textarea body
+                // Split view: code 3/4 left + image 1/4 right
+                if (wrapper) wrapper.classList.add('split-mode');
                 if (preview) { preview.classList.add('visible'); preview.focus(); }
-                if (body) body.classList.add('hidden-mode');
             } else {
                 analyticsPasteMode = 'code';
                 if (track) track.classList.remove('image-mode');
                 if (labelCode) labelCode.classList.add('active');
                 if (labelImage) labelImage.classList.remove('active');
-                // Show textarea body, hide image preview
-                if (body) body.classList.remove('hidden-mode');
+                // Full width code only
+                if (wrapper) wrapper.classList.remove('split-mode');
                 if (preview) preview.classList.remove('visible');
             }
             localStorage.setItem('analyticsPasteMode', analyticsPasteMode);
-            showToast(analyticsPasteMode === 'code' ? '🔤 Paste mode: Code (HTML tags)' : '🖼️ Paste mode: Image (visual)', 'info');
+            showToast(analyticsPasteMode === 'code' ? '🔤 Code mode: Full width' : '🖼️ Split mode: Code + Image', 'info');
         }
 
         function restoreAnalyticsPasteToggle() {
@@ -51407,16 +51454,16 @@ in each section carefully and maintain proper connections between components.
             const labelCode = document.getElementById('pasteToggleLabelCode');
             const labelImage = document.getElementById('pasteToggleLabelImage');
             const preview = document.getElementById('analyticsImagePreview');
-            const body = document.getElementById('analyticsBody');
+            const wrapper = document.getElementById('analyticsContentWrapper');
             if (analyticsPasteMode === 'image') {
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
-                if (preview) { preview.classList.add('visible'); preview.focus(); }
-                if (body) body.classList.add('hidden-mode');
+                if (wrapper) wrapper.classList.add('split-mode');
+                if (preview) { preview.classList.add('visible'); }
             } else {
+                if (wrapper) wrapper.classList.remove('split-mode');
                 if (preview) preview.classList.remove('visible');
-                if (body) body.classList.remove('hidden-mode');
             }
         }
 
@@ -52380,8 +52427,16 @@ in each section carefully and maintain proper connections between components.
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             if (!items) return;
 
+            const target = e.target;
+            const textarea = document.getElementById('analyticsTextarea');
+            const previewEl = document.getElementById('analyticsImagePreview');
+            const isInCodeArea = target === textarea || (textarea && textarea.contains(target));
+            const isInImageArea = target === previewEl || (previewEl && previewEl.contains(target));
+
+            let hasImage = false;
             for (let i = 0; i < items.length; i++) {
                 if (items[i].type.startsWith('image/')) {
+                    hasImage = true;
                     e.preventDefault();
                     const blob = items[i].getAsFile();
                     if (!blob) return;
@@ -52389,19 +52444,24 @@ in each section carefully and maintain proper connections between components.
                     const reader = new FileReader();
                     reader.onloadend = function() {
                         const base64 = reader.result;
-                        if (analyticsPasteMode === 'code') {
-                            const textarea = document.getElementById('analyticsTextarea');
+                        if (isInCodeArea) {
                             const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
                             insertTextAtCursor(textarea, imgTag);
                             showToast('🔤 Image pasted as HTML code', 'success');
-                        } else {
+                        } else if (isInImageArea) {
                             addImageToPreview(base64);
-                            showToast('🖼️ Image pasted as visual preview', 'success');
+                            showToast('🖼️ Image added to preview', 'success');
                         }
                     };
                     reader.readAsDataURL(blob);
                     return;
                 }
+            }
+
+            // Non-image paste: allow in code area, block in image area
+            if (!hasImage && isInImageArea) {
+                e.preventDefault();
+                showToast('⚠️ Only images can be pasted here', 'warning');
             }
         }
 
