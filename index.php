@@ -21290,6 +21290,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #f87171;
         }
         
+        /* Import Mode Toggle */
+        .notes-import-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.45rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.08) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 6px;
+            color: #818cf8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        
+        .notes-import-mode-toggle:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(79, 70, 229, 0.15) 100%);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .notes-import-mode-toggle .mode-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        
+        .notes-import-mode-toggle.mode-names {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.08) 100%);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+        
+        .notes-import-mode-toggle.mode-names:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(234, 88, 12, 0.15) 100%);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+        
         .notes-push-btn {
             width: 26px;
             height: 26px;
@@ -21316,6 +21357,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(251, 191, 36, 0.35) 0%, rgba(245, 158, 11, 0.2) 100%);
             border-color: rgba(251, 191, 36, 0.6);
             transform: scale(1.08);
+        }
+
+        .notes-clear-files-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 6px;
+            color: rgba(252, 165, 165, 0.8);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+        }
+
+        .notes-clear-files-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.28) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .notes-clear-files-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(220, 38, 38, 0.2) 100%);
         }
 
         .notes-push-arrow {
@@ -30366,14 +30437,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             title="Select files">
                                         <i class="fas fa-file-medical"></i>
                                     </button>
+                                    <button type="button" 
+                                            class="notes-import-mode-toggle mode-names" 
+                                            id="notesImportModeToggle"
+                                            onclick="toggleNotesImportMode()" 
+                                            title="Mode: Import file names only (click to switch)">
+                                        <i class="fas fa-tag" id="notesImportModeIcon"></i>
+                                        <span class="mode-label" id="notesImportModeLabel">Names</span>
+                                    </button>
                                     <div class="notes-selected-files" id="notesSelectedFiles"></div>
                                     <button type="button" 
                                             class="notes-push-btn" 
                                             id="notesPushBtn"
                                             onclick="pushFileContentsToNotes()" 
-                                            title="Import file contents into Project Prompts"
+                                            title="Import file names into Project Prompts"
                                             style="display: none;">
-                                        <i class="fas fa-file-import"></i>
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="notes-clear-files-btn" 
+                                            id="notesClearFilesBtn"
+                                            onclick="clearNotesFiles()" 
+                                            title="Clear uploaded files"
+                                            style="display: none;">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                                 
@@ -51480,6 +51567,34 @@ function setProjectNotes(notes) {
 
 // Notes File Picker Functions
 let notesSelectedFiles = [];
+let notesImportMode = 'names'; // 'content' or 'names'
+
+function toggleNotesImportMode() {
+    const toggle = document.getElementById('notesImportModeToggle');
+    const icon = document.getElementById('notesImportModeIcon');
+    const label = document.getElementById('notesImportModeLabel');
+    const pushBtn = document.getElementById('notesPushBtn');
+    
+    if (notesImportMode === 'content') {
+        notesImportMode = 'names';
+        toggle.classList.add('mode-names');
+        icon.className = 'fas fa-tag';
+        label.textContent = 'Names';
+        toggle.title = 'Mode: Import file names only (click to switch)';
+        if (pushBtn && pushBtn.style.display !== 'none') {
+            pushBtn.title = 'Import file names into Project Prompts';
+        }
+    } else {
+        notesImportMode = 'content';
+        toggle.classList.remove('mode-names');
+        icon.className = 'fas fa-file-alt';
+        label.textContent = 'Content';
+        toggle.title = 'Mode: Import file contents (click to switch)';
+        if (pushBtn && pushBtn.style.display !== 'none') {
+            pushBtn.title = 'Import file contents into Project Prompts';
+        }
+    }
+}
 
 function onNotesFileSelect() {
     const input = document.getElementById('notesFilePicker');
@@ -51517,8 +51632,12 @@ function onNotesFileSelect() {
     
     renderNotesSelectedFiles();
     
+    const clearBtn = document.getElementById('notesClearFilesBtn');
     if (pushBtn) {
         pushBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
+    }
+    if (clearBtn) {
+        clearBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
     }
     
     input.value = '';
@@ -51546,10 +51665,25 @@ function removeNotesFile(index) {
     notesSelectedFiles.splice(index, 1);
     renderNotesSelectedFiles();
     
+    const hasFiles = notesSelectedFiles.length > 0;
     const pushBtn = document.getElementById('notesPushBtn');
-    if (pushBtn) {
-        pushBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
-    }
+    const clearBtn = document.getElementById('notesClearFilesBtn');
+    if (pushBtn) pushBtn.style.display = hasFiles ? 'flex' : 'none';
+    if (clearBtn) clearBtn.style.display = hasFiles ? 'flex' : 'none';
+}
+
+function clearNotesFiles() {
+    notesSelectedFiles = [];
+    renderNotesSelectedFiles();
+    
+    const pushBtn = document.getElementById('notesPushBtn');
+    const clearBtn = document.getElementById('notesClearFilesBtn');
+    const fileInput = document.getElementById('notesFilePicker');
+    if (pushBtn) pushBtn.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (fileInput) fileInput.value = '';
+    
+    showToast('🗑️ Uploaded files cleared', 'info');
 }
 
 async function pushFileContentsToNotes() {
@@ -51559,50 +51693,60 @@ async function pushFileContentsToNotes() {
     const pushBtn = document.getElementById('notesPushBtn');
     if (!textarea) return;
     
-    // Show loading state
-    if (pushBtn) {
-        pushBtn.disabled = true;
-        pushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    }
-    
     const files = [...notesSelectedFiles];
-    const results = [];
-    let errors = 0;
     
-    // Read files sequentially to avoid freezing
-    for (const file of files) {
-        try {
-            const text = await readFileAsText(file);
-            const size = file.size < 1024 ? file.size + ' B' : (file.size / 1024).toFixed(1) + ' KB';
-            results.push(`── 📄 ${file.name} (${size}) ──\n${text}`);
-        } catch (err) {
-            results.push(`── ❌ ${file.name} (read error) ──`);
-            errors++;
+    if (notesImportMode === 'names') {
+        // Names-only mode: just list file names
+        const fileNames = files.map((f, i) => `${i + 1}. ${f.name}`);
+        const fileNamesText = '📎 Files:\n' + fileNames.join('\n');
+        
+        if (textarea.value.trim()) {
+            textarea.value = textarea.value.trimEnd() + '\n\n' + fileNamesText;
+        } else {
+            textarea.value = fileNamesText;
         }
-    }
-    
-    // Insert into textarea
-    const content = results.join('\n\n');
-    if (textarea.value.trim()) {
-        textarea.value = textarea.value.trimEnd() + '\n\n' + content;
+        saveProjectNotesToStorage();
+        showToast(`📎 Added ${fileNames.length} file name${fileNames.length > 1 ? 's' : ''} to notes`, 'success');
     } else {
-        textarea.value = content;
+        // Content mode: read and import full file contents
+        if (pushBtn) {
+            pushBtn.disabled = true;
+            pushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+        
+        const results = [];
+        let errors = 0;
+        
+        for (const file of files) {
+            try {
+                const text = await readFileAsText(file);
+                const size = file.size < 1024 ? file.size + ' B' : (file.size / 1024).toFixed(1) + ' KB';
+                results.push(`── 📄 ${file.name} (${size}) ──\n${text}`);
+            } catch (err) {
+                results.push(`── ❌ ${file.name} (read error) ──`);
+                errors++;
+            }
+        }
+        
+        const content = results.join('\n\n');
+        if (textarea.value.trim()) {
+            textarea.value = textarea.value.trimEnd() + '\n\n' + content;
+        } else {
+            textarea.value = content;
+        }
+        saveProjectNotesToStorage();
+        
+        const imported = files.length - errors;
+        const msg = errors > 0
+            ? `📄 Imported ${imported} file(s), ${errors} failed`
+            : `📄 Imported ${imported} file content${imported > 1 ? 's' : ''} into notes`;
+        showToast(msg, errors > 0 ? 'warning' : 'success');
     }
-    saveProjectNotesToStorage();
     
-    const imported = files.length - errors;
-    const msg = errors > 0
-        ? `📄 Imported ${imported} file(s), ${errors} failed`
-        : `📄 Imported ${imported} file content${imported > 1 ? 's' : ''} into notes`;
-    showToast(msg, errors > 0 ? 'warning' : 'success');
-    
-    // Reset
-    notesSelectedFiles = [];
-    renderNotesSelectedFiles();
+    // Re-enable push button (keep files in uploader)
     if (pushBtn) {
-        pushBtn.style.display = 'none';
         pushBtn.disabled = false;
-        pushBtn.innerHTML = '<i class="fas fa-file-import"></i>';
+        pushBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
     }
 }
 
