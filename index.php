@@ -22339,6 +22339,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.73rem;
             letter-spacing: 0.02em;
         }
+        .analytics-btn.analytics-paste-btn {
+            width: auto;
+            padding: 0 0.5rem;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #c084fc;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+        .analytics-btn.analytics-paste-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2);
+        }
+        .analytics-btn.analytics-paste-btn span {
+            font-size: 0.73rem;
+            letter-spacing: 0.02em;
+        }
 
         /* ═══ Analytics Search Bar ═══ */
         .analytics-search-bar {
@@ -30717,6 +30737,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="analytics-btn analytics-copy-btn" onclick="copyAnalyticsContent()" title="Copy analytics content">
                             <i class="fas fa-copy"></i>
                             <span>Copy</span>
+                        </button>
+                        <button class="analytics-btn analytics-paste-btn" onclick="pasteToAnalytics()" title="Paste from clipboard at cursor">
+                            <i class="fas fa-paste"></i>
+                            <span>Paste</span>
                         </button>
                         <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
                             <i class="fas fa-trash-alt"></i>
@@ -50031,6 +50055,30 @@ in each section carefully and maintain proper connections between components.
             navigator.clipboard.writeText(textarea.value).then(() => {
                 if (typeof showToast === 'function') showToast('Analytics content copied!', 'success');
             });
+        }
+
+        async function pasteToAnalytics() {
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!textarea) return;
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) {
+                    if (typeof showToast === 'function') showToast('Clipboard is empty', 'warning');
+                    return;
+                }
+                textarea.focus();
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const before = textarea.value.substring(0, start);
+                const after = textarea.value.substring(end);
+                textarea.value = before + text + after;
+                const newPos = start + text.length;
+                textarea.selectionStart = textarea.selectionEnd = newPos;
+                onAnalyticsChange();
+                if (typeof showToast === 'function') showToast('Pasted from clipboard', 'success');
+            } catch (err) {
+                if (typeof showToast === 'function') showToast('Clipboard access denied', 'error');
+            }
         }
 
         function clearAnalyticsContent() {
