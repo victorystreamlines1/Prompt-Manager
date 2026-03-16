@@ -24047,6 +24047,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-content-wrapper.split-mode .analytics-body {
             flex: 3;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .analytics-content-wrapper.split-mode .analytics-textarea {
+            flex: 1;
+            min-height: 60px;
+            height: auto !important;
         }
         .analytics-content-wrapper.split-mode .analytics-image-preview {
             flex: 1;
@@ -51428,7 +51435,7 @@ in each section carefully and maintain proper connections between components.
                 if (labelCode) labelCode.classList.add('active');
                 if (labelImage) labelImage.classList.remove('active');
                 // Full width code only
-                if (wrapper) wrapper.classList.remove('split-mode');
+                if (wrapper) { wrapper.classList.remove('split-mode'); wrapper.style.minHeight = ''; }
                 if (preview) preview.classList.remove('visible');
             }
             localStorage.setItem('analyticsPasteMode', analyticsPasteMode);
@@ -51448,7 +51455,7 @@ in each section carefully and maintain proper connections between components.
                 if (wrapper) wrapper.classList.add('split-mode');
                 if (preview) { preview.classList.add('visible'); }
             } else {
-                if (wrapper) wrapper.classList.remove('split-mode');
+                if (wrapper) { wrapper.classList.remove('split-mode'); wrapper.style.minHeight = ''; }
                 if (preview) preview.classList.remove('visible');
             }
         }
@@ -52376,7 +52383,9 @@ in each section carefully and maintain proper connections between components.
             handle.addEventListener('mousedown', function(e) {
                 e.preventDefault();
                 startY = e.clientY;
-                startH = textarea.offsetHeight;
+                const wrapper = document.getElementById('analyticsContentWrapper');
+                const isSplit = wrapper && wrapper.classList.contains('split-mode');
+                startH = isSplit ? wrapper.offsetHeight : textarea.offsetHeight;
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp);
                 document.body.style.cursor = 'ns-resize';
@@ -52386,10 +52395,16 @@ in each section carefully and maintain proper connections between components.
             function onMouseMove(e) {
                 const delta = e.clientY - startY;
                 const newH = Math.max(60, startH + delta);
-                textarea.style.height = newH + 'px';
-                textarea.style.overflow = 'auto';
-                const overlay = document.getElementById('analyticsHighlightOverlay');
-                if (overlay) overlay.style.height = newH + 'px';
+                const wrapper = document.getElementById('analyticsContentWrapper');
+                const isSplit = wrapper && wrapper.classList.contains('split-mode');
+                if (isSplit) {
+                    wrapper.style.minHeight = newH + 'px';
+                } else {
+                    textarea.style.height = newH + 'px';
+                    textarea.style.overflow = 'auto';
+                    const overlay = document.getElementById('analyticsHighlightOverlay');
+                    if (overlay) overlay.style.height = newH + 'px';
+                }
             }
 
             function onMouseUp() {
