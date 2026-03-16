@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image from Base64</title>
+    <style>
+        body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        img { max-width: 100%; max-height: 100vh; }
+    </style>
+</head>
+<body>
+    <img id="img" alt="Loading...">
+    <script>
+        fetch('prompt.txt')
+            .then(r => r.text())
+            .then(text => {
+                const line = text.split('\n').find(l => l.trim().startsWith('data:image/'));
+                if (line) document.getElementById('img').src = line.trim();
+            });
+    </script>
+</body>
+</html>
