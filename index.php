@@ -3593,6 +3593,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .spt-file-item-remove:hover {
             background: rgba(239, 68, 68, 0.15); color: var(--danger);
         }
+        .spt-clear-all-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; margin-top: 6px; padding: 6px 12px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px dashed rgba(239, 68, 68, 0.3);
+            border-radius: 6px; color: var(--text-muted);
+            font-size: 0.68rem; font-weight: 500;
+            cursor: pointer; transition: all 0.25s ease;
+        }
+        .spt-clear-all-btn i { font-size: 0.65rem; }
+        .spt-clear-all-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+        .spt-clear-all-btn:active {
+            transform: scale(0.97);
+        }
         .spt-file-mode {
             display: flex; align-items: center; gap: 6px;
             margin-bottom: 0.5rem; font-size: 0.7rem; color: var(--text-muted);
