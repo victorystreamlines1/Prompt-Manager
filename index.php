@@ -24100,6 +24100,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 1rem;
             font-style: italic;
         }
+
+        /* Analytics Body hidden when in Image mode */
+        .analytics-body.hidden-mode {
+            display: none !important;
+        }
+
+        /* Image preview fills the textarea area when visible */
+        .analytics-image-preview.visible {
+            display: flex;
+            min-height: 180px;
+            max-height: 500px;
+            animation: fadeSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         /* ═══════ End Analytics Section ═══════ */
 
         /* Project Management Bar (merged into project-notes-section) */
@@ -32015,13 +32039,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-paste"></i>
                             <span>Paste</span>
                         </button>
-                        <div class="analytics-paste-toggle-wrapper" title="Toggle paste mode: Code (HTML tags) or Image (visual preview)">
-                            <span class="paste-toggle-label active" id="pasteToggleLabelCode"><i class="fas fa-code"></i></span>
-                            <div class="paste-toggle-track" id="analyticsPasteToggle" onclick="toggleAnalyticsPasteMode()">
-                                <div class="paste-toggle-thumb"></div>
-                            </div>
-                            <span class="paste-toggle-label" id="pasteToggleLabelImage"><i class="fas fa-image"></i></span>
-                        </div>
                         <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
                             <i class="fas fa-trash-alt"></i>
                             <span>Clear</span>
@@ -32046,7 +32063,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <!-- Analytics Image Preview (visible in Image mode) -->
-                <div class="analytics-image-preview" id="analyticsImagePreview">
+                <div class="analytics-image-preview" id="analyticsImagePreview" tabindex="0">
                     <div class="analytics-image-preview-empty" id="analyticsImagePreviewEmpty">
                         <i class="fas fa-images"></i> Pasted images will appear here
                     </div>
@@ -51362,22 +51379,24 @@ in each section carefully and maintain proper connections between components.
             const labelCode = document.getElementById('pasteToggleLabelCode');
             const labelImage = document.getElementById('pasteToggleLabelImage');
             const preview = document.getElementById('analyticsImagePreview');
+            const body = document.getElementById('analyticsBody');
 
             if (analyticsPasteMode === 'code') {
                 analyticsPasteMode = 'image';
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
-                if (preview) preview.classList.add('visible');
+                // Show image preview, hide textarea body
+                if (preview) { preview.classList.add('visible'); preview.focus(); }
+                if (body) body.classList.add('hidden-mode');
             } else {
                 analyticsPasteMode = 'code';
                 if (track) track.classList.remove('image-mode');
                 if (labelCode) labelCode.classList.add('active');
                 if (labelImage) labelImage.classList.remove('active');
-                // Hide preview only if empty
-                if (preview && preview.querySelectorAll('.analytics-image-preview-item').length === 0) {
-                    preview.classList.remove('visible');
-                }
+                // Show textarea body, hide image preview
+                if (body) body.classList.remove('hidden-mode');
+                if (preview) preview.classList.remove('visible');
             }
             localStorage.setItem('analyticsPasteMode', analyticsPasteMode);
             showToast(analyticsPasteMode === 'code' ? '🔤 Paste mode: Code (HTML tags)' : '🖼️ Paste mode: Image (visual)', 'info');
@@ -51387,10 +51406,17 @@ in each section carefully and maintain proper connections between components.
             const track = document.getElementById('analyticsPasteToggle');
             const labelCode = document.getElementById('pasteToggleLabelCode');
             const labelImage = document.getElementById('pasteToggleLabelImage');
+            const preview = document.getElementById('analyticsImagePreview');
+            const body = document.getElementById('analyticsBody');
             if (analyticsPasteMode === 'image') {
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
+                if (preview) { preview.classList.add('visible'); preview.focus(); }
+                if (body) body.classList.add('hidden-mode');
+            } else {
+                if (preview) preview.classList.remove('visible');
+                if (body) body.classList.remove('hidden-mode');
             }
         }
 
@@ -52350,37 +52376,41 @@ in each section carefully and maintain proper connections between components.
             restoreAnalyticsPasteToggle();
         });
 
+        function handleAnalyticsImagePaste(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            if (!items) return;
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    e.preventDefault();
+                    const blob = items[i].getAsFile();
+                    if (!blob) return;
+
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64 = reader.result;
+                        if (analyticsPasteMode === 'code') {
+                            const textarea = document.getElementById('analyticsTextarea');
+                            const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
+                            insertTextAtCursor(textarea, imgTag);
+                            showToast('🔤 Image pasted as HTML code', 'success');
+                        } else {
+                            addImageToPreview(base64);
+                            showToast('🖼️ Image pasted as visual preview', 'success');
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+            }
+        }
+
         function initAnalyticsImagePaste() {
             const textarea = document.getElementById('analyticsTextarea');
-            if (!textarea) return;
+            const preview = document.getElementById('analyticsImagePreview');
 
-            textarea.addEventListener('paste', function(e) {
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                if (!items) return;
-
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.startsWith('image/')) {
-                        e.preventDefault();
-                        const blob = items[i].getAsFile();
-                        if (!blob) return;
-
-                        const reader = new FileReader();
-                        reader.onloadend = function() {
-                            const base64 = reader.result;
-                            if (analyticsPasteMode === 'code') {
-                                const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
-                                insertTextAtCursor(textarea, imgTag);
-                                showToast('🔤 Image pasted as HTML code', 'success');
-                            } else {
-                                addImageToPreview(base64);
-                                showToast('🖼️ Image pasted as visual preview', 'success');
-                            }
-                        };
-                        reader.readAsDataURL(blob);
-                        return;
-                    }
-                }
-            });
+            if (textarea) textarea.addEventListener('paste', handleAnalyticsImagePaste);
+            if (preview) preview.addEventListener('paste', handleAnalyticsImagePaste);
         }
 
 
