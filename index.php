@@ -24047,7 +24047,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-content-wrapper.split-mode .analytics-body {
             flex: 3;
             min-width: 0;
-            border-right: 2px solid rgba(168, 85, 247, 0.3);
         }
         .analytics-content-wrapper.split-mode .analytics-image-preview {
             flex: 1;
@@ -24156,19 +24155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-style: italic;
         }
 
-        /* Split mode vertical border glow effect */
-        .analytics-content-wrapper.split-mode .analytics-body::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: -2px;
-            width: 2px;
-            height: 100%;
-            background: linear-gradient(180deg, rgba(168, 85, 247, 0.5) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(168, 85, 247, 0.5) 100%);
-            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
-            z-index: 10;
-            pointer-events: none;
-        }
         /* ═══════ End Analytics Section ═══════ */
 
         /* Project Management Bar (merged into project-notes-section) */
