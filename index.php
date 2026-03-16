@@ -23967,6 +23967,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .analytics-footer-btn.compare-btn:hover i {
             transform: rotate(180deg);
         }
+        /* ═══ Analytics Paste Mode Toggle ═══ */
+        .analytics-paste-toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .analytics-paste-toggle-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        .analytics-paste-toggle-label.label-code {
+            color: rgba(6, 182, 212, 0.5);
+        }
+        .analytics-paste-toggle-label.label-code.active {
+            color: #22d3ee;
+            text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+        }
+        .analytics-paste-toggle-label.label-image {
+            color: rgba(168, 85, 247, 0.5);
+        }
+        .analytics-paste-toggle-label.label-image.active {
+            color: #c084fc;
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+        }
+        .analytics-paste-toggle-track {
+            position: relative;
+            width: 36px;
+            height: 18px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(6, 182, 212, 0.1) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .analytics-paste-toggle-track:hover {
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+        .analytics-paste-toggle-track.image-mode {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        .analytics-paste-toggle-track.image-mode:hover {
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+            border-color: rgba(168, 85, 247, 0.55);
+        }
+        .analytics-paste-toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+            box-shadow: 0 1px 4px rgba(6, 182, 212, 0.4), 0 0 6px rgba(6, 182, 212, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .analytics-paste-toggle-track.image-mode .analytics-paste-toggle-knob {
+            left: 20px;
+            background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+            box-shadow: 0 1px 4px rgba(168, 85, 247, 0.4), 0 0 6px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Analytics Image Preview Area */
+        .analytics-image-preview {
+            display: none;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px dashed rgba(168, 85, 247, 0.25);
+            border-radius: 8px;
+            min-height: 60px;
+            align-items: flex-start;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .analytics-image-preview.visible {
+            display: flex;
+        }
+        .analytics-image-preview-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        .analytics-image-preview-item:hover {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
+        }
+        .analytics-image-preview-item img {
+            max-width: 200px;
+            max-height: 150px;
+            display: block;
+            object-fit: contain;
+        }
+        .analytics-image-preview-item .remove-preview {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: rgba(239, 68, 68, 0.8);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .analytics-image-preview-item:hover .remove-preview {
+            opacity: 1;
+        }
+        .analytics-image-preview-empty {
+            width: 100%;
+            text-align: center;
+            color: rgba(168, 85, 247, 0.4);
+            font-size: 0.65rem;
+            padding: 1rem;
+            font-style: italic;
+        }
         /* ═══════ End Analytics Section ═══════ */
 
         /* Project Management Bar (merged into project-notes-section) */
@@ -31882,6 +32015,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-paste"></i>
                             <span>Paste</span>
                         </button>
+                        <div class="analytics-paste-toggle-wrapper" title="Toggle paste mode: Code (HTML tags) or Image (visual preview)">
+                            <span class="paste-toggle-label active" id="pasteToggleLabelCode"><i class="fas fa-code"></i></span>
+                            <div class="paste-toggle-track" id="analyticsPasteToggle" onclick="toggleAnalyticsPasteMode()">
+                                <div class="paste-toggle-thumb"></div>
+                            </div>
+                            <span class="paste-toggle-label" id="pasteToggleLabelImage"><i class="fas fa-image"></i></span>
+                        </div>
                         <button class="analytics-btn analytics-clear-btn" onclick="clearAnalyticsContent()" title="Clear analytics content">
                             <i class="fas fa-trash-alt"></i>
                             <span>Clear</span>
@@ -31905,6 +32045,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
+                <!-- Analytics Image Preview (visible in Image mode) -->
+                <div class="analytics-image-preview" id="analyticsImagePreview">
+                    <div class="analytics-image-preview-empty" id="analyticsImagePreviewEmpty">
+                        <i class="fas fa-images"></i> Pasted images will appear here
+                    </div>
+                </div>
+
                 <!-- Analytics Footer: Pull/Push to Editor & Project Prompts -->
                 <div class="analytics-footer">
                     <div class="analytics-footer-group">
@@ -31923,6 +32070,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="analytics-footer-btn compare-btn" onclick="analyticsCompareDiff()" title="Compare differences between Prompt Editor and Project Prompts">
                             <i class="fas fa-exchange-alt"></i> Compare Diff
                         </button>
+                    </div>
+
+                    <div class="analytics-footer-divider"></div>
+
+                    <div class="analytics-paste-toggle-group" id="analyticsPasteToggleGroup" title="Toggle image paste mode: Code (HTML tags) or Image (visual preview)">
+                        <span class="analytics-paste-toggle-label label-code active" id="pasteToggleLabelCode"><i class="fas fa-code"></i> Code</span>
+                        <div class="analytics-paste-toggle-track" id="analyticsPasteToggle" onclick="toggleAnalyticsPasteMode()">
+                            <div class="analytics-paste-toggle-knob"></div>
+                        </div>
+                        <span class="analytics-paste-toggle-label label-image" id="pasteToggleLabelImage"><i class="fas fa-image"></i> Image</span>
                     </div>
 
                     <div class="analytics-footer-divider"></div>
@@ -51197,6 +51354,104 @@ in each section carefully and maintain proper connections between components.
             });
         }
 
+        // Analytics Paste Mode: 'code' = HTML <img> tags, 'image' = visual preview
+        let analyticsPasteMode = localStorage.getItem('analyticsPasteMode') || 'code';
+
+        function toggleAnalyticsPasteMode() {
+            const track = document.getElementById('analyticsPasteToggle');
+            const labelCode = document.getElementById('pasteToggleLabelCode');
+            const labelImage = document.getElementById('pasteToggleLabelImage');
+            const preview = document.getElementById('analyticsImagePreview');
+
+            if (analyticsPasteMode === 'code') {
+                analyticsPasteMode = 'image';
+                if (track) track.classList.add('image-mode');
+                if (labelCode) labelCode.classList.remove('active');
+                if (labelImage) labelImage.classList.add('active');
+                if (preview) preview.classList.add('visible');
+            } else {
+                analyticsPasteMode = 'code';
+                if (track) track.classList.remove('image-mode');
+                if (labelCode) labelCode.classList.add('active');
+                if (labelImage) labelImage.classList.remove('active');
+                // Hide preview only if empty
+                if (preview && preview.querySelectorAll('.analytics-image-preview-item').length === 0) {
+                    preview.classList.remove('visible');
+                }
+            }
+            localStorage.setItem('analyticsPasteMode', analyticsPasteMode);
+            showToast(analyticsPasteMode === 'code' ? '🔤 Paste mode: Code (HTML tags)' : '🖼️ Paste mode: Image (visual)', 'info');
+        }
+
+        function restoreAnalyticsPasteToggle() {
+            const track = document.getElementById('analyticsPasteToggle');
+            const labelCode = document.getElementById('pasteToggleLabelCode');
+            const labelImage = document.getElementById('pasteToggleLabelImage');
+            if (analyticsPasteMode === 'image') {
+                if (track) track.classList.add('image-mode');
+                if (labelCode) labelCode.classList.remove('active');
+                if (labelImage) labelImage.classList.add('active');
+            }
+        }
+
+        function insertTextAtCursor(textarea, text) {
+            textarea.focus();
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            textarea.value = before + text + after;
+            const newPos = start + text.length;
+            textarea.selectionStart = textarea.selectionEnd = newPos;
+            onAnalyticsChange();
+        }
+
+        function addImageToPreview(base64DataUrl) {
+            const preview = document.getElementById('analyticsImagePreview');
+            const emptyMsg = document.getElementById('analyticsImagePreviewEmpty');
+            if (!preview) return;
+
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            preview.classList.add('visible');
+
+            const item = document.createElement('div');
+            item.className = 'analytics-image-preview-item';
+            item.innerHTML = `
+                <img src="${base64DataUrl}" alt="pasted image" />
+                <button class="remove-preview" title="Remove image" onclick="removeAnalyticsPreviewImage(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            preview.appendChild(item);
+        }
+
+        function removeAnalyticsPreviewImage(btn) {
+            const item = btn.closest('.analytics-image-preview-item');
+            if (item) {
+                item.style.transition = 'all 0.3s ease';
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    item.remove();
+                    const preview = document.getElementById('analyticsImagePreview');
+                    const emptyMsg = document.getElementById('analyticsImagePreviewEmpty');
+                    if (preview && preview.querySelectorAll('.analytics-image-preview-item').length === 0) {
+                        if (emptyMsg) emptyMsg.style.display = '';
+                        if (analyticsPasteMode !== 'image') preview.classList.remove('visible');
+                    }
+                }, 300);
+            }
+        }
+
+        function clearAnalyticsImagePreviews() {
+            const preview = document.getElementById('analyticsImagePreview');
+            const emptyMsg = document.getElementById('analyticsImagePreviewEmpty');
+            if (!preview) return;
+            preview.querySelectorAll('.analytics-image-preview-item').forEach(el => el.remove());
+            if (emptyMsg) emptyMsg.style.display = '';
+            if (analyticsPasteMode !== 'image') preview.classList.remove('visible');
+        }
+
         async function pasteToAnalytics() {
             const textarea = document.getElementById('analyticsTextarea');
             if (!textarea) return;
@@ -51205,60 +51460,38 @@ in each section carefully and maintain proper connections between components.
                 let imageFound = false;
 
                 for (const item of clipboardItems) {
-                    // Check for image types
                     const imageType = item.types.find(t => t.startsWith('image/'));
                     if (imageType) {
                         imageFound = true;
                         const blob = await item.getType(imageType);
                         const base64 = await blobToBase64(blob);
-                        const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
 
-                        textarea.focus();
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        const before = textarea.value.substring(0, start);
-                        const after = textarea.value.substring(end);
-                        textarea.value = before + imgTag + after;
-                        const newPos = start + imgTag.length;
-                        textarea.selectionStart = textarea.selectionEnd = newPos;
-                        onAnalyticsChange();
-                        showToast('🖼️ Image pasted as HTML <img> tag', 'success');
+                        if (analyticsPasteMode === 'code') {
+                            const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
+                            insertTextAtCursor(textarea, imgTag);
+                            showToast('🔤 Image pasted as HTML code', 'success');
+                        } else {
+                            addImageToPreview(base64);
+                            showToast('🖼️ Image pasted as visual preview', 'success');
+                        }
                         break;
                     }
                 }
 
-                // No image found — paste as plain text
                 if (!imageFound) {
                     const text = await navigator.clipboard.readText();
                     if (!text) {
                         showToast('Clipboard is empty', 'warning');
                         return;
                     }
-                    textarea.focus();
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    const before = textarea.value.substring(0, start);
-                    const after = textarea.value.substring(end);
-                    textarea.value = before + text + after;
-                    const newPos = start + text.length;
-                    textarea.selectionStart = textarea.selectionEnd = newPos;
-                    onAnalyticsChange();
+                    insertTextAtCursor(textarea, text);
                     showToast('Pasted from clipboard', 'success');
                 }
             } catch (err) {
-                // Fallback: try plain text if clipboard.read() fails
                 try {
                     const text = await navigator.clipboard.readText();
                     if (text) {
-                        textarea.focus();
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        const before = textarea.value.substring(0, start);
-                        const after = textarea.value.substring(end);
-                        textarea.value = before + text + after;
-                        const newPos = start + text.length;
-                        textarea.selectionStart = textarea.selectionEnd = newPos;
-                        onAnalyticsChange();
+                        insertTextAtCursor(textarea, text);
                         showToast('Pasted from clipboard', 'success');
                     }
                 } catch (e) {
@@ -51279,9 +51512,13 @@ in each section carefully and maintain proper connections between components.
         function clearAnalyticsContent() {
             const textarea = document.getElementById('analyticsTextarea');
             if (!textarea) return;
-            if (!textarea.value.trim()) return;
+            const hasText = textarea.value.trim();
+            const preview = document.getElementById('analyticsImagePreview');
+            const hasImages = preview && preview.querySelectorAll('.analytics-image-preview-item').length > 0;
+            if (!hasText && !hasImages) return;
             textarea.value = '';
             onAnalyticsChange();
+            clearAnalyticsImagePreviews();
             if (typeof showToast === 'function') showToast('Analytics cleared', 'info');
         }
 
@@ -52110,6 +52347,7 @@ in each section carefully and maintain proper connections between components.
             initAnalyticsRegex();
             initAnalyticsResize();
             initAnalyticsImagePaste();
+            restoreAnalyticsPasteToggle();
         });
 
         function initAnalyticsImagePaste() {
@@ -52129,23 +52367,19 @@ in each section carefully and maintain proper connections between components.
                         const reader = new FileReader();
                         reader.onloadend = function() {
                             const base64 = reader.result;
-                            const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
-
-                            const start = textarea.selectionStart;
-                            const end = textarea.selectionEnd;
-                            const before = textarea.value.substring(0, start);
-                            const after = textarea.value.substring(end);
-                            textarea.value = before + imgTag + after;
-                            const newPos = start + imgTag.length;
-                            textarea.selectionStart = textarea.selectionEnd = newPos;
-                            onAnalyticsChange();
-                            showToast('🖼️ Image pasted as HTML <img> tag', 'success');
+                            if (analyticsPasteMode === 'code') {
+                                const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
+                                insertTextAtCursor(textarea, imgTag);
+                                showToast('🔤 Image pasted as HTML code', 'success');
+                            } else {
+                                addImageToPreview(base64);
+                                showToast('🖼️ Image pasted as visual preview', 'success');
+                            }
                         };
                         reader.readAsDataURL(blob);
                         return;
                     }
                 }
-                // If no image found, let the default paste behavior handle text
             });
         }
 

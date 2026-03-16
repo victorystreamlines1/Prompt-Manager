@@ -1,1 +1,1 @@
-What is easier for the AI to understand? The normal image or the text version of HTML of the image? 
+if I toggle to image it should stay on the image side as long as I'm working with the image if I toggle back to code the image part should collapse and the code will show as the whole text area location. So keep the toggle according to the mod I'm working on. 
