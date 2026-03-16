@@ -22360,6 +22360,190 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
 
+        /* ═══ Analytics Image Picker ═══ */
+        .analytics-file-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1;
+            margin: 0 0.5rem;
+            max-width: 400px;
+        }
+
+        .analytics-file-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 6px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+
+        .analytics-file-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.15);
+        }
+
+        .analytics-selected-files {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: calc(100% - 60px);
+            padding: 0.15rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+        }
+
+        .analytics-selected-files::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .analytics-selected-files::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.3);
+            border-radius: 3px;
+        }
+
+        .analytics-file-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.4rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 4px;
+            font-size: 0.6rem;
+            color: #67e8f9;
+            white-space: nowrap;
+            cursor: default;
+            animation: fadeInScale 0.2s ease;
+        }
+
+        .analytics-file-tag i {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .analytics-file-tag .remove-file {
+            margin-left: 0.15rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.15s ease;
+        }
+
+        .analytics-file-tag .remove-file:hover {
+            opacity: 1;
+            color: #f87171;
+        }
+
+        .analytics-import-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.45rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px;
+            color: #c084fc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .analytics-import-mode-toggle:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: scale(1.05);
+        }
+
+        .analytics-import-mode-toggle .mode-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .analytics-import-mode-toggle.mode-names {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: #22d3ee;
+        }
+
+        .analytics-import-mode-toggle.mode-names:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(8, 145, 178, 0.15) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+
+        .analytics-push-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.1) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 6px;
+            color: #22d3ee;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            animation: analyticsPulseGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes analyticsPulseGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(6, 182, 212, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(6, 182, 212, 0.5); }
+        }
+
+        .analytics-push-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.35) 0%, rgba(8, 145, 178, 0.2) 100%);
+            border-color: rgba(6, 182, 212, 0.6);
+            transform: scale(1.08);
+        }
+
+        .analytics-clear-files-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 6px;
+            color: rgba(252, 165, 165, 0.8);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+        }
+
+        .analytics-clear-files-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.28) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .analytics-clear-files-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(220, 38, 38, 0.2) 100%);
+        }
+
         /* ═══ Analytics Search Bar ═══ */
         .analytics-search-bar {
             display: flex;
@@ -30725,6 +30909,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button class="analytics-search-clear-btn" onclick="clearAnalyticsRegex()" title="Clear regex"><i class="fas fa-times"></i></button>
                             <span class="analytics-regex-error" id="analyticsRegexError" title=""></span>
                         </div>
+                    </div>
+
+                    <!-- Image Picker for Analytics -->
+                    <div class="analytics-file-picker">
+                        <input type="file" 
+                               id="analyticsFilePicker" 
+                               multiple 
+                               accept="image/png,image/jpeg,image/jpg,image/gif,image/bmp,image/webp,image/svg+xml,image/tiff,image/ico,.png,.jpg,.jpeg,.gif,.bmp,.webp,.svg,.tiff,.ico"
+                               onchange="onAnalyticsFileSelect()" 
+                               style="display: none;">
+                        <button type="button" 
+                                class="analytics-file-btn" 
+                                onclick="document.getElementById('analyticsFilePicker').click()" 
+                                title="Select images">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <button type="button" 
+                                class="analytics-import-mode-toggle mode-names" 
+                                id="analyticsImportModeToggle"
+                                onclick="toggleAnalyticsImportMode()" 
+                                title="Mode: Import image names only (click to switch)">
+                            <i class="fas fa-tag" id="analyticsImportModeIcon"></i>
+                            <span class="mode-label" id="analyticsImportModeLabel">Names</span>
+                        </button>
+                        <div class="analytics-selected-files" id="analyticsSelectedFiles"></div>
+                        <button type="button" 
+                                class="analytics-push-btn" 
+                                id="analyticsPushBtn"
+                                onclick="pushImagesToAnalytics()" 
+                                title="Import image names into Analytics"
+                                style="display: none;">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button type="button" 
+                                class="analytics-clear-files-btn" 
+                                id="analyticsClearFilesBtn"
+                                onclick="clearAnalyticsFiles()" 
+                                title="Clear uploaded images"
+                                style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
                     <div class="analytics-actions">
@@ -50088,6 +50313,200 @@ in each section carefully and maintain proper connections between components.
             textarea.value = '';
             onAnalyticsChange();
             if (typeof showToast === 'function') showToast('Analytics cleared', 'info');
+        }
+
+        // Analytics Image Picker Functions
+        let analyticsSelectedFiles = [];
+        let analyticsImportMode = 'names'; // 'content' or 'names'
+
+        function toggleAnalyticsImportMode() {
+            const toggle = document.getElementById('analyticsImportModeToggle');
+            const icon = document.getElementById('analyticsImportModeIcon');
+            const label = document.getElementById('analyticsImportModeLabel');
+            const pushBtn = document.getElementById('analyticsPushBtn');
+
+            if (analyticsImportMode === 'content') {
+                analyticsImportMode = 'names';
+                toggle.classList.add('mode-names');
+                icon.className = 'fas fa-tag';
+                label.textContent = 'Names';
+                toggle.title = 'Mode: Import image names only (click to switch)';
+                if (pushBtn && pushBtn.style.display !== 'none') {
+                    pushBtn.title = 'Import image names into Analytics';
+                }
+            } else {
+                analyticsImportMode = 'content';
+                toggle.classList.remove('mode-names');
+                icon.className = 'fas fa-file-image';
+                label.textContent = 'Content';
+                toggle.title = 'Mode: Import image as base64 (click to switch)';
+                if (pushBtn && pushBtn.style.display !== 'none') {
+                    pushBtn.title = 'Import image base64 into Analytics';
+                }
+            }
+        }
+
+        function onAnalyticsFileSelect() {
+            const input = document.getElementById('analyticsFilePicker');
+            const pushBtn = document.getElementById('analyticsPushBtn');
+
+            if (!input || !input.files || input.files.length === 0) return;
+
+            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB per image
+            const IMAGE_EXTENSIONS = ['png','jpg','jpeg','gif','bmp','webp','svg','tiff','ico','heic','heif'];
+            let skipped = 0;
+
+            Array.from(input.files).forEach(file => {
+                // Skip duplicates
+                if (analyticsSelectedFiles.some(f => f.name === file.name && f.size === file.size)) return;
+
+                // Verify it's an image
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!IMAGE_EXTENSIONS.includes(ext) && !file.type.startsWith('image/')) {
+                    skipped++;
+                    return;
+                }
+
+                // Skip files that are too large
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast(`⚠️ "${file.name}" skipped (>${Math.round(MAX_FILE_SIZE/(1024*1024))}MB)`, 'warning');
+                    return;
+                }
+
+                analyticsSelectedFiles.push(file);
+            });
+
+            if (skipped > 0) {
+                showToast(`⚠️ ${skipped} non-image file(s) skipped – only images are supported`, 'warning');
+            }
+
+            renderAnalyticsSelectedFiles();
+
+            const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            if (pushBtn) {
+                pushBtn.style.display = analyticsSelectedFiles.length > 0 ? 'flex' : 'none';
+            }
+            if (clearBtn) {
+                clearBtn.style.display = analyticsSelectedFiles.length > 0 ? 'flex' : 'none';
+            }
+
+            input.value = '';
+        }
+
+        function renderAnalyticsSelectedFiles() {
+            const container = document.getElementById('analyticsSelectedFiles');
+            if (!container) return;
+
+            if (analyticsSelectedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = analyticsSelectedFiles.map((file, index) => `
+                <span class="analytics-file-tag">
+                    <i class="fas fa-image"></i>
+                    <span>${escapeHtml(file.name)}</span>
+                    <i class="fas fa-times remove-file" onclick="removeAnalyticsFile(${index})" title="Remove"></i>
+                </span>
+            `).join('');
+        }
+
+        function removeAnalyticsFile(index) {
+            analyticsSelectedFiles.splice(index, 1);
+            renderAnalyticsSelectedFiles();
+
+            const hasFiles = analyticsSelectedFiles.length > 0;
+            const pushBtn = document.getElementById('analyticsPushBtn');
+            const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            if (pushBtn) pushBtn.style.display = hasFiles ? 'flex' : 'none';
+            if (clearBtn) clearBtn.style.display = hasFiles ? 'flex' : 'none';
+        }
+
+        function clearAnalyticsFiles() {
+            analyticsSelectedFiles = [];
+            renderAnalyticsSelectedFiles();
+
+            const pushBtn = document.getElementById('analyticsPushBtn');
+            const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            const fileInput = document.getElementById('analyticsFilePicker');
+            if (pushBtn) pushBtn.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'none';
+            if (fileInput) fileInput.value = '';
+
+            showToast('🗑️ Uploaded images cleared', 'info');
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function pushImagesToAnalytics() {
+            if (analyticsSelectedFiles.length === 0) return;
+
+            const textarea = document.getElementById('analyticsTextarea');
+            const pushBtn = document.getElementById('analyticsPushBtn');
+            if (!textarea) return;
+
+            const files = [...analyticsSelectedFiles];
+
+            if (analyticsImportMode === 'names') {
+                // Names-only mode: just list image names
+                const fileNames = files.map((f, i) => `${i + 1}. ${f.name}`);
+                const fileNamesText = '🖼️ Images:\n' + fileNames.join('\n');
+
+                if (textarea.value.trim()) {
+                    textarea.value = textarea.value.trimEnd() + '\n\n' + fileNamesText;
+                } else {
+                    textarea.value = fileNamesText;
+                }
+                onAnalyticsChange();
+                showToast(`🖼️ Added ${fileNames.length} image name${fileNames.length > 1 ? 's' : ''} to analytics`, 'success');
+            } else {
+                // Content mode: read and import as base64 data URIs
+                if (pushBtn) {
+                    pushBtn.disabled = true;
+                    pushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                }
+
+                const results = [];
+                let errors = 0;
+
+                for (const file of files) {
+                    try {
+                        const dataUri = await readFileAsBase64(file);
+                        const size = file.size < 1024 ? file.size + ' B' : (file.size / 1024).toFixed(1) + ' KB';
+                        results.push(`── 🖼️ ${file.name} (${size}) ──\n${dataUri}`);
+                    } catch (err) {
+                        results.push(`── ❌ ${file.name} (read error) ──`);
+                        errors++;
+                    }
+                }
+
+                const content = results.join('\n\n');
+                if (textarea.value.trim()) {
+                    textarea.value = textarea.value.trimEnd() + '\n\n' + content;
+                } else {
+                    textarea.value = content;
+                }
+                onAnalyticsChange();
+
+                const imported = files.length - errors;
+                const msg = errors > 0
+                    ? `🖼️ Imported ${imported} image(s), ${errors} failed`
+                    : `🖼️ Imported ${imported} image base64${imported > 1 ? 's' : ''} into analytics`;
+                showToast(msg, errors > 0 ? 'warning' : 'success');
+            }
+
+            // Re-enable push button
+            if (pushBtn) {
+                pushBtn.disabled = false;
+                pushBtn.innerHTML = '<i class="fas fa-arrow-down"></i>';
+            }
         }
 
         function onAnalyticsChange() {
