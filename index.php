@@ -22775,7 +22775,143 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             height: 100%;
             border: none;
             background: #fff;
+        }
+
+        /* ═══ Preview Save Bar ═══ */
+        .preview-save-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.06) 50%, rgba(20, 184, 166, 0.08) 100%);
+            border-top: 1px solid rgba(99, 102, 241, 0.25);
             border-radius: 0 0 16px 16px;
+            flex-shrink: 0;
+        }
+
+        .preview-save-icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            color: #a5b4fc;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .preview-save-fields {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex: 1;
+            max-width: 320px;
+        }
+
+        .preview-save-input {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.4rem 0.6rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .preview-save-input:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .preview-save-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .preview-save-dot {
+            padding: 0.4rem 0;
+            background: rgba(15, 23, 42, 0.6);
+            border-top: 1px solid rgba(99, 102, 241, 0.3);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+            color: rgba(148, 163, 184, 0.6);
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .preview-save-select {
+            padding: 0.4rem 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            color: #a5b4fc;
+            font-size: 0.72rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 1.2rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a5b4fc' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.35rem center;
+        }
+
+        .preview-save-select:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .preview-save-select option {
+            background: #1e1b4b;
+            color: #c7d2fe;
+            padding: 4px;
+        }
+
+        .preview-save-btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 10px;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.15) 100%);
+            color: #c7d2fe;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .preview-save-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.28) 100%);
+            border-color: rgba(99, 102, 241, 0.65);
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.25), 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            color: #e0e7ff;
+        }
+
+        .preview-save-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+
+        .preview-save-btn i {
+            font-size: 0.7rem;
         }
 
         .preview-empty-state {
@@ -51041,6 +51177,31 @@ in each section carefully and maintain proper connections between components.
                 '<div class="preview-iframe-body">' +
                     '<iframe id="analyticsPreviewIframe" sandbox="allow-same-origin"></iframe>' +
                 '</div>' +
+                '<div class="preview-save-bar">' +
+                    '<div class="preview-save-icon"><i class="fas fa-file-download"></i></div>' +
+                    '<div class="preview-save-fields">' +
+                        '<input type="text" id="previewSaveFilename" class="preview-save-input" placeholder="filename" value="preview" spellcheck="false" />' +
+                        '<span class="preview-save-dot">.</span>' +
+                        '<select id="previewSaveExtension" class="preview-save-select">' +
+                            '<option value="html" selected>html</option>' +
+                            '<option value="htm">htm</option>' +
+                            '<option value="txt">txt</option>' +
+                            '<option value="css">css</option>' +
+                            '<option value="js">js</option>' +
+                            '<option value="json">json</option>' +
+                            '<option value="xml">xml</option>' +
+                            '<option value="svg">svg</option>' +
+                            '<option value="md">md</option>' +
+                            '<option value="csv">csv</option>' +
+                            '<option value="php">php</option>' +
+                            '<option value="py">py</option>' +
+                            '<option value="sql">sql</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<button class="preview-save-btn" onclick="savePreviewFile()" title="Save file to your PC">' +
+                        '<i class="fas fa-download"></i> <span>Save File</span>' +
+                    '</button>' +
+                '</div>' +
             '</div>';
 
             document.body.appendChild(overlay);
@@ -51069,6 +51230,75 @@ in each section carefully and maintain proper connections between components.
             doc.close();
 
             showToast('\ud83d\udd04 Preview refreshed', 'success');
+        }
+
+        function savePreviewFile() {
+            const analyticsTA = document.getElementById('analyticsTextarea');
+            if (!analyticsTA) {
+                showToast('\u26a0\ufe0f Analytics textarea not found', 'warning');
+                return;
+            }
+
+            const content = analyticsTA.value.trim();
+            if (!content) {
+                showToast('\u26a0\ufe0f No content to save', 'warning');
+                return;
+            }
+
+            const filenameInput = document.getElementById('previewSaveFilename');
+            const extSelect = document.getElementById('previewSaveExtension');
+            const filename = (filenameInput ? filenameInput.value.trim() : '') || 'preview';
+            const ext = extSelect ? extSelect.value : 'html';
+
+            // Build full HTML document if extension is html/htm
+            let fileContent = content;
+            if (ext === 'html' || ext === 'htm') {
+                fileContent = '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + filename + '</title>\n    <style>\n        body { margin: 16px; font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #222; line-height: 1.6; }\n        img { max-width: 100%; height: auto; display: block; margin: 8px 0; border-radius: 8px; }\n    </style>\n</head>\n<body>\n' + content + '\n</body>\n</html>';
+            }
+
+            // POST to save_file.php via a hidden form to trigger browser download
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'save_file.php';
+            form.style.display = 'none';
+
+            const inputContent = document.createElement('input');
+            inputContent.type = 'hidden';
+            inputContent.name = 'content';
+            inputContent.value = fileContent;
+
+            const inputFilename = document.createElement('input');
+            inputFilename.type = 'hidden';
+            inputFilename.name = 'filename';
+            inputFilename.value = filename;
+
+            const inputExt = document.createElement('input');
+            inputExt.type = 'hidden';
+            inputExt.name = 'extension';
+            inputExt.value = ext;
+
+            form.appendChild(inputContent);
+            form.appendChild(inputFilename);
+            form.appendChild(inputExt);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            // Visual feedback on save button
+            const saveBtn = document.querySelector('.preview-save-btn');
+            if (saveBtn) {
+                const origHTML = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-check"></i> <span>Downloading...</span>';
+                saveBtn.style.borderColor = 'rgba(34, 197, 94, 0.6)';
+                saveBtn.style.color = '#4ade80';
+                setTimeout(() => {
+                    saveBtn.innerHTML = origHTML;
+                    saveBtn.style.borderColor = '';
+                    saveBtn.style.color = '';
+                }, 2000);
+            }
+
+            showToast('\ud83d\udcbe File "' + filename + '.' + ext + '" is downloading...', 'success');
         }
 
         function readFileAsBase64(file) {
