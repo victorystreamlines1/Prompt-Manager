@@ -1,1 +1,1 @@
-No, I want you to create a pathfinder in PHP where I can search under C to my specific path required and then I save it there to a specific project. 
+What is easier for the AI to understand? The normal image or the text version of HTML of the image? 

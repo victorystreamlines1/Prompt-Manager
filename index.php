@@ -51201,24 +51201,79 @@ in each section carefully and maintain proper connections between components.
             const textarea = document.getElementById('analyticsTextarea');
             if (!textarea) return;
             try {
-                const text = await navigator.clipboard.readText();
-                if (!text) {
-                    if (typeof showToast === 'function') showToast('Clipboard is empty', 'warning');
-                    return;
+                const clipboardItems = await navigator.clipboard.read();
+                let imageFound = false;
+
+                for (const item of clipboardItems) {
+                    // Check for image types
+                    const imageType = item.types.find(t => t.startsWith('image/'));
+                    if (imageType) {
+                        imageFound = true;
+                        const blob = await item.getType(imageType);
+                        const base64 = await blobToBase64(blob);
+                        const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
+
+                        textarea.focus();
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const before = textarea.value.substring(0, start);
+                        const after = textarea.value.substring(end);
+                        textarea.value = before + imgTag + after;
+                        const newPos = start + imgTag.length;
+                        textarea.selectionStart = textarea.selectionEnd = newPos;
+                        onAnalyticsChange();
+                        showToast('🖼️ Image pasted as HTML <img> tag', 'success');
+                        break;
+                    }
                 }
-                textarea.focus();
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const before = textarea.value.substring(0, start);
-                const after = textarea.value.substring(end);
-                textarea.value = before + text + after;
-                const newPos = start + text.length;
-                textarea.selectionStart = textarea.selectionEnd = newPos;
-                onAnalyticsChange();
-                if (typeof showToast === 'function') showToast('Pasted from clipboard', 'success');
+
+                // No image found — paste as plain text
+                if (!imageFound) {
+                    const text = await navigator.clipboard.readText();
+                    if (!text) {
+                        showToast('Clipboard is empty', 'warning');
+                        return;
+                    }
+                    textarea.focus();
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const before = textarea.value.substring(0, start);
+                    const after = textarea.value.substring(end);
+                    textarea.value = before + text + after;
+                    const newPos = start + text.length;
+                    textarea.selectionStart = textarea.selectionEnd = newPos;
+                    onAnalyticsChange();
+                    showToast('Pasted from clipboard', 'success');
+                }
             } catch (err) {
-                if (typeof showToast === 'function') showToast('Clipboard access denied', 'error');
+                // Fallback: try plain text if clipboard.read() fails
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        textarea.focus();
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const before = textarea.value.substring(0, start);
+                        const after = textarea.value.substring(end);
+                        textarea.value = before + text + after;
+                        const newPos = start + text.length;
+                        textarea.selectionStart = textarea.selectionEnd = newPos;
+                        onAnalyticsChange();
+                        showToast('Pasted from clipboard', 'success');
+                    }
+                } catch (e) {
+                    showToast('Clipboard access denied', 'error');
+                }
             }
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
         }
 
         function clearAnalyticsContent() {
@@ -52049,12 +52104,50 @@ in each section carefully and maintain proper connections between components.
             }
         }
 
-        // Initialize analytics search + regex + resize on page load
+        // Initialize analytics search + regex + resize + image paste on page load
         document.addEventListener('DOMContentLoaded', function() {
             initAnalyticsSearch();
             initAnalyticsRegex();
             initAnalyticsResize();
+            initAnalyticsImagePaste();
         });
+
+        function initAnalyticsImagePaste() {
+            const textarea = document.getElementById('analyticsTextarea');
+            if (!textarea) return;
+
+            textarea.addEventListener('paste', function(e) {
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.startsWith('image/')) {
+                        e.preventDefault();
+                        const blob = items[i].getAsFile();
+                        if (!blob) return;
+
+                        const reader = new FileReader();
+                        reader.onloadend = function() {
+                            const base64 = reader.result;
+                            const imgTag = '<img src="' + base64 + '" alt="pasted image" style="max-width:100%; height:auto;" />';
+
+                            const start = textarea.selectionStart;
+                            const end = textarea.selectionEnd;
+                            const before = textarea.value.substring(0, start);
+                            const after = textarea.value.substring(end);
+                            textarea.value = before + imgTag + after;
+                            const newPos = start + imgTag.length;
+                            textarea.selectionStart = textarea.selectionEnd = newPos;
+                            onAnalyticsChange();
+                            showToast('🖼️ Image pasted as HTML <img> tag', 'success');
+                        };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                }
+                // If no image found, let the default paste behavior handle text
+            });
+        }
 
 
         // ============================================
