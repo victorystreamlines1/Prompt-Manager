@@ -30357,6 +30357,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="file" 
                                            id="notesFilePicker" 
                                            multiple 
+                                           accept=".txt,.md,.html,.css,.js,.ts,.json,.xml,.csv,.yml,.yaml,.php,.py,.java,.c,.cpp,.h,.rb,.go,.rs,.sql,.sh,.bat,.ps1,.env,.ini,.cfg,.conf,.log,.jsx,.tsx,.vue,.svelte,.scss,.sass,.less,.toml,.lock,.gitignore,.editorconfig,.htaccess,.map"
                                            onchange="onNotesFileSelect()" 
                                            style="display: none;">
                                     <button type="button" 
@@ -51482,27 +51483,44 @@ let notesSelectedFiles = [];
 
 function onNotesFileSelect() {
     const input = document.getElementById('notesFilePicker');
-    const container = document.getElementById('notesSelectedFiles');
     const pushBtn = document.getElementById('notesPushBtn');
     
     if (!input || !input.files || input.files.length === 0) return;
     
-    // Add new files to the selection (avoid duplicates)
+    const MAX_FILE_SIZE = 512 * 1024; // 512 KB per file
+    const BINARY_EXTENSIONS = ['png','jpg','jpeg','gif','bmp','webp','ico','svg','mp3','mp4','avi','mov','mkv','zip','rar','7z','tar','gz','exe','dll','bin','pdf','doc','docx','xls','xlsx','ppt','pptx','woff','woff2','ttf','eot','class','pyc','o','so'];
+    let skipped = 0;
+    
     Array.from(input.files).forEach(file => {
-        if (!notesSelectedFiles.some(f => f.name === file.name)) {
-            notesSelectedFiles.push(file);
+        // Skip duplicates
+        if (notesSelectedFiles.some(f => f.name === file.name && f.size === file.size)) return;
+        
+        // Skip binary files
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (BINARY_EXTENSIONS.includes(ext)) {
+            skipped++;
+            return;
         }
+        
+        // Skip files that are too large
+        if (file.size > MAX_FILE_SIZE) {
+            showToast(`⚠️ "${file.name}" skipped (>${Math.round(MAX_FILE_SIZE/1024)}KB)`, 'warning');
+            return;
+        }
+        
+        notesSelectedFiles.push(file);
     });
     
-    // Update display
+    if (skipped > 0) {
+        showToast(`⚠️ ${skipped} binary file(s) skipped – only text files are supported`, 'warning');
+    }
+    
     renderNotesSelectedFiles();
     
-    // Show push button if files selected
     if (pushBtn) {
         pushBtn.style.display = notesSelectedFiles.length > 0 ? 'flex' : 'none';
     }
     
-    // Reset input so same files can be selected again
     input.value = '';
 }
 
@@ -51534,52 +51552,67 @@ function removeNotesFile(index) {
     }
 }
 
-function pushFileContentsToNotes() {
+async function pushFileContentsToNotes() {
     if (notesSelectedFiles.length === 0) return;
     
     const textarea = document.getElementById('projectNotesTextarea');
+    const pushBtn = document.getElementById('notesPushBtn');
     if (!textarea) return;
     
-    const files = [...notesSelectedFiles];
-    let completed = 0;
-    let errors = 0;
-    const results = new Array(files.length);
+    // Show loading state
+    if (pushBtn) {
+        pushBtn.disabled = true;
+        pushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
     
-    files.forEach((file, idx) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+    const files = [...notesSelectedFiles];
+    const results = [];
+    let errors = 0;
+    
+    // Read files sequentially to avoid freezing
+    for (const file of files) {
+        try {
+            const text = await readFileAsText(file);
             const size = file.size < 1024 ? file.size + ' B' : (file.size / 1024).toFixed(1) + ' KB';
-            results[idx] = `── 📄 ${file.name} (${size}) ──\n${e.target.result}`;
-            completed++;
-            if (completed + errors === files.length) finishImport();
-        };
-        reader.onerror = function() {
-            results[idx] = `── ❌ ${file.name} (read error) ──`;
+            results.push(`── 📄 ${file.name} (${size}) ──\n${text}`);
+        } catch (err) {
+            results.push(`── ❌ ${file.name} (read error) ──`);
             errors++;
-            if (completed + errors === files.length) finishImport();
-        };
+        }
+    }
+    
+    // Insert into textarea
+    const content = results.join('\n\n');
+    if (textarea.value.trim()) {
+        textarea.value = textarea.value.trimEnd() + '\n\n' + content;
+    } else {
+        textarea.value = content;
+    }
+    saveProjectNotesToStorage();
+    
+    const imported = files.length - errors;
+    const msg = errors > 0
+        ? `📄 Imported ${imported} file(s), ${errors} failed`
+        : `📄 Imported ${imported} file content${imported > 1 ? 's' : ''} into notes`;
+    showToast(msg, errors > 0 ? 'warning' : 'success');
+    
+    // Reset
+    notesSelectedFiles = [];
+    renderNotesSelectedFiles();
+    if (pushBtn) {
+        pushBtn.style.display = 'none';
+        pushBtn.disabled = false;
+        pushBtn.innerHTML = '<i class="fas fa-file-import"></i>';
+    }
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
         reader.readAsText(file);
     });
-    
-    function finishImport() {
-        const content = results.filter(Boolean).join('\n\n');
-        if (textarea.value.trim()) {
-            textarea.value = textarea.value.trimEnd() + '\n\n' + content;
-        } else {
-            textarea.value = content;
-        }
-        saveProjectNotesToStorage();
-        
-        const msg = errors > 0
-            ? `📄 Imported ${completed} file(s), ${errors} failed`
-            : `📄 Imported ${completed} file content${completed > 1 ? 's' : ''} into notes`;
-        showToast(msg, errors > 0 ? 'warning' : 'success');
-        
-        notesSelectedFiles = [];
-        renderNotesSelectedFiles();
-        const pushBtn = document.getElementById('notesPushBtn');
-        if (pushBtn) pushBtn.style.display = 'none';
-    }
 }
 
 // Push Project Prompts content to Main Prompt Editor

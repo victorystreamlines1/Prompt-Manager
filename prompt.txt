@@ -1,1 +1,1 @@
-There are two duplicate buttons. Remove the arrow next to the file picker in the middle completely. No need for it because we already have the editor button that sends to the prompt editor. 
+Now I want to find the file picker or fix it. The file picker in project prompts is not working. Whenever I upload a file or a set of files, it freezes out and never does anything. and then the JavaScript gives me a notification saying wait or exit page so there is a problem with your code also whenever it works it should show me a down arrow to send the files to the project prompts 
