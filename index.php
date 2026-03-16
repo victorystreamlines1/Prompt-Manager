@@ -30365,17 +30365,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             title="Select files">
                                         <i class="fas fa-file-medical"></i>
                                     </button>
-                                    <button type="button" class="notes-push-arrow" onclick="pushNotesToPrompt()" title="Push to Prompt Editor">
-                                        <i class="fas fa-arrow-down"></i>
-                                    </button>
                                     <div class="notes-selected-files" id="notesSelectedFiles"></div>
                                     <button type="button" 
                                             class="notes-push-btn" 
                                             id="notesPushBtn"
-                                            onclick="pushFileNamesToNotes()" 
-                                            title="Push file names to notes"
+                                            onclick="pushFileContentsToNotes()" 
+                                            title="Import file contents into Project Prompts"
                                             style="display: none;">
-                                        <i class="fas fa-arrow-down"></i>
+                                        <i class="fas fa-file-import"></i>
                                     </button>
                                 </div>
                                 
@@ -51537,35 +51534,52 @@ function removeNotesFile(index) {
     }
 }
 
-function pushFileNamesToNotes() {
+function pushFileContentsToNotes() {
     if (notesSelectedFiles.length === 0) return;
     
     const textarea = document.getElementById('projectNotesTextarea');
     if (!textarea) return;
     
-    // Build file names as numbered list
-    const fileNames = notesSelectedFiles.map((f, i) => `${i + 1}. ${f.name}`);
-    const fileNamesText = '📎 Files:\n' + fileNames.join('\n');
+    const files = [...notesSelectedFiles];
+    let completed = 0;
+    let errors = 0;
+    const results = new Array(files.length);
     
-    // Append to textarea
-    if (textarea.value.trim()) {
-        textarea.value = textarea.value.trimEnd() + '\n\n' + fileNamesText;
-    } else {
-        textarea.value = fileNamesText;
+    files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const size = file.size < 1024 ? file.size + ' B' : (file.size / 1024).toFixed(1) + ' KB';
+            results[idx] = `── 📄 ${file.name} (${size}) ──\n${e.target.result}`;
+            completed++;
+            if (completed + errors === files.length) finishImport();
+        };
+        reader.onerror = function() {
+            results[idx] = `── ❌ ${file.name} (read error) ──`;
+            errors++;
+            if (completed + errors === files.length) finishImport();
+        };
+        reader.readAsText(file);
+    });
+    
+    function finishImport() {
+        const content = results.filter(Boolean).join('\n\n');
+        if (textarea.value.trim()) {
+            textarea.value = textarea.value.trimEnd() + '\n\n' + content;
+        } else {
+            textarea.value = content;
+        }
+        saveProjectNotesToStorage();
+        
+        const msg = errors > 0
+            ? `📄 Imported ${completed} file(s), ${errors} failed`
+            : `📄 Imported ${completed} file content${completed > 1 ? 's' : ''} into notes`;
+        showToast(msg, errors > 0 ? 'warning' : 'success');
+        
+        notesSelectedFiles = [];
+        renderNotesSelectedFiles();
+        const pushBtn = document.getElementById('notesPushBtn');
+        if (pushBtn) pushBtn.style.display = 'none';
     }
-    
-    // Save and clear selection
-    saveProjectNotesToStorage();
-    
-    // Show toast
-    showToast(`📎 Added ${fileNames.length} file name${fileNames.length > 1 ? 's' : ''} to notes`, 'success');
-    
-    // Clear selection
-    notesSelectedFiles = [];
-    renderNotesSelectedFiles();
-    
-    const pushBtn = document.getElementById('notesPushBtn');
-    if (pushBtn) pushBtn.style.display = 'none';
 }
 
 // Push Project Prompts content to Main Prompt Editor
