@@ -22955,54 +22955,237 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
         }
 
-        /* Save To Panel */
+        /* Save To Panel - Pathfinder */
         .preview-saveto-panel {
-            padding: 0.55rem 1rem;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(217, 119, 6, 0.03) 100%);
-            border-top: 1px solid rgba(245, 158, 11, 0.15);
+            padding: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 15, 30, 0.98) 100%);
+            border-top: 1px solid rgba(245, 158, 11, 0.2);
             border-radius: 0 0 16px 16px;
-            animation: saveToSlideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: saveToSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            max-height: 420px;
         }
 
         @keyframes saveToSlideDown {
-            from { opacity: 0; transform: translateY(-6px); max-height: 0; }
-            to { opacity: 1; transform: translateY(0); max-height: 80px; }
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 420px; }
         }
 
-        .saveto-panel-row {
+        /* Pathfinder Header */
+        .pathfinder-header {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            background: rgba(245, 158, 11, 0.06);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.1);
         }
 
-        .saveto-panel-icon {
-            color: #fbbf24;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-            opacity: 0.8;
-        }
-
-        .saveto-path-input {
+        .pathfinder-search {
             flex: 1;
-            padding: 0.4rem 0.65rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 0.38rem 0.6rem;
+            padding-left: 1.8rem;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(245, 158, 11, 0.25);
             border-radius: 8px;
             color: #fde68a;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             outline: none;
             transition: all 0.2s ease;
         }
 
-        .saveto-path-input:focus {
-            border-color: rgba(245, 158, 11, 0.6);
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.12);
+        .pathfinder-search:focus {
+            border-color: rgba(245, 158, 11, 0.55);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.1);
         }
 
-        .saveto-path-input::placeholder {
-            color: rgba(251, 191, 36, 0.35);
+        .pathfinder-search::placeholder {
+            color: rgba(251, 191, 36, 0.3);
+        }
+
+        .pathfinder-search-wrap {
+            position: relative;
+            flex: 1;
+        }
+
+        .pathfinder-search-wrap i {
+            position: absolute;
+            left: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(251, 191, 36, 0.4);
+            font-size: 0.65rem;
+            pointer-events: none;
+        }
+
+        /* Breadcrumbs */
+        .pathfinder-breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(245, 158, 11, 0.04);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.08);
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            scrollbar-width: none;
+        }
+
+        .pathfinder-breadcrumbs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .pathfinder-crumb {
+            padding: 0.18rem 0.45rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 5px;
+            color: #fcd34d;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .pathfinder-crumb:hover {
+            background: rgba(245, 158, 11, 0.22);
+            border-color: rgba(245, 158, 11, 0.45);
+            color: #fde68a;
+        }
+
+        .pathfinder-crumb-sep {
+            color: rgba(251, 191, 36, 0.25);
+            font-size: 0.55rem;
+            flex-shrink: 0;
+        }
+
+        /* Directory List */
+        .pathfinder-dirs {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 0.3rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(245, 158, 11, 0.2) transparent;
+        }
+
+        .pathfinder-dirs::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .pathfinder-dirs::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .pathfinder-dirs::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.2);
+            border-radius: 3px;
+        }
+
+        .pathfinder-dir-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            border: 1px solid transparent;
+        }
+
+        .pathfinder-dir-item:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .pathfinder-dir-item.selected {
+            background: rgba(245, 158, 11, 0.18);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.08);
+        }
+
+        .pathfinder-dir-icon {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .pathfinder-dir-icon.locked {
+            color: rgba(239, 68, 68, 0.6);
+        }
+
+        .pathfinder-dir-name {
+            flex: 1;
+            font-size: 0.72rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pathfinder-dir-badge {
+            font-size: 0.55rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .pathfinder-dir-badge.writable {
+            background: rgba(34, 197, 94, 0.15);
+            color: rgba(34, 197, 94, 0.7);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .pathfinder-dir-badge.readonly {
+            background: rgba(239, 68, 68, 0.12);
+            color: rgba(239, 68, 68, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+        }
+
+        .pathfinder-dir-enter {
+            color: rgba(245, 158, 11, 0.3);
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .pathfinder-dir-item:hover .pathfinder-dir-enter {
+            color: rgba(245, 158, 11, 0.7);
+            transform: translateX(2px);
+        }
+
+        /* Pathfinder Footer */
+        .pathfinder-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.8rem;
+            background: rgba(245, 158, 11, 0.04);
+            border-top: 1px solid rgba(245, 158, 11, 0.12);
+        }
+
+        .pathfinder-selected-path {
+            flex: 1;
+            padding: 0.35rem 0.55rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: 7px;
+            color: #fde68a;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .pathfinder-selected-path:focus {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.08);
         }
 
         .saveto-confirm-btn {
@@ -23034,21 +23217,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(0);
         }
 
+        .saveto-confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .saveto-confirm-btn i {
             font-size: 0.68rem;
         }
 
-        .saveto-panel-hint {
-            margin-top: 0.35rem;
-            font-size: 0.62rem;
-            color: rgba(251, 191, 36, 0.4);
+        /* Pathfinder Loading */
+        .pathfinder-loading {
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 2rem;
+            color: rgba(251, 191, 36, 0.5);
+            font-size: 0.75rem;
         }
 
-        .saveto-panel-hint i {
-            font-size: 0.58rem;
+        .pathfinder-loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pathfinder Empty State */
+        .pathfinder-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: rgba(251, 191, 36, 0.35);
+            font-size: 0.72rem;
+            gap: 0.4rem;
+        }
+
+        .pathfinder-empty i {
+            font-size: 1.2rem;
+            opacity: 0.5;
+        }
+
+        /* Pathfinder count */
+        .pathfinder-count {
+            font-size: 0.6rem;
+            color: rgba(251, 191, 36, 0.35);
+            padding: 0 0.8rem 0.3rem;
         }
 
         .preview-empty-state {
@@ -51343,15 +51563,22 @@ in each section carefully and maintain proper connections between components.
                     '</button>' +
                 '</div>' +
                 '<div class="preview-saveto-panel" id="previewSaveToPanel" style="display:none;">' +
-                    '<div class="saveto-panel-row">' +
-                        '<i class="fas fa-folder-open saveto-panel-icon"></i>' +
-                        '<input type="text" id="previewSavePath" class="saveto-path-input" placeholder="e.g. C:\\Users\\YourName\\Desktop" spellcheck="false" />' +
+                    '<div class="pathfinder-header">' +
+                        '<div class="pathfinder-search-wrap">' +
+                            '<i class="fas fa-search"></i>' +
+                            '<input type="text" class="pathfinder-search" id="pathfinderSearch" placeholder="Search folders..." spellcheck="false" oninput="pathfinderSearchDebounced(this.value)" />' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="pathfinder-breadcrumbs" id="pathfinderBreadcrumbs"></div>' +
+                    '<div class="pathfinder-dirs" id="pathfinderDirs">' +
+                        '<div class="pathfinder-loading"><i class="fas fa-spinner"></i> Loading directories...</div>' +
+                    '</div>' +
+                    '<div class="pathfinder-count" id="pathfinderCount"></div>' +
+                    '<div class="pathfinder-footer">' +
+                        '<input type="text" class="pathfinder-selected-path" id="previewSavePath" placeholder="Selected path..." spellcheck="false" />' +
                         '<button class="saveto-confirm-btn" onclick="savePreviewFileTo()" title="Save to this folder">' +
                             '<i class="fas fa-save"></i> Save Here' +
                         '</button>' +
-                    '</div>' +
-                    '<div class="saveto-panel-hint">' +
-                        '<i class="fas fa-info-circle"></i> Enter the full folder path where you want to save the file' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -51453,6 +51680,11 @@ in each section carefully and maintain proper connections between components.
             showToast('\ud83d\udcbe File "' + filename + '.' + ext + '" is downloading...', 'success');
         }
 
+        // ── Pathfinder State ──
+        let pathfinderCurrentPath = 'C:\\';
+        let pathfinderSearchTimer = null;
+        let pathfinderSelectedDir = '';
+
         function toggleSaveToPanel() {
             const panel = document.getElementById('previewSaveToPanel');
             const btn = document.querySelector('.preview-saveto-btn');
@@ -51461,14 +51693,147 @@ in each section carefully and maintain proper connections between components.
             if (panel.style.display === 'none') {
                 panel.style.display = 'block';
                 if (btn) btn.classList.add('active');
-                // Restore last used path from localStorage
-                const lastPath = localStorage.getItem('previewSaveToPath') || '';
+                // Restore last path
+                const lastPath = localStorage.getItem('previewSaveToPath') || 'C:\\';
+                pathfinderCurrentPath = lastPath;
                 const pathInput = document.getElementById('previewSavePath');
-                if (pathInput && lastPath) pathInput.value = lastPath;
-                if (pathInput) setTimeout(() => pathInput.focus(), 100);
+                if (pathInput) pathInput.value = lastPath;
+                pathfinderBrowse(lastPath);
             } else {
                 panel.style.display = 'none';
                 if (btn) btn.classList.remove('active');
+            }
+        }
+
+        async function pathfinderBrowse(dirPath) {
+            const dirsContainer = document.getElementById('pathfinderDirs');
+            const breadcrumbsContainer = document.getElementById('pathfinderBreadcrumbs');
+            const countEl = document.getElementById('pathfinderCount');
+            const pathInput = document.getElementById('previewSavePath');
+
+            if (!dirsContainer) return;
+
+            // Show loading
+            dirsContainer.innerHTML = '<div class="pathfinder-loading"><i class="fas fa-spinner"></i> Loading...</div>';
+
+            try {
+                const resp = await fetch('pathfinder.php?action=list&path=' + encodeURIComponent(dirPath));
+                const data = await resp.json();
+
+                if (!data.success) {
+                    dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-exclamation-triangle"></i><span>' + (data.error || 'Cannot access directory') + '</span></div>';
+                    return;
+                }
+
+                pathfinderCurrentPath = data.path;
+                if (pathInput) pathInput.value = data.path;
+                localStorage.setItem('previewSaveToPath', data.path);
+
+                // Render breadcrumbs
+                if (breadcrumbsContainer) {
+                    let crumbsHTML = '';
+                    data.breadcrumbs.forEach((crumb, i) => {
+                        if (i > 0) crumbsHTML += '<span class="pathfinder-crumb-sep"><i class="fas fa-chevron-right"></i></span>';
+                        crumbsHTML += '<span class="pathfinder-crumb" onclick="pathfinderBrowse(\'' + crumb.path.replace(/\\/g, '\\\\') + '\')" title="' + crumb.path + '">' + crumb.name + '</span>';
+                    });
+                    breadcrumbsContainer.innerHTML = crumbsHTML;
+                    // Auto-scroll to end
+                    breadcrumbsContainer.scrollLeft = breadcrumbsContainer.scrollWidth;
+                }
+
+                // Render directories
+                if (data.directories.length === 0) {
+                    dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-folder-open"></i><span>No subdirectories</span></div>';
+                } else {
+                    let html = '';
+                    data.directories.forEach(dir => {
+                        const iconClass = dir.readable ? '' : ' locked';
+                        const badgeClass = dir.writable ? 'writable' : 'readonly';
+                        const badgeText = dir.writable ? 'writable' : 'read-only';
+                        const escapedPath = dir.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        html += '<div class="pathfinder-dir-item" ondblclick="pathfinderBrowse(\'' + escapedPath + '\')" onclick="pathfinderSelectDir(this, \'' + escapedPath + '\')" title="Double-click to open, single-click to select">' +
+                            '<i class="fas fa-folder pathfinder-dir-icon' + iconClass + '"></i>' +
+                            '<span class="pathfinder-dir-name">' + dir.name + '</span>' +
+                            '<span class="pathfinder-dir-badge ' + badgeClass + '">' + badgeText + '</span>' +
+                            '<i class="fas fa-chevron-right pathfinder-dir-enter"></i>' +
+                        '</div>';
+                    });
+                    dirsContainer.innerHTML = html;
+                }
+
+                // Count
+                if (countEl) {
+                    countEl.textContent = data.count + ' folder' + (data.count !== 1 ? 's' : '');
+                }
+
+                // Clear search
+                const searchInput = document.getElementById('pathfinderSearch');
+                if (searchInput) searchInput.value = '';
+
+            } catch (err) {
+                dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-exclamation-circle"></i><span>Network error: ' + err.message + '</span></div>';
+            }
+        }
+
+        function pathfinderSelectDir(el, dirPath) {
+            // Remove previous selection
+            document.querySelectorAll('.pathfinder-dir-item.selected').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+            pathfinderSelectedDir = dirPath;
+            const pathInput = document.getElementById('previewSavePath');
+            if (pathInput) pathInput.value = dirPath;
+        }
+
+        function pathfinderSearchDebounced(query) {
+            clearTimeout(pathfinderSearchTimer);
+            if (!query || query.length < 2) {
+                // Reset to current directory view
+                pathfinderBrowse(pathfinderCurrentPath);
+                return;
+            }
+            pathfinderSearchTimer = setTimeout(() => pathfinderSearch(query), 350);
+        }
+
+        async function pathfinderSearch(query) {
+            const dirsContainer = document.getElementById('pathfinderDirs');
+            const countEl = document.getElementById('pathfinderCount');
+            if (!dirsContainer) return;
+
+            dirsContainer.innerHTML = '<div class="pathfinder-loading"><i class="fas fa-spinner"></i> Searching...</div>';
+
+            try {
+                const resp = await fetch('pathfinder.php?action=search&query=' + encodeURIComponent(query) + '&base=' + encodeURIComponent(pathfinderCurrentPath));
+                const data = await resp.json();
+
+                if (!data.success) {
+                    dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-exclamation-triangle"></i><span>' + (data.error || 'Search failed') + '</span></div>';
+                    return;
+                }
+
+                if (data.results.length === 0) {
+                    dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-search"></i><span>No folders matching "' + query + '"</span></div>';
+                } else {
+                    let html = '';
+                    data.results.forEach(dir => {
+                        const badgeClass = dir.writable ? 'writable' : 'readonly';
+                        const badgeText = dir.writable ? 'writable' : 'read-only';
+                        const escapedPath = dir.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        html += '<div class="pathfinder-dir-item" ondblclick="pathfinderBrowse(\'' + escapedPath + '\')" onclick="pathfinderSelectDir(this, \'' + escapedPath + '\')">' +
+                            '<i class="fas fa-folder pathfinder-dir-icon"></i>' +
+                            '<span class="pathfinder-dir-name">' + dir.name + ' <span style="opacity:0.4;font-size:0.6rem;">(' + dir.path + ')</span></span>' +
+                            '<span class="pathfinder-dir-badge ' + badgeClass + '">' + badgeText + '</span>' +
+                            '<i class="fas fa-chevron-right pathfinder-dir-enter"></i>' +
+                        '</div>';
+                    });
+                    dirsContainer.innerHTML = html;
+                }
+
+                if (countEl) {
+                    countEl.textContent = data.count + ' result' + (data.count !== 1 ? 's' : '') + ' for "' + query + '"';
+                }
+
+            } catch (err) {
+                dirsContainer.innerHTML = '<div class="pathfinder-empty"><i class="fas fa-exclamation-circle"></i><span>Search error: ' + err.message + '</span></div>';
             }
         }
 
@@ -51493,7 +51858,7 @@ in each section carefully and maintain proper connections between components.
             const dirPath = pathInput ? pathInput.value.trim() : '';
 
             if (!dirPath) {
-                showToast('\u26a0\ufe0f Please enter a folder path', 'warning');
+                showToast('\u26a0\ufe0f Please select or enter a folder path', 'warning');
                 if (pathInput) pathInput.focus();
                 return;
             }
@@ -51504,7 +51869,7 @@ in each section carefully and maintain proper connections between components.
                 fileContent = '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>' + filename + '</title>\n    <style>\n        body { margin: 16px; font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #222; line-height: 1.6; }\n        img { max-width: 100%; height: auto; display: block; margin: 8px 0; border-radius: 8px; }\n    </style>\n</head>\n<body>\n' + content + '\n</body>\n</html>';
             }
 
-            // Save path to localStorage for next time
+            // Save path to localStorage
             localStorage.setItem('previewSaveToPath', dirPath);
 
             const confirmBtn = document.querySelector('.saveto-confirm-btn');
