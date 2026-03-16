@@ -22544,6 +22544,411 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(220, 38, 38, 0.2) 100%);
         }
 
+        /* ═══ Analytics Convert Button ═══ */
+        .analytics-convert-btn {
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0 0.5rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 6px;
+            color: rgba(196, 167, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.6rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analytics-convert-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .analytics-convert-btn:hover::before {
+            left: 100%;
+        }
+
+        .analytics-convert-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.32) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.6);
+            color: #d8b4fe;
+            transform: scale(1.05);
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.25), 0 0 4px rgba(139, 92, 246, 0.15);
+        }
+
+        .analytics-convert-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.4) 0%, rgba(139, 92, 246, 0.25) 100%);
+        }
+
+        .analytics-convert-btn i {
+            font-size: 0.6rem;
+        }
+
+        .analytics-convert-btn span {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+        }
+
+        /* ═══ Analytics Preview Button ═══ */
+        .analytics-preview-btn {
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0 0.5rem;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(13, 148, 136, 0.1) 100%);
+            border: 1px solid rgba(20, 184, 166, 0.35);
+            border-radius: 6px;
+            color: rgba(153, 246, 228, 0.9);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.6rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analytics-preview-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(20, 184, 166, 0.15), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .analytics-preview-btn:hover::before {
+            left: 100%;
+        }
+
+        .analytics-preview-btn:hover {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.32) 0%, rgba(13, 148, 136, 0.2) 100%);
+            border-color: rgba(20, 184, 166, 0.6);
+            color: #5eead4;
+            transform: scale(1.05);
+            box-shadow: 0 0 14px rgba(20, 184, 166, 0.25), 0 0 4px rgba(13, 148, 136, 0.15);
+        }
+
+        .analytics-preview-btn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.4) 0%, rgba(13, 148, 136, 0.25) 100%);
+        }
+
+        .analytics-preview-btn i {
+            font-size: 0.6rem;
+        }
+
+        .analytics-preview-btn span {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+        }
+
+        /* ═══ Analytics Preview Iframe Modal ═══ */
+        .preview-iframe-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .preview-iframe-modal {
+            width: 90vw;
+            height: 85vh;
+            max-width: 1200px;
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(20, 184, 166, 0.1);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .preview-iframe-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(13, 148, 136, 0.06) 100%);
+            border-bottom: 1px solid rgba(20, 184, 166, 0.2);
+        }
+
+        .preview-iframe-header h3 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #99f6e4;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preview-iframe-header h3 i {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .preview-iframe-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .preview-action-btn {
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(13, 148, 136, 0.08) 100%);
+            color: #99f6e4;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .preview-action-btn:hover {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.3) 0%, rgba(13, 148, 136, 0.18) 100%);
+            border-color: rgba(20, 184, 166, 0.5);
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .preview-action-btn.close-btn {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            color: #fca5a5;
+        }
+
+        .preview-action-btn.close-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .preview-iframe-body {
+            flex: 1;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .preview-iframe-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .preview-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: rgba(153, 246, 228, 0.5);
+            gap: 1rem;
+        }
+
+        .preview-empty-state i {
+            font-size: 3rem;
+            opacity: 0.4;
+        }
+
+        .preview-empty-state span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* ═══ Convert Output Modal ═══ */
+        .convert-output-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: convertOverlayIn 0.25s ease;
+        }
+
+        @keyframes convertOverlayIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .convert-output-modal {
+            background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(168, 85, 247, 0.1);
+            animation: convertModalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes convertModalIn {
+            from { transform: scale(0.9) translateY(20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .convert-output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        .convert-output-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d8b4fe, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .convert-output-header h3 i {
+            -webkit-text-fill-color: #a78bfa;
+        }
+
+        .convert-output-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .convert-action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+            color: #d8b4fe;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .convert-action-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(139, 92, 246, 0.18) 100%);
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .convert-action-btn.push-btn {
+            border-color: rgba(6, 182, 212, 0.3);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
+            color: #67e8f9;
+        }
+
+        .convert-action-btn.push-btn:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(8, 145, 178, 0.18) 100%);
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.25);
+        }
+
+        .convert-action-btn.close-btn {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            color: #fca5a5;
+        }
+
+        .convert-action-btn.close-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .convert-output-body {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+        }
+
+        .convert-output-body textarea {
+            width: 100%;
+            min-height: 300px;
+            max-height: 60vh;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 10px;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            padding: 1rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .convert-output-body textarea:focus {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+
+        .convert-image-count {
+            font-size: 0.7rem;
+            color: rgba(168, 85, 247, 0.7);
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+
         /* ═══ Analytics Search Bar ═══ */
         .analytics-search-bar {
             display: flex;
@@ -30949,6 +31354,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 title="Clear uploaded images"
                                 style="display: none;">
                             <i class="fas fa-times"></i>
+                        </button>
+                        <button type="button" 
+                                class="analytics-convert-btn" 
+                                id="analyticsConvertBtn"
+                                onclick="convertImagesToHTML()" 
+                                title="Convert images to HTML &lt;img&gt; tags"
+                                style="display: none;">
+                            <i class="fas fa-code"></i>
+                            <span>Convert</span>
+                        </button>
+                        <button type="button" 
+                                class="analytics-preview-btn" 
+                                id="analyticsPreviewBtn"
+                                onclick="previewAnalyticsInIframe()" 
+                                title="Preview Analytics content in iframe">
+                            <i class="fas fa-eye"></i>
+                            <span>Preview</span>
                         </button>
                     </div>
 
@@ -50383,11 +50805,15 @@ in each section carefully and maintain proper connections between components.
             renderAnalyticsSelectedFiles();
 
             const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            const convertBtn = document.getElementById('analyticsConvertBtn');
             if (pushBtn) {
                 pushBtn.style.display = analyticsSelectedFiles.length > 0 ? 'flex' : 'none';
             }
             if (clearBtn) {
                 clearBtn.style.display = analyticsSelectedFiles.length > 0 ? 'flex' : 'none';
+            }
+            if (convertBtn) {
+                convertBtn.style.display = analyticsSelectedFiles.length > 0 ? 'flex' : 'none';
             }
 
             input.value = '';
@@ -50418,8 +50844,10 @@ in each section carefully and maintain proper connections between components.
             const hasFiles = analyticsSelectedFiles.length > 0;
             const pushBtn = document.getElementById('analyticsPushBtn');
             const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            const convertBtn = document.getElementById('analyticsConvertBtn');
             if (pushBtn) pushBtn.style.display = hasFiles ? 'flex' : 'none';
             if (clearBtn) clearBtn.style.display = hasFiles ? 'flex' : 'none';
+            if (convertBtn) convertBtn.style.display = hasFiles ? 'flex' : 'none';
         }
 
         function clearAnalyticsFiles() {
@@ -50428,12 +50856,219 @@ in each section carefully and maintain proper connections between components.
 
             const pushBtn = document.getElementById('analyticsPushBtn');
             const clearBtn = document.getElementById('analyticsClearFilesBtn');
+            const convertBtn = document.getElementById('analyticsConvertBtn');
             const fileInput = document.getElementById('analyticsFilePicker');
             if (pushBtn) pushBtn.style.display = 'none';
             if (clearBtn) clearBtn.style.display = 'none';
+            if (convertBtn) convertBtn.style.display = 'none';
             if (fileInput) fileInput.value = '';
 
             showToast('🗑️ Uploaded images cleared', 'info');
+        }
+
+        async function convertImagesToHTML() {
+            if (analyticsSelectedFiles.length === 0) {
+                showToast('⚠️ No images selected to convert', 'warning');
+                return;
+            }
+
+            const convertBtn = document.getElementById('analyticsConvertBtn');
+            if (convertBtn) {
+                convertBtn.disabled = true;
+                convertBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>...</span>';
+            }
+
+            try {
+                const imgTags = [];
+
+                for (const file of analyticsSelectedFiles) {
+                    try {
+                        const base64Data = await readFileAsBase64(file);
+                        imgTags.push(`<img src="${base64Data}">`);
+                    } catch (err) {
+                        imgTags.push(`<!-- Error reading: could not convert image -->`);
+                    }
+                }
+
+                const output = imgTags.join('\n<br>\n');
+
+                // Create modal overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'convert-output-overlay';
+                overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+                overlay.innerHTML = `
+                    <div class="convert-output-modal">
+                        <div class="convert-output-header">
+                            <h3><i class="fas fa-code"></i> Converted HTML</h3>
+                            <div class="convert-output-actions">
+                                <button class="convert-action-btn" onclick="copyConvertOutput(this)" title="Copy to clipboard">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                                <button class="convert-action-btn push-btn" onclick="pushConvertToAnalytics(this)" title="Push to Analytics textarea">
+                                    <i class="fas fa-arrow-down"></i> Push
+                                </button>
+                                <button class="convert-action-btn close-btn" onclick="this.closest('.convert-output-overlay').remove()" title="Close">
+                                    <i class="fas fa-times"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                        <div class="convert-output-body">
+                            <textarea readonly spellcheck="false">${escapeHtml(output)}</textarea>
+                        </div>
+                        <div class="convert-image-count">${analyticsSelectedFiles.length} image${analyticsSelectedFiles.length > 1 ? 's' : ''} converted</div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                // Auto-select text in textarea for easy copy
+                const ta = overlay.querySelector('textarea');
+                if (ta) {
+                    ta.focus();
+                    ta.select();
+                }
+
+                showToast(`✅ ${analyticsSelectedFiles.length} image${analyticsSelectedFiles.length > 1 ? 's' : ''} converted to HTML`, 'success');
+
+            } catch (err) {
+                showToast('❌ Error converting images', 'error');
+            } finally {
+                if (convertBtn) {
+                    convertBtn.disabled = false;
+                    convertBtn.innerHTML = '<i class="fas fa-code"></i> <span>Convert</span>';
+                }
+            }
+        }
+
+        function copyConvertOutput(btn) {
+            const textarea = btn.closest('.convert-output-modal').querySelector('textarea');
+            if (!textarea) return;
+
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                btn.style.color = '#4ade80';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 1500);
+                showToast('📋 HTML copied to clipboard', 'success');
+            }).catch(() => {
+                textarea.select();
+                document.execCommand('copy');
+                showToast('📋 HTML copied to clipboard', 'success');
+            });
+        }
+
+        function pushConvertToAnalytics(btn) {
+            const textarea = btn.closest('.convert-output-modal').querySelector('textarea');
+            if (!textarea) return;
+
+            const analyticsTA = document.getElementById('analyticsTextarea');
+            if (!analyticsTA) return;
+
+            const htmlContent = textarea.value;
+            if (!htmlContent.trim()) {
+                showToast('⚠️ No HTML content to push', 'warning');
+                return;
+            }
+
+            if (analyticsTA.value.trim()) {
+                analyticsTA.value = analyticsTA.value.trimEnd() + '\n\n' + htmlContent;
+            } else {
+                analyticsTA.value = htmlContent;
+            }
+
+            // Save analytics state
+            if (typeof onAnalyticsChange === 'function') onAnalyticsChange();
+
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Pushed!';
+            btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+            btn.style.color = '#4ade80';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 1500);
+
+            showToast('🚀 HTML pushed to Analytics', 'success');
+
+            // Close the modal after a short delay
+            setTimeout(() => {
+                const overlay = btn.closest('.convert-output-overlay');
+                if (overlay) overlay.remove();
+            }, 800);
+        }
+
+        function previewAnalyticsInIframe() {
+            const analyticsTA = document.getElementById('analyticsTextarea');
+            if (!analyticsTA) {
+                showToast('\u26a0\ufe0f Analytics textarea not found', 'warning');
+                return;
+            }
+
+            const content = analyticsTA.value.trim();
+            if (!content) {
+                showToast('\u26a0\ufe0f Analytics content is empty \u2014 nothing to preview', 'warning');
+                return;
+            }
+
+            // Remove existing preview if any
+            const existing = document.querySelector('.preview-iframe-overlay');
+            if (existing) existing.remove();
+
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'preview-iframe-overlay';
+            overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+            overlay.innerHTML = '<div class="preview-iframe-modal">' +
+                '<div class="preview-iframe-header">' +
+                    '<h3><i class="fas fa-eye"></i> Analytics Content Preview</h3>' +
+                    '<div class="preview-iframe-actions">' +
+                        '<button class="preview-action-btn" onclick="refreshPreviewIframe()" title="Refresh preview">' +
+                            '<i class="fas fa-sync-alt"></i> Refresh' +
+                        '</button>' +
+                        '<button class="preview-action-btn close-btn" onclick="this.closest(\'.preview-iframe-overlay\').remove()" title="Close">' +
+                            '<i class="fas fa-times"></i> Close' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="preview-iframe-body">' +
+                    '<iframe id="analyticsPreviewIframe" sandbox="allow-same-origin"></iframe>' +
+                '</div>' +
+            '</div>';
+
+            document.body.appendChild(overlay);
+
+            // Write content into the iframe
+            const iframe = document.getElementById('analyticsPreviewIframe');
+            if (iframe) {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:16px;font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#222;line-height:1.6;}img{max-width:100%;height:auto;display:block;margin:8px 0;border-radius:8px;}</style></head><body>' + content + '</body></html>');
+                doc.close();
+            }
+
+            showToast('\ud83d\udc41\ufe0f Preview opened', 'success');
+        }
+
+        function refreshPreviewIframe() {
+            const analyticsTA = document.getElementById('analyticsTextarea');
+            const iframe = document.getElementById('analyticsPreviewIframe');
+            if (!analyticsTA || !iframe) return;
+
+            const content = analyticsTA.value.trim();
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:16px;font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#222;line-height:1.6;}img{max-width:100%;height:auto;display:block;margin:8px 0;border-radius:8px;}</style></head><body>' + content + '</body></html>');
+            doc.close();
+
+            showToast('\ud83d\udd04 Preview refreshed', 'success');
         }
 
         function readFileAsBase64(file) {
