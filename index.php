@@ -632,6 +632,16 @@ if ($pdo) {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )");
         
+        // Create Editor History table (infinite auto-save until cleared)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS reporter_prompt_history (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            content LONGTEXT NOT NULL,
+            char_count INT DEFAULT 0,
+            word_count INT DEFAULT 0,
+            source VARCHAR(50) DEFAULT 'auto',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        
     } catch(PDOException $e) {
         $dbError = $e->getMessage();
     }
@@ -958,6 +968,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Connection failed: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // ============================================
+    // EDITOR HISTORY - Save snapshot to DB
+    // ============================================
+    if ($action === 'save_history') {
+        $content = $_POST['content'] ?? '';
+        $source = $_POST['source'] ?? 'auto';
+        
+        if ($pdo && $content !== '') {
+            try {
+                $charCount = mb_strlen($content);
+                $wordCount = str_word_count($content);
+                $stmt = $pdo->prepare("INSERT INTO reporter_prompt_history (content, char_count, word_count, source) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$content, $charCount, $wordCount, $source]);
+                
+                $totalStmt = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_history");
+                $total = $totalStmt->fetchColumn();
+                
+                echo json_encode(['success' => true, 'message' => 'History saved', 'id' => $pdo->lastInsertId(), 'total' => (int)$total]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Empty content or no DB']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // EDITOR HISTORY - Get all records
+    // ============================================
+    if ($action === 'get_history') {
+        if ($pdo) {
+            try {
+                $page = max(1, intval($_POST['page'] ?? 1));
+                $limit = max(1, min(100, intval($_POST['limit'] ?? 50)));
+                $offset = ($page - 1) * $limit;
+                
+                $totalStmt = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_history");
+                $total = $totalStmt->fetchColumn();
+                
+                $stmt = $pdo->prepare("SELECT id, content, char_count, word_count, source, created_at FROM reporter_prompt_history ORDER BY id DESC LIMIT ? OFFSET ?");
+                $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+                $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+                $stmt->execute();
+                $rows = $stmt->fetchAll();
+                
+                echo json_encode([
+                    'success' => true,
+                    'history' => $rows,
+                    'total' => (int)$total,
+                    'page' => $page,
+                    'pages' => ceil($total / $limit)
+                ]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // EDITOR HISTORY - Clear all records
+    // ============================================
+    if ($action === 'clear_history') {
+        if ($pdo) {
+            try {
+                $pdo->exec("TRUNCATE TABLE reporter_prompt_history");
+                echo json_encode(['success' => true, 'message' => 'History cleared']);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // EDITOR HISTORY - Delete single record
+    // ============================================
+    if ($action === 'delete_history_item') {
+        $id = intval($_POST['id'] ?? 0);
+        if ($pdo && $id > 0) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM reporter_prompt_history WHERE id = ?");
+                $stmt->execute([$id]);
+                
+                $totalStmt = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_history");
+                $total = $totalStmt->fetchColumn();
+                
+                echo json_encode(['success' => true, 'message' => 'Record deleted', 'total' => (int)$total]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid ID or no DB']);
         }
         exit;
     }
@@ -18182,6 +18294,339 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             animation: historyPulse 0.5s ease-out;
         }
 
+        /* ============================================ */
+        /* DB History Panel Styles                      */
+        /* ============================================ */
+        .db-history-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(15, 15, 35, 0.98) 0%, rgba(10, 10, 28, 0.99) 100%);
+            border-left: 1px solid rgba(99, 102, 241, 0.2);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -8px 0 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+        }
+
+        .db-history-panel.open {
+            right: 0;
+        }
+
+        .db-history-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+        }
+
+        .db-history-head h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .db-history-head h3 i {
+            color: #8b5cf6;
+            font-size: 0.85rem;
+        }
+
+        .db-history-total {
+            font-size: 0.65rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .db-history-refresh-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.1);
+            color: #a5b4fc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.25s ease;
+        }
+
+        .db-history-refresh-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: #6366f1;
+            color: #c7d2fe;
+            transform: rotate(180deg);
+        }
+
+        .db-history-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: all 0.25s ease;
+        }
+
+        .db-history-close:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #fecaca;
+            transform: scale(1.1);
+        }
+
+        .db-history-autosave-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            background: rgba(16, 185, 129, 0.05);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+            font-size: 0.75rem;
+            color: #6ee7b7;
+        }
+
+        .db-history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .db-history-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .db-history-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .db-history-list::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+
+        .db-history-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+            font-size: 0.85rem;
+            line-height: 2;
+        }
+
+        .db-history-empty i {
+            font-size: 2rem;
+            opacity: 0.3;
+            margin-bottom: 8px;
+        }
+
+        .db-history-item {
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .db-history-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .db-history-item:hover {
+            background: rgba(40, 40, 80, 0.8);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(4px);
+        }
+
+        .db-history-item:hover::before {
+            opacity: 1;
+        }
+
+        .db-history-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .db-history-item-id {
+            font-size: 0.6rem;
+            color: #8b5cf6;
+            font-weight: 700;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        .db-history-item-time {
+            font-size: 0.6rem;
+            color: #64748b;
+        }
+
+        .db-history-item-preview {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            max-height: 3.2em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+        }
+
+        .db-history-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+            font-size: 0.6rem;
+            color: #475569;
+        }
+
+        .db-history-item-meta span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .db-history-item-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .db-history-item:hover .db-history-item-actions {
+            opacity: 1;
+        }
+
+        .db-history-item-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            transition: all 0.2s ease;
+        }
+
+        .db-history-item-btn.load {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+        }
+
+        .db-history-item-btn.load:hover {
+            background: rgba(99, 102, 241, 0.35);
+            color: white;
+        }
+
+        .db-history-item-btn.delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+        }
+
+        .db-history-item-btn.delete:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
+        }
+
+        .db-history-footer {
+            padding: 12px 20px;
+            border-top: 1px solid rgba(239, 68, 68, 0.1);
+            background: rgba(15, 15, 35, 0.8);
+        }
+
+        .db-history-clear-all {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .db-history-clear-all:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.15));
+            border-color: #ef4444;
+            color: #fecaca;
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes dbHistorySaveFlash {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .db-history-save-flash {
+            animation: dbHistorySaveFlash 0.6s ease-out;
+        }
+
+        /* DB History Panel Overlay */
+        .db-history-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .db-history-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Folder Picker Group */
         .folder-picker-group {
             display: flex;
@@ -30472,14 +30917,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </a>
                     </div>
                     
-                    <!-- History Navigation (Undo/Redo) -->
+                    <!-- History Navigation (Undo/Redo + DB History) -->
                     <div class="history-navigation">
                         <button type="button" class="history-btn undo" id="btnUndo" onclick="historyUndo()" disabled title="Undo (Ctrl+Z)">
                             <i class="fas fa-arrow-left"></i>
                             <span class="history-badge" id="undoCount">0</span>
                         </button>
                         <div class="history-divider"></div>
-                        <div class="history-info">
+                        <div class="history-info" style="cursor:pointer" onclick="toggleDbHistoryPanel()" title="Click to open DB History">
                             <span class="history-position" id="historyPosition">0/0</span>
                             <span class="history-label">History</span>
                         </div>
@@ -30489,9 +30934,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="history-badge" id="redoCount">0</span>
                         </button>
                         <div class="history-divider"></div>
-                        <button type="button" class="history-btn clear" id="btnClearHistory" onclick="resetHistory()" title="Clear History">
-                            <i class="fas fa-times"></i>
+                        <button type="button" class="history-btn" id="btnDbHistory" onclick="toggleDbHistoryPanel()" title="DB History Panel" style="position:relative">
+                            <i class="fas fa-database"></i>
+                            <span class="history-badge" id="dbHistoryCount" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">0</span>
                         </button>
+                        <div class="history-divider"></div>
+                        <button type="button" class="history-btn clear" id="btnClearHistory" onclick="clearDbHistory()" title="Clear DB History">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+
+                    <!-- DB History Slide Panel -->
+                    <div class="db-history-panel" id="dbHistoryPanel">
+                        <div class="db-history-head">
+                            <h3><i class="fas fa-database"></i> DB History <span class="db-history-total" id="dbHistoryTotal">0 records</span></h3>
+                            <div style="display:flex;gap:6px;align-items:center">
+                                <button class="db-history-refresh-btn" onclick="loadDbHistory()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                                <button class="db-history-close" onclick="toggleDbHistoryPanel()" title="Close"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="db-history-autosave-bar">
+                            <span id="dbAutoSaveStatus"><i class="fas fa-circle" style="color:#10b981;font-size:7px"></i> Auto-save active</span>
+                            <span id="dbAutoSaveTimer" style="font-size:10px;color:#64748b">—</span>
+                        </div>
+                        <div class="db-history-list" id="dbHistoryList">
+                            <div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>
+                        </div>
+                        <div class="db-history-footer">
+                            <button class="db-history-clear-all" onclick="clearDbHistory()"><i class="fas fa-trash-alt"></i> Clear All History</button>
+                        </div>
                     </div>
                     
                     <div class="editor-actions">
@@ -33722,57 +34193,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         };
 
         // ============================================
-        // HISTORY SYSTEM (Undo/Redo) - 10 Steps
+        // HISTORY SYSTEM (Undo/Redo + DB Auto-Save)
         // ============================================
         const historySystem = {
-            states: [],           // Array of editor states
-            currentIndex: -1,     // Current position in history
-            maxStates: 10,        // Maximum number of states to keep
-            isNavigating: false,  // Flag to prevent recording while navigating
-            debounceTimer: null,  // Timer for debouncing input
-            debounceDelay: 500,   // Delay before recording state (ms)
-            lastRecordedValue: '' // Last value that was recorded
+            states: [],
+            currentIndex: -1,
+            maxStates: 50,
+            isNavigating: false,
+            debounceTimer: null,
+            debounceDelay: 500,
+            lastRecordedValue: '',
+            // DB auto-save
+            dbLastSavedValue: '',
+            dbAutoSaveInterval: null,
+            dbAutoSaveDelay: 8000,       // Check every 8 seconds
+            dbMinCharsToSave: 20,        // Minimum chars difference to trigger save
+            dbTotalRecords: 0,
+            dbPanelOpen: false,
+            dbSaving: false
         };
 
-        // Initialize history with empty state
+        // Create overlay element for DB panel
+        (function createDbOverlay() {
+            const ov = document.createElement('div');
+            ov.className = 'db-history-overlay';
+            ov.id = 'dbHistoryOverlay';
+            ov.onclick = function() { toggleDbHistoryPanel(); };
+            document.body.appendChild(ov);
+        })();
+
+        // Initialize history with empty state + start DB auto-save
         function initHistory() {
             const editor = document.getElementById('promptEditor');
             historySystem.states = [editor.value];
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = editor.value;
+            historySystem.dbLastSavedValue = editor.value;
             updateHistoryUI();
+            startDbAutoSave();
+            loadDbHistoryCount();
         }
 
-        // Record current state to history
+        // Record current state to local history
         function recordHistoryState(force = false) {
             if (historySystem.isNavigating) return;
-            
             const editor = document.getElementById('promptEditor');
             const currentValue = editor.value;
-            
-            // Don't record if value hasn't changed
             if (currentValue === historySystem.lastRecordedValue && !force) return;
-            
-            // Remove any states after current index (when recording after undo)
+
             if (historySystem.currentIndex < historySystem.states.length - 1) {
                 historySystem.states = historySystem.states.slice(0, historySystem.currentIndex + 1);
             }
-            
-            // Add new state
+
             historySystem.states.push(currentValue);
             historySystem.lastRecordedValue = currentValue;
-            
-            // Keep only last maxStates
+
             if (historySystem.states.length > historySystem.maxStates) {
                 historySystem.states.shift();
             } else {
                 historySystem.currentIndex++;
             }
-            
-            // Update UI
+
             updateHistoryUI();
-            
-            // Pulse animation
             const btnUndo = document.getElementById('btnUndo');
             btnUndo.classList.add('pulse');
             setTimeout(() => btnUndo.classList.remove('pulse'), 500);
@@ -33780,90 +34262,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Debounced version for input events
         function recordHistoryDebounced() {
-            if (historySystem.debounceTimer) {
-                clearTimeout(historySystem.debounceTimer);
-            }
-            
+            if (historySystem.debounceTimer) clearTimeout(historySystem.debounceTimer);
             historySystem.debounceTimer = setTimeout(() => {
                 recordHistoryState();
             }, historySystem.debounceDelay);
         }
 
-        // Undo - go back in history
+        // Undo
         function historyUndo() {
             if (historySystem.currentIndex <= 0) return;
-            
             historySystem.isNavigating = true;
             historySystem.currentIndex--;
-            
             const editor = document.getElementById('promptEditor');
             editor.value = historySystem.states[historySystem.currentIndex];
             historySystem.lastRecordedValue = editor.value;
-            
             updateHistoryUI();
             updateCounts();
-            
-            // Visual feedback
-            showToast(`↩️ Undo (Step ${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
-            
-            setTimeout(() => {
-                historySystem.isNavigating = false;
-            }, 100);
+            showToast(`Undo (${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
+            setTimeout(() => { historySystem.isNavigating = false; }, 100);
         }
 
-        // Redo - go forward in history
+        // Redo
         function historyRedo() {
             if (historySystem.currentIndex >= historySystem.states.length - 1) return;
-            
             historySystem.isNavigating = true;
             historySystem.currentIndex++;
-            
             const editor = document.getElementById('promptEditor');
             editor.value = historySystem.states[historySystem.currentIndex];
             historySystem.lastRecordedValue = editor.value;
-            
             updateHistoryUI();
             updateCounts();
-            
-            // Visual feedback
-            showToast(`↪️ Redo (Step ${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
-            
-            setTimeout(() => {
-                historySystem.isNavigating = false;
-            }, 100);
+            showToast(`Redo (${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
+            setTimeout(() => { historySystem.isNavigating = false; }, 100);
         }
 
-        // Update history navigation UI
+        // Update local history navigation UI
         function updateHistoryUI() {
             const btnUndo = document.getElementById('btnUndo');
             const btnRedo = document.getElementById('btnRedo');
             const undoCount = document.getElementById('undoCount');
             const redoCount = document.getElementById('redoCount');
             const historyPosition = document.getElementById('historyPosition');
-            
+
             const canUndo = historySystem.currentIndex > 0;
             const canRedo = historySystem.currentIndex < historySystem.states.length - 1;
-            
             const undoSteps = historySystem.currentIndex;
             const redoSteps = historySystem.states.length - 1 - historySystem.currentIndex;
-            
-            // Update buttons
+
             btnUndo.disabled = !canUndo;
             btnRedo.disabled = !canRedo;
-            
-            // Update badges
             undoCount.textContent = undoSteps;
             redoCount.textContent = redoSteps;
-            
-            // Update position indicator
             historyPosition.textContent = `${historySystem.currentIndex + 1}/${historySystem.states.length}`;
-            
-            // Update tooltips
-            btnUndo.title = canUndo ? `Undo (${undoSteps} step${undoSteps !== 1 ? 's' : ''} back) - Ctrl+Z` : 'Nothing to undo';
-            btnRedo.title = canRedo ? `Redo (${redoSteps} step${redoSteps !== 1 ? 's' : ''} forward) - Ctrl+Y` : 'Nothing to redo';
+            btnUndo.title = canUndo ? `Undo (${undoSteps} steps) - Ctrl+Z` : 'Nothing to undo';
+            btnRedo.title = canRedo ? `Redo (${redoSteps} steps) - Ctrl+Y` : 'Nothing to redo';
         }
 
-        // Clear history (when editor is cleared)
+        // Clear local history
         function clearHistory() {
             historySystem.states = [''];
             historySystem.currentIndex = 0;
@@ -33871,36 +34326,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             updateHistoryUI();
         }
 
-        // Reset history to zeros (X button)
+        // Reset local history
         function resetHistory() {
             const editor = document.getElementById('promptEditor');
-            historySystem.states = [editor.value]; // Keep current state as starting point
+            historySystem.states = [editor.value];
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = editor.value;
             updateHistoryUI();
-            
-            // Visual feedback
-            const clearBtn = document.getElementById('btnClearHistory');
-            clearBtn.classList.add('pulse');
-            setTimeout(() => clearBtn.classList.remove('pulse'), 500);
-            
-            showToast('🗑️ History cleared', 'info');
+            showToast('Local history reset', 'info');
         }
 
-        // Keyboard shortcuts for undo/redo
+        // Keyboard shortcuts
         function setupHistoryKeyboardShortcuts() {
             document.addEventListener('keydown', (e) => {
-                // Only work when editor is focused or no input is focused
-                const activeElement = document.activeElement;
-                const isEditorFocused = activeElement && activeElement.id === 'promptEditor';
-                
-                if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
-                    if (isEditorFocused) {
-                        e.preventDefault();
-                        historyUndo();
-                    }
+                const isEditorFocused = document.activeElement && document.activeElement.id === 'promptEditor';
+                if (e.ctrlKey && e.key === 'z' && !e.shiftKey && isEditorFocused) {
+                    e.preventDefault();
+                    historyUndo();
                 }
-                
                 if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
                     if (isEditorFocused) {
                         e.preventDefault();
@@ -33908,6 +34351,260 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             });
+        }
+
+        // ============================================
+        // DB HISTORY - Auto-save & Panel
+        // ============================================
+
+        // Start interval-based auto-save to DB
+        function startDbAutoSave() {
+            if (historySystem.dbAutoSaveInterval) clearInterval(historySystem.dbAutoSaveInterval);
+            historySystem.dbAutoSaveInterval = setInterval(() => {
+                const editor = document.getElementById('promptEditor');
+                if (!editor) return;
+                const val = editor.value.trim();
+                if (val.length < 5) return; // skip very short content
+                // Only save if enough chars changed
+                const diff = Math.abs(val.length - historySystem.dbLastSavedValue.length);
+                const contentChanged = val !== historySystem.dbLastSavedValue;
+                if (contentChanged && (diff >= historySystem.dbMinCharsToSave || val.length >= 20)) {
+                    saveToDbHistory(val, 'auto');
+                }
+            }, historySystem.dbAutoSaveDelay);
+            // Update timer display
+            const timerEl = document.getElementById('dbAutoSaveTimer');
+            if (timerEl) timerEl.textContent = `every ${historySystem.dbAutoSaveDelay / 1000}s`;
+        }
+
+        // Save content to DB
+        async function saveToDbHistory(content, source = 'auto') {
+            if (historySystem.dbSaving) return;
+            historySystem.dbSaving = true;
+            const statusEl = document.getElementById('dbAutoSaveStatus');
+            if (statusEl) statusEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:9px;color:#f59e0b"></i> Saving...';
+            try {
+                const fd = new FormData();
+                fd.append('action', 'save_history');
+                fd.append('content', content);
+                fd.append('source', source);
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    historySystem.dbLastSavedValue = content;
+                    historySystem.dbTotalRecords = data.total || 0;
+                    updateDbBadge();
+                    // Flash animation on DB button
+                    const dbBtn = document.getElementById('btnDbHistory');
+                    if (dbBtn) {
+                        dbBtn.classList.add('db-history-save-flash');
+                        setTimeout(() => dbBtn.classList.remove('db-history-save-flash'), 600);
+                    }
+                    if (statusEl) statusEl.innerHTML = '<i class="fas fa-check" style="font-size:9px;color:#10b981"></i> Saved just now';
+                    // Refresh panel if open
+                    if (historySystem.dbPanelOpen) loadDbHistory();
+                }
+            } catch (err) {
+                console.error('DB History save error:', err);
+                if (statusEl) statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size:9px;color:#ef4444"></i> Save failed';
+            } finally {
+                historySystem.dbSaving = false;
+            }
+        }
+
+        // Load DB history count (lightweight)
+        async function loadDbHistoryCount() {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_history');
+                fd.append('page', '1');
+                fd.append('limit', '1');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    historySystem.dbTotalRecords = data.total || 0;
+                    updateDbBadge();
+                }
+            } catch (e) {}
+        }
+
+        // Update DB count badge
+        function updateDbBadge() {
+            const badge = document.getElementById('dbHistoryCount');
+            const total = document.getElementById('dbHistoryTotal');
+            if (badge) {
+                badge.textContent = historySystem.dbTotalRecords;
+                badge.style.opacity = historySystem.dbTotalRecords > 0 ? '1' : '0';
+                badge.style.transform = historySystem.dbTotalRecords > 0 ? 'scale(1)' : 'scale(0)';
+            }
+            if (total) total.textContent = `${historySystem.dbTotalRecords} record${historySystem.dbTotalRecords !== 1 ? 's' : ''}`;
+        }
+
+        // Toggle DB history panel
+        function toggleDbHistoryPanel() {
+            const panel = document.getElementById('dbHistoryPanel');
+            const overlay = document.getElementById('dbHistoryOverlay');
+            historySystem.dbPanelOpen = !historySystem.dbPanelOpen;
+            if (historySystem.dbPanelOpen) {
+                panel.classList.add('open');
+                overlay.classList.add('visible');
+                loadDbHistory();
+            } else {
+                panel.classList.remove('open');
+                overlay.classList.remove('visible');
+            }
+        }
+
+        // Load DB history list
+        async function loadDbHistory() {
+            const listEl = document.getElementById('dbHistoryList');
+            if (!listEl) return;
+            listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-spinner fa-spin"></i><br>Loading...</div>';
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_history');
+                fd.append('page', '1');
+                fd.append('limit', '100');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success && data.history.length > 0) {
+                    historySystem.dbTotalRecords = data.total;
+                    updateDbBadge();
+                    listEl.innerHTML = '';
+                    data.history.forEach(item => {
+                        const preview = item.content.length > 140 ? item.content.substring(0, 140) + '...' : item.content;
+                        const timeAgo = formatTimeAgo(item.created_at);
+                        const div = document.createElement('div');
+                        div.className = 'db-history-item';
+                        div.innerHTML = `
+                            <div class="db-history-item-header">
+                                <div style="display:flex;align-items:center;gap:6px">
+                                    <span class="db-history-item-id">#${item.id}</span>
+                                    <span class="db-history-item-time">${timeAgo}</span>
+                                </div>
+                                <div class="db-history-item-actions">
+                                    <button class="db-history-item-btn load" onclick="event.stopPropagation(); loadDbHistoryItem(${item.id}, this)" title="Load into editor"><i class="fas fa-download"></i></button>
+                                    <button class="db-history-item-btn delete" onclick="event.stopPropagation(); deleteDbHistoryItem(${item.id}, this)" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="db-history-item-preview">${escapeHtml(preview)}</div>
+                            <div class="db-history-item-meta">
+                                <span><i class="fas fa-font"></i> ${item.char_count} chars</span>
+                                <span><i class="fas fa-align-left"></i> ${item.word_count} words</span>
+                                <span><i class="fas fa-tag"></i> ${item.source}</span>
+                            </div>
+                        `;
+                        div.onclick = function() { loadDbHistoryItem(item.id); };
+                        listEl.appendChild(div);
+                    });
+                } else {
+                    listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
+                    historySystem.dbTotalRecords = 0;
+                    updateDbBadge();
+                }
+            } catch (err) {
+                listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-exclamation-triangle"></i><br>Failed to load</div>';
+            }
+        }
+
+        // Load a single history item into the editor
+        async function loadDbHistoryItem(id, btnEl) {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_history');
+                fd.append('page', '1');
+                fd.append('limit', '100');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    const item = data.history.find(h => h.id == id);
+                    if (item) {
+                        const editor = document.getElementById('promptEditor');
+                        editor.value = item.content;
+                        historySystem.lastRecordedValue = item.content;
+                        historySystem.dbLastSavedValue = item.content;
+                        recordHistoryState(true);
+                        updateCounts();
+                        showToast(`Loaded history #${id}`, 'success');
+                    }
+                }
+            } catch (err) {
+                showToast('Failed to load history item', 'error');
+            }
+        }
+
+        // Delete a single history item
+        async function deleteDbHistoryItem(id, btnEl) {
+            if (!confirm('Delete this history record?')) return;
+            try {
+                const fd = new FormData();
+                fd.append('action', 'delete_history_item');
+                fd.append('id', id);
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    historySystem.dbTotalRecords = data.total || 0;
+                    updateDbBadge();
+                    if (btnEl) {
+                        const item = btnEl.closest('.db-history-item');
+                        if (item) {
+                            item.style.transition = 'all 0.3s ease';
+                            item.style.opacity = '0';
+                            item.style.transform = 'translateX(50px)';
+                            setTimeout(() => item.remove(), 300);
+                        }
+                    }
+                    showToast('Record deleted', 'info');
+                }
+            } catch (err) {
+                showToast('Failed to delete', 'error');
+            }
+        }
+
+        // Clear all DB history
+        async function clearDbHistory() {
+            if (!confirm('Clear ALL history records from the database? This cannot be undone.')) return;
+            try {
+                const fd = new FormData();
+                fd.append('action', 'clear_history');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    historySystem.dbTotalRecords = 0;
+                    historySystem.dbLastSavedValue = '';
+                    updateDbBadge();
+                    const listEl = document.getElementById('dbHistoryList');
+                    if (listEl) listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
+                    showToast('All DB history cleared', 'success');
+                    // Pulse the clear button
+                    const clearBtn = document.getElementById('btnClearHistory');
+                    if (clearBtn) {
+                        clearBtn.classList.add('pulse');
+                        setTimeout(() => clearBtn.classList.remove('pulse'), 500);
+                    }
+                }
+            } catch (err) {
+                showToast('Failed to clear history', 'error');
+            }
+        }
+
+        // Format time ago helper
+        function formatTimeAgo(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Escape HTML helper
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
         }
 
         // ============================================
