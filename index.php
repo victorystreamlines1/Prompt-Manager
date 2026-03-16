@@ -30961,7 +30961,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>
                         </div>
                         <div class="db-history-footer">
-                            <button class="db-history-clear-all" onclick="clearDbHistory()"><i class="fas fa-trash-alt"></i> Clear All History</button>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.72rem;color:#94a3b8">
+                                    <input type="checkbox" id="dbHistorySelectAll" onchange="dbHistoryToggleSelectAll(this.checked)" style="accent-color:#8b5cf6;width:14px;height:14px;cursor:pointer">
+                                    Select All
+                                </label>
+                                <span id="dbHistorySelectedCount" style="font-size:0.65rem;color:#64748b">0 selected</span>
+                            </div>
+                            <button class="db-history-clear-all" id="btnDbHistoryClear" onclick="dbHistorySmartClear()">
+                                <i class="fas fa-trash-alt"></i> <span id="dbHistoryClearLabel">Clear All History</span>
+                            </button>
                         </div>
                     </div>
                     
@@ -34213,13 +34222,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             dbSaving: false
         };
 
-        // Create overlay element for DB panel
+        // Create overlay element for DB panel + move panel to body
         (function createDbOverlay() {
             const ov = document.createElement('div');
             ov.className = 'db-history-overlay';
             ov.id = 'dbHistoryOverlay';
             ov.onclick = function() { toggleDbHistoryPanel(); };
             document.body.appendChild(ov);
+            // Move panel to body so it shares the same stacking context as the overlay
+            const panel = document.getElementById('dbHistoryPanel');
+            if (panel) {
+                document.body.appendChild(panel);
+                // Prevent clicks inside panel from reaching the overlay
+                panel.addEventListener('click', function(e) { e.stopPropagation(); });
+            }
         })();
 
         // Initialize history with empty state + start DB auto-save
@@ -34256,8 +34272,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             updateHistoryUI();
             const btnUndo = document.getElementById('btnUndo');
-            btnUndo.classList.add('pulse');
-            setTimeout(() => btnUndo.classList.remove('pulse'), 500);
+            if (btnUndo) {
+                btnUndo.classList.add('pulse');
+                setTimeout(() => btnUndo.classList.remove('pulse'), 500);
+            }
         }
 
         // Debounced version for input events
@@ -34303,6 +34321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const undoCount = document.getElementById('undoCount');
             const redoCount = document.getElementById('redoCount');
             const historyPosition = document.getElementById('historyPosition');
+            if (!btnUndo || !btnRedo) return;
 
             const canUndo = historySystem.currentIndex > 0;
             const canRedo = historySystem.currentIndex < historySystem.states.length - 1;
@@ -34311,9 +34330,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             btnUndo.disabled = !canUndo;
             btnRedo.disabled = !canRedo;
-            undoCount.textContent = undoSteps;
-            redoCount.textContent = redoSteps;
-            historyPosition.textContent = `${historySystem.currentIndex + 1}/${historySystem.states.length}`;
+            if (undoCount) undoCount.textContent = undoSteps;
+            if (redoCount) redoCount.textContent = redoSteps;
+            if (historyPosition) historyPosition.textContent = `${historySystem.currentIndex + 1}/${historySystem.states.length}`;
             btnUndo.title = canUndo ? `Undo (${undoSteps} steps) - Ctrl+Z` : 'Nothing to undo';
             btnRedo.title = canRedo ? `Redo (${redoSteps} steps) - Ctrl+Y` : 'Nothing to redo';
         }
@@ -34476,9 +34495,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         const timeAgo = formatTimeAgo(item.created_at);
                         const div = document.createElement('div');
                         div.className = 'db-history-item';
+                        div.dataset.historyId = item.id;
                         div.innerHTML = `
                             <div class="db-history-item-header">
                                 <div style="display:flex;align-items:center;gap:6px">
+                                    <input type="checkbox" class="db-history-checkbox" data-id="${item.id}" onclick="event.stopPropagation(); dbHistoryUpdateSelectionUI()" style="accent-color:#8b5cf6;width:15px;height:15px;cursor:pointer;flex-shrink:0">
                                     <span class="db-history-item-id">#${item.id}</span>
                                     <span class="db-history-item-time">${timeAgo}</span>
                                 </div>
@@ -34494,13 +34515,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span><i class="fas fa-tag"></i> ${item.source}</span>
                             </div>
                         `;
-                        div.onclick = function() { loadDbHistoryItem(item.id); };
                         listEl.appendChild(div);
                     });
+                    // Reset selection state
+                    dbHistoryResetSelection();
                 } else {
                     listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
                     historySystem.dbTotalRecords = 0;
                     updateDbBadge();
+                    dbHistoryResetSelection();
                 }
             } catch (err) {
                 listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-exclamation-triangle"></i><br>Failed to load</div>';
@@ -34561,32 +34584,125 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Clear all DB history
-        async function clearDbHistory() {
-            if (!confirm('Clear ALL history records from the database? This cannot be undone.')) return;
-            try {
-                const fd = new FormData();
-                fd.append('action', 'clear_history');
-                const resp = await fetch('', { method: 'POST', body: fd });
-                const data = await resp.json();
-                if (data.success) {
-                    historySystem.dbTotalRecords = 0;
-                    historySystem.dbLastSavedValue = '';
-                    updateDbBadge();
-                    const listEl = document.getElementById('dbHistoryList');
-                    if (listEl) listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
-                    showToast('All DB history cleared', 'success');
-                    // Pulse the clear button
-                    const clearBtn = document.getElementById('btnClearHistory');
-                    if (clearBtn) {
-                        clearBtn.classList.add('pulse');
-                        setTimeout(() => clearBtn.classList.remove('pulse'), 500);
-                    }
+        // Get checked history IDs
+        function dbHistoryGetCheckedIds() {
+            const checkboxes = document.querySelectorAll('.db-history-checkbox:checked');
+            return Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+        }
+
+        // Update selection UI (counter + clear button label)
+        function dbHistoryUpdateSelectionUI() {
+            const all = document.querySelectorAll('.db-history-checkbox');
+            const checked = document.querySelectorAll('.db-history-checkbox:checked');
+            const countEl = document.getElementById('dbHistorySelectedCount');
+            const labelEl = document.getElementById('dbHistoryClearLabel');
+            const selectAllEl = document.getElementById('dbHistorySelectAll');
+            const clearBtn = document.getElementById('btnDbHistoryClear');
+
+            if (countEl) countEl.textContent = `${checked.length} selected`;
+
+            if (checked.length > 0) {
+                if (labelEl) labelEl.textContent = `Delete ${checked.length} Selected`;
+                if (clearBtn) clearBtn.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+            } else {
+                if (labelEl) labelEl.textContent = 'Clear All History';
+                if (clearBtn) clearBtn.style.background = '';
+            }
+
+            // Update select-all checkbox state
+            if (selectAllEl && all.length > 0) {
+                selectAllEl.checked = checked.length === all.length;
+                selectAllEl.indeterminate = checked.length > 0 && checked.length < all.length;
+            }
+
+            // Highlight checked items
+            all.forEach(cb => {
+                const item = cb.closest('.db-history-item');
+                if (item) {
+                    item.style.borderColor = cb.checked ? '#8b5cf6' : '';
+                    item.style.background = cb.checked ? 'rgba(139,92,246,0.08)' : '';
                 }
-            } catch (err) {
-                showToast('Failed to clear history', 'error');
+            });
+        }
+
+        // Toggle select all
+        function dbHistoryToggleSelectAll(checked) {
+            document.querySelectorAll('.db-history-checkbox').forEach(cb => cb.checked = checked);
+            dbHistoryUpdateSelectionUI();
+        }
+
+        // Reset selection state
+        function dbHistoryResetSelection() {
+            const selectAllEl = document.getElementById('dbHistorySelectAll');
+            if (selectAllEl) { selectAllEl.checked = false; selectAllEl.indeterminate = false; }
+            dbHistoryUpdateSelectionUI();
+        }
+
+        // Smart clear: delete checked items, or clear all if none checked
+        async function dbHistorySmartClear() {
+            const checkedIds = dbHistoryGetCheckedIds();
+
+            if (checkedIds.length > 0) {
+                // Delete only checked items
+                if (!confirm(`Delete ${checkedIds.length} selected record${checkedIds.length > 1 ? 's' : ''}?`)) return;
+                let deleted = 0;
+                for (const id of checkedIds) {
+                    try {
+                        const fd = new FormData();
+                        fd.append('action', 'delete_history_item');
+                        fd.append('id', id);
+                        const resp = await fetch('', { method: 'POST', body: fd });
+                        const data = await resp.json();
+                        if (data.success) {
+                            deleted++;
+                            historySystem.dbTotalRecords = data.total || 0;
+                            // Animate removal
+                            const item = document.querySelector(`.db-history-item[data-history-id="${id}"]`);
+                            if (item) {
+                                item.style.transition = 'all 0.3s ease';
+                                item.style.opacity = '0';
+                                item.style.transform = 'translateX(50px) scale(0.95)';
+                                setTimeout(() => item.remove(), 300);
+                            }
+                        }
+                    } catch (e) {}
+                }
+                updateDbBadge();
+                showToast(`Deleted ${deleted} record${deleted > 1 ? 's' : ''}`, 'success');
+                // Check if list is now empty
+                setTimeout(() => {
+                    const remaining = document.querySelectorAll('.db-history-item');
+                    if (remaining.length === 0) {
+                        const listEl = document.getElementById('dbHistoryList');
+                        if (listEl) listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
+                    }
+                    dbHistoryResetSelection();
+                }, 350);
+            } else {
+                // Clear ALL
+                if (!confirm('Clear ALL history records from the database? This cannot be undone.')) return;
+                try {
+                    const fd = new FormData();
+                    fd.append('action', 'clear_history');
+                    const resp = await fetch('', { method: 'POST', body: fd });
+                    const data = await resp.json();
+                    if (data.success) {
+                        historySystem.dbTotalRecords = 0;
+                        historySystem.dbLastSavedValue = '';
+                        updateDbBadge();
+                        const listEl = document.getElementById('dbHistoryList');
+                        if (listEl) listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
+                        showToast('All DB history cleared', 'success');
+                        dbHistoryResetSelection();
+                    }
+                } catch (err) {
+                    showToast('Failed to clear history', 'error');
+                }
             }
         }
+
+        // Keep old function name as alias for external calls
+        function clearDbHistory() { dbHistorySmartClear(); }
 
         // Format time ago helper
         function formatTimeAgo(dateStr) {
