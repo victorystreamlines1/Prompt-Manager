@@ -33617,17 +33617,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="templateNameInput">Template Name</label>
-                    <input type="text" id="templateNameInput" placeholder="Enter a name for your template...">
+                    <label for="stmNameInput">Template Name</label>
+                    <input type="text" id="stmNameInput" placeholder="Enter a name for your template...">
                 </div>
                 <div class="form-group">
-                    <label for="templateContentInput">Template Content</label>
-                    <textarea id="templateContentInput" placeholder="Template content will be auto-filled..."></textarea>
+                    <label for="stmContentInput">Template Content</label>
+                    <textarea id="stmContentInput" placeholder="Template content will be auto-filled..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('saveTemplateModal')">Cancel</button>
-                <button class="btn btn-save-template" onclick="saveTemplate()">
+                <button class="btn btn-save-template" onclick="saveTemplateFromEditor()">
                     <i class="fas fa-check"></i> Save Template
                 </button>
             </div>
@@ -47368,8 +47368,8 @@ in each section carefully and maintain proper connections between components.
         // Open Save Template Modal
         function openSaveTemplateModal() {
             const modal = document.getElementById('saveTemplateModal');
-            const nameInput = document.getElementById('templateNameInput');
-            const contentInput = document.getElementById('templateContentInput');
+            const nameInput = document.getElementById('stmNameInput');
+            const contentInput = document.getElementById('stmContentInput');
             
             nameInput.value = '';
             contentInput.value = document.getElementById('promptEditor').value;
@@ -47377,10 +47377,10 @@ in each section carefully and maintain proper connections between components.
             setTimeout(() => nameInput.focus(), 100);
         }
 
-        // Save as Template
-        async function saveTemplate() {
-            const name = document.getElementById('templateNameInput').value.trim();
-            const content = document.getElementById('templateContentInput').value.trim();
+        // Save as Template (from editor - Save Template Modal)
+        async function saveTemplateFromEditor() {
+            const name = document.getElementById('stmNameInput').value.trim();
+            const content = document.getElementById('stmContentInput').value.trim();
             
             if (!name || !content) {
                 showToast('Name and content required!', 'error');

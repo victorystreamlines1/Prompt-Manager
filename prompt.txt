@@ -1,1 +1,27 @@
-yes pretty good I think you made a good job but I want to add to the side right panel you made the right panel for the history a checkbox if I put the checkbox it will append according to the checkboxes I click also the clear should be clear all or clear according to the check box if i check box if i check anything and i put clear it will clear the checked ones if i don't check anything it should be clear all and will clear clear all clear all now is not working for the right vertical side panel 
+Now I want you to modify a feature in the dynamic Saved templates. The save templates On the left vertical side menu or panel side panel, you will find I have static Nodes and dynamic nodes. The dynamic node is Everything is okay, but the only problem when I try to modify modify it opens a new editor without putting the previous or the current information of the description and the label or the title so it should if there is if there is something it should show it because I am might rename or modify or fix and not do everything all together or keep some of it so whenever I modify it should pull out from the data from the database table the information so I can modify or rename I'll give you the HTML of it so you don't get confused ---><div class="item-gtz">
+    <div class="checkbox-1qx">
+        <input type="checkbox">
+        <div class="checkbox-wqv"><i class="fa-7l6 fa-pnc"></i></div>
+    </div>
+    <div class="content-fh2">
+        <div class="item-pvi">WP License</div>
+        <div class="item-6xl">0a0b6b87-6d3e-4e44-8a95-9ce50f417976 Secret key...</div>
+    </div>
+    <div class="item-d9g">
+        <button type="button" class="icon-y65 cop-3ms">
+            <i class="fa-7l6 fa-ri5"></i>
+        </button>
+        <button type="button" class="icon-y65 push-8ze">
+            <i class="fa-7l6 row-2qz"></i>
+        </button>
+        <button type="button" class="icon-y65 pull-3a9">
+            <i class="fa-7l6 row-krq"></i>
+        </button>
+        <button type="button" class="icon-y65 edi-wk8">
+            <i class="fa-7l6 fa-b48"></i>
+        </button>
+        <button type="button" class="icon-y65 del-1yh">
+            <i class="fa-7l6 fa-v55"></i>
+        </button>
+    </div>
+</div>
