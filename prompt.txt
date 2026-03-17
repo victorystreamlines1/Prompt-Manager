@@ -1,1 +1,1 @@
-No, fix the example page and make me paste on one side and show me the code on the other side. Let me paste the image and not the text. I want to paste the image on one side and it will show on the same side. And then the other side put a text area where you show me the exact code that reflected this image in the experimental section. 
+Now I want you to create for the right side panel, DB history panel, a search. An Ajax search professional that searches all the text starting from the first key typing. 

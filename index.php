@@ -1008,14 +1008,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $page = max(1, intval($_POST['page'] ?? 1));
                 $limit = max(1, min(100, intval($_POST['limit'] ?? 50)));
                 $offset = ($page - 1) * $limit;
+                $search = trim($_POST['search'] ?? '');
                 
-                $totalStmt = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_history");
-                $total = $totalStmt->fetchColumn();
-                
-                $stmt = $pdo->prepare("SELECT id, content, char_count, word_count, source, created_at FROM reporter_prompt_history ORDER BY id DESC LIMIT ? OFFSET ?");
-                $stmt->bindValue(1, $limit, PDO::PARAM_INT);
-                $stmt->bindValue(2, $offset, PDO::PARAM_INT);
-                $stmt->execute();
+                if ($search !== '') {
+                    $searchParam = '%' . $search . '%';
+                    $totalStmt = $pdo->prepare("SELECT COUNT(*) FROM reporter_prompt_history WHERE content LIKE ?");
+                    $totalStmt->execute([$searchParam]);
+                    $total = $totalStmt->fetchColumn();
+                    
+                    $stmt = $pdo->prepare("SELECT id, content, char_count, word_count, source, created_at FROM reporter_prompt_history WHERE content LIKE ? ORDER BY id DESC LIMIT ? OFFSET ?");
+                    $stmt->bindValue(1, $searchParam, PDO::PARAM_STR);
+                    $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+                    $stmt->bindValue(3, $offset, PDO::PARAM_INT);
+                    $stmt->execute();
+                } else {
+                    $totalStmt = $pdo->query("SELECT COUNT(*) FROM reporter_prompt_history");
+                    $total = $totalStmt->fetchColumn();
+                    
+                    $stmt = $pdo->prepare("SELECT id, content, char_count, word_count, source, created_at FROM reporter_prompt_history ORDER BY id DESC LIMIT ? OFFSET ?");
+                    $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+                    $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+                    $stmt->execute();
+                }
                 $rows = $stmt->fetchAll();
                 
                 echo json_encode([
@@ -1023,7 +1037,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'history' => $rows,
                     'total' => (int)$total,
                     'page' => $page,
-                    'pages' => ceil($total / $limit)
+                    'pages' => ceil($total / $limit),
+                    'search' => $search
                 ]);
             } catch (PDOException $e) {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -18394,6 +18409,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: scale(1.1);
         }
 
+        .db-history-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.03));
+            border-bottom: 1px solid rgba(99, 102, 241, 0.12);
+        }
+
+        .db-history-search-wrap {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .db-history-search-icon {
+            position: absolute;
+            left: 10px;
+            font-size: 0.7rem;
+            color: rgba(165, 180, 252, 0.5);
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .db-history-search-input {
+            width: 100%;
+            padding: 7px 32px 7px 30px;
+            background: rgba(15, 15, 35, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.78rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .db-history-search-input::placeholder {
+            color: rgba(148, 163, 184, 0.4);
+        }
+
+        .db-history-search-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(15, 15, 35, 0.8);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), inset 0 0 12px rgba(99, 102, 241, 0.05);
+        }
+
+        .db-history-search-input:focus ~ .db-history-search-icon,
+        .db-history-search-wrap:focus-within .db-history-search-icon {
+            color: #818cf8;
+        }
+
+        .db-history-search-clear {
+            position: absolute;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            transition: all 0.2s ease;
+        }
+
+        .db-history-search-clear:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
+            transform: scale(1.1);
+        }
+
+        .db-history-search-count {
+            font-size: 0.65rem;
+            color: #a5b4fc;
+            white-space: nowrap;
+            padding: 3px 8px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .db-history-item mark {
+            background: rgba(250, 204, 21, 0.3);
+            color: #fef08a;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
         .db-history-autosave-bar {
             display: flex;
             align-items: center;
@@ -32416,6 +32524,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button class="db-history-close" onclick="toggleDbHistoryPanel()" title="Close"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
+                        <div class="db-history-search-bar">
+                            <div class="db-history-search-wrap">
+                                <i class="fas fa-search db-history-search-icon"></i>
+                                <input type="text" id="dbHistorySearchInput" class="db-history-search-input" placeholder="Search history..." autocomplete="off" spellcheck="false">
+                                <button type="button" class="db-history-search-clear" id="dbHistorySearchClear" onclick="dbHistoryClearSearch()" title="Clear search" style="display:none">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <span class="db-history-search-count" id="dbHistorySearchCount" style="display:none">0 results</span>
+                        </div>
                         <div class="db-history-autosave-bar">
                             <span id="dbAutoSaveStatus"><i class="fas fa-circle" style="color:#10b981;font-size:7px"></i> Auto-save active</span>
                             <span id="dbAutoSaveTimer" style="font-size:10px;color:#64748b">—</span>
@@ -35938,23 +36056,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Load DB history list
-        async function loadDbHistory() {
+        async function loadDbHistory(searchQuery) {
             const listEl = document.getElementById('dbHistoryList');
             if (!listEl) return;
+            const search = (typeof searchQuery === 'string') ? searchQuery.trim() : (document.getElementById('dbHistorySearchInput')?.value?.trim() || '');
             listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-spinner fa-spin"></i><br>Loading...</div>';
             try {
                 const fd = new FormData();
                 fd.append('action', 'get_history');
                 fd.append('page', '1');
                 fd.append('limit', '100');
+                if (search) fd.append('search', search);
                 const resp = await fetch('', { method: 'POST', body: fd });
                 const data = await resp.json();
+                const searchCountEl = document.getElementById('dbHistorySearchCount');
                 if (data.success && data.history.length > 0) {
                     historySystem.dbTotalRecords = data.total;
                     updateDbBadge();
+                    if (searchCountEl) {
+                        if (search) {
+                            searchCountEl.textContent = data.total + ' result' + (data.total !== 1 ? 's' : '');
+                            searchCountEl.style.display = '';
+                        } else {
+                            searchCountEl.style.display = 'none';
+                        }
+                    }
                     listEl.innerHTML = '';
                     data.history.forEach(item => {
-                        const preview = item.content.length > 140 ? item.content.substring(0, 140) + '...' : item.content;
+                        let preview = item.content.length > 140 ? item.content.substring(0, 140) + '...' : item.content;
+                        let previewHtml = escapeHtml(preview);
+                        if (search) {
+                            const escapedSearch = escapeHtml(search);
+                            const regex = new RegExp('(' + escapedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                            previewHtml = previewHtml.replace(regex, '<mark>$1</mark>');
+                        }
                         const timeAgo = formatTimeAgo(item.created_at);
                         const div = document.createElement('div');
                         div.className = 'db-history-item';
@@ -35971,7 +36106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <button class="db-history-item-btn delete" onclick="event.stopPropagation(); deleteDbHistoryItem(${item.id}, this)" title="Delete"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
-                            <div class="db-history-item-preview">${escapeHtml(preview)}</div>
+                            <div class="db-history-item-preview">${previewHtml}</div>
                             <div class="db-history-item-meta">
                                 <span><i class="fas fa-font"></i> ${item.char_count} chars</span>
                                 <span><i class="fas fa-align-left"></i> ${item.word_count} words</span>
@@ -35983,8 +36118,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Reset selection state
                     dbHistoryResetSelection();
                 } else {
-                    listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
-                    historySystem.dbTotalRecords = 0;
+                    if (search) {
+                        listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-search"></i><br>No results for &ldquo;' + escapeHtml(search) + '&rdquo;</div>';
+                        if (searchCountEl) { searchCountEl.textContent = '0 results'; searchCountEl.style.display = ''; }
+                    } else {
+                        listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
+                        if (searchCountEl) searchCountEl.style.display = 'none';
+                    }
+                    historySystem.dbTotalRecords = data.total || 0;
                     updateDbBadge();
                     dbHistoryResetSelection();
                 }
@@ -35992,6 +36133,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-exclamation-triangle"></i><br>Failed to load</div>';
             }
         }
+
+        // DB History search - debounced live search
+        let _dbHistorySearchTimer = null;
+        function dbHistoryOnSearch() {
+            const input = document.getElementById('dbHistorySearchInput');
+            const clearBtn = document.getElementById('dbHistorySearchClear');
+            const val = input ? input.value : '';
+            if (clearBtn) clearBtn.style.display = val.length > 0 ? '' : 'none';
+            clearTimeout(_dbHistorySearchTimer);
+            _dbHistorySearchTimer = setTimeout(() => {
+                loadDbHistory(val);
+            }, 250);
+        }
+
+        function dbHistoryClearSearch() {
+            const input = document.getElementById('dbHistorySearchInput');
+            if (input) { input.value = ''; input.focus(); }
+            const clearBtn = document.getElementById('dbHistorySearchClear');
+            if (clearBtn) clearBtn.style.display = 'none';
+            const searchCountEl = document.getElementById('dbHistorySearchCount');
+            if (searchCountEl) searchCountEl.style.display = 'none';
+            loadDbHistory('');
+        }
+
+        // Attach search input event listener on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('dbHistorySearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', dbHistoryOnSearch);
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') { dbHistoryClearSearch(); }
+                });
+            }
+        });
 
         // Load a single history item into the editor
         async function loadDbHistoryItem(id, btnEl) {
