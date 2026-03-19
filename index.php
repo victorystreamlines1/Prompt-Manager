@@ -45215,7 +45215,7 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Send Analytics content to prompt.txt
+        // Send Analytics content to prompt.txt (+ selected images to same folder)
         async function sendAnalyticsToPromptFile() {
             if (!promptFileHandle) {
                 const savedFolder = localStorage.getItem('promptFolderName');
@@ -45230,19 +45230,53 @@ in each section carefully and maintain proper connections between components.
             
             const textarea = document.getElementById('analyticsTextarea');
             const content = textarea ? textarea.value : '';
+            const folderName = localStorage.getItem('promptFolderName') || 'folder';
             
             try {
+                // 1) Write text content to prompt.txt
                 const writable = await promptFileHandle.createWritable();
                 await writable.write(content);
                 await writable.close();
                 
-                const folderName = localStorage.getItem('promptFolderName') || 'folder';
+                // Always notify: text was sent
                 if (content.trim()) {
-                    showToast(`✅ Analytics synced to ${folderName}/prompt.txt`, 'success');
+                    showToast(`✅ Text sent to ${folderName}/prompt.txt`, 'success');
+                    console.log('📤 Analytics text synced to prompt.txt, length:', content.length);
                 } else {
                     showToast(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
+                    console.log('📤 Cleared prompt.txt');
                 }
-                console.log('📤 Analytics synced to prompt.txt, length:', content.length);
+                
+                // 2) Copy selected images to the same folder as prompt.txt
+                const sentFileNames = [];
+                const failedFileNames = [];
+                
+                if (analyticsSelectedFiles.length > 0 && promptFolderHandle) {
+                    for (const file of analyticsSelectedFiles) {
+                        try {
+                            const imgFileHandle = await promptFolderHandle.getFileHandle(file.name, { create: true });
+                            const imgWritable = await imgFileHandle.createWritable();
+                            await imgWritable.write(file);
+                            await imgWritable.close();
+                            sentFileNames.push(file.name);
+                            console.log(`🖼️ Image saved: ${folderName}/${file.name}`);
+                        } catch (imgErr) {
+                            failedFileNames.push(file.name);
+                            console.error(`Error saving image ${file.name}:`, imgErr);
+                        }
+                    }
+                }
+                
+                // 3) Separate notification for images with file names
+                if (sentFileNames.length > 0) {
+                    const fileList = sentFileNames.join(', ');
+                    showToast(`🖼️ ${sentFileNames.length} file${sentFileNames.length > 1 ? 's' : ''} sent to ${folderName}: ${fileList}`, 'success');
+                }
+                
+                if (failedFileNames.length > 0) {
+                    const failList = failedFileNames.join(', ');
+                    showToast(`⚠️ Failed to copy: ${failList}`, 'warning');
+                }
                 
             } catch (err) {
                 console.error('Error writing Analytics to prompt.txt:', err);

@@ -1,1 +1,1 @@
-Now I want you to create for the right side panel, DB history panel, a search. An Ajax search professional that searches all the text starting from the first key typing. 
+Hello
