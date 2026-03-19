@@ -36218,7 +36218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             historySystem.states = [editor.value];
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = editor.value;
-            historySystem.dbLastSavedValue = editor.value;
+            historySystem.dbLastSavedValue = editor.value.trim();
             historySystem.dbIsLive = true;
             historySystem.dbNavPointer = -1;
             historySystem.dbLiveContent = '';
@@ -36234,14 +36234,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 fd.append('action', 'get_history_ids');
                 const resp = await fetch('', { method: 'POST', body: fd });
                 const data = await resp.json();
+                console.log('[DB HistoryIds] Response:', data);
                 if (data.success) {
                     historySystem.dbIds = data.ids;
                     historySystem.dbTotalRecords = data.total;
                     updateDbBadge();
                     updateHistoryUI();
+                } else {
+                    console.warn('[DB HistoryIds] Failed:', data.message);
                 }
             } catch (e) {
-                console.error('Failed to load DB history IDs:', e);
+                console.error('[DB HistoryIds] Error:', e);
             }
         }
 
@@ -36265,6 +36268,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Record current state to local history
         function recordHistoryState(force = false) {
             if (historySystem.isNavigating) return;
+            // If user was navigating DB history and starts typing, return to live mode
+            if (!historySystem.dbIsLive) {
+                historySystem.dbIsLive = true;
+                historySystem.dbNavPointer = -1;
+                historySystem.dbLiveContent = '';
+                updateHistoryUI();
+            }
             const editor = document.getElementById('promptEditor');
             const currentValue = editor.value;
             if (currentValue === historySystem.lastRecordedValue && !force) return;
@@ -36475,7 +36485,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (historySystem.dbAutoSaveInterval) clearInterval(historySystem.dbAutoSaveInterval);
             historySystem.dbAutoSaveInterval = setInterval(() => {
                 // Skip auto-save while user is navigating through DB history
-                if (!historySystem.dbIsLive) return;
+                if (!historySystem.dbIsLive) {
+                    console.log('[DB AutoSave] Skipped — dbIsLive is false (navigating)');
+                    return;
+                }
                 const editor = document.getElementById('promptEditor');
                 if (!editor) return;
                 const val = editor.value.trim();
@@ -36483,7 +36496,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Only save if enough chars changed
                 const diff = Math.abs(val.length - historySystem.dbLastSavedValue.length);
                 const contentChanged = val !== historySystem.dbLastSavedValue;
+                console.log('[DB AutoSave] Check:', { contentChanged, diff, valLen: val.length, minChars: historySystem.dbMinCharsToSave, dbIsLive: historySystem.dbIsLive, dbSaving: historySystem.dbSaving });
                 if (contentChanged && (diff >= historySystem.dbMinCharsToSave || val.length >= 20)) {
+                    console.log('[DB AutoSave] Triggering save...');
                     saveToDbHistory(val, 'auto');
                 }
             }, historySystem.dbAutoSaveDelay);
@@ -36494,7 +36509,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Save content to DB
         async function saveToDbHistory(content, source = 'auto') {
-            if (historySystem.dbSaving) return;
+            if (historySystem.dbSaving) { console.log('[DB Save] Skipped — already saving'); return; }
             historySystem.dbSaving = true;
             const statusEl = document.getElementById('dbAutoSaveStatus');
             if (statusEl) statusEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:9px;color:#f59e0b"></i> Saving...';
@@ -36505,6 +36520,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 fd.append('source', source);
                 const resp = await fetch('', { method: 'POST', body: fd });
                 const data = await resp.json();
+                console.log('[DB Save] Response:', data);
                 if (data.success) {
                     historySystem.dbLastSavedValue = content;
                     historySystem.dbTotalRecords = data.total || 0;
