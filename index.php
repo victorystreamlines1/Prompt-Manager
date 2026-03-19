@@ -22473,9 +22473,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            flex: 1;
+            flex-shrink: 0;
             margin: 0 0.5rem;
-            max-width: 400px;
         }
 
         .analytics-file-btn {
@@ -22502,56 +22501,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .analytics-selected-files {
-            display: flex;
+            display: none;
             align-items: center;
-            gap: 0.25rem;
-            flex-wrap: nowrap;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.4rem 0.75rem;
             overflow-x: auto;
-            max-width: calc(100% - 60px);
-            padding: 0.15rem 0;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scroll-snap-type: x proximity;
             scrollbar-width: thin;
             scrollbar-color: rgba(6, 182, 212, 0.3) transparent;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.04) 0%, rgba(8, 145, 178, 0.02) 100%);
+            border-top: 1px solid rgba(6, 182, 212, 0.1);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+            min-height: 34px;
+            mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 2%, black 98%, transparent 100%);
+        }
+
+        .analytics-selected-files.has-files {
+            display: flex;
         }
 
         .analytics-selected-files::-webkit-scrollbar {
-            height: 3px;
+            height: 4px;
+        }
+
+        .analytics-selected-files::-webkit-scrollbar-track {
+            background: rgba(6, 182, 212, 0.05);
+            border-radius: 4px;
         }
 
         .analytics-selected-files::-webkit-scrollbar-thumb {
-            background: rgba(6, 182, 212, 0.3);
-            border-radius: 3px;
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.3), rgba(8, 145, 178, 0.4));
+            border-radius: 4px;
+        }
+
+        .analytics-selected-files::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.5), rgba(8, 145, 178, 0.6));
         }
 
         .analytics-file-tag {
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            padding: 0.2rem 0.4rem;
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.08) 100%);
-            border: 1px solid rgba(6, 182, 212, 0.25);
-            border-radius: 4px;
-            font-size: 0.6rem;
+            gap: 0.35rem;
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(8, 145, 178, 0.06) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.22);
+            border-radius: 8px;
+            font-size: 0.65rem;
             color: #67e8f9;
             white-space: nowrap;
             cursor: default;
-            animation: fadeInScale 0.2s ease;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+            transition: all 0.2s ease;
+            animation: fadeInScale 0.25s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .analytics-file-tag:hover {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.12) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.15);
+            transform: translateY(-1px);
         }
 
         .analytics-file-tag i {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             opacity: 0.7;
         }
 
         .analytics-file-tag .remove-file {
-            margin-left: 0.15rem;
+            margin-left: 0.1rem;
             cursor: pointer;
-            opacity: 0.6;
-            transition: all 0.15s ease;
+            opacity: 0.5;
+            font-size: 0.55rem;
+            transition: all 0.2s ease;
+            padding: 2px;
+            border-radius: 50%;
         }
 
         .analytics-file-tag .remove-file:hover {
             opacity: 1;
             color: #f87171;
+            background: rgba(239, 68, 68, 0.15);
+            transform: scale(1.2);
         }
 
         .analytics-import-mode-toggle {
@@ -32134,7 +32170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-tag" id="analyticsImportModeIcon"></i>
                             <span class="mode-label" id="analyticsImportModeLabel">Names</span>
                         </button>
-                        <div class="analytics-selected-files" id="analyticsSelectedFiles"></div>
                         <button type="button" 
                                 class="analytics-push-btn" 
                                 id="analyticsPushBtn"
@@ -32169,6 +32204,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span>Preview</span>
                         </button>
                     </div>
+                    <!-- Selected files strip (separate row) -->
+                    <div class="analytics-selected-files" id="analyticsSelectedFiles"></div>
 
                     <div class="analytics-actions">
                         <button class="btn btn-send" id="btnSendAnalytics" onclick="sendAnalyticsToPromptFile()" disabled title="Send analytics to prompt.txt">
@@ -51885,6 +51922,7 @@ in each section carefully and maintain proper connections between components.
 
             if (analyticsSelectedFiles.length === 0) {
                 container.innerHTML = '';
+                container.classList.remove('has-files');
                 return;
             }
 
@@ -51895,6 +51933,7 @@ in each section carefully and maintain proper connections between components.
                     <i class="fas fa-times remove-file" onclick="removeAnalyticsFile(${index})" title="Remove"></i>
                 </span>
             `).join('');
+            container.classList.add('has-files');
         }
 
         function removeAnalyticsFile(index) {
@@ -51913,6 +51952,9 @@ in each section carefully and maintain proper connections between components.
         function clearAnalyticsFiles() {
             analyticsSelectedFiles = [];
             renderAnalyticsSelectedFiles();
+
+            const container = document.getElementById('analyticsSelectedFiles');
+            if (container) container.classList.remove('has-files');
 
             const pushBtn = document.getElementById('analyticsPushBtn');
             const clearBtn = document.getElementById('analyticsClearFilesBtn');
