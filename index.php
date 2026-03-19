@@ -45152,7 +45152,7 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Send Project Prompts content to prompt.txt
+        // Send Project Prompts content to prompt.txt (+ selected files to same folder)
         async function sendNotesToPromptFile() {
             if (!promptFileHandle) {
                 const savedFolder = localStorage.getItem('promptFolderName');
@@ -45167,31 +45167,58 @@ in each section carefully and maintain proper connections between components.
             
             const notesTextarea = document.getElementById('projectNotesTextarea');
             const content = notesTextarea ? notesTextarea.value : '';
+            const folderName = localStorage.getItem('promptFolderName') || 'folder';
             
             try {
-                // Create a writable stream
+                // 1) Write text content to prompt.txt
                 const writable = await promptFileHandle.createWritable();
-                
-                // Write the content (even if empty - perfect mirror)
                 await writable.write(content);
-                
-                // Close the stream
                 await writable.close();
                 
-                const folderName = localStorage.getItem('promptFolderName') || 'folder';
                 if (content.trim()) {
-                    showToast(`✅ Project Prompts synced to ${folderName}/prompt.txt`, 'success');
+                    showToast(`✅ Text sent to ${folderName}/prompt.txt`, 'success');
+                    console.log('📤 Project Prompts text synced to prompt.txt, length:', content.length);
                 } else {
                     showToast(`🔄 Cleared ${folderName}/prompt.txt`, 'info');
+                    console.log('📤 Cleared prompt.txt');
                 }
-                console.log('📤 Project Prompts synced to prompt.txt, length:', content.length);
+                
+                // 2) Copy selected files to the same folder as prompt.txt
+                const sentFileNames = [];
+                const failedFileNames = [];
+                
+                if (notesSelectedFiles.length > 0 && promptFolderHandle) {
+                    for (const file of notesSelectedFiles) {
+                        try {
+                            const fileHandle = await promptFolderHandle.getFileHandle(file.name, { create: true });
+                            const fileWritable = await fileHandle.createWritable();
+                            await fileWritable.write(file);
+                            await fileWritable.close();
+                            sentFileNames.push(file.name);
+                            console.log(`📄 File saved: ${folderName}/${file.name}`);
+                        } catch (fileErr) {
+                            failedFileNames.push(file.name);
+                            console.error(`Error saving file ${file.name}:`, fileErr);
+                        }
+                    }
+                }
+                
+                // 3) Separate notification for files with file names
+                if (sentFileNames.length > 0) {
+                    const fileList = sentFileNames.join(', ');
+                    showToast(`📄 ${sentFileNames.length} file${sentFileNames.length > 1 ? 's' : ''} sent to ${folderName}: ${fileList}`, 'success');
+                }
+                
+                if (failedFileNames.length > 0) {
+                    const failList = failedFileNames.join(', ');
+                    showToast(`⚠️ Failed to copy: ${failList}`, 'warning');
+                }
                 
             } catch (err) {
                 console.error('Error writing Project Prompts to prompt.txt:', err);
                 
                 if (err.name === 'NotAllowedError') {
                     showToast('❌ Permission denied. Please select the folder again.', 'error');
-                    // Reset connection
                     promptFolderHandle = null;
                     promptFileHandle = null;
                     updateFolderUI(localStorage.getItem('promptFolderName') || '', false);

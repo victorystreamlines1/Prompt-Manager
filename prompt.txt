@@ -1,4 +1,1 @@
-📎 Files:
-1. config.php
-2. index.html
-3. report.html
+Apply the same send functionality to the project prompts container (located above the analytic container). The send button in its top right header should send all files directly to the root directory, just like the analytic container's send button.
