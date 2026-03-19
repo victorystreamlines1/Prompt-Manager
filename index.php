@@ -24470,41 +24470,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 1px 4px rgba(168, 85, 247, 0.4), 0 0 6px rgba(168, 85, 247, 0.2);
         }
 
-        /* ═══ Analytics Content Wrapper (Split Layout) ═══ */
+        /* ═══ Analytics Content Wrapper (Full Swap Layout) ═══ */
         .analytics-content-wrapper {
             display: flex;
             flex-direction: column;
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .analytics-content-wrapper.split-mode {
-            flex-direction: row;
+        /* Image Full Mode: hide textarea, show image preview 100% */
+        .analytics-content-wrapper.image-full-mode .analytics-body {
+            display: none !important;
         }
-        .analytics-content-wrapper.split-mode .analytics-body {
-            flex: 3;
-            min-width: 0;
+        .analytics-content-wrapper.image-full-mode .analytics-image-preview {
             display: flex;
-            flex-direction: column;
-        }
-        .analytics-content-wrapper.split-mode .analytics-textarea {
             flex: 1;
-            min-height: 60px;
-            height: auto !important;
-        }
-        .analytics-content-wrapper.split-mode .analytics-image-preview {
-            flex: 1;
-            display: flex;
-            min-width: 0;
+            width: 100%;
+            min-height: 220px;
+            max-height: none;
             border-radius: 0;
             border: none;
-            margin-top: 0;
-            min-height: 180px;
-            max-height: none;
-            animation: splitSlideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0;
+            animation: imageFullFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes splitSlideIn {
-            from { opacity: 0; transform: translateX(12px); flex: 0; }
-            to { opacity: 1; transform: translateX(0); flex: 1; }
+        @keyframes imageFullFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Analytics Image Preview Area */
@@ -52043,26 +52033,29 @@ in each section carefully and maintain proper connections between components.
             const labelImage = document.getElementById('pasteToggleLabelImage');
             const preview = document.getElementById('analyticsImagePreview');
             const wrapper = document.getElementById('analyticsContentWrapper');
+            const body = document.querySelector('.analytics-body');
 
             if (analyticsPasteMode === 'code') {
                 analyticsPasteMode = 'image';
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
-                // Split view: code 3/4 left + image 1/4 right
-                if (wrapper) wrapper.classList.add('split-mode');
+                // Full image mode: hide code, show image 100%
+                if (wrapper) wrapper.classList.add('image-full-mode');
+                if (body) body.style.display = 'none';
                 if (preview) { preview.classList.add('visible'); preview.focus(); }
             } else {
                 analyticsPasteMode = 'code';
                 if (track) track.classList.remove('image-mode');
                 if (labelCode) labelCode.classList.add('active');
                 if (labelImage) labelImage.classList.remove('active');
-                // Full width code only
-                if (wrapper) { wrapper.classList.remove('split-mode'); wrapper.style.minHeight = ''; }
+                // Full code mode: show code, hide image
+                if (wrapper) wrapper.classList.remove('image-full-mode');
+                if (body) body.style.display = '';
                 if (preview) preview.classList.remove('visible');
             }
             localStorage.setItem('analyticsPasteMode', analyticsPasteMode);
-            showToast(analyticsPasteMode === 'code' ? '🔤 Code mode: Full width' : '🖼️ Split mode: Code + Image', 'info');
+            showToast(analyticsPasteMode === 'code' ? '🔤 Code mode' : '🖼️ Image mode', 'info');
         }
 
         function restoreAnalyticsPasteToggle() {
@@ -52071,14 +52064,17 @@ in each section carefully and maintain proper connections between components.
             const labelImage = document.getElementById('pasteToggleLabelImage');
             const preview = document.getElementById('analyticsImagePreview');
             const wrapper = document.getElementById('analyticsContentWrapper');
+            const body = document.querySelector('.analytics-body');
             if (analyticsPasteMode === 'image') {
                 if (track) track.classList.add('image-mode');
                 if (labelCode) labelCode.classList.remove('active');
                 if (labelImage) labelImage.classList.add('active');
-                if (wrapper) wrapper.classList.add('split-mode');
+                if (wrapper) wrapper.classList.add('image-full-mode');
+                if (body) body.style.display = 'none';
                 if (preview) { preview.classList.add('visible'); }
             } else {
-                if (wrapper) { wrapper.classList.remove('split-mode'); wrapper.style.minHeight = ''; }
+                if (wrapper) wrapper.classList.remove('image-full-mode');
+                if (body) body.style.display = '';
                 if (preview) preview.classList.remove('visible');
             }
         }
