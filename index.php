@@ -1088,6 +1088,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+    
+    // ============================================
+    // EDITOR HISTORY - Get all record IDs (lightweight for navigation)
+    // ============================================
+    if ($action === 'get_history_ids') {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->query("SELECT id FROM reporter_prompt_history ORDER BY id ASC");
+                $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                echo json_encode(['success' => true, 'ids' => array_map('intval', $ids), 'total' => count($ids)]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No database connection']);
+        }
+        exit;
+    }
+    
+    // ============================================
+    // EDITOR HISTORY - Get single record by ID
+    // ============================================
+    if ($action === 'get_history_single') {
+        $id = intval($_POST['id'] ?? 0);
+        if ($pdo && $id > 0) {
+            try {
+                $stmt = $pdo->prepare("SELECT id, content, char_count, word_count, source, created_at FROM reporter_prompt_history WHERE id = ?");
+                $stmt->execute([$id]);
+                $row = $stmt->fetch();
+                if ($row) {
+                    echo json_encode(['success' => true, 'item' => $row]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Record not found']);
+                }
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid ID or no DB']);
+        }
+        exit;
+    }
 
     // Save prompt
     if ($action === 'save_prompt') {
@@ -36144,7 +36186,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             dbMinCharsToSave: 20,        // Minimum chars difference to trigger save
             dbTotalRecords: 0,
             dbPanelOpen: false,
-            dbSaving: false
+            dbSaving: false,
+            // DB navigation (undo/redo through DB records)
+            dbIds: [],              // All record IDs in ASC order
+            dbNavPointer: -1,       // -1 = live mode, 0..length-1 = index into dbIds
+            dbIsLive: true,         // Whether user is in live editing mode (not navigating)
+            dbLiveContent: '',      // Saved editor content when user starts navigating
+            dbNavBusy: false,       // Prevent concurrent fetch during navigation
+            dbRecordCache: {}       // Cache: recordId → content string
         };
 
         // Create overlay element for DB panel + move panel to body
@@ -36170,9 +36219,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = editor.value;
             historySystem.dbLastSavedValue = editor.value;
-            updateHistoryUI();
+            historySystem.dbIsLive = true;
+            historySystem.dbNavPointer = -1;
+            historySystem.dbLiveContent = '';
+            historySystem.dbRecordCache = {};
             startDbAutoSave();
-            loadDbHistoryCount();
+            loadDbHistoryIds();
+        }
+
+        // Load all DB history record IDs (lightweight) for undo/redo navigation
+        async function loadDbHistoryIds() {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_history_ids');
+                const resp = await fetch('', { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.success) {
+                    historySystem.dbIds = data.ids;
+                    historySystem.dbTotalRecords = data.total;
+                    updateDbBadge();
+                    updateHistoryUI();
+                }
+            } catch (e) {
+                console.error('Failed to load DB history IDs:', e);
+            }
+        }
+
+        // Fetch a single DB history record content by ID (with cache)
+        async function fetchDbRecord(id) {
+            if (historySystem.dbRecordCache[id]) {
+                return historySystem.dbRecordCache[id];
+            }
+            const fd = new FormData();
+            fd.append('action', 'get_history_single');
+            fd.append('id', id);
+            const resp = await fetch('', { method: 'POST', body: fd });
+            const data = await resp.json();
+            if (data.success && data.item) {
+                historySystem.dbRecordCache[id] = data.item.content;
+                return data.item.content;
+            }
+            return null;
         }
 
         // Record current state to local history
@@ -36211,35 +36298,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }, historySystem.debounceDelay);
         }
 
-        // Undo
-        function historyUndo() {
-            if (historySystem.currentIndex <= 0) return;
+        // Undo — navigate backward through DB history records
+        async function historyUndo() {
+            if (historySystem.dbNavBusy) return;
+            if (historySystem.dbIds.length === 0) {
+                showToast('No history records in database', 'info');
+                return;
+            }
+
+            historySystem.dbNavBusy = true;
             historySystem.isNavigating = true;
-            historySystem.currentIndex--;
             const editor = document.getElementById('promptEditor');
-            editor.value = historySystem.states[historySystem.currentIndex];
-            historySystem.lastRecordedValue = editor.value;
-            updateHistoryUI();
-            updateCounts();
-            showToast(`Undo (${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
-            setTimeout(() => { historySystem.isNavigating = false; }, 100);
+
+            try {
+                if (historySystem.dbIsLive) {
+                    // First undo from live — save current content and jump to latest DB record
+                    historySystem.dbLiveContent = editor.value;
+                    historySystem.dbIsLive = false;
+                    historySystem.dbNavPointer = historySystem.dbIds.length - 1;
+                } else {
+                    if (historySystem.dbNavPointer <= 0) {
+                        showToast('At oldest record', 'info');
+                        historySystem.dbNavBusy = false;
+                        historySystem.isNavigating = false;
+                        return;
+                    }
+                    historySystem.dbNavPointer--;
+                }
+
+                const recordId = historySystem.dbIds[historySystem.dbNavPointer];
+                const content = await fetchDbRecord(recordId);
+
+                if (content !== null) {
+                    editor.value = content;
+                    historySystem.lastRecordedValue = content;
+                    updateCounts();
+                    const pos = historySystem.dbNavPointer + 1;
+                    showToast(`History #${recordId} (${pos}/${historySystem.dbIds.length})`, 'info');
+                } else {
+                    showToast('Failed to load record', 'error');
+                }
+            } catch (err) {
+                showToast('Failed to load history', 'error');
+            } finally {
+                historySystem.dbNavBusy = false;
+                setTimeout(() => { historySystem.isNavigating = false; }, 100);
+                updateHistoryUI();
+            }
         }
 
-        // Redo
-        function historyRedo() {
-            if (historySystem.currentIndex >= historySystem.states.length - 1) return;
+        // Redo — navigate forward through DB history records (or back to live)
+        async function historyRedo() {
+            if (historySystem.dbNavBusy) return;
+            if (historySystem.dbIsLive) return; // Already at live, nothing to redo
+
+            historySystem.dbNavBusy = true;
             historySystem.isNavigating = true;
-            historySystem.currentIndex++;
             const editor = document.getElementById('promptEditor');
-            editor.value = historySystem.states[historySystem.currentIndex];
-            historySystem.lastRecordedValue = editor.value;
-            updateHistoryUI();
-            updateCounts();
-            showToast(`Redo (${historySystem.currentIndex + 1}/${historySystem.states.length})`, 'info');
-            setTimeout(() => { historySystem.isNavigating = false; }, 100);
+
+            try {
+                historySystem.dbNavPointer++;
+
+                if (historySystem.dbNavPointer >= historySystem.dbIds.length) {
+                    // Back to live mode
+                    historySystem.dbIsLive = true;
+                    historySystem.dbNavPointer = -1;
+                    editor.value = historySystem.dbLiveContent;
+                    historySystem.lastRecordedValue = editor.value;
+                    updateCounts();
+                    showToast('Back to current content', 'success');
+                } else {
+                    const recordId = historySystem.dbIds[historySystem.dbNavPointer];
+                    const content = await fetchDbRecord(recordId);
+
+                    if (content !== null) {
+                        editor.value = content;
+                        historySystem.lastRecordedValue = content;
+                        updateCounts();
+                        const pos = historySystem.dbNavPointer + 1;
+                        showToast(`History #${recordId} (${pos}/${historySystem.dbIds.length})`, 'info');
+                    } else {
+                        showToast('Failed to load record', 'error');
+                    }
+                }
+            } catch (err) {
+                showToast('Failed to load history', 'error');
+            } finally {
+                historySystem.dbNavBusy = false;
+                setTimeout(() => { historySystem.isNavigating = false; }, 100);
+                updateHistoryUI();
+            }
         }
 
-        // Update local history navigation UI
+        // Update history navigation UI based on DB records
         function updateHistoryUI() {
             const btnUndo = document.getElementById('btnUndo');
             const btnRedo = document.getElementById('btnRedo');
@@ -36248,36 +36399,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const historyPosition = document.getElementById('historyPosition');
             if (!btnUndo || !btnRedo) return;
 
-            const canUndo = historySystem.currentIndex > 0;
-            const canRedo = historySystem.currentIndex < historySystem.states.length - 1;
-            const undoSteps = historySystem.currentIndex;
-            const redoSteps = historySystem.states.length - 1 - historySystem.currentIndex;
+            const total = historySystem.dbIds.length;
 
-            btnUndo.disabled = !canUndo;
-            btnRedo.disabled = !canRedo;
-            if (undoCount) undoCount.textContent = undoSteps;
-            if (redoCount) redoCount.textContent = redoSteps;
-            if (historyPosition) historyPosition.textContent = `${historySystem.currentIndex + 1}/${historySystem.states.length}`;
-            btnUndo.title = canUndo ? `Undo (${undoSteps} steps) - Ctrl+Z` : 'Nothing to undo';
-            btnRedo.title = canRedo ? `Redo (${redoSteps} steps) - Ctrl+Y` : 'Nothing to redo';
+            if (historySystem.dbIsLive) {
+                // Live mode — user is editing, not navigating DB history
+                const canUndo = total > 0;
+                btnUndo.disabled = !canUndo;
+                btnRedo.disabled = true;
+                if (undoCount) undoCount.textContent = total;
+                if (redoCount) redoCount.textContent = 0;
+                if (historyPosition) historyPosition.textContent = `${total}/${total}`;
+                btnUndo.title = canUndo ? `Go back in DB history (${total} records) - Ctrl+Z` : 'No history records';
+                btnRedo.title = 'Already at current content';
+            } else {
+                // Navigating DB history
+                const pos = historySystem.dbNavPointer + 1;
+                const canUndo = historySystem.dbNavPointer > 0;
+                btnUndo.disabled = !canUndo;
+                btnRedo.disabled = false;
+                if (undoCount) undoCount.textContent = pos;
+                if (redoCount) redoCount.textContent = total - pos;
+                if (historyPosition) historyPosition.textContent = `${pos}/${total}`;
+                btnUndo.title = canUndo ? `Go to record ${pos - 1}/${total} (Ctrl+Z)` : 'At oldest record';
+                btnRedo.title = pos < total ? `Go to record ${pos + 1}/${total} (Ctrl+Y)` : 'Back to current content (Ctrl+Y)';
+            }
         }
 
-        // Clear local history
+        // Clear local history + reset DB navigation
         function clearHistory() {
             historySystem.states = [''];
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = '';
+            historySystem.dbIsLive = true;
+            historySystem.dbNavPointer = -1;
+            historySystem.dbLiveContent = '';
             updateHistoryUI();
         }
 
-        // Reset local history
+        // Reset local history + reset DB navigation
         function resetHistory() {
             const editor = document.getElementById('promptEditor');
             historySystem.states = [editor.value];
             historySystem.currentIndex = 0;
             historySystem.lastRecordedValue = editor.value;
+            historySystem.dbIsLive = true;
+            historySystem.dbNavPointer = -1;
+            historySystem.dbLiveContent = '';
             updateHistoryUI();
-            showToast('Local history reset', 'info');
+            showToast('History navigation reset', 'info');
         }
 
         // Keyboard shortcuts
@@ -36305,6 +36474,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function startDbAutoSave() {
             if (historySystem.dbAutoSaveInterval) clearInterval(historySystem.dbAutoSaveInterval);
             historySystem.dbAutoSaveInterval = setInterval(() => {
+                // Skip auto-save while user is navigating through DB history
+                if (!historySystem.dbIsLive) return;
                 const editor = document.getElementById('promptEditor');
                 if (!editor) return;
                 const val = editor.value.trim();
@@ -36337,7 +36508,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (data.success) {
                     historySystem.dbLastSavedValue = content;
                     historySystem.dbTotalRecords = data.total || 0;
+                    // Add new record ID to navigation array and go back to live mode
+                    const newId = parseInt(data.id);
+                    if (newId && !historySystem.dbIds.includes(newId)) {
+                        historySystem.dbIds.push(newId);
+                    }
+                    historySystem.dbIsLive = true;
+                    historySystem.dbNavPointer = -1;
+                    historySystem.dbLiveContent = '';
                     updateDbBadge();
+                    updateHistoryUI();
                     // Flash animation on DB button
                     const dbBtn = document.getElementById('btnDbHistory');
                     if (dbBtn) {
@@ -36356,20 +36536,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // Load DB history count (lightweight)
+        // Load DB history count (now delegates to loadDbHistoryIds for consistency)
         async function loadDbHistoryCount() {
-            try {
-                const fd = new FormData();
-                fd.append('action', 'get_history');
-                fd.append('page', '1');
-                fd.append('limit', '1');
-                const resp = await fetch('', { method: 'POST', body: fd });
-                const data = await resp.json();
-                if (data.success) {
-                    historySystem.dbTotalRecords = data.total || 0;
-                    updateDbBadge();
-                }
-            } catch (e) {}
+            await loadDbHistoryIds();
         }
 
         // Update DB count badge
@@ -36515,23 +36684,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Load a single history item into the editor
         async function loadDbHistoryItem(id, btnEl) {
             try {
-                const fd = new FormData();
-                fd.append('action', 'get_history');
-                fd.append('page', '1');
-                fd.append('limit', '100');
-                const resp = await fetch('', { method: 'POST', body: fd });
-                const data = await resp.json();
-                if (data.success) {
-                    const item = data.history.find(h => h.id == id);
-                    if (item) {
-                        const editor = document.getElementById('promptEditor');
-                        editor.value = item.content;
-                        historySystem.lastRecordedValue = item.content;
-                        historySystem.dbLastSavedValue = item.content;
-                        recordHistoryState(true);
-                        updateCounts();
-                        showToast(`Loaded history #${id}`, 'success');
-                    }
+                const content = await fetchDbRecord(id);
+                if (content !== null) {
+                    const editor = document.getElementById('promptEditor');
+                    editor.value = content;
+                    historySystem.lastRecordedValue = content;
+                    historySystem.dbLastSavedValue = content;
+                    // Return to live mode — user actively chose this content
+                    historySystem.dbIsLive = true;
+                    historySystem.dbNavPointer = -1;
+                    historySystem.dbLiveContent = '';
+                    updateCounts();
+                    updateHistoryUI();
+                    showToast(`Loaded history #${id}`, 'success');
+                } else {
+                    showToast('Record not found', 'error');
                 }
             } catch (err) {
                 showToast('Failed to load history item', 'error');
@@ -36548,8 +36715,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const resp = await fetch('', { method: 'POST', body: fd });
                 const data = await resp.json();
                 if (data.success) {
-                    historySystem.dbTotalRecords = data.total || 0;
+                    historySystem.dbIds = historySystem.dbIds.filter(rid => rid !== id);
+                    historySystem.dbTotalRecords = historySystem.dbIds.length;
+                    delete historySystem.dbRecordCache[id];
+                    // Reset navigation to live mode after delete
+                    historySystem.dbIsLive = true;
+                    historySystem.dbNavPointer = -1;
+                    historySystem.dbLiveContent = '';
                     updateDbBadge();
+                    updateHistoryUI();
                     if (btnEl) {
                         const item = btnEl.closest('.db-history-item');
                         if (item) {
@@ -36649,7 +36823,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                     } catch (e) {}
                 }
+                // Remove deleted IDs from navigation array
+                historySystem.dbIds = historySystem.dbIds.filter(id => !checkedIds.includes(id));
+                historySystem.dbTotalRecords = historySystem.dbIds.length;
+                historySystem.dbIsLive = true;
+                historySystem.dbNavPointer = -1;
+                historySystem.dbLiveContent = '';
                 updateDbBadge();
+                updateHistoryUI();
                 showToast(`Deleted ${deleted} record${deleted > 1 ? 's' : ''}`, 'success');
                 // Check if list is now empty
                 setTimeout(() => {
@@ -36670,8 +36851,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     const data = await resp.json();
                     if (data.success) {
                         historySystem.dbTotalRecords = 0;
+                        historySystem.dbIds = [];
                         historySystem.dbLastSavedValue = '';
+                        historySystem.dbIsLive = true;
+                        historySystem.dbNavPointer = -1;
+                        historySystem.dbLiveContent = '';
                         updateDbBadge();
+                        updateHistoryUI();
                         const listEl = document.getElementById('dbHistoryList');
                         if (listEl) listEl.innerHTML = '<div class="db-history-empty"><i class="fas fa-inbox"></i><br>No history yet</div>';
                         showToast('All DB history cleared', 'success');
