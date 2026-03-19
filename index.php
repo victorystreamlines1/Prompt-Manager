@@ -21588,6 +21588,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
         
+        /* ═══════ Notes Footer Folder Picker ═══════ */
+        .notes-folder-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        
+        .notes-folder-picker .notes-folder-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 6px;
+            color: #a78bfa;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+        }
+        
+        .notes-folder-picker .notes-folder-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(139, 92, 246, 0.18) 100%);
+            border-color: rgba(168, 85, 247, 0.55);
+            color: #c4b5fd;
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+        }
+        
+        .notes-selected-folders {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            max-width: 220px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+        }
+        
+        .notes-selected-folders::-webkit-scrollbar {
+            height: 3px;
+        }
+        
+        .notes-selected-folders::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .notes-selected-folders::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+        }
+        
+        .notes-folder-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.15rem 0.4rem;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 10px;
+            font-size: 0.55rem;
+            color: #c4b5fd;
+            white-space: nowrap;
+            flex-shrink: 0;
+            animation: folderTagIn 0.3s ease forwards;
+            backdrop-filter: blur(4px);
+        }
+        
+        @keyframes folderTagIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .notes-folder-tag i {
+            font-size: 0.6rem;
+            opacity: 0.75;
+        }
+        
+        .notes-folder-tag .remove-folder {
+            margin-left: 0.1rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.15s ease;
+        }
+        
+        .notes-folder-tag .remove-folder:hover {
+            opacity: 1;
+            color: #f87171;
+        }
+        
+        .notes-folder-push-btn {
+            width: 26px;
+            height: 26px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            border-radius: 6px;
+            color: #a78bfa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+            animation: pulseGlowPurple 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlowPurple {
+            0%, 100% { box-shadow: 0 0 5px rgba(168, 85, 247, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.5); }
+        }
+        
+        .notes-folder-push-btn:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.35) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(168, 85, 247, 0.6);
+            transform: scale(1.08);
+        }
+        
+        .notes-folder-clear-btn {
+            width: 26px;
+            height: 26px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 6px;
+            color: rgba(252, 165, 165, 0.8);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+            backdrop-filter: blur(4px);
+        }
+        
+        .notes-folder-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.28) 0%, rgba(220, 38, 38, 0.15) 100%);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+        /* ═══════ End Notes Footer Folder Picker ═══════ */
+        
         .notes-btn:hover {
             background: rgba(251, 191, 36, 0.2);
             border-color: rgba(251, 191, 36, 0.4);
@@ -22335,6 +22486,146 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             50% { opacity: 0.2; }
         }
         /* ═══════ End Notes Footer Toolbar ═══════ */
+
+        /* ═══════ Notes Footer Folder Picker ═══════ */
+        .notes-folder-picker {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1;
+            max-width: 420px;
+            margin-left: 0.5rem;
+            padding: 0.2rem 0.45rem;
+            background: rgba(245, 158, 11, 0.04);
+            border: 1px solid rgba(245, 158, 11, 0.12);
+            border-radius: 9px;
+            transition: all 0.3s ease;
+        }
+        .notes-folder-picker:hover {
+            background: rgba(245, 158, 11, 0.07);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        .notes-folder-picker.has-folders {
+            background: rgba(245, 158, 11, 0.06);
+            border-color: rgba(245, 158, 11, 0.22);
+        }
+        .notes-folder-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.10) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            border-radius: 6px;
+            color: #f59e0b;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+        .notes-folder-btn:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.18) 100%);
+            border-color: rgba(245, 158, 11, 0.55);
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+        }
+        .notes-selected-folders {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            max-width: calc(100% - 90px);
+            padding: 0.15rem 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(245, 158, 11, 0.3) transparent;
+        }
+        .notes-selected-folders::-webkit-scrollbar {
+            height: 3px;
+        }
+        .notes-selected-folders::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.3);
+            border-radius: 3px;
+        }
+        .notes-folder-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.45rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            border-radius: 5px;
+            font-size: 0.6rem;
+            color: #fbbf24;
+            white-space: nowrap;
+            cursor: default;
+            animation: fadeInScale 0.2s ease;
+            transition: all 0.2s ease;
+        }
+        .notes-folder-tag:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.14) 100%);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .notes-folder-tag i.fa-folder {
+            font-size: 0.65rem;
+            opacity: 0.8;
+        }
+        .notes-folder-tag .remove-folder {
+            margin-left: 0.15rem;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s ease;
+            font-size: 0.55rem;
+        }
+        .notes-folder-tag .remove-folder:hover {
+            opacity: 1;
+            color: #f87171;
+            transform: scale(1.15);
+        }
+        .notes-folder-push-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.08) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 5px;
+            color: #818cf8;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.6rem;
+            flex-shrink: 0;
+        }
+        .notes-folder-push-btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.28) 0%, rgba(79, 70, 229, 0.16) 100%);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        }
+        .notes-folder-clear-btn {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 5px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-size: 0.55rem;
+            flex-shrink: 0;
+        }
+        .notes-folder-clear-btn:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.22) 0%, rgba(220, 38, 38, 0.12) 100%);
+            border-color: rgba(239, 68, 68, 0.45);
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+        }
+        /* ═══════ End Notes Footer Folder Picker ═══════ */
 
         /* ═══════════════════════════════════════════════════ */
         /* ═══ Analytics Textarea Section (Teal/Cyan)  ═══ */
@@ -32087,6 +32378,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </button>
                                         <button class="nf-btn nf-btn-clear" id="btnClearNotes" onclick="clearNotesText()" title="Clear project prompts">
                                             <i class="fas fa-eraser"></i> <span id="clearNotesLabel">Clear</span>
+                                        </button>
+                                    </div>
+                                    <!-- Folder Picker for Notes Footer -->
+                                    <div class="notes-folder-picker" id="notesFolderPickerSection">
+                                        <button type="button" 
+                                                class="notes-folder-btn" 
+                                                onclick="selectNotesFolder()" 
+                                                title="Select folder(s) to send with project prompts">
+                                            <i class="fas fa-folder-plus"></i>
+                                        </button>
+                                        <div class="notes-selected-folders" id="notesSelectedFolders"></div>
+                                        <button type="button" 
+                                                class="notes-folder-push-btn" 
+                                                id="notesFolderPushBtn"
+                                                onclick="pushFolderNamesToNotes()" 
+                                                title="Push folder names into Project Prompts"
+                                                style="display: none;">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="notes-folder-clear-btn" 
+                                                id="notesFolderClearBtn"
+                                                onclick="clearNotesFolders()" 
+                                                title="Clear selected folders"
+                                                style="display: none;">
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     </div>
                                     <button class="nf-btn-dir" id="btnNotesDirToggle" onclick="toggleNotesDir()" title="Toggle text direction (LTR / RTL)">
@@ -45214,6 +45531,39 @@ in each section carefully and maintain proper connections between components.
                     showToast(`⚠️ Failed to copy: ${failList}`, 'warning');
                 }
                 
+                // 4) Recursively copy selected folders to the same directory
+                if (notesSelectedFolderHandles.length > 0 && promptFolderHandle) {
+                    let totalCopied = 0;
+                    let totalFailed = 0;
+                    const copiedFolderNames = [];
+                    const failedFolderNames = [];
+                    
+                    for (const folderEntry of notesSelectedFolderHandles) {
+                        try {
+                            // Create the folder in the destination
+                            const destSubDir = await promptFolderHandle.getDirectoryHandle(folderEntry.name, { create: true });
+                            const result = await recursiveCopyFolder(folderEntry.handle, destSubDir);
+                            totalCopied += result.copiedCount;
+                            totalFailed += result.failedCount;
+                            copiedFolderNames.push(folderEntry.name);
+                            console.log(`📁 Folder copied: ${folderName}/${folderEntry.name} (${result.copiedCount} files)`);
+                        } catch (folderErr) {
+                            console.error(`Error copying folder ${folderEntry.name}:`, folderErr);
+                            failedFolderNames.push(folderEntry.name);
+                        }
+                    }
+                    
+                    if (copiedFolderNames.length > 0) {
+                        showToast(`📁 ${copiedFolderNames.length} folder${copiedFolderNames.length > 1 ? 's' : ''} sent to ${folderName} (${totalCopied} files): ${copiedFolderNames.join(', ')}`, 'success');
+                    }
+                    if (failedFolderNames.length > 0) {
+                        showToast(`⚠️ Failed to copy folder${failedFolderNames.length > 1 ? 's' : ''}: ${failedFolderNames.join(', ')}`, 'warning');
+                    }
+                    if (totalFailed > 0) {
+                        showToast(`⚠️ ${totalFailed} file${totalFailed > 1 ? 's' : ''} failed inside folders`, 'warning');
+                    }
+                }
+                
             } catch (err) {
                 console.error('Error writing Project Prompts to prompt.txt:', err);
                 
@@ -54408,6 +54758,120 @@ function readFileAsText(file) {
         reader.readAsText(file);
     });
 }
+
+// ═══════ Notes Footer Folder Picker ═══════
+let notesSelectedFolderHandles = []; // Array of { handle: FileSystemDirectoryHandle, name: string }
+
+async function selectNotesFolder() {
+    try {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+        // Skip duplicates
+        if (notesSelectedFolderHandles.some(f => f.name === dirHandle.name)) {
+            showToast(`⚠️ Folder "${dirHandle.name}" already selected`, 'warning');
+            return;
+        }
+        notesSelectedFolderHandles.push({ handle: dirHandle, name: dirHandle.name });
+        renderNotesSelectedFolders();
+        updateNotesFolderPickerButtons();
+        showToast(`📁 Folder "${dirHandle.name}" selected`, 'success');
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            console.error('Folder picker error:', err);
+            showToast('❌ Failed to select folder: ' + err.message, 'error');
+        }
+    }
+}
+
+function renderNotesSelectedFolders() {
+    const container = document.getElementById('notesSelectedFolders');
+    if (!container) return;
+    
+    const picker = document.getElementById('notesFolderPickerSection');
+    
+    if (notesSelectedFolderHandles.length === 0) {
+        container.innerHTML = '';
+        if (picker) picker.classList.remove('has-folders');
+        return;
+    }
+    
+    if (picker) picker.classList.add('has-folders');
+    
+    container.innerHTML = notesSelectedFolderHandles.map((folder, index) => `
+        <span class="notes-folder-tag">
+            <i class="fas fa-folder"></i>
+            <span>${escapeHtml(folder.name)}</span>
+            <i class="fas fa-times remove-folder" onclick="removeNotesFolder(${index})" title="Remove"></i>
+        </span>
+    `).join('');
+}
+
+function removeNotesFolder(index) {
+    notesSelectedFolderHandles.splice(index, 1);
+    renderNotesSelectedFolders();
+    updateNotesFolderPickerButtons();
+}
+
+function clearNotesFolders() {
+    notesSelectedFolderHandles = [];
+    renderNotesSelectedFolders();
+    updateNotesFolderPickerButtons();
+    showToast('🗑️ Selected folders cleared', 'info');
+}
+
+function updateNotesFolderPickerButtons() {
+    const hasFolders = notesSelectedFolderHandles.length > 0;
+    const pushBtn = document.getElementById('notesFolderPushBtn');
+    const clearBtn = document.getElementById('notesFolderClearBtn');
+    if (pushBtn) pushBtn.style.display = hasFolders ? 'flex' : 'none';
+    if (clearBtn) clearBtn.style.display = hasFolders ? 'flex' : 'none';
+}
+
+function pushFolderNamesToNotes() {
+    if (notesSelectedFolderHandles.length === 0) return;
+    
+    const textarea = document.getElementById('projectNotesTextarea');
+    if (!textarea) return;
+    
+    const folderNames = notesSelectedFolderHandles.map((f, i) => `${i + 1}. 📁 ${f.name}`);
+    const folderNamesText = '📁 Folders:\n' + folderNames.join('\n');
+    
+    if (textarea.value.trim()) {
+        textarea.value = textarea.value.trimEnd() + '\n\n' + folderNamesText;
+    } else {
+        textarea.value = folderNamesText;
+    }
+    saveProjectNotesToStorage();
+    showToast(`📁 Added ${folderNames.length} folder name${folderNames.length > 1 ? 's' : ''} to notes`, 'success');
+}
+
+async function recursiveCopyFolder(srcDirHandle, destDirHandle) {
+    let copiedCount = 0;
+    let failedCount = 0;
+    
+    for await (const entry of srcDirHandle.values()) {
+        try {
+            if (entry.kind === 'file') {
+                const srcFile = await entry.getFile();
+                const destFileHandle = await destDirHandle.getFileHandle(entry.name, { create: true });
+                const writable = await destFileHandle.createWritable();
+                await writable.write(srcFile);
+                await writable.close();
+                copiedCount++;
+            } else if (entry.kind === 'directory') {
+                const destSubDir = await destDirHandle.getDirectoryHandle(entry.name, { create: true });
+                const subResult = await recursiveCopyFolder(entry, destSubDir);
+                copiedCount += subResult.copiedCount;
+                failedCount += subResult.failedCount;
+            }
+        } catch (err) {
+            console.error(`Error copying ${entry.name}:`, err);
+            failedCount++;
+        }
+    }
+    
+    return { copiedCount, failedCount };
+}
+// ═══════ End Notes Footer Folder Picker ═══════
 
 // Push Project Prompts content to Main Prompt Editor
 function pushNotesToPrompt() {
