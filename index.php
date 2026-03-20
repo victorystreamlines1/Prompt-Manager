@@ -46431,7 +46431,7 @@ in each section carefully and maintain proper connections between components.
         }
         
         // Pull content from selected file into editor
-        async function pullFromTransferFile(side) {
+        async function pullFromTransferFile(side, mode = 'overwrite') {
             const fileHandle = transferFileHandles[side];
             
             if (!fileHandle) {
@@ -46450,11 +46450,18 @@ in each section carefully and maintain proper connections between components.
                     return;
                 }
                 
-                editor.value = content;
+                if (mode === 'append') {
+                    editor.value = editor.value + '\n' + content;
+                } else if (mode === 'prepend') {
+                    editor.value = content + '\n' + editor.value;
+                } else {
+                    editor.value = content;
+                }
                 updateCounts();
                 
-                showToast(`✅ Content pulled from ${file.name}!`, 'success');
-                console.log(`📥 Content pulled from ${file.name}, length:`, content.length);
+                const modeLabel = mode === 'append' ? 'appended' : mode === 'prepend' ? 'prepended' : 'pulled';
+                showToast(`✅ Content ${modeLabel} from ${file.name}!`, 'success');
+                console.log(`📥 Content ${modeLabel} from ${file.name}, length:`, content.length);
                 
             } catch (err) {
                 console.error('Error reading file:', err);
@@ -46469,7 +46476,7 @@ in each section carefully and maintain proper connections between components.
         }
         
         // Push editor content to selected file
-        async function pushToTransferFile(side) {
+        async function pushToTransferFile(side, mode = 'overwrite') {
             const fileHandle = transferFileHandles[side];
             
             if (!fileHandle) {
@@ -46479,16 +46486,30 @@ in each section carefully and maintain proper connections between components.
             
             try {
                 const editor = document.getElementById('promptEditor');
-                const content = editor.value;
+                const editorContent = editor.value;
+                
+                let finalContent = editorContent;
+                
+                if (mode === 'append' || mode === 'prepend') {
+                    const existingFile = await fileHandle.getFile();
+                    const existingContent = await existingFile.text();
+                    
+                    if (mode === 'append') {
+                        finalContent = existingContent + '\n' + editorContent;
+                    } else {
+                        finalContent = editorContent + '\n' + existingContent;
+                    }
+                }
                 
                 // Get writable stream
                 const writable = await fileHandle.createWritable();
-                await writable.write(content);
+                await writable.write(finalContent);
                 await writable.close();
                 
                 const file = await fileHandle.getFile();
-                showToast(`✅ Content pushed to ${file.name}!`, 'success');
-                console.log(`📤 Content pushed to ${file.name}, length:`, content.length);
+                const modeLabel = mode === 'append' ? 'appended to' : mode === 'prepend' ? 'prepended to' : 'pushed to';
+                showToast(`✅ Content ${modeLabel} ${file.name}!`, 'success');
+                console.log(`📤 Content ${modeLabel} ${file.name}, length:`, finalContent.length);
                 
             } catch (err) {
                 console.error('Error writing to file:', err);
