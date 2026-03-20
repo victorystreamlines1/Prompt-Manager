@@ -20621,6 +20621,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-2px);
         }
 
+        /* ── Rename Folder ── orange */
+        .btn-fm-rename-folder {
+            color: #fdba74;
+            border-color: rgba(249, 115, 22, 0.2);
+        }
+        .btn-fm-rename-folder:hover {
+            background: rgba(249, 115, 22, 0.12);
+            border-color: rgba(249, 115, 22, 0.5);
+            color: #fb923c;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.22);
+            transform: translateY(-2px);
+        }
+
         /* ── Move Folder ── violet */
         .btn-fm-move-folder {
             color: #c4b5fd;
@@ -33073,6 +33086,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn-fm btn-fm-rename" onclick="renameSelectedFile()" title="Rename a file">
                             <i class="fas fa-pen"></i><span>Rename File</span>
                         </button>
+                        <button class="btn-fm btn-fm-rename-folder" onclick="renameFolderModal()" title="Rename a folder">
+                            <i class="fas fa-pen-fancy"></i><span>Rename Folder</span>
+                        </button>
                         <button class="btn-fm btn-fm-move-folder" onclick="openMoveFolderModal()" title="Move folder">
                             <i class="fas fa-folder-open"></i><span>Move Folder</span>
                         </button>
@@ -35948,6 +35964,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button class="btn btn-secondary" onclick="closeModal('renameFileModal')">Cancel</button>
                 <button class="btn btn-warning" id="confirmRenameBtn" onclick="confirmRenameFile()" disabled>
                     <i class="fas fa-check"></i> Rename
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rename Folder Modal -->
+    <div class="modal-overlay" id="renameFolderModalDialog">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-pen-fancy" style="color: #f97316;"></i> Rename Folder</h3>
+                <button class="modal-close" onclick="closeModal('renameFolderModalDialog')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <i class="fas fa-pen-fancy file-modal-icon" style="color: #f97316;"></i>
+                <p class="file-modal-message">Select the parent folder, then choose a subfolder to rename</p>
+                
+                <button class="folder-select-btn" id="renameFolderParentBtn" onclick="selectRenameFolderParent()">
+                    <i class="fas fa-folder-open"></i>
+                    <span id="renameFolderParentName">Click to select parent folder</span>
+                </button>
+                
+                <div class="file-list-container" id="renameFolderList">
+                    <div class="file-list-empty">
+                        <i class="fas fa-folder-open"></i>
+                        <p>Select a parent folder to see subfolders</p>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="renameFolderNameGroup" style="display: none;">
+                    <label for="renameFolderNewName">New Folder Name</label>
+                    <input type="text" id="renameFolderNewName" placeholder="Enter new folder name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('renameFolderModalDialog')">Cancel</button>
+                <button class="btn btn-warning" id="confirmRenameFolderBtn" onclick="confirmRenameFolder()" disabled>
+                    <i class="fas fa-check"></i> Rename Folder
                 </button>
             </div>
         </div>
@@ -46418,7 +46471,9 @@ in each section carefully and maintain proper connections between components.
             deleteFolderSelected: [],
             renameFolder: null,
             renameSelectedFile: null,
-            renameFiles: []
+            renameFiles: [],
+            renameFolderParent: null,
+            renameFolderSelected: null
         };
         
         // Open Create File Modal
@@ -47349,6 +47404,147 @@ in each section carefully and maintain proper connections between components.
                 
             } catch (err) {
                 showToast('❌ Error renaming file: ' + err.message, 'error');
+            }
+        }
+        
+        // Open Rename Folder Modal
+        function renameFolderModal() {
+            fileManagement.renameFolderParent = null;
+            fileManagement.renameFolderSelected = null;
+            document.getElementById('renameFolderParentBtn').classList.remove('selected');
+            document.getElementById('renameFolderParentName').textContent = 'Click to select parent folder';
+            document.getElementById('renameFolderList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>Select a parent folder to see subfolders</p></div>';
+            document.getElementById('renameFolderNameGroup').style.display = 'none';
+            document.getElementById('renameFolderNewName').value = '';
+            document.getElementById('confirmRenameFolderBtn').disabled = true;
+            openModal('renameFolderModalDialog');
+        }
+        
+        // Select parent folder for rename folder
+        async function selectRenameFolderParent() {
+            try {
+                const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                fileManagement.renameFolderParent = folderHandle;
+                fileManagement.renameFolderSelected = null;
+                document.getElementById('renameFolderParentBtn').classList.add('selected');
+                document.getElementById('renameFolderParentName').textContent = folderHandle.name;
+                document.getElementById('renameFolderNameGroup').style.display = 'none';
+                document.getElementById('renameFolderNewName').value = '';
+                document.getElementById('confirmRenameFolderBtn').disabled = true;
+                
+                // List subfolders
+                const folders = [];
+                for await (const entry of folderHandle.values()) {
+                    if (entry.kind === 'directory') {
+                        folders.push(entry.name);
+                    }
+                }
+                folders.sort((a, b) => a.localeCompare(b));
+                
+                const listEl = document.getElementById('renameFolderList');
+                if (folders.length === 0) {
+                    listEl.innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>No subfolders found</p></div>';
+                    return;
+                }
+                
+                listEl.innerHTML = folders.map(name => `
+                    <div class="file-list-item" onclick="selectRenameFolderItem(this, '${name.replace(/'/g, "\\'")}')">
+                        <input type="radio" name="renameFolderRadio">
+                        <i class="fas fa-folder" style="color: #fbbf24;"></i>
+                        <span>${name}</span>
+                    </div>
+                `).join('');
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showToast('❌ Error selecting folder: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Select a subfolder to rename
+        function selectRenameFolderItem(element, folderName) {
+            document.querySelectorAll('#renameFolderList .file-list-item').forEach(item => {
+                item.classList.remove('selected');
+                item.querySelector('input[type="radio"]').checked = false;
+            });
+            
+            element.classList.add('selected');
+            element.querySelector('input[type="radio"]').checked = true;
+            fileManagement.renameFolderSelected = folderName;
+            
+            // Show new name input
+            document.getElementById('renameFolderNameGroup').style.display = 'block';
+            document.getElementById('renameFolderNewName').value = folderName;
+            document.getElementById('renameFolderNewName').focus();
+            document.getElementById('renameFolderNewName').select();
+            document.getElementById('confirmRenameFolderBtn').disabled = false;
+        }
+        
+        // Confirm and rename the folder
+        async function confirmRenameFolder() {
+            if (!fileManagement.renameFolderParent || !fileManagement.renameFolderSelected) {
+                showToast('❌ Please select a folder to rename', 'error');
+                return;
+            }
+            
+            const newName = document.getElementById('renameFolderNewName').value.trim();
+            if (!newName) {
+                showToast('❌ Please enter a new folder name', 'error');
+                return;
+            }
+            
+            if (newName === fileManagement.renameFolderSelected) {
+                showToast('❌ New name is the same as the old name', 'error');
+                return;
+            }
+            
+            try {
+                // Check if new name already exists
+                let exists = false;
+                for await (const entry of fileManagement.renameFolderParent.values()) {
+                    if (entry.kind === 'directory' && entry.name === newName) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (exists) {
+                    showToast('❌ A folder with that name already exists', 'error');
+                    return;
+                }
+                
+                // Create new folder
+                const newFolderHandle = await fileManagement.renameFolderParent.getDirectoryHandle(newName, { create: true });
+                
+                // Copy all contents from old folder to new folder recursively
+                const oldFolderHandle = await fileManagement.renameFolderParent.getDirectoryHandle(fileManagement.renameFolderSelected);
+                
+                async function copyContents(srcHandle, destHandle) {
+                    for await (const entry of srcHandle.values()) {
+                        if (entry.kind === 'file') {
+                            const file = await entry.getFile();
+                            const content = await file.arrayBuffer();
+                            const newFileHandle = await destHandle.getFileHandle(entry.name, { create: true });
+                            const writable = await newFileHandle.createWritable();
+                            await writable.write(content);
+                            await writable.close();
+                        } else if (entry.kind === 'directory') {
+                            const newSubDir = await destHandle.getDirectoryHandle(entry.name, { create: true });
+                            await copyContents(entry, newSubDir);
+                        }
+                    }
+                }
+                
+                await copyContents(oldFolderHandle, newFolderHandle);
+                
+                // Remove old folder
+                await fileManagement.renameFolderParent.removeEntry(fileManagement.renameFolderSelected, { recursive: true });
+                
+                closeModal('renameFolderModalDialog');
+                showToast(`✅ Renamed folder: ${fileManagement.renameFolderSelected} → ${newName}`, 'success');
+                
+            } catch (err) {
+                showToast('❌ Error renaming folder: ' + err.message, 'error');
             }
         }
         
