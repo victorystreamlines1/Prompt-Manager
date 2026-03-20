@@ -33090,8 +33090,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- Save Pick As Group -->
                     <div class="analytics-save-pick-group">
-                        <button type="button" class="analytics-save-pick-btn" id="analyticsSavePickBtn" title="Send Pick as">
-                            <i class="fas fa-save"></i>
+                        <button type="button" class="analytics-save-pick-btn" id="analyticsSavePickBtn" title="Send Pick as" onclick="sendPickAs()">
+                            <i class="fas fa-paper-plane"></i>
                             <span>Send Pick as</span>
                         </button>
                         <input type="text" class="analytics-save-pick-input" id="analyticsSavePickInput" placeholder="image" autocomplete="off">
@@ -46653,6 +46653,135 @@ in each section carefully and maintain proper connections between components.
                     updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
                 } else {
                     showToast('❌ Error writing to file: ' + err.message, 'error');
+                }
+            }
+        }
+        
+        // Send Pick As: save the pasted image from Analytics image preview to the designated folder
+        async function sendPickAs() {
+            const btn = document.getElementById('analyticsSavePickBtn');
+            const nameInput = document.getElementById('analyticsSavePickInput');
+            const preview = document.getElementById('analyticsImagePreview');
+            
+            // Get all pasted images from the preview area
+            const imgItems = preview ? preview.querySelectorAll('.analytics-image-preview-item img') : [];
+            if (imgItems.length === 0) {
+                showToast('⚠️ No image found in Analytics. Paste an image first (switch to Image mode).', 'warning');
+                return;
+            }
+            
+            // Ensure folder is connected
+            if (!promptFolderHandle) {
+                const savedFolder = localStorage.getItem('promptFolderName');
+                if (savedFolder) {
+                    const reconnected = await tryReconnectFolder();
+                    if (!reconnected) return;
+                } else {
+                    showToast('❌ No folder connected. Please select a folder from Prompt Editor first.', 'error');
+                    return;
+                }
+            }
+            
+            // Get filename from input (default: "image")
+            let baseName = (nameInput ? nameInput.value.trim() : '') || 'image';
+            const folderName = localStorage.getItem('promptFolderName') || 'folder';
+            
+            // Show loading state on button
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Sending...</span>';
+            }
+            
+            try {
+                const sentNames = [];
+                const failedNames = [];
+                
+                for (let i = 0; i < imgItems.length; i++) {
+                    const imgEl = imgItems[i];
+                    const dataUrl = imgEl.src;
+                    
+                    if (!dataUrl || !dataUrl.startsWith('data:')) {
+                        failedNames.push(baseName);
+                        continue;
+                    }
+                    
+                    // Determine file extension from the data URL mime type
+                    const mimeMatch = dataUrl.match(/^data:(image\/\w+);base64,/);
+                    let ext = 'png';
+                    if (mimeMatch) {
+                        const mime = mimeMatch[1];
+                        if (mime === 'image/jpeg') ext = 'jpg';
+                        else if (mime === 'image/gif') ext = 'gif';
+                        else if (mime === 'image/webp') ext = 'webp';
+                        else if (mime === 'image/svg+xml') ext = 'svg';
+                        else if (mime === 'image/bmp') ext = 'bmp';
+                        else ext = 'png';
+                    }
+                    
+                    // Build filename: if multiple images, append index
+                    const fileName = imgItems.length > 1 
+                        ? `${baseName}_${i + 1}.${ext}` 
+                        : `${baseName}.${ext}`;
+                    
+                    // Convert base64 data URL to a Blob
+                    const base64Data = dataUrl.split(',')[1];
+                    const byteChars = atob(base64Data);
+                    const byteNumbers = new Array(byteChars.length);
+                    for (let j = 0; j < byteChars.length; j++) {
+                        byteNumbers[j] = byteChars.charCodeAt(j);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mimeMatch ? mimeMatch[1] : 'image/png' });
+                    
+                    // Write to the designated folder using File System Access API
+                    try {
+                        const fileHandle = await promptFolderHandle.getFileHandle(fileName, { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        sentNames.push(fileName);
+                        console.log(`🖼️ Image saved: ${folderName}/${fileName}`);
+                    } catch (writeErr) {
+                        console.error(`Error saving image ${fileName}:`, writeErr);
+                        failedNames.push(fileName);
+                    }
+                }
+                
+                // Show results
+                if (sentNames.length > 0) {
+                    showToast(`✅ Sent ${sentNames.join(', ')} to ${folderName}/`, 'success');
+                }
+                if (failedNames.length > 0) {
+                    showToast(`⚠️ Failed to save: ${failedNames.join(', ')}`, 'warning');
+                }
+                
+                // Success visual feedback on button
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-check"></i> <span>Sent!</span>';
+                    btn.style.borderColor = 'rgba(34, 197, 94, 0.6)';
+                    btn.style.color = '#4ade80';
+                    setTimeout(() => {
+                        btn.innerHTML = origHTML;
+                        btn.style.borderColor = '';
+                        btn.style.color = '';
+                        btn.disabled = false;
+                    }, 2000);
+                }
+                
+            } catch (err) {
+                console.error('sendPickAs error:', err);
+                if (err.name === 'NotAllowedError') {
+                    showToast('❌ Permission denied. Please select the folder again.', 'error');
+                    promptFolderHandle = null;
+                    promptFileHandle = null;
+                    updateFolderUI(localStorage.getItem('promptFolderName') || '', false);
+                } else {
+                    showToast('❌ Error saving image: ' + err.message, 'error');
+                }
+                if (btn) {
+                    btn.innerHTML = origHTML;
+                    btn.disabled = false;
                 }
             }
         }
