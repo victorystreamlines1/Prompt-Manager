@@ -37520,7 +37520,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         async function resetDashboard() {
             const confirmed = typeof deConfirm === 'function'
                 ? await deConfirm({ title: 'Reset Dashboard', subtitle: 'Dashboard Settings', message: 'Reset all dashboard settings to default?', confirmText: 'Yes, Reset', cancelText: 'Cancel' })
-                : confirm('Reset all dashboard settings to default?');
+                : await showLuxuryConfirm({ title: 'Reset Dashboard', message: 'Reset all dashboard settings to default?', icon: '🔄', confirmText: 'Yes, Reset', cancelText: 'Cancel', danger: false });
             if (!confirmed) return;
             
             // Clear localStorage
@@ -42323,7 +42323,7 @@ in each section carefully and maintain proper connections between components.
             // Confirm before overwriting
             const confirmed = typeof deConfirm === 'function'
                 ? await deConfirm({ title: 'Overwrite Template', subtitle: currentPreviewTemplate.name, message: `Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`, confirmText: 'Yes, Overwrite', cancelText: 'Cancel' })
-                : confirm(`Are you sure you want to overwrite "${currentPreviewTemplate.name}" with the current editor content?`);
+                : await showLuxuryConfirm({ title: 'Overwrite Template', message: `Are you sure you want to overwrite this template with the current editor content?`, icon: '📝', detail: currentPreviewTemplate.name, confirmText: 'Yes, Overwrite', cancelText: 'Cancel', danger: false });
             if (!confirmed) return;
             
             // Send update to server
@@ -45602,7 +45602,7 @@ in each section carefully and maintain proper connections between components.
                     confirmText: 'Clear All',
                     icon: 'fa-broom'
                 })
-                : confirm('Clear entire workspace? This will reset Dashboard, Analytics, Editor & Design Enhancer.');
+                : await showLuxuryConfirm({ title: 'Clear All Workspace', message: 'This will reset the entire workspace including Dashboard, Analytics, Prompt Editor, and Design Enhancer.', icon: '🧹', warning: 'This action cannot be undone.', confirmText: 'Clear All', cancelText: 'Cancel' });
 
             if (!confirmed) return;
 
@@ -49343,7 +49343,7 @@ in each section carefully and maintain proper connections between components.
             if (ftFolderStore.size === 0) return;
             const confirmed = typeof deConfirm === 'function'
                 ? await deConfirm({ title: 'Clear All Folders', subtitle: 'Folder Template', message: 'Remove all folders from the template?', confirmText: 'Yes, Remove All', cancelText: 'Cancel' })
-                : confirm('Remove all folders from the template?');
+                : await showLuxuryConfirm({ title: 'Clear All Folders', message: 'Remove all folders from the template?', icon: '📁', confirmText: 'Yes, Remove All', cancelText: 'Cancel' });
             if (!confirmed) return;
             ftFolderStore.forEach((_, name) => {
                 const sid = ftGetSafeId(name);
@@ -51001,7 +51001,7 @@ in each section carefully and maintain proper connections between components.
             // Confirm before overwriting
             const confirmed = typeof deConfirm === 'function'
                 ? await deConfirm({ title: 'Overwrite Saved Prompt', subtitle: currentPreviewSaved.title, message: `Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`, confirmText: 'Yes, Overwrite', cancelText: 'Cancel' })
-                : confirm(`Are you sure you want to overwrite "${currentPreviewSaved.title}" with the current editor content?`);
+                : await showLuxuryConfirm({ title: 'Overwrite Saved Prompt', message: `Are you sure you want to overwrite this prompt with the current editor content?`, icon: '📝', detail: currentPreviewSaved.title, confirmText: 'Yes, Overwrite', cancelText: 'Cancel', danger: false });
             if (!confirmed) return;
             
             // Send update to server
@@ -61413,7 +61413,8 @@ async function confirmResetDesignTheme() {
             dtResetAll();
         }
     } else {
-        if (confirm('Reset theme selection?')) {
+        const confirmed = await showLuxuryConfirm({ title: 'Reset Design Themes', message: 'Reset theme selection to default (AI Decision)?', icon: '🎨', warning: 'All selected themes and notes will be cleared.', confirmText: 'Reset', cancelText: 'Cancel' });
+        if (confirmed) {
             dtResetAll();
         }
     }
@@ -61761,13 +61762,14 @@ function plResetAll(skipToast = false) {
 }
 
 // Confirm reset
-function confirmResetLayout() {
+async function confirmResetLayout() {
     if (typeof deConfirm === 'function') {
         deConfirm('Reset layout selection to AI Decision?', () => {
             plResetAll();
         });
     } else {
-        if (confirm('Reset layout selection?')) {
+        const confirmed = await showLuxuryConfirm({ title: 'Reset Layout', message: 'Reset layout selection to AI Decision?', icon: '📐', confirmText: 'Reset', cancelText: 'Cancel' });
+        if (confirmed) {
             plResetAll();
         }
     }
@@ -61960,8 +61962,9 @@ async function confirmResetExecutionMode() {
         if (confirmed) {
             emResetAll();
         }
-    } else if (confirm('Reset execution mode to default?')) {
-        emResetAll();
+    } else {
+        const confirmed = await showLuxuryConfirm({ title: 'Reset Execution Mode', message: 'Reset the execution mode to default?', icon: '🚀', warning: 'Mode will be set to "Read Before Executing" and notes will be cleared.', confirmText: 'Reset', cancelText: 'Cancel' });
+        if (confirmed) emResetAll();
     }
 }
 
