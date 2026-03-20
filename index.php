@@ -33111,16 +33111,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-upload"></i> Push
                         </button>
                         <button class="btn-file-action btn-file-pull-append" id="btnPullAppendLeft" onclick="pullFromTransferFile('left','append')" disabled title="Pull &amp; append to editor">
-                            <i class="fas fa-download"></i> Pull<i class="fas fa-angle-double-down" style="margin-left:2px"></i>
+                            <i class="fas fa-download"></i> Pull-A
                         </button>
                         <button class="btn-file-action btn-file-pull-prepend" id="btnPullPrependLeft" onclick="pullFromTransferFile('left','prepend')" disabled title="Pull &amp; prepend to editor">
-                            <i class="fas fa-download"></i> Pull<i class="fas fa-angle-double-up" style="margin-left:2px"></i>
+                            <i class="fas fa-download"></i> Pull-P
                         </button>
                         <button class="btn-file-action btn-file-push-append" id="btnPushAppendLeft" onclick="pushToTransferFile('left','append')" disabled title="Push &amp; append to file">
-                            <i class="fas fa-upload"></i> Push<i class="fas fa-angle-double-down" style="margin-left:2px"></i>
+                            <i class="fas fa-upload"></i> Push-A
                         </button>
                         <button class="btn-file-action btn-file-push-prepend" id="btnPushPrependLeft" onclick="pushToTransferFile('left','prepend')" disabled title="Push &amp; prepend to file">
-                            <i class="fas fa-upload"></i> Push<i class="fas fa-angle-double-up" style="margin-left:2px"></i>
+                            <i class="fas fa-upload"></i> Push-P
                         </button>
                     </div>
 
@@ -33153,16 +33153,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="file-transfer-group right">
                         <button class="btn-file-action btn-file-push-prepend" id="btnPushPrependRight" onclick="pushToTransferFile('right','prepend')" disabled title="Push &amp; prepend to file">
-                            <i class="fas fa-upload"></i> Push<i class="fas fa-angle-double-up" style="margin-left:2px"></i>
+                            <i class="fas fa-upload"></i> Push-P
                         </button>
                         <button class="btn-file-action btn-file-push-append" id="btnPushAppendRight" onclick="pushToTransferFile('right','append')" disabled title="Push &amp; append to file">
-                            <i class="fas fa-upload"></i> Push<i class="fas fa-angle-double-down" style="margin-left:2px"></i>
+                            <i class="fas fa-upload"></i> Push-A
                         </button>
                         <button class="btn-file-action btn-file-pull-prepend" id="btnPullPrependRight" onclick="pullFromTransferFile('right','prepend')" disabled title="Pull &amp; prepend to editor">
-                            <i class="fas fa-download"></i> Pull<i class="fas fa-angle-double-up" style="margin-left:2px"></i>
+                            <i class="fas fa-download"></i> Pull-P
                         </button>
                         <button class="btn-file-action btn-file-pull-append" id="btnPullAppendRight" onclick="pullFromTransferFile('right','append')" disabled title="Pull &amp; append to editor">
-                            <i class="fas fa-download"></i> Pull<i class="fas fa-angle-double-down" style="margin-left:2px"></i>
+                            <i class="fas fa-download"></i> Pull-A
                         </button>
                         <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull (overwrite editor)">
                             <i class="fas fa-download"></i> Pull
