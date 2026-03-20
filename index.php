@@ -42746,7 +42746,7 @@ in each section carefully and maintain proper connections between components.
         // Restore saved font size on load
         (function initEditorFontSize() {
             const saved = localStorage.getItem('promptEditorFontSize');
-            const size = saved ? parseInt(saved) : 14;
+            const size = saved ? parseInt(saved) : 20;
             // Defer to ensure DOM is ready
             if (document.getElementById('promptEditor')) {
                 setEditorFontSize(size);
