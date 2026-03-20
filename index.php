@@ -19874,7 +19874,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-y: hidden; /* Hidden to allow auto-expand */
             box-sizing: border-box;
             caret-color: var(--text-primary);
-            transition: height 0.1s ease;
+            transition: height 0.1s ease, font-size 0.2s ease, line-height 0.2s ease;
         }
 
         /* When not searching, show solid background */
@@ -42714,6 +42714,46 @@ in each section carefully and maintain proper connections between components.
             recordHistoryState(true); // Record clear action in history
             showToast('Editor cleared', 'info');
         }
+
+        // ── Font Size Slider for Prompt Editor ──
+        function setEditorFontSize(size) {
+            size = Math.max(10, Math.min(28, parseInt(size)));
+            const editor = document.getElementById('promptEditor');
+            if (editor) editor.style.fontSize = size + 'px';
+            const valEl = document.getElementById('fontSizeValue');
+            if (valEl) valEl.textContent = size + 'px';
+            const slider = document.getElementById('editorFontSlider');
+            if (slider) slider.value = size;
+            updateFontSliderFill(size);
+            localStorage.setItem('promptEditorFontSize', size);
+        }
+
+        function editorFontSize(dir) {
+            const slider = document.getElementById('editorFontSlider');
+            let current = parseInt(slider ? slider.value : 14);
+            if (dir === 'increase') current = Math.min(28, current + 1);
+            else if (dir === 'decrease') current = Math.max(10, current - 1);
+            setEditorFontSize(current);
+        }
+
+        function updateFontSliderFill(size) {
+            const fill = document.getElementById('fontSizeFill');
+            if (!fill) return;
+            const pct = ((size - 10) / (28 - 10)) * 100;
+            fill.style.width = pct + '%';
+        }
+
+        // Restore saved font size on load
+        (function initEditorFontSize() {
+            const saved = localStorage.getItem('promptEditorFontSize');
+            const size = saved ? parseInt(saved) : 14;
+            // Defer to ensure DOM is ready
+            if (document.getElementById('promptEditor')) {
+                setEditorFontSize(size);
+            } else {
+                document.addEventListener('DOMContentLoaded', () => setEditorFontSize(size));
+            }
+        })();
 
         // Copy prompt
         async function copyPrompt() {
