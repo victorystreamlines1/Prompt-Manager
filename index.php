@@ -20399,38 +20399,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-primary);
         }
 
-        /* File Transfer Section */
+        /* File Transfer & Management Section – single row */
         .file-transfer-section {
-            display: flex;
-            flex-direction: column;
-            padding: 0;
-            background: linear-gradient(180deg, var(--bg-secondary), rgba(var(--bg-secondary-rgb, 30,30,30), 0.95));
-            border-top: 1px solid var(--border-color);
-            gap: 0;
-        }
-
-        .ft-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem 1rem;
-            gap: 0.6rem;
-        }
-
-        .ft-row-pickers {
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-
-        .ft-row-manage {
-            padding: 0.45rem 1rem;
             flex-wrap: wrap;
-        }
-
-        .ft-center-label {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            opacity: 0.45;
-            padding: 0 0.3rem;
+            padding: 0.45rem 0.8rem;
+            background: linear-gradient(180deg, var(--bg-secondary), rgba(var(--bg-secondary-rgb, 30,30,30), 0.95));
+            border-top: 1px solid var(--border-color);
+            gap: 0.5rem;
         }
 
         .ft-sep {
@@ -20444,27 +20422,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .file-transfer-group {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            flex: 1;
+            gap: 0.4rem;
         }
 
         .file-transfer-group.right {
-            justify-content: flex-end;
+            flex-direction: row;
         }
 
         .file-transfer-group .file-picker-btn {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.7rem;
+            gap: 0.35rem;
+            padding: 0.35rem 0.6rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             color: var(--text-secondary);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.2s;
-            max-width: 140px;
+            max-width: 120px;
             overflow: hidden;
         }
 
@@ -20499,15 +20476,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .file-transfer-group .btn-file-action {
-            padding: 0.35rem 0.6rem;
-            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.65rem;
             border-radius: 5px;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
         }
 
         .file-transfer-group .btn-file-pull {
@@ -20559,23 +20536,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .move-folder-group {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0 0.4rem;
+            gap: 0.4rem;
+            padding: 0 0.2rem;
         }
 
         .btn-move-folder {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
-            padding: 0.45rem 0.85rem;
-            border-radius: 8px;
+            gap: 0.3rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 7px;
             border: 1px solid rgba(59, 130, 246, 0.35);
             background: var(--bg-tertiary);
             color: #3b82f6;
             cursor: pointer;
             transition: all 0.25s ease;
-            font-size: 0.72rem;
+            font-size: 0.67rem;
             font-family: inherit;
             font-weight: 600;
             white-space: nowrap;
@@ -20607,23 +20584,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .file-management-group {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
-            padding: 0 0.3rem;
+            gap: 0.35rem;
+            padding: 0 0.15rem;
         }
 
         .btn-file-manage {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
-            padding: 0.45rem 0.75rem;
-            border-radius: 8px;
+            gap: 0.3rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 7px;
             border: 1px solid var(--border-color);
             background: var(--bg-tertiary);
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.25s ease;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-family: inherit;
             font-weight: 500;
             white-space: nowrap;
@@ -33048,82 +33025,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 
-                <!-- File Transfer Section -->
+                <!-- File Transfer & Management Section -->
                 <div class="file-transfer-section">
-                    <!-- Row 1: File Pickers -->
-                    <div class="ft-row ft-row-pickers">
-                        <div class="file-transfer-group left">
-                            <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
-                                <i class="fas fa-file"></i>
-                                <span class="file-name" id="fileNameLeft">Select File</span>
-                            </button>
-                            <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
-                                <i class="fas fa-download"></i> Pull
-                            </button>
-                            <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
-                                <i class="fas fa-upload"></i> Push
-                            </button>
-                        </div>
-                        <div class="ft-center-label"><i class="fas fa-exchange-alt"></i></div>
-                        <div class="file-transfer-group right">
-                            <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
-                                <i class="fas fa-download"></i> Pull
-                            </button>
-                            <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
-                                <i class="fas fa-upload"></i> Push
-                            </button>
-                            <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
-                                <i class="fas fa-file"></i>
-                                <span class="file-name" id="fileNameRight">Select File</span>
-                            </button>
-                            <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                    <div class="file-transfer-group left">
+                        <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
+                            <i class="fas fa-file"></i>
+                            <span class="file-name" id="fileNameLeft">Select File</span>
+                        </button>
+                        <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
                     </div>
-                    <!-- Row 2: File Management -->
-                    <div class="ft-row ft-row-manage">
-                        <div class="file-management-group">
-                            <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
-                                <i class="fas fa-file-medical"></i> New File
-                            </button>
-                            <button class="btn-file-manage btn-folder" onclick="createNewFolder()" title="Create new folder">
-                                <i class="fas fa-folder-plus"></i> New Folder
-                            </button>
-                        </div>
-                        <span class="ft-sep"></span>
-                        <div class="file-management-group">
-                            <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
-                                <i class="fas fa-edit"></i> Rename
-                            </button>
-                        </div>
-                        <span class="ft-sep"></span>
-                        <div class="move-folder-group">
-                            <button class="btn-move-folder" onclick="openMoveFolderModal()" title="Move folder to another location">
-                                <i class="fas fa-folder-open"></i>
-                                <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
-                                <i class="fas fa-folder"></i>
-                                Move Folder
-                            </button>
-                            <button class="btn-move-folder btn-move-file" onclick="openMoveFilesModal()" title="Move files to another folder">
-                                <i class="fas fa-file"></i>
-                                <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
-                                <i class="fas fa-folder"></i>
-                                Move File
-                            </button>
-                        </div>
-                        <span class="ft-sep"></span>
-                        <div class="file-management-group">
-                            <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete files">
-                                <i class="fas fa-file-excel"></i> Delete File
-                            </button>
-                            <button class="btn-file-manage btn-delete-folder" onclick="deleteFolderModal()" title="Delete folder">
-                                <i class="fas fa-folder-minus"></i> Delete Folder
-                            </button>
-                        </div>
+
+                    <span class="ft-sep"></span>
+
+                    <div class="file-management-group">
+                        <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
+                            <i class="fas fa-file-medical"></i> New File
+                        </button>
+                        <button class="btn-file-manage btn-folder" onclick="createNewFolder()" title="Create new folder">
+                            <i class="fas fa-folder-plus"></i> New Folder
+                        </button>
+                    </div>
+
+                    <span class="ft-sep"></span>
+
+                    <div class="file-management-group">
+                        <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
+                            <i class="fas fa-edit"></i> Rename
+                        </button>
+                    </div>
+
+                    <span class="ft-sep"></span>
+
+                    <div class="move-folder-group">
+                        <button class="btn-move-folder" onclick="openMoveFolderModal()" title="Move folder to another location">
+                            <i class="fas fa-folder-open"></i>
+                            <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
+                            <i class="fas fa-folder"></i>
+                            Move Folder
+                        </button>
+                        <button class="btn-move-folder btn-move-file" onclick="openMoveFilesModal()" title="Move files to another folder">
+                            <i class="fas fa-file"></i>
+                            <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
+                            <i class="fas fa-folder"></i>
+                            Move File
+                        </button>
+                    </div>
+
+                    <span class="ft-sep"></span>
+
+                    <div class="file-management-group">
+                        <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete files">
+                            <i class="fas fa-file-excel"></i> Delete File
+                        </button>
+                        <button class="btn-file-manage btn-delete-folder" onclick="deleteFolderModal()" title="Delete folder">
+                            <i class="fas fa-folder-minus"></i> Delete Folder
+                        </button>
+                    </div>
+
+                    <span class="ft-sep"></span>
+
+                    <div class="file-transfer-group right">
+                        <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
+                            <i class="fas fa-download"></i> Pull
+                        </button>
+                        <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
+                            <i class="fas fa-upload"></i> Push
+                        </button>
+                        <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
+                            <i class="fas fa-file"></i>
+                            <span class="file-name" id="fileNameRight">Select File</span>
+                        </button>
+                        <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
                 
