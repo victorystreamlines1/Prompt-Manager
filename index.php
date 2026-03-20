@@ -18352,6 +18352,143 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* ============================================ */
+        /* Font Size Slider Control                     */
+        /* ============================================ */
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.55rem;
+            background: linear-gradient(135deg, rgba(15, 15, 40, 0.7), rgba(20, 20, 50, 0.55));
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .font-size-control:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            background: linear-gradient(135deg, rgba(15, 15, 40, 0.8), rgba(25, 25, 60, 0.65));
+        }
+
+        .font-size-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 7px;
+            color: rgba(165, 180, 252, 0.8);
+            cursor: pointer;
+            font-size: 0.6rem;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0;
+        }
+        .font-size-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.5);
+            color: #c7d2fe;
+            transform: scale(1.12);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        }
+        .font-size-btn:active {
+            transform: scale(0.92);
+        }
+
+        .font-size-slider-wrap {
+            position: relative;
+            width: 80px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+        }
+
+        .font-size-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(99, 102, 241, 0.12);
+            transition: all 0.2s ease;
+        }
+        .font-size-slider:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+        }
+
+        .font-size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .font-size-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 18px rgba(99, 102, 241, 0.7), 0 3px 10px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .font-size-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .font-size-slider::-moz-range-track {
+            height: 5px;
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 3px;
+            border: none;
+        }
+
+        .font-size-fill {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 5px;
+            background: linear-gradient(90deg, #6366f1, #818cf8, #a78bfa);
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 1;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 6px rgba(99, 102, 241, 0.4);
+        }
+
+        .font-size-value {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #a5b4fc;
+            min-width: 30px;
+            text-align: center;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+        .font-size-control:hover .font-size-value {
+            color: #c7d2fe;
+        }
+
+        /* ============================================ */
         /* DB History Panel Styles                      */
         /* ============================================ */
         .db-history-panel {
@@ -33268,6 +33405,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="history-btn clear" id="btnClearHistory" onclick="clearDbHistory()" title="Clear DB History">
                             <i class="fas fa-trash-alt"></i>
                         </button>
+                    </div>
+
+                    <!-- Font Size Slider -->
+                    <div class="font-size-control" id="fontSizeControl">
+                        <button class="font-size-btn" onclick="editorFontSize('decrease')" title="Decrease font size">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <div class="font-size-slider-wrap">
+                            <input type="range" class="font-size-slider" id="editorFontSlider" min="10" max="28" value="14" step="1" oninput="setEditorFontSize(this.value)" title="Font size">
+                            <div class="font-size-fill" id="fontSizeFill"></div>
+                        </div>
+                        <button class="font-size-btn" onclick="editorFontSize('increase')" title="Increase font size">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <span class="font-size-value" id="fontSizeValue">14px</span>
                     </div>
 
                     <!-- DB History Slide Panel -->
