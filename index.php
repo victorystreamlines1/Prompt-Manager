@@ -47030,27 +47030,8 @@ in each section carefully and maintain proper connections between components.
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Copying contents...';
                 await copyDirectoryContents(moveFolderState.sourceFolder, newFolder);
                 
-                // Try to delete the original by asking for the parent folder
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing original...';
-                try {
-                    showToast('📂 To complete the move, please select the PARENT folder that contains "' + folderName + '"', 'info');
-                    const parentHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                    
-                    // Verify this parent actually contains the source folder
-                    try {
-                        await parentHandle.getDirectoryHandle(folderName);
-                        await parentHandle.removeEntry(folderName, { recursive: true });
-                        closeModal('moveFolderModal');
-                        showToast(`✅ Successfully moved "${folderName}" to "${moveFolderState.destination.name}"!`, 'success');
-                    } catch (verifyErr) {
-                        closeModal('moveFolderModal');
-                        showToast(`⚠️ Folder copied to "${moveFolderState.destination.name}" but could not delete original — the selected parent doesn't contain "${folderName}". Please delete the original manually.`, 'warning');
-                    }
-                } catch (parentErr) {
-                    // User cancelled parent selection — that's OK, copy is done
-                    closeModal('moveFolderModal');
-                    showToast(`⚠️ Folder copied to "${moveFolderState.destination.name}" successfully! Original folder was not deleted — please remove it manually if needed.`, 'warning');
-                }
+                closeModal('moveFolderModal');
+                showToast(`✅ Successfully moved "${folderName}" to "${moveFolderState.destination.name}"!`, 'success');
                 
             } catch (err) {
                 console.error('Move folder error:', err);
