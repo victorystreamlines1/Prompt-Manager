@@ -28330,6 +28330,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .modal-body {
             padding: 1.5rem;
+            max-height: 65vh;
+            overflow-y: auto;
         }
 
         .form-group {
@@ -47583,6 +47585,8 @@ in each section carefully and maintain proper connections between components.
             document.getElementById('renameFolderNewName').focus();
             document.getElementById('renameFolderNewName').select();
             document.getElementById('confirmRenameFolderBtn').disabled = false;
+            // Scroll the input into view inside the modal body
+            document.getElementById('renameFolderNameGroup').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         // Confirm and rename the folder
