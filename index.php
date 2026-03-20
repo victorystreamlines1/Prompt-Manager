@@ -28510,6 +28510,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--accent-primary);
         }
 
+        .folder-select-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+        }
+
         .folder-select-btn.selected {
             border-style: solid;
             border-color: var(--accent-secondary);
@@ -35882,40 +35890,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="modal-body">
                 <i class="fas fa-exchange-alt file-modal-icon" style="color: #3b82f6;"></i>
-                <p class="file-modal-message">Select source folder, then destination</p>
+                <p class="file-modal-message">Select the folder you want to move, then choose where to move it</p>
                 
-                <!-- Source Selection -->
+                <!-- Step 1: Select Folder to Move -->
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-folder-open" style="color: #f59e0b;"></i> Source (folder to move)
+                        <i class="fas fa-folder-open" style="color: #f59e0b;"></i> Step 1: Select Folder to Move
                     </label>
                     <button class="folder-select-btn" id="moveSourceBtn" onclick="selectMoveSource()">
                         <i class="fas fa-folder-open"></i>
-                        <span id="moveSourceName">Click to select source folder</span>
+                        <span id="moveSourceName">Click to select folder</span>
                     </button>
                 </div>
                 
-                <!-- Folder to Move Selection -->
-                <div id="moveFolderSelectContainer" style="display: none; margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-folder" style="color: #8b5cf6;"></i> Select folder to move
-                    </label>
-                    <div class="file-list-container" id="moveFolderList" style="max-height: 150px;">
-                        <div class="file-list-empty">
-                            <i class="fas fa-folder-open"></i>
-                            <p>No subfolders found</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Destination Selection -->
+                <!-- Step 2: Select Destination -->
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-folder" style="color: #10b981;"></i> Destination (where to move)
+                        <i class="fas fa-folder" style="color: #10b981;"></i> Step 2: Choose Destination
                     </label>
                     <button class="folder-select-btn" id="moveDestBtn" onclick="selectMoveDestination()" disabled>
                         <i class="fas fa-folder"></i>
-                        <span id="moveDestName">Select source first</span>
+                        <span id="moveDestName">Select folder first</span>
                     </button>
                 </div>
                 
@@ -46901,71 +46896,47 @@ in each section carefully and maintain proper connections between components.
         // ============================================
         
         let moveFolderState = {
-            sourceParent: null,
-            selectedFolder: null,
-            selectedFolderName: null,
+            sourceFolder: null,
+            sourceFolderName: null,
             destination: null
         };
         
         // Open Move Folder Modal
         function openMoveFolderModal() {
             moveFolderState = {
-                sourceParent: null,
-                selectedFolder: null,
-                selectedFolderName: null,
+                sourceFolder: null,
+                sourceFolderName: null,
                 destination: null
             };
             document.getElementById('moveSourceBtn').classList.remove('selected');
-            document.getElementById('moveSourceName').textContent = 'Click to select source folder';
-            document.getElementById('moveFolderSelectContainer').style.display = 'none';
-            document.getElementById('moveFolderList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>No subfolders found</p></div>';
+            document.getElementById('moveSourceName').textContent = 'Click to select folder';
             document.getElementById('moveDestBtn').classList.remove('selected');
             document.getElementById('moveDestBtn').disabled = true;
-            document.getElementById('moveDestName').textContent = 'Select source first';
+            document.getElementById('moveDestName').textContent = 'Select folder first';
             document.getElementById('movePreview').style.display = 'none';
             document.getElementById('confirmMoveBtn').disabled = true;
             openModal('moveFolderModal');
         }
         
-        // Select source parent folder
+        // Step 1: Select the folder to move (directly)
         async function selectMoveSource() {
             try {
                 const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                moveFolderState.sourceParent = folderHandle;
-                moveFolderState.selectedFolder = null;
-                moveFolderState.selectedFolderName = null;
+                moveFolderState.sourceFolder = folderHandle;
+                moveFolderState.sourceFolderName = folderHandle.name;
+                
                 document.getElementById('moveSourceBtn').classList.add('selected');
                 document.getElementById('moveSourceName').textContent = folderHandle.name;
                 
-                // List subfolders
-                const folders = [];
-                for await (const entry of folderHandle.values()) {
-                    if (entry.kind === 'directory') {
-                        folders.push(entry.name);
-                    }
-                }
+                // Enable destination selection immediately
+                document.getElementById('moveDestBtn').disabled = false;
+                document.getElementById('moveDestName').textContent = 'Click to select destination';
                 
-                if (folders.length === 0) {
-                    document.getElementById('moveFolderSelectContainer').style.display = 'block';
-                    document.getElementById('moveFolderList').innerHTML = '<div class="file-list-empty"><i class="fas fa-folder-open"></i><p>No subfolders in this folder</p></div>';
-                    document.getElementById('moveDestBtn').disabled = true;
-                    return;
-                }
+                // Update preview
+                document.getElementById('previewSourceFolder').textContent = folderHandle.name;
+                updateMovePreview();
                 
-                // Build folder list
-                let html = '';
-                folders.sort().forEach(name => {
-                    html += `
-                        <div class="file-list-item" onclick="selectFolderToMove(this, '${name.replace(/'/g, "\\'")}')">
-                            <input type="radio" name="moveFolder" onclick="event.stopPropagation(); selectFolderToMove(this.parentElement, '${name.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-folder file-icon" style="color: #f59e0b;"></i>
-                            <span class="file-name">${name}</span>
-                        </div>
-                    `;
-                });
-                
-                document.getElementById('moveFolderSelectContainer').style.display = 'block';
-                document.getElementById('moveFolderList').innerHTML = html;
+                showToast('📁 Source selected: ' + folderHandle.name + ' — Now pick the destination', 'success');
                 
             } catch (err) {
                 if (err.name !== 'AbortError') {
@@ -46974,36 +46945,7 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
-        // Select specific folder to move
-        async function selectFolderToMove(element, folderName) {
-            // Deselect all
-            document.querySelectorAll('#moveFolderList .file-list-item').forEach(item => {
-                item.classList.remove('selected');
-                item.querySelector('input[type="radio"]').checked = false;
-            });
-            
-            // Select this one
-            element.classList.add('selected');
-            element.querySelector('input[type="radio"]').checked = true;
-            
-            try {
-                moveFolderState.selectedFolder = await moveFolderState.sourceParent.getDirectoryHandle(folderName);
-                moveFolderState.selectedFolderName = folderName;
-                
-                // Enable destination selection
-                document.getElementById('moveDestBtn').disabled = false;
-                document.getElementById('moveDestName').textContent = 'Click to select destination';
-                
-                // Update preview
-                document.getElementById('previewSourceFolder').textContent = folderName;
-                updateMovePreview();
-                
-            } catch (err) {
-                showToast('❌ Error accessing folder: ' + err.message, 'error');
-            }
-        }
-        
-        // Select destination folder
+        // Step 2: Select destination folder
         async function selectMoveDestination() {
             try {
                 const folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -47023,7 +46965,7 @@ in each section carefully and maintain proper connections between components.
         
         // Update move preview
         function updateMovePreview() {
-            const hasSource = moveFolderState.selectedFolderName;
+            const hasSource = moveFolderState.sourceFolderName;
             const hasDest = moveFolderState.destination;
             
             if (hasSource && hasDest) {
@@ -47043,7 +46985,6 @@ in each section carefully and maintain proper connections between components.
         async function copyDirectoryContents(sourceDir, destDir) {
             for await (const entry of sourceDir.values()) {
                 if (entry.kind === 'file') {
-                    // Copy file
                     const file = await entry.getFile();
                     const content = await file.arrayBuffer();
                     const newFile = await destDir.getFileHandle(entry.name, { create: true });
@@ -47051,7 +46992,6 @@ in each section carefully and maintain proper connections between components.
                     await writable.write(content);
                     await writable.close();
                 } else if (entry.kind === 'directory') {
-                    // Create subdirectory and copy contents recursively
                     const newSubDir = await destDir.getDirectoryHandle(entry.name, { create: true });
                     await copyDirectoryContents(entry, newSubDir);
                 }
@@ -47060,13 +47000,13 @@ in each section carefully and maintain proper connections between components.
         
         // Confirm and execute move
         async function confirmMoveFolder() {
-            if (!moveFolderState.sourceParent || !moveFolderState.selectedFolder || !moveFolderState.destination) {
+            if (!moveFolderState.sourceFolder || !moveFolderState.destination) {
                 showToast('❌ Please select both source folder and destination', 'error');
                 return;
             }
             
             const btn = document.getElementById('confirmMoveBtn');
-            const folderName = moveFolderState.selectedFolderName;
+            const folderName = moveFolderState.sourceFolderName;
             
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Moving...';
@@ -47080,7 +47020,7 @@ in each section carefully and maintain proper connections between components.
                     btn.innerHTML = '<i class="fas fa-exchange-alt"></i> Move Folder';
                     return;
                 } catch (e) {
-                    // Good, doesn't exist
+                    // Good — folder doesn't exist at destination
                 }
                 
                 // Create folder in destination
@@ -47088,14 +47028,29 @@ in each section carefully and maintain proper connections between components.
                 
                 // Copy all contents recursively
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Copying contents...';
-                await copyDirectoryContents(moveFolderState.selectedFolder, newFolder);
+                await copyDirectoryContents(moveFolderState.sourceFolder, newFolder);
                 
-                // Delete source folder
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing source...';
-                await moveFolderState.sourceParent.removeEntry(folderName, { recursive: true });
-                
-                closeModal('moveFolderModal');
-                showToast(`✅ Successfully moved "${folderName}" to "${moveFolderState.destination.name}"!`, 'success');
+                // Try to delete the original by asking for the parent folder
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing original...';
+                try {
+                    showToast('📂 To complete the move, please select the PARENT folder that contains "' + folderName + '"', 'info');
+                    const parentHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                    
+                    // Verify this parent actually contains the source folder
+                    try {
+                        await parentHandle.getDirectoryHandle(folderName);
+                        await parentHandle.removeEntry(folderName, { recursive: true });
+                        closeModal('moveFolderModal');
+                        showToast(`✅ Successfully moved "${folderName}" to "${moveFolderState.destination.name}"!`, 'success');
+                    } catch (verifyErr) {
+                        closeModal('moveFolderModal');
+                        showToast(`⚠️ Folder copied to "${moveFolderState.destination.name}" but could not delete original — the selected parent doesn't contain "${folderName}". Please delete the original manually.`, 'warning');
+                    }
+                } catch (parentErr) {
+                    // User cancelled parent selection — that's OK, copy is done
+                    closeModal('moveFolderModal');
+                    showToast(`⚠️ Folder copied to "${moveFolderState.destination.name}" successfully! Original folder was not deleted — please remove it manually if needed.`, 'warning');
+                }
                 
             } catch (err) {
                 console.error('Move folder error:', err);
