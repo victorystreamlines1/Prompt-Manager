@@ -20454,9 +20454,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .file-transfer-group .file-picker-btn.has-file {
-            border-color: var(--accent-secondary);
-            background: rgba(139, 92, 246, 0.1);
-            color: var(--accent-secondary);
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.10));
+            color: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.25), inset 0 0 4px rgba(16, 185, 129, 0.08);
+            animation: fileSelectedPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes fileSelectedPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.25); }
+            50% { box-shadow: 0 0 14px rgba(16, 185, 129, 0.4); }
         }
 
         .file-transfer-group .file-picker-btn.has-file.needs-reconnect {
@@ -46350,6 +46357,10 @@ in each section carefully and maintain proper connections between components.
                 const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
                 const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
                 const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
+                const btnPullAppend = document.getElementById(`btnPullAppend${sideCapitalized}`);
+                const btnPullPrepend = document.getElementById(`btnPullPrepend${sideCapitalized}`);
+                const btnPushAppend = document.getElementById(`btnPushAppend${sideCapitalized}`);
+                const btnPushPrepend = document.getElementById(`btnPushPrepend${sideCapitalized}`);
                 const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
                 
                 filePickerBtn.classList.remove('needs-reconnect');
@@ -46358,6 +46369,10 @@ in each section carefully and maintain proper connections between components.
                 filePickerBtn.title = `${fileName} - Click to change`;
                 btnPull.disabled = false;
                 btnPush.disabled = false;
+                if (btnPullAppend) btnPullAppend.disabled = false;
+                if (btnPullPrepend) btnPullPrepend.disabled = false;
+                if (btnPushAppend) btnPushAppend.disabled = false;
+                if (btnPushPrepend) btnPushPrepend.disabled = false;
                 btnClear.classList.add('show');
                 
                 // Save to localStorage and IndexedDB
@@ -46496,6 +46511,10 @@ in each section carefully and maintain proper connections between components.
             const fileNameSpan = document.getElementById(`fileName${sideCapitalized}`);
             const btnPull = document.getElementById(`btnPull${sideCapitalized}`);
             const btnPush = document.getElementById(`btnPush${sideCapitalized}`);
+            const btnPullAppend = document.getElementById(`btnPullAppend${sideCapitalized}`);
+            const btnPullPrepend = document.getElementById(`btnPullPrepend${sideCapitalized}`);
+            const btnPushAppend = document.getElementById(`btnPushAppend${sideCapitalized}`);
+            const btnPushPrepend = document.getElementById(`btnPushPrepend${sideCapitalized}`);
             const btnClear = document.getElementById(`btnClear${sideCapitalized}`);
 
             filePickerBtn.classList.remove('has-file', 'needs-reconnect');
@@ -46503,6 +46522,10 @@ in each section carefully and maintain proper connections between components.
             filePickerBtn.title = 'Select a file';
             btnPull.disabled = true;
             btnPush.disabled = true;
+            if (btnPullAppend) btnPullAppend.disabled = true;
+            if (btnPullPrepend) btnPullPrepend.disabled = true;
+            if (btnPushAppend) btnPushAppend.disabled = true;
+            if (btnPushPrepend) btnPushPrepend.disabled = true;
             btnClear.classList.remove('show');
 
             // Clear localStorage if requested
