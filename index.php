@@ -28003,31 +28003,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             z-index: 99999;
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 1rem;
             pointer-events: none;
+            perspective: 800px;
         }
 
         .toast {
             display: flex;
             align-items: center;
-            gap: 0.9rem;
-            padding: 1rem 1.25rem 1rem 1rem;
-            background: linear-gradient(135deg, rgba(15, 15, 40, 0.92), rgba(25, 25, 60, 0.88));
-            border-radius: 16px;
+            gap: 1rem;
+            padding: 1.1rem 1.4rem 1.1rem 1.1rem;
+            background: linear-gradient(135deg, rgba(10, 10, 35, 0.96), rgba(20, 20, 55, 0.93), rgba(15, 15, 45, 0.95));
+            border-radius: 18px;
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 8px 24px rgba(0, 0, 0, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            animation: toastFloatIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            min-width: 320px;
-            max-width: 440px;
-            backdrop-filter: blur(24px) saturate(1.8);
-            -webkit-backdrop-filter: blur(24px) saturate(1.8);
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            animation: toastFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                       toastGentlePulse 3s ease-in-out 1s infinite;
+            min-width: 340px;
+            max-width: 460px;
+            backdrop-filter: blur(30px) saturate(2);
+            -webkit-backdrop-filter: blur(30px) saturate(2);
             pointer-events: auto;
             position: relative;
             overflow: hidden;
-            transition: opacity 0.35s ease, transform 0.35s ease;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+        }
+
+        .toast:hover {
+            transform: translateY(-2px) scale(1.015);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 12px 35px rgba(0, 0, 0, 0.45),
+                0 0 0 1px rgba(255, 255, 255, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         /* Left accent bar */
@@ -28038,7 +28050,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 0;
             bottom: 0;
             width: 4px;
-            border-radius: 16px 0 0 16px;
+            border-radius: 18px 0 0 18px;
+            animation: toastAccentGlow 2s ease-in-out infinite alternate;
         }
 
         /* Top shimmer effect */
@@ -28049,104 +28062,149 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
-            animation: toastShimmer 2.5s ease-in-out 0.5s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), rgba(255,255,255,0.02), transparent);
+            animation: toastShimmer 2s ease-in-out 0.3s;
             pointer-events: none;
         }
 
         /* ── Success ── */
         .toast.success {
-            border: 1px solid rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 8px 24px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(16, 185, 129, 0.08),
-                0 0 0 1px rgba(16, 185, 129, 0.15),
-                inset 0 1px 0 rgba(16, 185, 129, 0.1);
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(16, 185, 129, 0.1),
+                0 0 80px rgba(16, 185, 129, 0.05),
+                0 0 0 1px rgba(16, 185, 129, 0.2),
+                inset 0 1px 0 rgba(16, 185, 129, 0.15);
+        }
+        .toast.success:hover {
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 12px 35px rgba(0, 0, 0, 0.45),
+                0 0 50px rgba(16, 185, 129, 0.15),
+                0 0 100px rgba(16, 185, 129, 0.08),
+                0 0 0 1px rgba(16, 185, 129, 0.3),
+                inset 0 1px 0 rgba(16, 185, 129, 0.2);
         }
         .toast.success::before {
-            background: linear-gradient(180deg, #34d399, #10b981, #059669);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+            background: linear-gradient(180deg, #6ee7b7, #34d399, #10b981, #059669);
+            box-shadow: 0 0 18px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.2);
         }
 
         /* ── Error ── */
         .toast.error {
-            border: 1px solid rgba(239, 68, 68, 0.25);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 8px 24px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(239, 68, 68, 0.08),
-                0 0 0 1px rgba(239, 68, 68, 0.15),
-                inset 0 1px 0 rgba(239, 68, 68, 0.1);
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(239, 68, 68, 0.1),
+                0 0 80px rgba(239, 68, 68, 0.05),
+                0 0 0 1px rgba(239, 68, 68, 0.2),
+                inset 0 1px 0 rgba(239, 68, 68, 0.15);
+        }
+        .toast.error:hover {
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 12px 35px rgba(0, 0, 0, 0.45),
+                0 0 50px rgba(239, 68, 68, 0.15),
+                0 0 100px rgba(239, 68, 68, 0.08),
+                0 0 0 1px rgba(239, 68, 68, 0.3),
+                inset 0 1px 0 rgba(239, 68, 68, 0.2);
         }
         .toast.error::before {
-            background: linear-gradient(180deg, #f87171, #ef4444, #dc2626);
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+            background: linear-gradient(180deg, #fca5a5, #f87171, #ef4444, #dc2626);
+            box-shadow: 0 0 18px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.2);
         }
 
         /* ── Info ── */
         .toast.info {
-            border: 1px solid rgba(99, 102, 241, 0.25);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 8px 24px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(99, 102, 241, 0.08),
-                0 0 0 1px rgba(99, 102, 241, 0.15),
-                inset 0 1px 0 rgba(99, 102, 241, 0.1);
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(99, 102, 241, 0.1),
+                0 0 80px rgba(99, 102, 241, 0.05),
+                0 0 0 1px rgba(99, 102, 241, 0.2),
+                inset 0 1px 0 rgba(99, 102, 241, 0.15);
+        }
+        .toast.info:hover {
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 12px 35px rgba(0, 0, 0, 0.45),
+                0 0 50px rgba(99, 102, 241, 0.15),
+                0 0 100px rgba(99, 102, 241, 0.08),
+                0 0 0 1px rgba(99, 102, 241, 0.3),
+                inset 0 1px 0 rgba(99, 102, 241, 0.2);
         }
         .toast.info::before {
-            background: linear-gradient(180deg, #818cf8, #6366f1, #4f46e5);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+            background: linear-gradient(180deg, #a5b4fc, #818cf8, #6366f1, #4f46e5);
+            box-shadow: 0 0 18px rgba(99, 102, 241, 0.6), 0 0 40px rgba(99, 102, 241, 0.2);
         }
 
         /* ── Warning ── */
         .toast.warning {
-            border: 1px solid rgba(245, 158, 11, 0.25);
+            border: 1px solid rgba(245, 158, 11, 0.3);
             box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                0 8px 24px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(245, 158, 11, 0.08),
-                0 0 0 1px rgba(245, 158, 11, 0.15),
-                inset 0 1px 0 rgba(245, 158, 11, 0.1);
+                0 25px 70px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(245, 158, 11, 0.1),
+                0 0 80px rgba(245, 158, 11, 0.05),
+                0 0 0 1px rgba(245, 158, 11, 0.2),
+                inset 0 1px 0 rgba(245, 158, 11, 0.15);
+        }
+        .toast.warning:hover {
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 12px 35px rgba(0, 0, 0, 0.45),
+                0 0 50px rgba(245, 158, 11, 0.15),
+                0 0 100px rgba(245, 158, 11, 0.08),
+                0 0 0 1px rgba(245, 158, 11, 0.3),
+                inset 0 1px 0 rgba(245, 158, 11, 0.2);
         }
         .toast.warning::before {
-            background: linear-gradient(180deg, #fbbf24, #f59e0b, #d97706);
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+            background: linear-gradient(180deg, #fde68a, #fbbf24, #f59e0b, #d97706);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.6), 0 0 40px rgba(245, 158, 11, 0.2);
         }
 
         /* ── Icon ── */
         .toast-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             flex-shrink: 0;
             position: relative;
-            animation: toastIconPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+            animation: toastIconPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .toast.success .toast-icon {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
-            color: #34d399;
-            box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.12));
+            color: #6ee7b7;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2), inset 0 0 12px rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.15);
         }
         .toast.error .toast-icon {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
-            color: #f87171;
-            box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.12));
+            color: #fca5a5;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2), inset 0 0 12px rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.15);
         }
         .toast.info .toast-icon {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.1));
-            color: #818cf8;
-            box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(79, 70, 229, 0.12));
+            color: #a5b4fc;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2), inset 0 0 12px rgba(99, 102, 241, 0.08);
+            border-color: rgba(99, 102, 241, 0.15);
         }
         .toast.warning .toast-icon {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
-            color: #fbbf24;
-            box-shadow: 0 0 16px rgba(245, 158, 11, 0.15);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.12));
+            color: #fde68a;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2), inset 0 0 12px rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.15);
         }
 
         /* ── Content ── */
@@ -28156,43 +28214,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .toast-title {
-            font-weight: 700;
-            font-size: 0.88rem;
-            color: #f1f5f9;
-            margin-bottom: 0.2rem;
-            letter-spacing: 0.01em;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #f8fafc;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.02em;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+            font-family: inherit;
         }
 
         .toast-message {
-            font-size: 0.82rem;
-            color: #94a3b8;
-            line-height: 1.45;
+            font-size: 0.84rem;
+            color: #cbd5e1;
+            line-height: 1.5;
             word-break: break-word;
+            letter-spacing: 0.01em;
         }
 
         /* ── Close Button ── */
         .toast-close {
             background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: #64748b;
             cursor: pointer;
             padding: 0.35rem;
-            border-radius: 8px;
-            transition: all 0.25s ease;
-            font-size: 0.8rem;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             flex-shrink: 0;
         }
         .toast-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #e2e8f0;
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #f1f5f9;
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
         }
 
         /* ── Progress Bar ── */
@@ -28201,54 +28263,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             bottom: 0;
             left: 0;
             height: 3px;
-            border-radius: 0 0 0 16px;
+            border-radius: 0 0 0 18px;
             animation: toastProgress 3.5s linear forwards;
         }
         .toast.success .toast-progress {
-            background: linear-gradient(90deg, #10b981, #34d399);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(90deg, #059669, #10b981, #34d399, #6ee7b7);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 -2px 8px rgba(16, 185, 129, 0.15);
         }
         .toast.error .toast-progress {
-            background: linear-gradient(90deg, #ef4444, #f87171);
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+            background: linear-gradient(90deg, #dc2626, #ef4444, #f87171, #fca5a5);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.5), 0 -2px 8px rgba(239, 68, 68, 0.15);
         }
         .toast.info .toast-progress {
-            background: linear-gradient(90deg, #6366f1, #818cf8);
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+            background: linear-gradient(90deg, #4f46e5, #6366f1, #818cf8, #a5b4fc);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5), 0 -2px 8px rgba(99, 102, 241, 0.15);
         }
         .toast.warning .toast-progress {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24, #fde68a);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), 0 -2px 8px rgba(245, 158, 11, 0.15);
         }
 
         /* ── Animations ── */
         @keyframes toastFloatIn {
             0% {
                 opacity: 0;
-                transform: translateX(80px) translateY(-10px) scale(0.85);
-                filter: blur(4px);
+                transform: translateX(100px) translateY(-15px) scale(0.8) rotateY(8deg);
+                filter: blur(6px);
             }
-            60% {
-                opacity: 1;
-                filter: blur(0);
+            50% {
+                opacity: 0.8;
+                filter: blur(1px);
             }
-            80% {
-                transform: translateX(-4px) translateY(0) scale(1.01);
+            75% {
+                transform: translateX(-6px) translateY(0) scale(1.02) rotateY(0deg);
             }
             100% {
                 opacity: 1;
-                transform: translateX(0) translateY(0) scale(1);
+                transform: translateX(0) translateY(0) scale(1) rotateY(0deg);
                 filter: blur(0);
             }
+        }
+
+        @keyframes toastGentlePulse {
+            0%, 100% { box-shadow: inherit; }
+            50% { filter: brightness(1.03); }
+        }
+
+        @keyframes toastAccentGlow {
+            0% { opacity: 0.7; filter: brightness(0.9); }
+            100% { opacity: 1; filter: brightness(1.3); }
         }
 
         @keyframes toastShimmer {
             0%   { left: -100%; }
-            100% { left: 200%; }
+            100% { left: 250%; }
         }
 
         @keyframes toastIconPop {
-            0%   { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+            0%   { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+            60%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
 
