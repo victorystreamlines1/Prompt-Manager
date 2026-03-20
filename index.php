@@ -18916,7 +18916,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* Clear Buttons */
-        .btn-clear-picker {
+        .file-transfer-group .btn-clear-picker {
             padding: 0.4rem 0.5rem;
             background: transparent;
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -20402,12 +20402,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* File Transfer Section */
         .file-transfer-section {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.6rem 1rem;
-            background: var(--bg-secondary);
+            flex-direction: column;
+            padding: 0;
+            background: linear-gradient(180deg, var(--bg-secondary), rgba(var(--bg-secondary-rgb, 30,30,30), 0.95));
             border-top: 1px solid var(--border-color);
-            gap: 1rem;
+            gap: 0;
+        }
+
+        .ft-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            gap: 0.6rem;
+        }
+
+        .ft-row-pickers {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .ft-row-manage {
+            padding: 0.45rem 1rem;
+            flex-wrap: wrap;
+        }
+
+        .ft-center-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            opacity: 0.45;
+            padding: 0 0.3rem;
+        }
+
+        .ft-sep {
+            width: 1px;
+            height: 22px;
+            background: var(--border-color);
+            opacity: 0.5;
+            flex-shrink: 0;
         }
 
         .file-transfer-group {
@@ -20513,126 +20544,157 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: var(--border-color);
         }
 
+        .btn-move-file {
+            color: #8b5cf6 !important;
+            border-color: rgba(139, 92, 246, 0.35) !important;
+        }
+
+        .btn-move-file:hover {
+            background: rgba(139, 92, 246, 0.15) !important;
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+        }
+
         /* Move Folder Group */
         .move-folder-group {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0 0.6rem;
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
+            gap: 0.5rem;
+            padding: 0 0.4rem;
         }
 
         .btn-move-folder {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.3rem;
-            padding: 0.4rem 0.7rem;
-            border-radius: 6px;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            gap: 0.35rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.35);
             background: var(--bg-tertiary);
             color: #3b82f6;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.75rem;
+            transition: all 0.25s ease;
+            font-size: 0.72rem;
             font-family: inherit;
-            font-weight: 500;
+            font-weight: 600;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
         }
 
         .btn-move-folder:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             background: rgba(59, 130, 246, 0.15);
             border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-move-folder:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
         }
 
         .btn-move-folder i {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-move-folder i.fa-arrow-right {
+            font-size: 0.6rem;
+            opacity: 0.6;
         }
 
         /* File Management Buttons (Create, Delete, Rename) */
         .file-management-group {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0 0.5rem;
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
+            gap: 0.45rem;
+            padding: 0 0.3rem;
         }
 
         .btn-file-manage {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+            gap: 0.35rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             background: var(--bg-tertiary);
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.8rem;
+            transition: all 0.25s ease;
+            font-size: 0.7rem;
+            font-family: inherit;
+            font-weight: 500;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-file-manage i {
+            font-size: 0.75rem;
         }
 
         .btn-file-manage:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+        }
+
+        .btn-file-manage:active {
+            transform: translateY(0);
         }
 
         .btn-file-manage.btn-create {
             color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.35);
         }
 
         .btn-file-manage.btn-create:hover {
             background: rgba(16, 185, 129, 0.15);
             border-color: #10b981;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .btn-file-manage.btn-delete {
             color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.35);
         }
 
         .btn-file-manage.btn-delete:hover {
             background: rgba(239, 68, 68, 0.15);
             border-color: #ef4444;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
         .btn-file-manage.btn-rename {
             color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.3);
+            border-color: rgba(245, 158, 11, 0.35);
         }
 
         .btn-file-manage.btn-rename:hover {
             background: rgba(245, 158, 11, 0.15);
             border-color: #f59e0b;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         }
 
         .btn-file-manage.btn-folder {
             color: #3b82f6;
-            border-color: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.35);
         }
 
         .btn-file-manage.btn-folder:hover {
             background: rgba(59, 130, 246, 0.15);
             border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .btn-file-manage.btn-delete-folder {
-            color: #3b82f6;
-            border-color: rgba(59, 130, 246, 0.3);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.35);
         }
 
         .btn-file-manage.btn-delete-folder:hover {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
         .editor-footer {
@@ -32988,77 +33050,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- File Transfer Section -->
                 <div class="file-transfer-section">
-                    <!-- Left File Group -->
-                    <div class="file-transfer-group left">
-                        <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
-                            <i class="fas fa-file"></i>
-                            <span class="file-name" id="fileNameLeft">Select File</span>
-                        </button>
-                        <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
-                            <i class="fas fa-times"></i>
-                        </button>
-                        <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
+                    <!-- Row 1: File Pickers -->
+                    <div class="ft-row ft-row-pickers">
+                        <div class="file-transfer-group left">
+                            <button class="file-picker-btn" id="filePickerLeft" onclick="selectTransferFile('left')" title="Select a file">
+                                <i class="fas fa-file"></i>
+                                <span class="file-name" id="fileNameLeft">Select File</span>
+                            </button>
+                            <button class="btn-clear-picker" id="btnClearLeft" onclick="clearFileSelection('left')" title="Clear file">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <button class="btn-file-action btn-file-pull" id="btnPullLeft" onclick="pullFromTransferFile('left')" disabled title="Pull content from file">
+                                <i class="fas fa-download"></i> Pull
+                            </button>
+                            <button class="btn-file-action btn-file-push" id="btnPushLeft" onclick="pushToTransferFile('left')" disabled title="Push content to file">
+                                <i class="fas fa-upload"></i> Push
+                            </button>
+                        </div>
+                        <div class="ft-center-label"><i class="fas fa-exchange-alt"></i></div>
+                        <div class="file-transfer-group right">
+                            <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
+                                <i class="fas fa-download"></i> Pull
+                            </button>
+                            <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
+                                <i class="fas fa-upload"></i> Push
+                            </button>
+                            <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
+                                <i class="fas fa-file"></i>
+                                <span class="file-name" id="fileNameRight">Select File</span>
+                            </button>
+                            <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
-                    
-                    <!-- Move Folder Tools -->
-                    <div class="move-folder-group">
-                        <button class="btn-move-folder" onclick="openMoveFolderModal()" title="Move folder to another location">
-                            <i class="fas fa-folder-open"></i>
-                            <i class="fas fa-arrow-right"></i>
-                            <i class="fas fa-folder"></i>
-                            Move
-                        </button>
-                    </div>
-                    
-                    <!-- File Management Buttons -->
-                    <div class="file-management-group">
-                        <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
-                            <i class="fas fa-file-medical"></i>
-                        </button>
-                        <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete files">
-                            <i class="fas fa-file-excel"></i>
-                        </button>
-                        <button class="btn-file-manage btn-folder" onclick="createNewFolder()" title="Create new folder">
-                            <i class="fas fa-folder-plus"></i>
-                        </button>
-                        <button class="btn-file-manage btn-delete-folder" onclick="deleteFolderModal()" title="Delete folder">
-                            <i class="fas fa-folder-minus"></i>
-                        </button>
-                        <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Move Files Tools -->
-                    <div class="move-folder-group">
-                        <button class="btn-move-folder" style="color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);" onclick="openMoveFilesModal()" title="Move files to another folder">
-                            <i class="fas fa-file"></i>
-                            <i class="fas fa-arrow-right"></i>
-                            <i class="fas fa-folder"></i>
-                            Move
-                        </button>
-                    </div>
-                    
-                    <!-- Right File Group -->
-                    <div class="file-transfer-group right">
-                        <button class="btn-file-action btn-file-pull" id="btnPullRight" onclick="pullFromTransferFile('right')" disabled title="Pull content from file">
-                            <i class="fas fa-download"></i> Pull
-                        </button>
-                        <button class="btn-file-action btn-file-push" id="btnPushRight" onclick="pushToTransferFile('right')" disabled title="Push content to file">
-                            <i class="fas fa-upload"></i> Push
-                        </button>
-                        <button class="file-picker-btn" id="filePickerRight" onclick="selectTransferFile('right')" title="Select a file">
-                            <i class="fas fa-file"></i>
-                            <span class="file-name" id="fileNameRight">Select File</span>
-                        </button>
-                        <button class="btn-clear-picker" id="btnClearRight" onclick="clearFileSelection('right')" title="Clear file">
-                            <i class="fas fa-times"></i>
-                        </button>
+                    <!-- Row 2: File Management -->
+                    <div class="ft-row ft-row-manage">
+                        <div class="file-management-group">
+                            <button class="btn-file-manage btn-create" onclick="createNewFile()" title="Create new file">
+                                <i class="fas fa-file-medical"></i> New File
+                            </button>
+                            <button class="btn-file-manage btn-folder" onclick="createNewFolder()" title="Create new folder">
+                                <i class="fas fa-folder-plus"></i> New Folder
+                            </button>
+                        </div>
+                        <span class="ft-sep"></span>
+                        <div class="file-management-group">
+                            <button class="btn-file-manage btn-rename" onclick="renameSelectedFile()" title="Rename a file">
+                                <i class="fas fa-edit"></i> Rename
+                            </button>
+                        </div>
+                        <span class="ft-sep"></span>
+                        <div class="move-folder-group">
+                            <button class="btn-move-folder" onclick="openMoveFolderModal()" title="Move folder to another location">
+                                <i class="fas fa-folder-open"></i>
+                                <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
+                                <i class="fas fa-folder"></i>
+                                Move Folder
+                            </button>
+                            <button class="btn-move-folder btn-move-file" onclick="openMoveFilesModal()" title="Move files to another folder">
+                                <i class="fas fa-file"></i>
+                                <i class="fas fa-arrow-right" style="font-size:0.55rem;opacity:0.5"></i>
+                                <i class="fas fa-folder"></i>
+                                Move File
+                            </button>
+                        </div>
+                        <span class="ft-sep"></span>
+                        <div class="file-management-group">
+                            <button class="btn-file-manage btn-delete" onclick="deleteSelectedFile()" title="Delete files">
+                                <i class="fas fa-file-excel"></i> Delete File
+                            </button>
+                            <button class="btn-file-manage btn-delete-folder" onclick="deleteFolderModal()" title="Delete folder">
+                                <i class="fas fa-folder-minus"></i> Delete Folder
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
