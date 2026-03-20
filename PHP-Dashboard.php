@@ -3209,6 +3209,174 @@ if ($isApiRequest) {
             line-height: 1.3;
             text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
         }
+
+        /* ========================================
+           LUXURY CONFIRM DIALOG
+           ======================================== */
+        .luxury-confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.4s ease, backdrop-filter 0.4s ease;
+        }
+        .luxury-confirm-overlay.active {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+        }
+        .luxury-confirm-dialog {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            padding: 0;
+            width: 420px;
+            max-width: 90vw;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(239, 68, 68, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: scale(0.7) translateY(30px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        .luxury-confirm-overlay.active .luxury-confirm-dialog {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .luxury-confirm-glow {
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #ef4444, #f97316, #ef4444, #dc2626);
+            background-size: 300% 300%;
+            animation: luxuryGlow 3s ease infinite;
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .luxury-confirm-dialog.danger-mode {
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(239, 68, 68, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-glow {
+            background: linear-gradient(135deg, #ef4444, #f97316, #ef4444, #dc2626);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-icon {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-btn.confirm-action {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.2));
+            color: #fca5a5;
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-btn.confirm-action:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+        }
+        @keyframes luxuryGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .luxury-confirm-header {
+            padding: 28px 28px 0;
+            text-align: center;
+        }
+        .luxury-confirm-icon {
+            width: 72px; height: 72px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.15); }
+        }
+        .luxury-confirm-title {
+            font-size: 20px; font-weight: 700;
+            color: #fef3c7;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 10px rgba(251, 191, 36, 0.2);
+        }
+        .luxury-confirm-body {
+            padding: 16px 28px 24px;
+            text-align: center;
+        }
+        .luxury-confirm-message {
+            font-size: 14.5px;
+            color: rgba(254, 243, 199, 0.75);
+            line-height: 1.7;
+        }
+        .luxury-confirm-detail {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 15px; font-weight: 600;
+            color: #fca5a5;
+            letter-spacing: 0.5px;
+        }
+        .luxury-confirm-warning {
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 10px;
+            font-size: 12.5px;
+            color: rgba(251, 191, 36, 0.8);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .luxury-confirm-actions {
+            display: flex;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .luxury-confirm-btn {
+            flex: 1; padding: 16px;
+            border: none;
+            font-size: 14.5px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+        }
+        .luxury-confirm-btn.cancel {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(254, 243, 199, 0.6);
+            border-radius: 0 0 0 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .luxury-confirm-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(254, 243, 199, 0.9);
+        }
+        .luxury-confirm-btn.confirm-action {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.2));
+            color: #fca5a5;
+            border-radius: 0 0 20px 0;
+        }
+        .luxury-confirm-btn.confirm-action:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+        }
+        .luxury-confirm-btn:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
@@ -5352,6 +5520,48 @@ if ($isApiRequest) {
         
         console.log('🚀 PHP-Dashboard.php - JavaScript Loading Started...');
         console.log('📄 ALL-IN-ONE MODE: PHP Backend + HTML Frontend in single file');
+
+        // ==========================================
+        // LUXURY CONFIRM DIALOG (replaces native confirm)
+        // ==========================================
+        function showLuxuryConfirm({ title = 'Confirm', message = 'Are you sure?', icon = '🗑️', detail = '', warning = '', confirmText = 'Confirm', cancelText = 'Cancel', danger = true } = {}) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'luxury-confirm-overlay';
+                overlay.innerHTML = `
+                    <div class="luxury-confirm-dialog ${danger ? 'danger-mode' : ''}">
+                        <div class="luxury-confirm-glow"></div>
+                        <div class="luxury-confirm-header">
+                            <div class="luxury-confirm-icon">${icon}</div>
+                            <div class="luxury-confirm-title">${title}</div>
+                        </div>
+                        <div class="luxury-confirm-body">
+                            <div class="luxury-confirm-message">${message}</div>
+                            ${detail ? `<div class="luxury-confirm-detail">${detail}</div>` : ''}
+                            ${warning ? `<div class="luxury-confirm-warning"><span>⚠️</span> ${warning}</div>` : ''}
+                        </div>
+                        <div class="luxury-confirm-actions">
+                            <button class="luxury-confirm-btn cancel">${cancelText}</button>
+                            <button class="luxury-confirm-btn confirm-action">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => overlay.classList.add('active'));
+                });
+                const closeDialog = (result) => {
+                    overlay.classList.remove('active');
+                    setTimeout(() => { if (overlay.parentNode) overlay.remove(); resolve(result); }, 350);
+                };
+                overlay.querySelector('.luxury-confirm-btn.confirm-action').addEventListener('click', () => closeDialog(true));
+                overlay.querySelector('.luxury-confirm-btn.cancel').addEventListener('click', () => closeDialog(false));
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(false); });
+                const handleEsc = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', handleEsc); closeDialog(false); } };
+                document.addEventListener('keydown', handleEsc);
+                overlay.querySelector('.luxury-confirm-btn.confirm-action').focus();
+            });
+        }
         
         // ==========================================
         // [SECTION 4.0] AUTO-DETECTION SYSTEM
@@ -11868,17 +12078,28 @@ You can now use these credentials to build your application!
                 return;
             }
 
-            // Confirmation
-            if (!confirm(`🗑️ Delete Table: ${tableName}\n\n⚠️ This will PERMANENTLY delete this table and ALL its data!\n\nAre you absolutely sure?`)) {
-                console.log('User cancelled delete');
-                return;
-            }
+            // Luxury confirmation
+            const firstConfirm = await showLuxuryConfirm({
+                title: 'Delete Table',
+                message: 'This will <strong>permanently</strong> delete this table and <strong>ALL</strong> its data!',
+                icon: '🗑️',
+                detail: tableName,
+                warning: 'Are you absolutely sure?',
+                confirmText: 'Yes, Delete',
+                cancelText: 'Cancel'
+            });
+            if (!firstConfirm) { console.log('User cancelled delete'); return; }
 
             // Double confirmation for safety
-            if (!confirm(`⚠️ FINAL WARNING!\n\nDelete "${tableName}" permanently?\n\nThis action CANNOT be undone!`)) {
-                console.log('User cancelled on second confirmation');
-                return;
-            }
+            const finalConfirm = await showLuxuryConfirm({
+                title: 'Final Warning',
+                message: `Delete <strong>"${tableName}"</strong> permanently?`,
+                icon: '⚠️',
+                warning: 'This action CANNOT be undone!',
+                confirmText: 'Delete Permanently',
+                cancelText: 'Go Back'
+            });
+            if (!finalConfirm) { console.log('User cancelled on second confirmation'); return; }
 
             // Show loading
             const loadingDiv = document.createElement('div');
@@ -14008,9 +14229,16 @@ You can now use these credentials to build your application!
                 return;
             }
             
-            if (!confirm(`Are you sure you want to delete the table "${tableName}"?\n\nThis action cannot be undone!`)) {
-                return;
-            }
+            const delConfirmed = await showLuxuryConfirm({
+                title: 'Delete Table',
+                message: `Are you sure you want to delete this table?`,
+                icon: '🗑️',
+                detail: tableName,
+                warning: 'This action cannot be undone!',
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            });
+            if (!delConfirmed) return;
             
             showMessage('deleteTableMessage', '🔄 Deleting table...', 'info');
             

@@ -31580,6 +31580,177 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .scalar-history-panel { width: 100%; }
             .scalar-go-btn span { display: none; }
         }
+
+        /* ========================================
+           LUXURY CONFIRM DIALOG
+           ======================================== */
+        .luxury-confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.4s ease, backdrop-filter 0.4s ease;
+        }
+        .luxury-confirm-overlay.active {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+        }
+        .luxury-confirm-dialog {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 0;
+            width: 420px;
+            max-width: 90vw;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(139, 92, 246, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: scale(0.7) translateY(30px);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        .luxury-confirm-overlay.active .luxury-confirm-dialog {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .luxury-confirm-glow {
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6, #a855f7);
+            background-size: 300% 300%;
+            animation: luxuryGlow 3s ease infinite;
+            z-index: -1;
+            opacity: 0.35;
+        }
+        .luxury-confirm-dialog.danger-mode {
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(239, 68, 68, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-glow {
+            background: linear-gradient(135deg, #ef4444, #f97316, #ef4444, #dc2626);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-icon {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(249, 115, 22, 0.2));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-btn.confirm-action {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.2));
+            color: #fca5a5;
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-btn.confirm-action:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+        }
+        @keyframes luxuryGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .luxury-confirm-header {
+            padding: 28px 28px 0;
+            text-align: center;
+        }
+        .luxury-confirm-icon {
+            width: 72px; height: 72px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.15); }
+        }
+        .luxury-confirm-title {
+            font-size: 20px; font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+        .luxury-confirm-body {
+            padding: 16px 28px 24px;
+            text-align: center;
+        }
+        .luxury-confirm-message {
+            font-size: 14.5px;
+            color: rgba(203, 213, 225, 0.85);
+            line-height: 1.7;
+        }
+        .luxury-confirm-detail {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px; font-weight: 600;
+            color: #c4b5fd;
+            letter-spacing: 0.5px;
+        }
+        .luxury-confirm-dialog.danger-mode .luxury-confirm-detail {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        .luxury-confirm-warning {
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.18);
+            border-radius: 10px;
+            font-size: 12.5px;
+            color: rgba(251, 191, 36, 0.8);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .luxury-confirm-actions {
+            display: flex;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .luxury-confirm-btn {
+            flex: 1; padding: 16px;
+            border: none;
+            font-size: 14.5px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+        }
+        .luxury-confirm-btn.cancel {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(203, 213, 225, 0.6);
+            border-radius: 0 0 0 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .luxury-confirm-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(203, 213, 225, 0.95);
+        }
+        .luxury-confirm-btn.confirm-action {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.2));
+            color: #c4b5fd;
+            border-radius: 0 0 20px 0;
+        }
+        .luxury-confirm-btn.confirm-action:hover {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
+        }
+        .luxury-confirm-btn:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
@@ -36885,9 +37056,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // ==========================================
+        // LUXURY CONFIRM DIALOG (replaces native confirm)
+        // ==========================================
+        function showLuxuryConfirm({ title = 'Confirm', message = 'Are you sure?', icon = '🗑️', detail = '', warning = '', confirmText = 'Confirm', cancelText = 'Cancel', danger = true } = {}) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'luxury-confirm-overlay';
+                overlay.innerHTML = `
+                    <div class="luxury-confirm-dialog ${danger ? 'danger-mode' : ''}">
+                        <div class="luxury-confirm-glow"></div>
+                        <div class="luxury-confirm-header">
+                            <div class="luxury-confirm-icon">${icon}</div>
+                            <div class="luxury-confirm-title">${title}</div>
+                        </div>
+                        <div class="luxury-confirm-body">
+                            <div class="luxury-confirm-message">${message}</div>
+                            ${detail ? `<div class="luxury-confirm-detail">${detail}</div>` : ''}
+                            ${warning ? `<div class="luxury-confirm-warning"><span>⚠️</span> ${warning}</div>` : ''}
+                        </div>
+                        <div class="luxury-confirm-actions">
+                            <button class="luxury-confirm-btn cancel">${cancelText}</button>
+                            <button class="luxury-confirm-btn confirm-action">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => overlay.classList.add('active'));
+                });
+                const closeDialog = (result) => {
+                    overlay.classList.remove('active');
+                    setTimeout(() => { if (overlay.parentNode) overlay.remove(); resolve(result); }, 350);
+                };
+                overlay.querySelector('.luxury-confirm-btn.confirm-action').addEventListener('click', () => closeDialog(true));
+                overlay.querySelector('.luxury-confirm-btn.cancel').addEventListener('click', () => closeDialog(false));
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(false); });
+                const handleEsc = (e) => { if (e.key === 'Escape') { document.removeEventListener('keydown', handleEsc); closeDialog(false); } };
+                document.addEventListener('keydown', handleEsc);
+                overlay.querySelector('.luxury-confirm-btn.confirm-action').focus();
+            });
+        }
+
         // Delete a single history item
         async function deleteDbHistoryItem(id, btnEl) {
-            if (!confirm('Delete this history record?')) return;
+            const confirmed = await showLuxuryConfirm({
+                title: 'Delete Record',
+                message: 'Remove this history record?',
+                icon: '🗑️',
+                detail: `Record #${id}`,
+                confirmText: 'Delete',
+                cancelText: 'Keep'
+            });
+            if (!confirmed) return;
             try {
                 const fd = new FormData();
                 fd.append('action', 'delete_history_item');
@@ -36980,7 +37201,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (checkedIds.length > 0) {
                 // Delete only checked items
-                if (!confirm(`Delete ${checkedIds.length} selected record${checkedIds.length > 1 ? 's' : ''}?`)) return;
+                const selConfirmed = await showLuxuryConfirm({
+                    title: 'Delete Selected',
+                    message: `Remove <strong>${checkedIds.length}</strong> selected record${checkedIds.length > 1 ? 's' : ''}?`,
+                    icon: '🗑️',
+                    warning: 'Selected records will be permanently deleted.',
+                    confirmText: `Delete ${checkedIds.length} Record${checkedIds.length > 1 ? 's' : ''}`,
+                    cancelText: 'Cancel'
+                });
+                if (!selConfirmed) return;
                 let deleted = 0;
                 for (const id of checkedIds) {
                     try {
@@ -37023,7 +37252,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }, 350);
             } else {
                 // Clear ALL
-                if (!confirm('Clear ALL history records from the database? This cannot be undone.')) return;
+                const clearConfirmed = await showLuxuryConfirm({
+                    title: 'Clear All History',
+                    message: 'This will <strong>permanently</strong> delete all history records from the database.',
+                    icon: '🧹',
+                    warning: 'This action cannot be undone!',
+                    confirmText: 'Clear All',
+                    cancelText: 'Cancel'
+                });
+                if (!clearConfirmed) return;
                 try {
                     const fd = new FormData();
                     fd.append('action', 'clear_history');
