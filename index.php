@@ -20401,10 +20401,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         /* File Transfer & Management Section – single row */
         .file-transfer-section {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
             padding: 0.45rem 0.8rem;
             background: linear-gradient(180deg, var(--bg-secondary), rgba(var(--bg-secondary-rgb, 30,30,30), 0.95));
             border-top: 1px solid var(--border-color);
@@ -20426,11 +20425,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .file-transfer-group.left {
-            margin-right: auto;
+            justify-self: start;
         }
 
         .file-transfer-group.right {
-            margin-left: auto;
+            justify-self: end;
         }
 
         .file-transfer-group .file-picker-btn {
@@ -20675,15 +20674,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .editor-footer {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.6rem 1.2rem;
+            padding: 0.5rem 0.8rem;
             background: linear-gradient(135deg, rgba(15, 15, 35, 0.6) 0%, rgba(20, 20, 45, 0.5) 100%);
             border-top: 1px solid rgba(99, 102, 241, 0.12);
             font-size: 0.8rem;
             color: var(--text-muted);
+            gap: 0.5rem;
+        }
+
+        .editor-footer-left {
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
+            justify-self: start;
+        }
+
+        .editor-footer-center {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-self: center;
+        }
+
+        .editor-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-self: end;
         }
 
         .footer-voice-tools {
@@ -33085,47 +33105,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <div class="editor-footer">
-                    <div class="char-count">
-                        <i class="fas fa-font"></i>
-                        <span id="charCount">0</span> characters
-                    </div>
-                    
-                    <div class="footer-voice-tools">
-                        <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
-                            <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
-                            <div class="tts-progress" id="ttsProgress"></div>
-                        </button>
-                        <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
-                            <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
-                            <div class="tts-ar-progress" id="ttsArProgress"></div>
-                        </button>
-                        <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
-                            <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
-                            <span class="stt-dot"></span>
-                        </button>
-                        <button class="btn btn-stt-ar" id="btnSttAr" onclick="sttArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
-                            <i class="fas fa-microphone"></i> <span id="sttArLabel">إملاء</span><span class="stt-ar-flag">AR</span>
-                            <span class="stt-ar-dot"></span>
-                        </button>
-                        <button class="btn btn-copy-editor" id="btnCopyEditor" onclick="copyEditorText()" title="Copy prompt to clipboard">
-                            <i class="fas fa-copy"></i> <span id="copyEditorLabel">Copy</span>
-                        </button>
-                        <button class="btn btn-paste-editor" id="btnPasteEditor" onclick="pasteEditorText()" title="Paste from clipboard">
-                            <i class="fas fa-paste"></i> <span id="pasteEditorLabel">Paste</span>
-                        </button>
-                        <button class="btn btn-clear-editor" id="btnClearEditor" onclick="clearEditorText()" title="Clear prompt editor">
-                            <i class="fas fa-eraser"></i> <span id="clearEditorLabel">Clear</span>
+                    <div class="editor-footer-left">
+                        <div class="char-count">
+                            <i class="fas fa-font"></i>
+                            <span id="charCount">0</span> characters
+                        </div>
+                        <button class="btn-dir-toggle" id="btnDirToggle" onclick="toggleEditorDir()" title="Toggle text direction (LTR / RTL)">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span id="dirLabel">LTR</span>
                         </button>
                     </div>
-                    
-                    <button class="btn-dir-toggle" id="btnDirToggle" onclick="toggleEditorDir()" title="Toggle text direction (LTR / RTL)">
-                        <i class="fas fa-exchange-alt"></i>
-                        <span id="dirLabel">LTR</span>
-                    </button>
-                    
-                    <div class="word-count">
-                        <i class="fas fa-text-width"></i>
-                        <span id="wordCount">0</span> words
+
+                    <div class="editor-footer-center">
+                        <div class="footer-voice-tools">
+                            <button class="btn btn-tts" id="btnTtsRead" onclick="ttsToggleRead()" title="Read aloud (British Female Voice)">
+                                <i class="fas fa-volume-up"></i> <span id="ttsLabel">Read</span>
+                                <div class="tts-progress" id="ttsProgress"></div>
+                            </button>
+                            <button class="btn btn-tts-ar" id="btnTtsAr" onclick="ttsArToggle()" title="قراءة عربية – صوت أنثوي عالي الجودة">
+                                <i class="fas fa-volume-up"></i> <span id="ttsArLabel">عربي</span><span class="ar-flag">AR</span>
+                                <div class="tts-ar-progress" id="ttsArProgress"></div>
+                            </button>
+                            <button class="btn btn-stt" id="btnSttDictate" onclick="sttToggle()" title="Voice dictation – speak to type">
+                                <i class="fas fa-microphone"></i> <span id="sttLabel">Dictate</span>
+                                <span class="stt-dot"></span>
+                            </button>
+                            <button class="btn btn-stt-ar" id="btnSttAr" onclick="sttArToggle()" title="إملاء عربي – تحدث بالعربية للكتابة">
+                                <i class="fas fa-microphone"></i> <span id="sttArLabel">إملاء</span><span class="stt-ar-flag">AR</span>
+                                <span class="stt-ar-dot"></span>
+                            </button>
+                            <button class="btn btn-copy-editor" id="btnCopyEditor" onclick="copyEditorText()" title="Copy prompt to clipboard">
+                                <i class="fas fa-copy"></i> <span id="copyEditorLabel">Copy</span>
+                            </button>
+                            <button class="btn btn-paste-editor" id="btnPasteEditor" onclick="pasteEditorText()" title="Paste from clipboard">
+                                <i class="fas fa-paste"></i> <span id="pasteEditorLabel">Paste</span>
+                            </button>
+                            <button class="btn btn-clear-editor" id="btnClearEditor" onclick="clearEditorText()" title="Clear prompt editor">
+                                <i class="fas fa-eraser"></i> <span id="clearEditorLabel">Clear</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="editor-footer-right">
+                        <div class="word-count">
+                            <i class="fas fa-text-width"></i>
+                            <span id="wordCount">0</span> words
+                        </div>
                     </div>
                 </div>
             </div>
