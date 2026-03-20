@@ -33071,7 +33071,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-folder-plus"></i><span>New Folder</span>
                         </button>
                         <button class="btn-fm btn-fm-rename" onclick="renameSelectedFile()" title="Rename a file">
-                            <i class="fas fa-pen"></i><span>Rename</span>
+                            <i class="fas fa-pen"></i><span>Rename File</span>
                         </button>
                         <button class="btn-fm btn-fm-move-folder" onclick="openMoveFolderModal()" title="Move folder">
                             <i class="fas fa-folder-open"></i><span>Move Folder</span>
