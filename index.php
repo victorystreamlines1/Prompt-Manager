@@ -46423,6 +46423,15 @@ in each section carefully and maintain proper connections between components.
                                 filePickerBtn.title = `${savedFileName} - Click to change`;
                                 btnPull.disabled = false;
                                 btnPush.disabled = false;
+                                // Enable append/prepend buttons too
+                                const btnPullAppend = document.getElementById(`btnPullAppend${sideCapitalized}`);
+                                const btnPullPrepend = document.getElementById(`btnPullPrepend${sideCapitalized}`);
+                                const btnPushAppend = document.getElementById(`btnPushAppend${sideCapitalized}`);
+                                const btnPushPrepend = document.getElementById(`btnPushPrepend${sideCapitalized}`);
+                                if (btnPullAppend) btnPullAppend.disabled = false;
+                                if (btnPullPrepend) btnPullPrepend.disabled = false;
+                                if (btnPushAppend) btnPushAppend.disabled = false;
+                                if (btnPushPrepend) btnPushPrepend.disabled = false;
                             }
                         }
                     } catch (err) {
