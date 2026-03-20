@@ -33090,9 +33090,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- Save Pick As Group -->
                     <div class="analytics-save-pick-group">
-                        <button type="button" class="analytics-save-pick-btn" id="analyticsSavePickBtn" title="Save Pick as">
+                        <button type="button" class="analytics-save-pick-btn" id="analyticsSavePickBtn" title="Send Pick as">
                             <i class="fas fa-save"></i>
-                            <span>Save Pick as</span>
+                            <span>Send Pick as</span>
                         </button>
                         <input type="text" class="analytics-save-pick-input" id="analyticsSavePickInput" placeholder="image" autocomplete="off">
                     </div>
