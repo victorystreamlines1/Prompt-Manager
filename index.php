@@ -20425,8 +20425,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 0.4rem;
         }
 
+        .file-transfer-group.left {
+            margin-right: auto;
+        }
+
         .file-transfer-group.right {
-            flex-direction: row;
+            margin-left: auto;
         }
 
         .file-transfer-group .file-picker-btn {
