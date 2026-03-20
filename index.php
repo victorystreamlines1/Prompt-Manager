@@ -23053,6 +23053,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             letter-spacing: 0.02em;
         }
 
+        /* ═══ Analytics Save Pick As Group ═══ */
+        .analytics-save-pick-group {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-shrink: 0;
+            margin: 0 0.4rem;
+        }
+        .analytics-save-pick-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 182, 212, 0.12) 50%, rgba(59, 130, 246, 0.10) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-radius: 8px;
+            color: #34d399;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .analytics-save-pick-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .analytics-save-pick-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.28) 0%, rgba(6, 182, 212, 0.20) 50%, rgba(59, 130, 246, 0.16) 100%);
+            border-color: rgba(16, 185, 129, 0.55);
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2), 0 0 20px rgba(16, 185, 129, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            color: #6ee7b7;
+        }
+        .analytics-save-pick-btn:hover::before {
+            opacity: 1;
+        }
+        .analytics-save-pick-btn:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15);
+        }
+        .analytics-save-pick-btn i {
+            font-size: 0.6rem;
+            filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.3));
+        }
+        .analytics-save-pick-btn span {
+            font-size: 0.65rem;
+        }
+        .analytics-save-pick-input {
+            width: 90px;
+            height: 26px;
+            padding: 0.2rem 0.55rem;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(8, 145, 178, 0.04) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.65rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .analytics-save-pick-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+            font-style: italic;
+            font-size: 0.62rem;
+        }
+        .analytics-save-pick-input:focus {
+            border-color: rgba(6, 182, 212, 0.55);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.12) 0%, rgba(8, 145, 178, 0.07) 100%);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1), 0 0 16px rgba(6, 182, 212, 0.08), inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .analytics-save-pick-input:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(6, 182, 212, 0.06);
+        }
+
         /* ═══ Analytics Image Picker ═══ */
         .analytics-file-picker {
             display: flex;
@@ -33001,6 +33086,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button class="analytics-search-clear-btn" onclick="clearAnalyticsRegex()" title="Clear regex"><i class="fas fa-times"></i></button>
                             <span class="analytics-regex-error" id="analyticsRegexError" title=""></span>
                         </div>
+                    </div>
+
+                    <!-- Save Pick As Group -->
+                    <div class="analytics-save-pick-group">
+                        <button type="button" class="analytics-save-pick-btn" id="analyticsSavePickBtn" title="Save Pick as">
+                            <i class="fas fa-save"></i>
+                            <span>Save Pick as</span>
+                        </button>
+                        <input type="text" class="analytics-save-pick-input" id="analyticsSavePickInput" placeholder="image" autocomplete="off">
                     </div>
 
                     <!-- Image Picker for Analytics -->
