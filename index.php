@@ -73836,17 +73836,32 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <script>
-// Auto-scroll to bottom on page load so all 3 containers are visible
+// Auto-scroll on page load so all 3 containers are visible:
+// Project Prompts, Analytics, and Unified Editor (Save Prompts + Prompt Editor)
 window.addEventListener('load', function() {
     setTimeout(function() {
-        // Scroll the entire page to the bottom
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        const target = document.getElementById('projectNotesSection');
+        if (!target) return;
+
+        // Get the top-nav-bar height for offset
+        const nav = document.querySelector('.top-nav-bar');
+        const navHeight = nav ? nav.offsetHeight : 0;
+        const offset = navHeight + 10; // small extra breathing room
+
+        // Calculate scroll position: target top minus offset
+        const targetRect = target.getBoundingClientRect();
+        const absoluteTop = targetRect.top + window.pageYOffset - offset;
+
+        // Scroll the window
+        window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+
         // Also scroll main-content if it has its own scrollbar
         const main = document.querySelector('.main-content');
-        if (main) {
-            main.scrollTo({ top: main.scrollHeight, behavior: 'smooth' });
+        if (main && main.scrollHeight > main.clientHeight) {
+            const targetOffsetInMain = target.offsetTop - offset;
+            main.scrollTo({ top: targetOffsetInMain, behavior: 'smooth' });
         }
-    }, 500);
+    }, 600);
 });
 </script>
 
