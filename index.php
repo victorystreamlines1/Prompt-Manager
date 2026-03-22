@@ -32046,6 +32046,547 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .luxury-confirm-btn:active {
             transform: scale(0.97);
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           🔮 VISUAL PREVIEW - Distinct Teal/Cyan Accent Identity
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* Tab accent override for Visual Preview */
+        .mc-tab.mc-tab-vp:hover:not(.active) {
+            color: rgba(45, 212, 191, 0.75);
+            background: rgba(20, 184, 166, 0.08);
+        }
+        .mc-tab.mc-tab-vp.active {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.20), rgba(6, 182, 212, 0.12));
+            border-color: rgba(20, 184, 166, 0.35);
+            color: #5eead4;
+            box-shadow: 0 2px 14px rgba(20, 184, 166, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+        .mc-tab.mc-tab-vp.active i { color: #2dd4bf; }
+        .mc-tab.mc-tab-vp.active .mc-tab-dot {
+            background: #2dd4bf;
+            box-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+        }
+
+        /* Main container */
+        .vp-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(10, 15, 30, 0.7), rgba(15, 20, 40, 0.5));
+            border: 1px solid rgba(20, 184, 166, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(45, 212, 191, 0.05);
+            min-height: 600px;
+        }
+
+        /* ── Control Bar ── */
+        .vp-control-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, rgba(10, 15, 30, 0.9), rgba(15, 20, 40, 0.85));
+            border-bottom: 1px solid rgba(20, 184, 166, 0.12);
+            position: relative;
+            flex-wrap: wrap;
+        }
+        .vp-control-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 8%; right: 8%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(20, 184, 166, 0.25), rgba(6, 182, 212, 0.25), transparent);
+        }
+        .vp-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #2dd4bf;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            padding-right: 8px;
+            border-right: 1px solid rgba(20, 184, 166, 0.15);
+            margin-right: 4px;
+        }
+        .vp-brand i { font-size: 0.85rem; filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.4)); }
+
+        .vp-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            border: 1px solid rgba(20, 184, 166, 0.2);
+            background: rgba(20, 184, 166, 0.08);
+            color: #5eead4;
+            transition: all 0.3s ease;
+        }
+        .vp-status-badge .vp-status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #2dd4bf;
+            box-shadow: 0 0 6px rgba(45, 212, 191, 0.5);
+            animation: vpPulse 2s infinite;
+        }
+        .vp-status-badge.inspecting { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.08); color: #fbbf24; }
+        .vp-status-badge.inspecting .vp-status-dot { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.5); }
+        .vp-status-badge.synced { border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.08); color: #34d399; }
+        .vp-status-badge.error { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); color: #f87171; }
+
+        @keyframes vpPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .vp-url-wrap {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(20, 184, 166, 0.12);
+            border-radius: 8px;
+            padding: 0 8px;
+            transition: all 0.25s ease;
+        }
+        .vp-url-wrap:focus-within {
+            border-color: rgba(20, 184, 166, 0.35);
+            box-shadow: 0 0 12px rgba(20, 184, 166, 0.1);
+        }
+        .vp-url-wrap i { color: rgba(45, 212, 191, 0.4); font-size: 0.7rem; margin-right: 6px; }
+        .vp-url-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 6px 0;
+        }
+        .vp-url-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+        .vp-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(20, 184, 166, 0.15);
+            background: rgba(20, 184, 166, 0.06);
+            color: rgba(255, 255, 255, 0.55);
+            white-space: nowrap;
+        }
+        .vp-btn:hover {
+            background: rgba(20, 184, 166, 0.14);
+            border-color: rgba(20, 184, 166, 0.30);
+            color: #5eead4;
+            box-shadow: 0 0 10px rgba(20, 184, 166, 0.12);
+        }
+        .vp-btn:active { transform: scale(0.94); }
+        .vp-btn i { font-size: 0.68rem; }
+
+        .vp-btn.vp-btn-primary {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.20), rgba(6, 182, 212, 0.15));
+            border-color: rgba(20, 184, 166, 0.35);
+            color: #5eead4;
+        }
+        .vp-btn.vp-btn-primary:hover {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.30), rgba(6, 182, 212, 0.25));
+            box-shadow: 0 0 16px rgba(20, 184, 166, 0.2);
+        }
+
+        .vp-btn.vp-btn-active {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.35);
+            color: #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+        }
+
+        .vp-btn.vp-btn-danger {
+            border-color: rgba(248, 113, 113, 0.2);
+            color: rgba(248, 113, 113, 0.6);
+        }
+        .vp-btn.vp-btn-danger:hover {
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.35);
+            color: #f87171;
+        }
+
+        .vp-divider {
+            width: 1px;
+            height: 22px;
+            background: rgba(20, 184, 166, 0.12);
+            margin: 0 2px;
+        }
+
+        /* Device mode switcher */
+        .vp-device-bar {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 0 4px;
+        }
+        .vp-device-btn {
+            width: 28px; height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.72rem;
+        }
+        .vp-device-btn:hover { color: rgba(45, 212, 191, 0.7); background: rgba(20, 184, 166, 0.06); }
+        .vp-device-btn.active {
+            color: #2dd4bf;
+            background: rgba(20, 184, 166, 0.12);
+            border-color: rgba(20, 184, 166, 0.25);
+            box-shadow: 0 0 8px rgba(20, 184, 166, 0.1);
+        }
+
+        /* ── Main Body: Preview + Inspector ── */
+        .vp-body {
+            display: flex;
+            flex: 1;
+            min-height: 450px;
+            position: relative;
+        }
+
+        /* Preview Canvas */
+        .vp-canvas-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: rgba(5, 10, 20, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .vp-canvas-frame {
+            width: 100%;
+            height: 100%;
+            min-height: 420px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(20, 184, 166, 0.12);
+            background: #fff;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3), 0 0 80px rgba(20, 184, 166, 0.04);
+            transition: all 0.3s ease;
+        }
+        .vp-canvas-frame.inspecting {
+            border-color: rgba(251, 191, 36, 0.35);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(251, 191, 36, 0.08);
+        }
+        .vp-canvas-frame.device-tablet { max-width: 768px; }
+        .vp-canvas-frame.device-mobile { max-width: 375px; }
+
+        .vp-preview-iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 420px;
+            border: none;
+            background: #fff;
+            display: block;
+        }
+
+        /* Overlay for hover/select highlights */
+        .vp-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            border: 2px solid rgba(20, 184, 166, 0.7);
+            background: rgba(20, 184, 166, 0.08);
+            border-radius: 3px;
+            transition: all 0.15s ease;
+            display: none;
+        }
+        .vp-overlay.hover-active { display: block; border-style: dashed; }
+        .vp-overlay.select-active {
+            display: block;
+            border-color: rgba(251, 191, 36, 0.8);
+            background: rgba(251, 191, 36, 0.08);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+        }
+        .vp-overlay-tag {
+            position: absolute;
+            top: -22px; left: 0;
+            background: rgba(20, 184, 166, 0.9);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px 4px 0 0;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+        }
+        .vp-overlay.select-active .vp-overlay-tag { background: rgba(251, 191, 36, 0.9); color: #1a1a2e; }
+
+        /* Empty state */
+        .vp-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            width: 100%;
+        }
+        .vp-empty-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(6, 182, 212, 0.08));
+            border: 2px solid rgba(20, 184, 166, 0.15);
+            font-size: 2rem;
+            color: #2dd4bf;
+            animation: vpFloat 3s ease-in-out infinite;
+        }
+        @keyframes vpFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .vp-empty-state h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin: 0;
+        }
+        .vp-empty-state p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin: 0;
+            max-width: 360px;
+            line-height: 1.5;
+        }
+
+        /* ── Inspector Panel ── */
+        .vp-inspector {
+            width: 300px;
+            min-width: 260px;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, rgba(10, 15, 30, 0.8), rgba(15, 20, 40, 0.6));
+            border-left: 1px solid rgba(20, 184, 166, 0.12);
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: width 0.3s ease;
+        }
+        .vp-inspector-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.10);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2dd4bf;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .vp-inspector-header i { font-size: 0.7rem; filter: drop-shadow(0 0 3px rgba(45, 212, 191, 0.3)); }
+
+        .vp-insp-section {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.06);
+        }
+        .vp-insp-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: rgba(45, 212, 191, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .vp-insp-value {
+            font-size: 0.73rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-all;
+            line-height: 1.4;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 4px 6px;
+            border-radius: 5px;
+            border: 1px solid rgba(20, 184, 166, 0.06);
+        }
+        .vp-insp-value.empty { color: rgba(255, 255, 255, 0.2); font-style: italic; }
+
+        .vp-insp-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .vp-insp-row .vp-insp-item { flex: 1; }
+        .vp-insp-item .vp-insp-label { margin-bottom: 2px; }
+
+        .vp-insp-actions {
+            padding: 10px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .vp-insp-actions .vp-btn { flex: 1; min-width: calc(50% - 5px); justify-content: center; font-size: 0.65rem; padding: 5px 6px; }
+
+        /* ── Prompt Action Area ── */
+        .vp-prompt-area {
+            border-top: 1px solid rgba(20, 184, 166, 0.12);
+            background: linear-gradient(135deg, rgba(10, 15, 30, 0.6), rgba(15, 20, 40, 0.4));
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .vp-prompt-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .vp-prompt-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2dd4bf;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .vp-prompt-title i { font-size: 0.7rem; }
+
+        .vp-context-block {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            border-radius: 7px;
+            padding: 8px 10px;
+            font-size: 0.68rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: rgba(255, 255, 255, 0.5);
+            max-height: 80px;
+            overflow-y: auto;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .vp-context-block:empty::before {
+            content: 'Select an element to generate context...';
+            color: rgba(255, 255, 255, 0.2);
+            font-style: italic;
+        }
+
+        .vp-prompt-textarea {
+            width: 100%;
+            min-height: 70px;
+            max-height: 150px;
+            resize: vertical;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(20, 184, 166, 0.15);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            font-family: inherit;
+            color: #e2e8f0;
+            outline: none;
+            transition: border-color 0.25s ease;
+            line-height: 1.5;
+        }
+        .vp-prompt-textarea:focus {
+            border-color: rgba(20, 184, 166, 0.4);
+            box-shadow: 0 0 12px rgba(20, 184, 166, 0.08);
+        }
+        .vp-prompt-textarea::placeholder { color: rgba(255, 255, 255, 0.2); }
+
+        .vp-prompt-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .vp-prompt-actions .vp-btn { flex: 1; justify-content: center; }
+        .vp-prompt-actions .vp-btn.vp-send-ide {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.25), rgba(6, 182, 212, 0.18));
+            border-color: rgba(20, 184, 166, 0.4);
+            color: #2dd4bf;
+            font-weight: 700;
+        }
+        .vp-prompt-actions .vp-btn.vp-send-ide:hover {
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Zoom control */
+        .vp-zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vp-zoom-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.35);
+            min-width: 32px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Resize handle between canvas and inspector */
+        .vp-resize-handle {
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+            position: relative;
+        }
+        .vp-resize-handle:hover,
+        .vp-resize-handle.dragging {
+            background: rgba(20, 184, 166, 0.15);
+        }
+        .vp-resize-handle::after {
+            content: '';
+            width: 2px;
+            height: 30px;
+            border-radius: 2px;
+            background: rgba(20, 184, 166, 0.2);
+            transition: all 0.2s ease;
+        }
+        .vp-resize-handle:hover::after { background: rgba(20, 184, 166, 0.5); height: 50px; }
+
+        /* Fullscreen mode */
+        .vp-container.fullscreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999;
+            border-radius: 0;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar for inspector */
+        .vp-inspector::-webkit-scrollbar { width: 4px; }
+        .vp-inspector::-webkit-scrollbar-track { background: transparent; }
+        .vp-inspector::-webkit-scrollbar-thumb { background: rgba(20, 184, 166, 0.2); border-radius: 4px; }
+        .vp-inspector::-webkit-scrollbar-thumb:hover { background: rgba(20, 184, 166, 0.35); }
+
     </style>
 </head>
 <body>
@@ -32333,6 +32874,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button class="mc-tab" data-mc-tab="iframe" onclick="mcSwitchTab('iframe')">
                     <i class="fas fa-expand-arrows-alt"></i>
                     <span>iFrame Scalar</span>
+                    <span class="mc-tab-dot"></span>
+                </button>
+                <button class="mc-tab mc-tab-vp" data-mc-tab="visualpreview" onclick="mcSwitchTab('visualpreview')">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>Visual Preview</span>
                     <span class="mc-tab-dot"></span>
                 </button>
             </div>
@@ -33831,6 +34377,235 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 </div>
             </div><!-- /mc-tab-panel iFrame Scalar -->
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 🔮 TAB PANEL: Visual Preview
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <div class="mc-tab-panel" id="mcPanelVisualpreview" data-mc-panel="visualpreview">
+                <div class="vp-container" id="vpContainer">
+
+                    <!-- ── Control Bar ── -->
+                    <div class="vp-control-bar">
+                        <div class="vp-brand">
+                            <i class="fas fa-crosshairs"></i>
+                            <span>Preview</span>
+                        </div>
+
+                        <div class="vp-status-badge" id="vpStatusBadge">
+                            <span class="vp-status-dot"></span>
+                            <span id="vpStatusText">Ready</span>
+                        </div>
+
+                        <div class="vp-url-wrap">
+                            <i class="fas fa-globe"></i>
+                            <input type="text" class="vp-url-input" id="vpUrlInput" placeholder="Enter URL to preview (e.g. http://localhost:8000)" spellcheck="false">
+                        </div>
+
+                        <button class="vp-btn vp-btn-primary" onclick="vpLoadUrl()" title="Load URL">
+                            <i class="fas fa-arrow-right"></i> Load
+                        </button>
+                        <button class="vp-btn" onclick="vpReload()" title="Reload preview">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+
+                        <div class="vp-divider"></div>
+
+                        <button class="vp-btn" id="vpInspectToggle" onclick="vpToggleInspect()" title="Toggle Inspect Mode">
+                            <i class="fas fa-mouse-pointer"></i> Inspect
+                        </button>
+                        <button class="vp-btn" id="vpSelectToggle" onclick="vpToggleSelect()" title="Toggle Select Mode">
+                            <i class="fas fa-hand-pointer"></i> Select
+                        </button>
+
+                        <div class="vp-divider"></div>
+
+                        <div class="vp-device-bar">
+                            <button class="vp-device-btn active" data-vp-device="desktop" onclick="vpSwitchDevice('desktop')" title="Desktop">
+                                <i class="fas fa-desktop"></i>
+                            </button>
+                            <button class="vp-device-btn" data-vp-device="tablet" onclick="vpSwitchDevice('tablet')" title="Tablet">
+                                <i class="fas fa-tablet-alt"></i>
+                            </button>
+                            <button class="vp-device-btn" data-vp-device="mobile" onclick="vpSwitchDevice('mobile')" title="Mobile">
+                                <i class="fas fa-mobile-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="vp-divider"></div>
+
+                        <div class="vp-zoom-control">
+                            <button class="vp-btn" onclick="vpZoom(-10)" title="Zoom Out" style="padding:5px 6px;">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <span class="vp-zoom-label" id="vpZoomLabel">100%</span>
+                            <button class="vp-btn" onclick="vpZoom(10)" title="Zoom In" style="padding:5px 6px;">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                            <button class="vp-btn" onclick="vpZoom(0)" title="Reset Zoom" style="padding:5px 6px;">
+                                <i class="fas fa-compress-arrows-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="vp-divider"></div>
+
+                        <button class="vp-btn" onclick="vpToggleFullscreen()" title="Toggle Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+
+                    <!-- ── Body: Canvas + Inspector ── -->
+                    <div class="vp-body">
+
+                        <!-- Preview Canvas -->
+                        <div class="vp-canvas-wrap" id="vpCanvasWrap">
+                            <div class="vp-canvas-frame" id="vpCanvasFrame">
+                                <!-- Empty State (shown when no URL loaded) -->
+                                <div class="vp-empty-state" id="vpEmptyState">
+                                    <div class="vp-empty-icon">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <h3>Visual Preview</h3>
+                                    <p>Enter a URL above and click Load to start previewing. Use Inspect and Select modes to interact with elements.</p>
+                                    <button class="vp-btn vp-btn-primary" onclick="document.getElementById('vpUrlInput').focus()" style="padding: 8px 20px; font-size: 0.78rem;">
+                                        <i class="fas fa-link"></i> Enter a URL
+                                    </button>
+                                </div>
+                                <!-- iframe (hidden until URL is loaded) -->
+                                <iframe id="vpPreviewIframe" class="vp-preview-iframe" style="display:none;" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" loading="lazy"></iframe>
+                                <!-- Hover overlay -->
+                                <div class="vp-overlay" id="vpHoverOverlay">
+                                    <span class="vp-overlay-tag" id="vpHoverTag"></span>
+                                </div>
+                                <!-- Select overlay -->
+                                <div class="vp-overlay" id="vpSelectOverlay">
+                                    <span class="vp-overlay-tag" id="vpSelectTag"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resize Handle -->
+                        <div class="vp-resize-handle" id="vpResizeHandle"></div>
+
+                        <!-- Inspector Panel -->
+                        <div class="vp-inspector" id="vpInspector">
+                            <div class="vp-inspector-header">
+                                <i class="fas fa-search-plus"></i>
+                                <span>Element Inspector</span>
+                            </div>
+
+                            <!-- Route / Path -->
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-label">Current Route</div>
+                                <div class="vp-insp-value" id="vpInspRoute"><span class="empty">No page loaded</span></div>
+                            </div>
+
+                            <!-- Element Info -->
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-row">
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">Tag</div>
+                                        <div class="vp-insp-value" id="vpInspTag"><span class="empty">-</span></div>
+                                    </div>
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">ID</div>
+                                        <div class="vp-insp-value" id="vpInspId"><span class="empty">-</span></div>
+                                    </div>
+                                </div>
+                                <div class="vp-insp-label">Classes</div>
+                                <div class="vp-insp-value" id="vpInspClasses"><span class="empty">-</span></div>
+                            </div>
+
+                            <!-- Text & Selector -->
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-label">Text Snippet</div>
+                                <div class="vp-insp-value" id="vpInspText"><span class="empty">-</span></div>
+                            </div>
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-label">CSS Selector</div>
+                                <div class="vp-insp-value" id="vpInspSelector"><span class="empty">-</span></div>
+                            </div>
+
+                            <!-- Data attributes -->
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-row">
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">Component</div>
+                                        <div class="vp-insp-value" id="vpInspComponent"><span class="empty">-</span></div>
+                                    </div>
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">Node ID</div>
+                                        <div class="vp-insp-value" id="vpInspNodeId"><span class="empty">-</span></div>
+                                    </div>
+                                </div>
+                                <div class="vp-insp-label">File Path</div>
+                                <div class="vp-insp-value" id="vpInspFilePath"><span class="empty">-</span></div>
+                            </div>
+
+                            <!-- Dimensions -->
+                            <div class="vp-insp-section">
+                                <div class="vp-insp-row">
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">Width</div>
+                                        <div class="vp-insp-value" id="vpInspWidth"><span class="empty">-</span></div>
+                                    </div>
+                                    <div class="vp-insp-item">
+                                        <div class="vp-insp-label">Height</div>
+                                        <div class="vp-insp-value" id="vpInspHeight"><span class="empty">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Inspector Actions -->
+                            <div class="vp-insp-actions">
+                                <button class="vp-btn" onclick="vpCopySelectionData()" title="Copy selection data to clipboard">
+                                    <i class="fas fa-copy"></i> Copy Data
+                                </button>
+                                <button class="vp-btn vp-btn-primary" onclick="vpSendToPrompt()" title="Send selection to prompt area">
+                                    <i class="fas fa-arrow-down"></i> To Prompt
+                                </button>
+                                <button class="vp-btn" onclick="vpAppendToPrompt()" title="Append selection to prompt">
+                                    <i class="fas fa-plus"></i> Append
+                                </button>
+                                <button class="vp-btn vp-btn-danger" onclick="vpClearSelection()" title="Clear current selection">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+
+                            <!-- Prompt Action Area (inside inspector for compact layout) -->
+                            <div class="vp-prompt-area">
+                                <div class="vp-prompt-header">
+                                    <div class="vp-prompt-title">
+                                        <i class="fas fa-terminal"></i>
+                                        <span>Prompt & Context</span>
+                                    </div>
+                                    <button class="vp-btn" onclick="vpClearPrompt()" style="padding: 3px 6px; font-size: 0.6rem;" title="Clear prompt">
+                                        <i class="fas fa-eraser"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Auto-generated context block -->
+                                <div class="vp-context-block" id="vpContextBlock"></div>
+
+                                <!-- User prompt textarea -->
+                                <textarea class="vp-prompt-textarea" id="vpPromptTextarea" placeholder="Write your prompt here... The context above will be prepended automatically."></textarea>
+
+                                <!-- Prompt Actions -->
+                                <div class="vp-prompt-actions">
+                                    <button class="vp-btn" onclick="vpGenerateContext()" title="Regenerate context from selection">
+                                        <i class="fas fa-magic"></i> Gen Context
+                                    </button>
+                                    <button class="vp-btn vp-send-ide" onclick="vpSendToIDE()" title="Send prompt + context to prompt.txt via folder connection">
+                                        <i class="fas fa-paper-plane"></i> Send to IDE
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div><!-- /vp-inspector -->
+
+                    </div><!-- /vp-body -->
+
+                </div><!-- /vp-container -->
+            </div><!-- /mc-tab-panel Visual Preview -->
             
         </main>
         
@@ -44118,6 +44893,466 @@ in each section carefully and maintain proper connections between components.
                 panel.style.animation = '';
             }
         }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // 🔮 VISUAL PREVIEW - Complete JavaScript Module
+        // ═══════════════════════════════════════════════════════════════════
+
+        const vpState = {
+            loaded: false,
+            url: '',
+            inspecting: false,
+            selecting: false,
+            selectedEl: null,
+            selectedData: null,
+            zoomLevel: 100,
+            device: 'desktop',
+            fullscreen: false,
+            iframeReady: false
+        };
+
+        const vpDeviceSizes = {
+            desktop: { width: '100%', height: '100%' },
+            tablet:  { width: '768px', height: '1024px' },
+            mobile:  { width: '375px', height: '812px' }
+        };
+
+        // ── Load URL into preview iframe ──
+        function vpLoadUrl() {
+            let url = document.getElementById('vpUrlInput').value.trim();
+            if (!url) { showToast('Please enter a URL to preview', 'warning'); return; }
+            if (!/^https?:\/\//i.test(url)) url = 'http://' + url;
+            document.getElementById('vpUrlInput').value = url;
+            vpState.url = url;
+
+            const iframe = document.getElementById('vpPreviewIframe');
+            const emptyState = document.getElementById('vpEmptyState');
+
+            vpSetStatus('loading', 'Loading...');
+            emptyState.style.display = 'none';
+            iframe.style.display = 'block';
+            iframe.src = url;
+
+            iframe.onload = function() {
+                vpState.loaded = true;
+                vpState.iframeReady = true;
+                vpSetStatus('ready', 'Ready');
+                vpUpdateRoute();
+                vpAttachIframeListeners();
+                localStorage.setItem('vpLastUrl', url);
+            };
+            iframe.onerror = function() {
+                vpSetStatus('error', 'Error');
+                showToast('Failed to load the URL. Check if the server is running.', 'error');
+            };
+        }
+
+        // ── Reload preview ──
+        function vpReload() {
+            const iframe = document.getElementById('vpPreviewIframe');
+            if (!vpState.loaded) { showToast('No page loaded to reload', 'info'); return; }
+            vpSetStatus('loading', 'Reloading...');
+            iframe.src = iframe.src;
+        }
+
+        // ── URL input Enter key ──
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('vpUrlInput');
+            if (urlInput) {
+                urlInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') vpLoadUrl();
+                });
+                const lastUrl = localStorage.getItem('vpLastUrl');
+                if (lastUrl) urlInput.value = lastUrl;
+            }
+        });
+
+        // ── Set status badge ──
+        function vpSetStatus(type, text) {
+            const badge = document.getElementById('vpStatusBadge');
+            const textEl = document.getElementById('vpStatusText');
+            if (!badge || !textEl) return;
+            badge.className = 'vp-status-badge';
+            if (type === 'loading')    badge.classList.add('loading');
+            else if (type === 'error') badge.classList.add('error');
+            else if (type === 'inspecting') badge.classList.add('inspecting');
+            else if (type === 'synced')     badge.classList.add('synced');
+            textEl.textContent = text;
+        }
+
+        // ── Update route display ──
+        function vpUpdateRoute() {
+            const iframe = document.getElementById('vpPreviewIframe');
+            const routeEl = document.getElementById('vpInspRoute');
+            if (!routeEl) return;
+            try {
+                const loc = iframe.contentWindow.location;
+                routeEl.innerHTML = `<code>${loc.pathname}${loc.search}</code>`;
+            } catch (e) {
+                routeEl.innerHTML = '<span class="empty">Cross-origin — path hidden</span>';
+            }
+        }
+
+        // ── Toggle Inspect Mode ──
+        function vpToggleInspect() {
+            vpState.inspecting = !vpState.inspecting;
+            const btn = document.getElementById('vpInspectToggle');
+            if (vpState.inspecting) {
+                btn.classList.add('active');
+                vpSetStatus('inspecting', 'Inspecting');
+                if (vpState.selecting) vpToggleSelect();
+            } else {
+                btn.classList.remove('active');
+                vpHideOverlay('vpHoverOverlay');
+                if (!vpState.selecting) vpSetStatus('ready', 'Ready');
+            }
+        }
+
+        // ── Toggle Select Mode ──
+        function vpToggleSelect() {
+            vpState.selecting = !vpState.selecting;
+            const btn = document.getElementById('vpSelectToggle');
+            if (vpState.selecting) {
+                btn.classList.add('active');
+                vpSetStatus('inspecting', 'Select Mode');
+                if (vpState.inspecting) vpToggleInspect();
+            } else {
+                btn.classList.remove('active');
+                if (!vpState.inspecting) vpSetStatus('ready', 'Ready');
+            }
+        }
+
+        // ── Device Switching ──
+        function vpSwitchDevice(device) {
+            vpState.device = device;
+            document.querySelectorAll('.vp-device-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`.vp-device-btn[data-vp-device="${device}"]`);
+            if (btn) btn.classList.add('active');
+
+            const frame = document.getElementById('vpCanvasFrame');
+            const size = vpDeviceSizes[device];
+            if (device === 'desktop') {
+                frame.style.width = '100%';
+                frame.style.height = '100%';
+                frame.style.margin = '0';
+                frame.style.borderRadius = '0';
+                frame.style.boxShadow = 'none';
+            } else {
+                frame.style.width = size.width;
+                frame.style.height = size.height;
+                frame.style.margin = '16px auto';
+                frame.style.borderRadius = '18px';
+                frame.style.boxShadow = '0 8px 40px rgba(0,0,0,0.5), 0 0 0 2px rgba(20,184,166,0.2)';
+            }
+        }
+
+        // ── Zoom Control ──
+        function vpZoom(delta) {
+            if (delta === 0) { vpState.zoomLevel = 100; }
+            else { vpState.zoomLevel = Math.max(25, Math.min(200, vpState.zoomLevel + delta)); }
+            document.getElementById('vpZoomLabel').textContent = vpState.zoomLevel + '%';
+            const iframe = document.getElementById('vpPreviewIframe');
+            iframe.style.transform = `scale(${vpState.zoomLevel / 100})`;
+            iframe.style.transformOrigin = 'top left';
+            iframe.style.width = (100 / (vpState.zoomLevel / 100)) + '%';
+            iframe.style.height = (100 / (vpState.zoomLevel / 100)) + '%';
+        }
+
+        // ── Fullscreen Toggle ──
+        function vpToggleFullscreen() {
+            const container = document.getElementById('vpContainer');
+            vpState.fullscreen = !vpState.fullscreen;
+            container.classList.toggle('fullscreen', vpState.fullscreen);
+            document.body.style.overflow = vpState.fullscreen ? 'hidden' : '';
+        }
+
+        // ── Overlay Helpers ──
+        function vpShowOverlay(overlayId, rect, tagText, frameRect) {
+            const overlay = document.getElementById(overlayId);
+            const tagEl = overlay.querySelector('.vp-overlay-tag');
+            if (!overlay) return;
+            overlay.style.display = 'block';
+            overlay.style.left   = (rect.left - frameRect.left) + 'px';
+            overlay.style.top    = (rect.top - frameRect.top) + 'px';
+            overlay.style.width  = rect.width + 'px';
+            overlay.style.height = rect.height + 'px';
+            if (tagEl) { tagEl.textContent = tagText; tagEl.style.display = 'block'; }
+        }
+        function vpHideOverlay(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        // ── Build CSS Selector for an element ──
+        function vpBuildSelector(el) {
+            if (!el || el.nodeType !== 1) return '';
+            if (el.id) return '#' + el.id;
+            let parts = [];
+            let node = el;
+            while (node && node.nodeType === 1 && node.tagName.toLowerCase() !== 'html') {
+                let selector = node.tagName.toLowerCase();
+                if (node.id) { selector = '#' + node.id; parts.unshift(selector); break; }
+                if (node.className && typeof node.className === 'string') {
+                    const cls = node.className.trim().split(/\s+/).filter(c => c && !c.startsWith('vp-')).slice(0, 2);
+                    if (cls.length) selector += '.' + cls.join('.');
+                }
+                const parent = node.parentElement;
+                if (parent) {
+                    const siblings = Array.from(parent.children).filter(c => c.tagName === node.tagName);
+                    if (siblings.length > 1) {
+                        const idx = siblings.indexOf(node) + 1;
+                        selector += `:nth-of-type(${idx})`;
+                    }
+                }
+                parts.unshift(selector);
+                node = parent;
+            }
+            return parts.join(' > ');
+        }
+
+        // ── Extract element metadata ──
+        function vpExtractMeta(el) {
+            if (!el) return null;
+            const tag = el.tagName.toLowerCase();
+            const id = el.id || '';
+            const classes = (typeof el.className === 'string' ? el.className : '').trim();
+            const text = (el.textContent || '').trim().substring(0, 120);
+            const selector = vpBuildSelector(el);
+            const nodeId = el.getAttribute('data-node-id') || el.getAttribute('data-id') || '';
+            const component = el.getAttribute('data-component') || el.getAttribute('data-vue-component') || el.getAttribute('data-react-component') || el.closest('[data-component]')?.getAttribute('data-component') || '';
+            const filePath = el.getAttribute('data-file') || el.getAttribute('data-source') || '';
+            const rect = el.getBoundingClientRect();
+            return {
+                tag, id, classes, text, selector, nodeId, component, filePath,
+                width: Math.round(rect.width),
+                height: Math.round(rect.height)
+            };
+        }
+
+        // ── Populate Inspector Panel ──
+        function vpFillInspector(data) {
+            if (!data) return;
+            const set = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = val ? `<code>${vpEscHtml(val)}</code>` : '<span class="empty">-</span>';
+            };
+            set('vpInspTag', data.tag);
+            set('vpInspId', data.id);
+            set('vpInspClasses', data.classes);
+            set('vpInspText', data.text);
+            set('vpInspSelector', data.selector);
+            set('vpInspComponent', data.component);
+            set('vpInspNodeId', data.nodeId);
+            set('vpInspFilePath', data.filePath);
+            set('vpInspWidth', data.width + 'px');
+            set('vpInspHeight', data.height + 'px');
+        }
+
+        function vpEscHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ── Attach listeners inside iframe for hover/click ──
+        function vpAttachIframeListeners() {
+            try {
+                const iframeDoc = document.getElementById('vpPreviewIframe').contentDocument;
+                const iframeWin = document.getElementById('vpPreviewIframe').contentWindow;
+                if (!iframeDoc) return;
+
+                const canvasFrame = document.getElementById('vpCanvasFrame');
+                const frameRect = () => canvasFrame.getBoundingClientRect();
+
+                iframeDoc.addEventListener('mousemove', function(e) {
+                    if (!vpState.inspecting) return;
+                    const el = e.target;
+                    if (!el || el === iframeDoc.documentElement || el === iframeDoc.body) {
+                        vpHideOverlay('vpHoverOverlay');
+                        return;
+                    }
+                    const elRect = el.getBoundingClientRect();
+                    const iframeEl = document.getElementById('vpPreviewIframe');
+                    const iframeRect = iframeEl.getBoundingClientRect();
+                    const absRect = {
+                        left:   iframeRect.left + elRect.left,
+                        top:    iframeRect.top + elRect.top,
+                        width:  elRect.width,
+                        height: elRect.height
+                    };
+                    const tag = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/)[0] : '');
+                    vpShowOverlay('vpHoverOverlay', absRect, tag, frameRect());
+                }, true);
+
+                iframeDoc.addEventListener('mouseleave', function() {
+                    vpHideOverlay('vpHoverOverlay');
+                }, true);
+
+                iframeDoc.addEventListener('click', function(e) {
+                    if (!vpState.selecting && !vpState.inspecting) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const el = e.target;
+                    if (!el || el === iframeDoc.documentElement || el === iframeDoc.body) return;
+
+                    vpState.selectedEl = el;
+                    const meta = vpExtractMeta(el);
+                    vpState.selectedData = meta;
+
+                    const elRect = el.getBoundingClientRect();
+                    const iframeEl = document.getElementById('vpPreviewIframe');
+                    const iframeRect = iframeEl.getBoundingClientRect();
+                    const absRect = {
+                        left:   iframeRect.left + elRect.left,
+                        top:    iframeRect.top + elRect.top,
+                        width:  elRect.width,
+                        height: elRect.height
+                    };
+                    const tag = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '');
+                    vpShowOverlay('vpSelectOverlay', absRect, tag, frameRect());
+                    vpFillInspector(meta);
+                    vpGenerateContext();
+                }, true);
+
+                // Inject a small highlight style into iframe
+                try {
+                    const style = iframeDoc.createElement('style');
+                    style.textContent = `
+                        *:hover { outline: 1px dashed rgba(20,184,166,0.0) !important; }
+                    `;
+                    iframeDoc.head.appendChild(style);
+                } catch(e2) {}
+
+            } catch (e) {
+                console.warn('VP: Cannot attach iframe listeners (cross-origin?)', e.message);
+                vpSetStatus('ready', 'Ready (limited)');
+            }
+        }
+
+        // ── Selection & Prompt Actions ──
+        function vpCopySelectionData() {
+            if (!vpState.selectedData) { showToast('No element selected', 'info'); return; }
+            const d = vpState.selectedData;
+            const text = `Element: <${d.tag}>\nID: ${d.id || '-'}\nClasses: ${d.classes || '-'}\nSelector: ${d.selector}\nText: ${d.text || '-'}\nComponent: ${d.component || '-'}\nNode ID: ${d.nodeId || '-'}\nFile: ${d.filePath || '-'}\nDimensions: ${d.width}×${d.height}`;
+            navigator.clipboard.writeText(text).then(() => showToast('Selection data copied!', 'success'));
+        }
+
+        function vpBuildContextString() {
+            const d = vpState.selectedData;
+            if (!d) return '';
+            let ctx = `[Visual Preview Context]\n`;
+            ctx += `Route: ${vpState.url}\n`;
+            ctx += `Element: <${d.tag}>`;
+            if (d.id) ctx += ` #${d.id}`;
+            if (d.classes) ctx += ` .${d.classes.split(/\s+/).join('.')}`;
+            ctx += `\n`;
+            if (d.selector)  ctx += `Selector: ${d.selector}\n`;
+            if (d.text)      ctx += `Text: "${d.text.substring(0, 80)}"\n`;
+            if (d.component) ctx += `Component: ${d.component}\n`;
+            if (d.filePath)  ctx += `File: ${d.filePath}\n`;
+            if (d.nodeId)    ctx += `Node ID: ${d.nodeId}\n`;
+            ctx += `Size: ${d.width}×${d.height}px\n`;
+            return ctx;
+        }
+
+        function vpGenerateContext() {
+            const ctxBlock = document.getElementById('vpContextBlock');
+            const ctx = vpBuildContextString();
+            if (!ctx) { ctxBlock.innerHTML = ''; return; }
+            ctxBlock.innerHTML = `<pre>${vpEscHtml(ctx)}</pre>`;
+        }
+
+        function vpSendToPrompt() {
+            if (!vpState.selectedData) { showToast('No element selected', 'info'); return; }
+            const ctx = vpBuildContextString();
+            document.getElementById('vpPromptTextarea').value = ctx + '\n';
+            showToast('Context sent to prompt area', 'success');
+        }
+
+        function vpAppendToPrompt() {
+            if (!vpState.selectedData) { showToast('No element selected', 'info'); return; }
+            const ctx = vpBuildContextString();
+            const ta = document.getElementById('vpPromptTextarea');
+            ta.value += (ta.value ? '\n---\n' : '') + ctx;
+            showToast('Context appended', 'success');
+        }
+
+        function vpClearSelection() {
+            vpState.selectedEl = null;
+            vpState.selectedData = null;
+            vpHideOverlay('vpSelectOverlay');
+            vpHideOverlay('vpHoverOverlay');
+            ['vpInspTag','vpInspId','vpInspClasses','vpInspText','vpInspSelector','vpInspComponent','vpInspNodeId','vpInspFilePath','vpInspWidth','vpInspHeight'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '<span class="empty">-</span>';
+            });
+            document.getElementById('vpContextBlock').innerHTML = '';
+            showToast('Selection cleared', 'info');
+        }
+
+        function vpClearPrompt() {
+            document.getElementById('vpPromptTextarea').value = '';
+            document.getElementById('vpContextBlock').innerHTML = '';
+        }
+
+        // ── Send to IDE (prompt.txt via existing folder mechanism) ──
+        async function vpSendToIDE() {
+            if (!promptFolderHandle || !promptFileHandle) {
+                showToast('No folder connected. Please select a folder first (in Prompt Editor).', 'warning');
+                return;
+            }
+            const ctx = vpBuildContextString();
+            const userPrompt = document.getElementById('vpPromptTextarea').value.trim();
+            if (!ctx && !userPrompt) { showToast('Nothing to send. Select an element or write a prompt.', 'info'); return; }
+
+            let content = '';
+            if (ctx) content += ctx + '\n';
+            if (userPrompt) content += '[User Instruction]\n' + userPrompt + '\n';
+
+            try {
+                const writable = await promptFileHandle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                vpSetStatus('synced', 'Synced');
+                showToast('Sent to ' + promptFolderHandle.name + '/prompt.txt', 'success');
+                setTimeout(() => { if (vpState.loaded) vpSetStatus('ready', 'Ready'); }, 3000);
+            } catch (err) {
+                showToast('Error writing to prompt.txt: ' + err.message, 'error');
+                vpSetStatus('error', 'Sync Failed');
+            }
+        }
+
+        // ── Resize Handle for Inspector Panel ──
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                const handle = document.getElementById('vpResizeHandle');
+                const inspector = document.getElementById('vpInspector');
+                if (!handle || !inspector) return;
+
+                let startX, startWidth;
+                handle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    startX = e.clientX;
+                    startWidth = inspector.offsetWidth;
+                    document.addEventListener('mousemove', onDrag);
+                    document.addEventListener('mouseup', onUp);
+                    handle.classList.add('dragging');
+                });
+
+                function onDrag(e) {
+                    const diff = startX - e.clientX;
+                    const newW = Math.max(220, Math.min(600, startWidth + diff));
+                    inspector.style.width = newW + 'px';
+                    inspector.style.flex = 'none';
+                }
+                function onUp() {
+                    document.removeEventListener('mousemove', onDrag);
+                    document.removeEventListener('mouseup', onUp);
+                    handle.classList.remove('dragging');
+                }
+            });
+        })();
 
         // ═══════ Iframe Workspace ═══════
         const _iframeHistory = [];
