@@ -32339,6 +32339,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .vp-overlay.select-active .vp-overlay-tag { background: rgba(251, 191, 36, 0.9); color: #1a1a2e; }
 
+        /* Loading overlay */
+        .vp-loading-overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: rgba(10, 15, 30, 0.85);
+            z-index: 15;
+            backdrop-filter: blur(4px);
+        }
+        .vp-loading-overlay.visible { display: flex; }
+        .vp-loading-spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(20, 184, 166, 0.15);
+            border-top-color: #2dd4bf;
+            border-radius: 50%;
+            animation: vpSpin 0.8s linear infinite;
+        }
+        @keyframes vpSpin { to { transform: rotate(360deg); } }
+        .vp-loading-text {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .vp-loading-overlay.error .vp-loading-spinner {
+            border-color: rgba(248, 113, 113, 0.15);
+            border-top-color: #f87171;
+            animation: none;
+        }
+        .vp-loading-overlay.error .vp-loading-text { color: #f87171; }
+
         /* Empty state */
         .vp-empty-state {
             display: flex;
@@ -32447,6 +32482,174 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 5px;
         }
         .vp-insp-actions .vp-btn { flex: 1; min-width: calc(50% - 5px); justify-content: center; font-size: 0.65rem; padding: 5px 6px; }
+
+        /* ── Computed CSS Styles ── */
+        .vp-css-section {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.06);
+        }
+        .vp-css-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+        }
+        .vp-css-toggle-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            color: rgba(45, 212, 191, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .vp-css-toggle i {
+            font-size: 0.55rem;
+            color: rgba(45, 212, 191, 0.35);
+            transition: transform 0.2s ease;
+        }
+        .vp-css-toggle.expanded i { transform: rotate(90deg); }
+        .vp-css-grid {
+            display: none;
+            gap: 3px;
+            padding-top: 6px;
+        }
+        .vp-css-grid.visible { display: grid; grid-template-columns: 1fr 1fr; }
+        .vp-css-prop {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            padding: 4px 6px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+            border: 1px solid rgba(20, 184, 166, 0.04);
+        }
+        .vp-css-prop-name {
+            font-size: 0.58rem;
+            color: rgba(45, 212, 191, 0.4);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .vp-css-prop-val {
+            font-size: 0.68rem;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+        .vp-css-color-swatch {
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            border: 1px solid rgba(255,255,255,0.2);
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        /* ── Element Breadcrumb ── */
+        .vp-breadcrumb {
+            padding: 6px 12px;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.06);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        .vp-breadcrumb::-webkit-scrollbar { display: none; }
+        .vp-breadcrumb-item {
+            display: inline;
+            font-size: 0.62rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            padding: 2px 3px;
+            border-radius: 3px;
+            transition: all 0.15s ease;
+        }
+        .vp-breadcrumb-item:hover {
+            color: #2dd4bf;
+            background: rgba(20, 184, 166, 0.1);
+        }
+        .vp-breadcrumb-item.current {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        .vp-breadcrumb-sep {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.55rem;
+            margin: 0 1px;
+        }
+
+        /* ── Box Model Visualization ── */
+        .vp-boxmodel {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(20, 184, 166, 0.06);
+        }
+        .vp-boxmodel-diagram {
+            position: relative;
+            width: 100%;
+            max-width: 240px;
+            margin: 6px auto 0;
+            text-align: center;
+        }
+        .vp-bm-layer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border: 1px dashed;
+            border-radius: 4px;
+            position: relative;
+        }
+        .vp-bm-margin {
+            border-color: rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.04);
+        }
+        .vp-bm-border {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.04);
+            width: 100%;
+        }
+        .vp-bm-padding {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: rgba(52, 211, 153, 0.04);
+            width: 100%;
+        }
+        .vp-bm-content {
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.08);
+            border-radius: 3px;
+            width: 100%;
+            padding: 6px 4px;
+            font-size: 0.6rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #67e8f9;
+        }
+        .vp-bm-val {
+            position: absolute;
+            font-size: 0.55rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .vp-bm-val.top    { top: 1px; left: 50%; transform: translateX(-50%); }
+        .vp-bm-val.bottom { bottom: 1px; left: 50%; transform: translateX(-50%); }
+        .vp-bm-val.left   { left: 2px; top: 50%; transform: translateY(-50%); }
+        .vp-bm-val.right  { right: 2px; top: 50%; transform: translateY(-50%); }
+        .vp-bm-val.margin-v { color: #fbbf24; }
+        .vp-bm-val.border-v { color: #818cf8; }
+        .vp-bm-val.padding-v { color: #34d399; }
+        .vp-bm-label {
+            position: absolute;
+            top: -1px; left: 4px;
+            font-size: 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .vp-bm-margin .vp-bm-label { color: rgba(251, 191, 36, 0.5); }
+        .vp-bm-border .vp-bm-label { color: rgba(129, 140, 248, 0.5); }
+        .vp-bm-padding .vp-bm-label { color: rgba(52, 211, 153, 0.5); }
 
         /* ── Prompt Action Area ── */
         .vp-prompt-area {
@@ -34470,6 +34673,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <i class="fas fa-link"></i> Enter a URL
                                     </button>
                                 </div>
+                                <!-- Loading overlay -->
+                                <div class="vp-loading-overlay" id="vpLoadingOverlay">
+                                    <div class="vp-loading-spinner"></div>
+                                    <div class="vp-loading-text" id="vpLoadingText">Loading...</div>
+                                </div>
                                 <!-- iframe (hidden until URL is loaded) -->
                                 <iframe id="vpPreviewIframe" class="vp-preview-iframe" style="display:none;" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" loading="lazy"></iframe>
                                 <!-- Hover overlay -->
@@ -34553,6 +34761,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="vp-insp-value" id="vpInspHeight"><span class="empty">-</span></div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Element Breadcrumb -->
+                            <div class="vp-breadcrumb" id="vpBreadcrumb"></div>
+
+                            <!-- Box Model -->
+                            <div class="vp-boxmodel" id="vpBoxModel" style="display:none;">
+                                <div class="vp-insp-label">Box Model</div>
+                                <div class="vp-boxmodel-diagram">
+                                    <div class="vp-bm-layer vp-bm-margin">
+                                        <span class="vp-bm-label">margin</span>
+                                        <span class="vp-bm-val top margin-v" id="vpBmMt">0</span>
+                                        <span class="vp-bm-val right margin-v" id="vpBmMr">0</span>
+                                        <span class="vp-bm-val bottom margin-v" id="vpBmMb">0</span>
+                                        <span class="vp-bm-val left margin-v" id="vpBmMl">0</span>
+                                        <div class="vp-bm-layer vp-bm-border">
+                                            <span class="vp-bm-label">border</span>
+                                            <span class="vp-bm-val top border-v" id="vpBmBt">0</span>
+                                            <span class="vp-bm-val right border-v" id="vpBmBr">0</span>
+                                            <span class="vp-bm-val bottom border-v" id="vpBmBb">0</span>
+                                            <span class="vp-bm-val left border-v" id="vpBmBl">0</span>
+                                            <div class="vp-bm-layer vp-bm-padding">
+                                                <span class="vp-bm-label">padding</span>
+                                                <span class="vp-bm-val top padding-v" id="vpBmPt">0</span>
+                                                <span class="vp-bm-val right padding-v" id="vpBmPr">0</span>
+                                                <span class="vp-bm-val bottom padding-v" id="vpBmPb">0</span>
+                                                <span class="vp-bm-val left padding-v" id="vpBmPl">0</span>
+                                                <div class="vp-bm-content" id="vpBmContent">0 x 0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Computed CSS Styles -->
+                            <div class="vp-css-section" id="vpCssSection" style="display:none;">
+                                <div class="vp-css-toggle" id="vpCssToggle" onclick="vpToggleCssPanel()">
+                                    <span class="vp-css-toggle-label">Computed Styles</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                                <div class="vp-css-grid" id="vpCssGrid"></div>
                             </div>
 
                             <!-- Inspector Actions -->
@@ -44892,6 +45141,14 @@ in each section carefully and maintain proper connections between components.
                 panel.offsetHeight;
                 panel.style.animation = '';
             }
+            if (tabName === 'visualpreview' && typeof vpState !== 'undefined' && !vpState.loaded) {
+                const lastUrl = localStorage.getItem('vpLastUrl');
+                if (lastUrl) {
+                    const urlInput = document.getElementById('vpUrlInput');
+                    if (urlInput) urlInput.value = lastUrl;
+                    vpLoadUrl();
+                }
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════════
@@ -44917,7 +45174,49 @@ in each section carefully and maintain proper connections between components.
             mobile:  { width: '375px', height: '812px' }
         };
 
+        // ── Show/hide loading overlay ──
+        function vpShowLoading(msg) {
+            const overlay = document.getElementById('vpLoadingOverlay');
+            const text = document.getElementById('vpLoadingText');
+            if (!overlay) return;
+            overlay.classList.remove('error');
+            overlay.classList.add('visible');
+            if (text) text.textContent = msg || 'Loading...';
+        }
+        function vpHideLoading() {
+            const overlay = document.getElementById('vpLoadingOverlay');
+            if (overlay) overlay.classList.remove('visible', 'error');
+        }
+        function vpShowLoadingError(msg) {
+            const overlay = document.getElementById('vpLoadingOverlay');
+            const text = document.getElementById('vpLoadingText');
+            if (!overlay) return;
+            overlay.classList.add('visible', 'error');
+            if (text) text.textContent = msg || 'Failed to load';
+            setTimeout(() => vpHideLoading(), 4000);
+        }
+
+        // ── Cross-origin detection & bridge proxy for VP ──
+        function vpIsCrossOrigin(url) {
+            try {
+                const parsed = new URL(url);
+                return parsed.origin !== window.location.origin;
+            } catch(e) { return false; }
+        }
+        function vpBridgeUrl(url) {
+            try {
+                const parsed = new URL(url);
+                if (/^(localhost|127\.0\.0\.1)$/i.test(parsed.hostname)) {
+                    const bridgeBase = window.location.origin;
+                    const pmPath = window.location.pathname.replace(/\/[^/]*$/, '') + '/iframe-bridge.php';
+                    return bridgeBase + pmPath + '?url=' + encodeURIComponent(url);
+                }
+            } catch(e) {}
+            return url;
+        }
+
         // ── Load URL into preview iframe ──
+        let _vpLoadTimer = null;
         function vpLoadUrl() {
             let url = document.getElementById('vpUrlInput').value.trim();
             if (!url) { showToast('Please enter a URL to preview', 'warning'); return; }
@@ -44928,23 +45227,42 @@ in each section carefully and maintain proper connections between components.
             const iframe = document.getElementById('vpPreviewIframe');
             const emptyState = document.getElementById('vpEmptyState');
 
+            let loadSrc = url;
+            if (vpIsCrossOrigin(url)) {
+                loadSrc = vpBridgeUrl(url);
+                if (loadSrc !== url) {
+                    showToast('Routing through bridge proxy for cross-origin access', 'info');
+                }
+            }
+
             vpSetStatus('loading', 'Loading...');
+            try { vpShowLoading('Loading ' + new URL(url).hostname + '...'); } catch(e) { vpShowLoading('Loading...'); }
             emptyState.style.display = 'none';
             iframe.style.display = 'block';
-            iframe.src = url;
+
+            if (_vpLoadTimer) clearTimeout(_vpLoadTimer);
+            _vpLoadTimer = setTimeout(() => {
+                if (!vpState.iframeReady) {
+                    vpSetStatus('error', 'Timeout');
+                    vpShowLoadingError('Load timed out — check if the server is running.');
+                    showToast('URL load timed out after 15s. Is the server running?', 'error');
+                }
+            }, 15000);
 
             iframe.onload = function() {
+                clearTimeout(_vpLoadTimer);
+                _vpLoadTimer = null;
                 vpState.loaded = true;
                 vpState.iframeReady = true;
+                vpHideLoading();
                 vpSetStatus('ready', 'Ready');
                 vpUpdateRoute();
                 vpAttachIframeListeners();
                 localStorage.setItem('vpLastUrl', url);
             };
-            iframe.onerror = function() {
-                vpSetStatus('error', 'Error');
-                showToast('Failed to load the URL. Check if the server is running.', 'error');
-            };
+
+            vpState.iframeReady = false;
+            iframe.src = loadSrc;
         }
 
         // ── Reload preview ──
@@ -44952,6 +45270,27 @@ in each section carefully and maintain proper connections between components.
             const iframe = document.getElementById('vpPreviewIframe');
             if (!vpState.loaded) { showToast('No page loaded to reload', 'info'); return; }
             vpSetStatus('loading', 'Reloading...');
+            vpShowLoading('Reloading...');
+            vpState.iframeReady = false;
+
+            if (_vpLoadTimer) clearTimeout(_vpLoadTimer);
+            _vpLoadTimer = setTimeout(() => {
+                if (!vpState.iframeReady) {
+                    vpSetStatus('error', 'Timeout');
+                    vpShowLoadingError('Reload timed out.');
+                }
+            }, 15000);
+
+            const prevOnload = iframe.onload;
+            iframe.onload = function() {
+                clearTimeout(_vpLoadTimer);
+                _vpLoadTimer = null;
+                vpState.iframeReady = true;
+                vpHideLoading();
+                vpSetStatus('ready', 'Ready');
+                vpUpdateRoute();
+                vpAttachIframeListeners();
+            };
             iframe.src = iframe.src;
         }
 
@@ -44997,12 +45336,15 @@ in each section carefully and maintain proper connections between components.
         function vpToggleInspect() {
             vpState.inspecting = !vpState.inspecting;
             const btn = document.getElementById('vpInspectToggle');
+            const frame = document.getElementById('vpCanvasFrame');
             if (vpState.inspecting) {
-                btn.classList.add('active');
+                btn.classList.add('vp-btn-active');
+                frame.classList.add('inspecting');
                 vpSetStatus('inspecting', 'Inspecting');
                 if (vpState.selecting) vpToggleSelect();
             } else {
-                btn.classList.remove('active');
+                btn.classList.remove('vp-btn-active');
+                frame.classList.remove('inspecting');
                 vpHideOverlay('vpHoverOverlay');
                 if (!vpState.selecting) vpSetStatus('ready', 'Ready');
             }
@@ -45013,11 +45355,11 @@ in each section carefully and maintain proper connections between components.
             vpState.selecting = !vpState.selecting;
             const btn = document.getElementById('vpSelectToggle');
             if (vpState.selecting) {
-                btn.classList.add('active');
+                btn.classList.add('vp-btn-active');
                 vpSetStatus('inspecting', 'Select Mode');
                 if (vpState.inspecting) vpToggleInspect();
             } else {
-                btn.classList.remove('active');
+                btn.classList.remove('vp-btn-active');
                 if (!vpState.inspecting) vpSetStatus('ready', 'Ready');
             }
         }
@@ -45066,16 +45408,28 @@ in each section carefully and maintain proper connections between components.
             document.body.style.overflow = vpState.fullscreen ? 'hidden' : '';
         }
 
-        // ── Overlay Helpers ──
-        function vpShowOverlay(overlayId, rect, tagText, frameRect) {
+        // ── Overlay Helpers (zoom + scroll aware) ──
+        function vpShowOverlay(overlayId, elRect, tagText, iframeEl) {
             const overlay = document.getElementById(overlayId);
-            const tagEl = overlay.querySelector('.vp-overlay-tag');
             if (!overlay) return;
+            const tagEl = overlay.querySelector('.vp-overlay-tag');
+            const frame = document.getElementById('vpCanvasFrame');
+            if (!frame || !iframeEl) return;
+
+            const scale = vpState.zoomLevel / 100;
+            const frameRect = frame.getBoundingClientRect();
+            const iframeRect = iframeEl.getBoundingClientRect();
+
+            const left = (iframeRect.left - frameRect.left) + (elRect.left * scale);
+            const top  = (iframeRect.top  - frameRect.top)  + (elRect.top  * scale);
+            const w    = elRect.width  * scale;
+            const h    = elRect.height * scale;
+
             overlay.style.display = 'block';
-            overlay.style.left   = (rect.left - frameRect.left) + 'px';
-            overlay.style.top    = (rect.top - frameRect.top) + 'px';
-            overlay.style.width  = rect.width + 'px';
-            overlay.style.height = rect.height + 'px';
+            overlay.style.left   = left + 'px';
+            overlay.style.top    = top + 'px';
+            overlay.style.width  = w + 'px';
+            overlay.style.height = h + 'px';
             if (tagEl) { tagEl.textContent = tagText; tagEl.style.display = 'block'; }
         }
         function vpHideOverlay(overlayId) {
@@ -45154,15 +45508,145 @@ in each section carefully and maintain proper connections between components.
             return d.innerHTML;
         }
 
+        // ── Computed CSS Styles ──
+        const VP_CSS_PROPS = [
+            { name: 'Font', prop: 'font-family', format: v => v.split(',')[0].replace(/['"]/g, '') },
+            { name: 'Size', prop: 'font-size' },
+            { name: 'Weight', prop: 'font-weight' },
+            { name: 'Color', prop: 'color', color: true },
+            { name: 'BG', prop: 'background-color', color: true },
+            { name: 'Display', prop: 'display' },
+            { name: 'Position', prop: 'position' },
+            { name: 'Overflow', prop: 'overflow' },
+            { name: 'Z-Index', prop: 'z-index' },
+            { name: 'Opacity', prop: 'opacity' },
+            { name: 'Line-H', prop: 'line-height' },
+            { name: 'Text-Align', prop: 'text-align' },
+            { name: 'Flex', prop: 'flex' },
+            { name: 'Gap', prop: 'gap' },
+            { name: 'Border-R', prop: 'border-radius' },
+            { name: 'Box-Shadow', prop: 'box-shadow', format: v => v === 'none' ? 'none' : v.substring(0, 40) + (v.length > 40 ? '...' : '') },
+        ];
+
+        function vpExtractComputedCSS(el) {
+            if (!el) return null;
+            try {
+                const iframeWin = document.getElementById('vpPreviewIframe').contentWindow;
+                const cs = iframeWin.getComputedStyle(el);
+                if (!cs) return null;
+                return VP_CSS_PROPS.map(p => {
+                    let val = cs.getPropertyValue(p.prop) || '';
+                    if (p.format) val = p.format(val);
+                    return { name: p.name, prop: p.prop, val, isColor: !!p.color };
+                });
+            } catch(e) { return null; }
+        }
+
+        function vpFillComputedCSS(el) {
+            const section = document.getElementById('vpCssSection');
+            const grid = document.getElementById('vpCssGrid');
+            if (!section || !grid) return;
+            const styles = vpExtractComputedCSS(el);
+            if (!styles) { section.style.display = 'none'; return; }
+            section.style.display = '';
+            let html = '';
+            for (const s of styles) {
+                let valHtml = vpEscHtml(s.val);
+                if (s.isColor && s.val) {
+                    valHtml = `<span class="vp-css-color-swatch" style="background:${vpEscHtml(s.val)}"></span>${valHtml}`;
+                }
+                html += `<div class="vp-css-prop"><span class="vp-css-prop-name">${vpEscHtml(s.name)}</span><span class="vp-css-prop-val">${valHtml}</span></div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        function vpToggleCssPanel() {
+            const toggle = document.getElementById('vpCssToggle');
+            const grid = document.getElementById('vpCssGrid');
+            if (!toggle || !grid) return;
+            const expanded = toggle.classList.toggle('expanded');
+            grid.classList.toggle('visible', expanded);
+        }
+
+        // ── Element Breadcrumb ──
+        function vpBuildBreadcrumb(el) {
+            const container = document.getElementById('vpBreadcrumb');
+            if (!container) return;
+            if (!el) { container.innerHTML = ''; return; }
+            const chain = [];
+            let node = el;
+            while (node && node.nodeType === 1) {
+                let label = node.tagName.toLowerCase();
+                if (node.id) label += '#' + node.id;
+                else if (node.className && typeof node.className === 'string') {
+                    const cls = node.className.trim().split(/\s+/).filter(c => c && !c.startsWith('vp-'))[0];
+                    if (cls) label += '.' + cls;
+                }
+                chain.unshift({ label, el: node });
+                node = node.parentElement;
+            }
+            let html = '';
+            chain.forEach((item, i) => {
+                if (i > 0) html += '<span class="vp-breadcrumb-sep">›</span>';
+                const isCurrent = i === chain.length - 1;
+                html += `<span class="vp-breadcrumb-item${isCurrent ? ' current' : ''}" data-vp-bc-idx="${i}">${vpEscHtml(item.label)}</span>`;
+            });
+            container.innerHTML = html;
+            container.scrollLeft = container.scrollWidth;
+            container._chain = chain;
+            container.querySelectorAll('.vp-breadcrumb-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const idx = parseInt(this.getAttribute('data-vp-bc-idx'));
+                    const target = container._chain[idx];
+                    if (target && target.el) {
+                        vpState.selectedEl = target.el;
+                        const meta = vpExtractMeta(target.el);
+                        vpState.selectedData = meta;
+                        vpFillInspector(meta);
+                        vpFillComputedCSS(target.el);
+                        vpFillBoxModel(target.el);
+                        vpBuildBreadcrumb(target.el);
+                        vpGenerateContext();
+                    }
+                });
+            });
+        }
+
+        // ── Box Model Visualization ──
+        function vpFillBoxModel(el) {
+            const container = document.getElementById('vpBoxModel');
+            if (!container) return;
+            if (!el) { container.style.display = 'none'; return; }
+            try {
+                const iframeWin = document.getElementById('vpPreviewIframe').contentWindow;
+                const cs = iframeWin.getComputedStyle(el);
+                if (!cs) { container.style.display = 'none'; return; }
+                container.style.display = '';
+                const px = prop => parseInt(cs.getPropertyValue(prop)) || 0;
+                document.getElementById('vpBmMt').textContent = px('margin-top');
+                document.getElementById('vpBmMr').textContent = px('margin-right');
+                document.getElementById('vpBmMb').textContent = px('margin-bottom');
+                document.getElementById('vpBmMl').textContent = px('margin-left');
+                document.getElementById('vpBmBt').textContent = px('border-top-width');
+                document.getElementById('vpBmBr').textContent = px('border-right-width');
+                document.getElementById('vpBmBb').textContent = px('border-bottom-width');
+                document.getElementById('vpBmBl').textContent = px('border-left-width');
+                document.getElementById('vpBmPt').textContent = px('padding-top');
+                document.getElementById('vpBmPr').textContent = px('padding-right');
+                document.getElementById('vpBmPb').textContent = px('padding-bottom');
+                document.getElementById('vpBmPl').textContent = px('padding-left');
+                const rect = el.getBoundingClientRect();
+                document.getElementById('vpBmContent').textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+            } catch(e) { container.style.display = 'none'; }
+        }
+
         // ── Attach listeners inside iframe for hover/click ──
         function vpAttachIframeListeners() {
             try {
-                const iframeDoc = document.getElementById('vpPreviewIframe').contentDocument;
-                const iframeWin = document.getElementById('vpPreviewIframe').contentWindow;
+                const iframeEl = document.getElementById('vpPreviewIframe');
+                const iframeDoc = iframeEl.contentDocument;
+                const iframeWin = iframeEl.contentWindow;
                 if (!iframeDoc) return;
-
-                const canvasFrame = document.getElementById('vpCanvasFrame');
-                const frameRect = () => canvasFrame.getBoundingClientRect();
 
                 iframeDoc.addEventListener('mousemove', function(e) {
                     if (!vpState.inspecting) return;
@@ -45172,16 +45656,8 @@ in each section carefully and maintain proper connections between components.
                         return;
                     }
                     const elRect = el.getBoundingClientRect();
-                    const iframeEl = document.getElementById('vpPreviewIframe');
-                    const iframeRect = iframeEl.getBoundingClientRect();
-                    const absRect = {
-                        left:   iframeRect.left + elRect.left,
-                        top:    iframeRect.top + elRect.top,
-                        width:  elRect.width,
-                        height: elRect.height
-                    };
                     const tag = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/)[0] : '');
-                    vpShowOverlay('vpHoverOverlay', absRect, tag, frameRect());
+                    vpShowOverlay('vpHoverOverlay', elRect, tag, iframeEl);
                 }, true);
 
                 iframeDoc.addEventListener('mouseleave', function() {
@@ -45201,25 +45677,26 @@ in each section carefully and maintain proper connections between components.
                     vpState.selectedData = meta;
 
                     const elRect = el.getBoundingClientRect();
-                    const iframeEl = document.getElementById('vpPreviewIframe');
-                    const iframeRect = iframeEl.getBoundingClientRect();
-                    const absRect = {
-                        left:   iframeRect.left + elRect.left,
-                        top:    iframeRect.top + elRect.top,
-                        width:  elRect.width,
-                        height: elRect.height
-                    };
                     const tag = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '');
-                    vpShowOverlay('vpSelectOverlay', absRect, tag, frameRect());
+                    vpShowOverlay('vpSelectOverlay', elRect, tag, iframeEl);
                     vpFillInspector(meta);
+                    vpFillComputedCSS(el);
+                    vpFillBoxModel(el);
+                    vpBuildBreadcrumb(el);
                     vpGenerateContext();
                 }, true);
 
-                // Inject a small highlight style into iframe
+                // Hide overlays when iframe scrolls (they become stale)
+                iframeWin.addEventListener('scroll', function() {
+                    vpHideOverlay('vpHoverOverlay');
+                    vpHideOverlay('vpSelectOverlay');
+                }, true);
+
+                // Inject a subtle highlight style into iframe for hovered elements
                 try {
                     const style = iframeDoc.createElement('style');
                     style.textContent = `
-                        *:hover { outline: 1px dashed rgba(20,184,166,0.0) !important; }
+                        *:hover { outline: 1px dashed rgba(20,184,166,0.3) !important; }
                     `;
                     iframeDoc.head.appendChild(style);
                 } catch(e2) {}
@@ -45288,6 +45765,12 @@ in each section carefully and maintain proper connections between components.
                 if (el) el.innerHTML = '<span class="empty">-</span>';
             });
             document.getElementById('vpContextBlock').innerHTML = '';
+            document.getElementById('vpBreadcrumb').innerHTML = '';
+            document.getElementById('vpCssGrid').innerHTML = '';
+            const cssSection = document.getElementById('vpCssSection');
+            if (cssSection) cssSection.style.display = 'none';
+            const boxModel = document.getElementById('vpBoxModel');
+            if (boxModel) boxModel.style.display = 'none';
             showToast('Selection cleared', 'info');
         }
 
@@ -45353,6 +45836,56 @@ in each section carefully and maintain proper connections between components.
                 }
             });
         })();
+
+        // ── VP Keyboard Shortcuts ──
+        document.addEventListener('keydown', function(e) {
+            const vpPanel = document.getElementById('mcPanelVisualpreview');
+            if (!vpPanel || !vpPanel.classList.contains('active')) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === 'Escape') {
+                if (vpState.inspecting) vpToggleInspect();
+                if (vpState.selecting) vpToggleSelect();
+                if (vpState.fullscreen) vpToggleFullscreen();
+                return;
+            }
+
+            if (!vpState.selectedEl) return;
+
+            if (e.key === 'ArrowUp' && vpState.selectedEl.parentElement) {
+                e.preventDefault();
+                const parent = vpState.selectedEl.parentElement;
+                try { if (parent === document.getElementById('vpPreviewIframe').contentDocument.documentElement) return; } catch(ex) {}
+                vpSelectElement(parent);
+            } else if (e.key === 'ArrowDown' && vpState.selectedEl.firstElementChild) {
+                e.preventDefault();
+                vpSelectElement(vpState.selectedEl.firstElementChild);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const prev = vpState.selectedEl.previousElementSibling;
+                if (prev) vpSelectElement(prev);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                const next = vpState.selectedEl.nextElementSibling;
+                if (next) vpSelectElement(next);
+            }
+        });
+
+        function vpSelectElement(el) {
+            if (!el) return;
+            vpState.selectedEl = el;
+            const meta = vpExtractMeta(el);
+            vpState.selectedData = meta;
+            vpFillInspector(meta);
+            vpFillComputedCSS(el);
+            vpFillBoxModel(el);
+            vpBuildBreadcrumb(el);
+            vpGenerateContext();
+            const iframeEl = document.getElementById('vpPreviewIframe');
+            const elRect = el.getBoundingClientRect();
+            const tag = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '');
+            vpShowOverlay('vpSelectOverlay', elRect, tag, iframeEl);
+        }
 
         // ═══════ Iframe Workspace ═══════
         const _iframeHistory = [];
