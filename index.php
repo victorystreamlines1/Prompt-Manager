@@ -3412,13 +3412,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Prompt Item with Actions */
         .prompt-item {
             display: flex;
-            align-items: center;
-            padding: 0.65rem 0.75rem;
+            flex-direction: column;
+            padding: 0.6rem 0.75rem;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 10px;
             margin-bottom: 0.5rem;
             transition: all 0.2s;
+            gap: 0.45rem;
+        }
+
+        .prompt-item-top {
+            display: flex;
+            align-items: flex-start;
             gap: 0.5rem;
         }
 
@@ -3478,29 +3484,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .prompt-item-name {
+            flex: 1;
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            line-height: 1.35;
+            word-break: break-word;
+            cursor: pointer;
         }
 
         .prompt-item-preview {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-top: 2px;
+            display: none;
         }
 
         .prompt-item-actions {
             display: flex;
             gap: 4px;
-            flex-shrink: 0;
-            opacity: 0.5;
+            flex-wrap: wrap;
+            opacity: 0.6;
             transition: opacity 0.2s;
+            padding-left: 28px;
         }
 
         .prompt-item:hover .prompt-item-actions {
@@ -42843,13 +42846,12 @@ in each section carefully and maintain proper connections between components.
                 
                 return `
                     <div class="prompt-item ${isChecked ? 'checked' : ''}" data-id="${prompt.id}">
-                        <div class="prompt-item-checkbox" onclick="togglePrompt(${prompt.id})">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="prompt-item-content" onclick="openTemplatePreview(${prompt.id})">
-                            <div class="prompt-item-name">${highlightedName}</div>
-                            <div class="prompt-item-preview">${escapeHtml(contentPreview)}</div>
+                        <div class="prompt-item-top">
+                            <div class="prompt-item-checkbox" onclick="togglePrompt(${prompt.id})">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                                <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="prompt-item-name" onclick="openTemplatePreview(${prompt.id})">${highlightedName}</div>
                         </div>
                         <div class="prompt-item-actions">
                             <button type="button" class="prompt-action-icon copy" onclick="copyTemplate(${prompt.id})" title="Copy">
