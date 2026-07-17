@@ -33017,20 +33017,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <div class="sidebar-content">
                 <!-- Section Toggle: File Upload vs Prompt Templates -->
-                <div class="sidebar-section-toggle" role="tablist" aria-label="Sidebar section switch">
+                <div class="sidebar-section-toggle templates-active" role="tablist" aria-label="Sidebar section switch">
                     <span class="sst-indicator" id="sstIndicator"></span>
-                    <button type="button" class="sst-btn active" id="sstBtnFiles" role="tab" aria-selected="true" onclick="switchSidebarSection('files')">
+                    <button type="button" class="sst-btn" id="sstBtnFiles" role="tab" aria-selected="false" onclick="switchSidebarSection('files')">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <span>File Upload</span>
                     </button>
-                    <button type="button" class="sst-btn" id="sstBtnTemplates" role="tab" aria-selected="false" onclick="switchSidebarSection('templates')">
+                    <button type="button" class="sst-btn active" id="sstBtnTemplates" role="tab" aria-selected="true" onclick="switchSidebarSection('templates')">
                         <i class="fas fa-list-check"></i>
                         <span>Templates</span>
                     </button>
                 </div>
 
                 <!-- ===== Section 1: File Upload ===== -->
-                <div class="sidebar-section active" id="sectionFileUpload">
+                <div class="sidebar-section" id="sectionFileUpload">
                 <!-- File Upload -->
                 <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
                 
@@ -33090,7 +33090,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div><!-- /#sectionFileUpload -->
 
                 <!-- ===== Section 2: Prompt Templates ===== -->
-                <div class="sidebar-section" id="sectionTemplates">
+                <div class="sidebar-section active" id="sectionTemplates">
                 <!-- Prompt Templates -->
                 <div class="section-title-row">
                     <div class="section-title"><i class="fas fa-list-check"></i> Prompt Templates</div>
@@ -50585,14 +50585,14 @@ in each section carefully and maintain proper connections between components.
             secFiles.classList.toggle('active', !isTemplates);
             secTemplates.classList.toggle('active', isTemplates);
 
-            try { localStorage.setItem('sidebarSection', section); } catch (e) {}
+            try { localStorage.setItem('sidebarSectionPref', section); } catch (e) {}
         }
 
-        // Restore last selected sidebar section on load
+        // Restore last selected sidebar section on load (default: templates)
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                const saved = localStorage.getItem('sidebarSection');
-                if (saved === 'templates') switchSidebarSection('templates');
+                const saved = localStorage.getItem('sidebarSectionPref');
+                if (saved === 'files') switchSidebarSection('files');
             } catch (e) {}
         });
         
