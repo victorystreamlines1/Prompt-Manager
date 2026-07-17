@@ -1229,6 +1229,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     }
+
+    // Get single saved prompt by ID
+    if ($action === 'get_prompt') {
+        $id = intval($_POST['id'] ?? 0);
+        if ($pdo && $id > 0) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_saved_prompts WHERE id = ?");
+                $stmt->execute([$id]);
+                $prompt = $stmt->fetch();
+                if ($prompt) {
+                    echo json_encode(['success' => true, 'prompt' => $prompt]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Prompt not found']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid ID']);
+        }
+        exit;
+    }
     
     // ============ PROMPT TEMPLATES CRUD ============
     
@@ -27890,16 +27912,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .saved-item {
             display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.35rem 0.6rem;
+            flex-direction: column;
+            gap: 0.35rem;
+            padding: 0.5rem 0.65rem;
             background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            cursor: pointer;
+            border-radius: 12px;
             transition: all 0.25s ease;
             flex-shrink: 0;
-            white-space: nowrap;
+            min-width: 155px;
+            max-width: 210px;
+        }
+
+        .saved-item-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.4rem;
         }
 
         .saved-item:hover {
@@ -28124,13 +28152,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-item-name {
+            flex: 1;
             font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-primary);
-            max-width: 120px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            line-height: 1.3;
+            word-break: break-word;
+            cursor: pointer;
         }
 
         .saved-item-preview {
@@ -28143,9 +28171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .saved-item-actions {
             display: flex;
-            gap: 2px;
-            flex-shrink: 0;
-            opacity: 0;
+            gap: 3px;
+            flex-wrap: wrap;
+            opacity: 0.6;
             transition: all 0.2s;
         }
 
@@ -28154,19 +28182,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .saved-action-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            font-size: 0.7rem;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
         }
 
         .saved-action-icon:hover {
@@ -28186,6 +28213,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .saved-action-icon.delete:hover {
             background: rgba(239, 68, 68, 0.2);
             color: var(--danger);
+        }
+
+        .saved-action-icon.refresh:hover {
+            background: rgba(20, 184, 166, 0.18);
+            color: #14b8a6;
+            box-shadow: 0 0 8px rgba(20, 184, 166, 0.28);
+        }
+
+        .saved-action-icon.refresh.spinning {
+            pointer-events: none;
+            color: #14b8a6;
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .saved-action-icon.refresh.spinning i {
+            animation: refreshSpin 0.65s linear infinite;
         }
 
         .saved-action-icon.pull:hover {
@@ -43222,6 +43265,43 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
+        // Refresh a single saved prompt record from the database
+        async function refreshSavedPrompt(id) {
+            const btn = document.getElementById(`saved-refresh-btn-${id}`);
+            if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_prompt');
+                formData.append('id', id);
+
+                const response = await fetch(window.location.href, { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.success) {
+                    const p = data.prompt;
+                    const idx = savedPromptsList.findIndex(x => x.id === id);
+                    if (idx !== -1) {
+                        const titleChanged   = savedPromptsList[idx].title   !== p.title;
+                        const contentChanged = savedPromptsList[idx].content !== p.content;
+                        savedPromptsList[idx] = { id: parseInt(p.id), title: p.title, content: p.content, created_at: p.created_at };
+                        if (activeSavedPrompts.has(id) && contentChanged) rebuildEditorFromSaved();
+                        renderSavedPrompts(document.getElementById('searchPrompts')?.value || '');
+                        showToast(
+                            (titleChanged || contentChanged) ? `🔄 "${p.title}" refreshed from DB` : `✅ "${p.title}" is already up to date`,
+                            (titleChanged || contentChanged) ? 'success' : 'info'
+                        );
+                    }
+                } else {
+                    showToast('Refresh failed: ' + data.message, 'error');
+                    if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+                }
+            } catch (err) {
+                showToast('Error refreshing saved prompt', 'error');
+                if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+            }
+        }
+
         // Refresh a single template record from the database
         async function refreshTemplate(id) {
             const btn = document.getElementById(`refresh-btn-${id}`);
@@ -52650,14 +52730,12 @@ in each section carefully and maintain proper connections between components.
                 
                 return `
                     <div class="saved-item ${isChecked ? 'checked' : ''}" data-id="${prompt.id}">
-                        <div class="saved-item-checkbox" onclick="toggleSavedPrompt(${prompt.id})">
-                            <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                            <div class="checkbox-box"><i class="fas fa-check"></i></div>
-                        </div>
-                        <div class="saved-item-content" onclick="openSavedPreview(${prompt.id})">
-                            <div class="saved-item-name">${highlightedTitle}</div>
-                            <div class="saved-item-preview">${escapeHtmlDisplay(contentPreview)}</div>
-                            <div class="saved-item-date">${formatDate(prompt.created_at)}</div>
+                        <div class="saved-item-top">
+                            <div class="saved-item-checkbox" onclick="toggleSavedPrompt(${prompt.id})">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                                <div class="checkbox-box"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="saved-item-name" onclick="openSavedPreview(${prompt.id})">${highlightedTitle}</div>
                         </div>
                         <div class="saved-item-actions">
                             <button type="button" class="saved-action-icon copy" onclick="copySavedPrompt(${prompt.id})" title="Copy">
@@ -52671,6 +52749,9 @@ in each section carefully and maintain proper connections between components.
                             </button>
                             <button type="button" class="saved-action-icon edit" onclick="editSavedPrompt(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="saved-action-icon refresh" id="saved-refresh-btn-${prompt.id}" onclick="refreshSavedPrompt(${prompt.id})" title="Refresh from DB">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                             <button type="button" class="saved-action-icon delete" onclick="deletePrompt(${prompt.id})" title="Delete">
                                 <i class="fas fa-trash"></i>
