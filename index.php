@@ -1337,6 +1337,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
+    // Get single template by ID (for per-record refresh)
+    if ($action === 'get_template') {
+        $id = intval($_POST['id'] ?? 0);
+        if ($pdo && $id > 0) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM reporter_prompt_templates WHERE id = ? AND is_active = 1");
+                $stmt->execute([$id]);
+                $template = $stmt->fetch();
+                if ($template) {
+                    echo json_encode(['success' => true, 'template' => $template]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Template not found']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID is required']);
+        }
+        exit;
+    }
+
     // ============ DESIGN TEMPLATES CRUD (Design Enhancer Panel) ============
     
     // Get all design templates
@@ -3557,6 +3579,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         @keyframes pullLeftArrow {
             from { transform: translateX(2px); }
             to   { transform: translateX(-2px); }
+        }
+
+        .prompt-action-icon.refresh:hover {
+            background: rgba(20, 184, 166, 0.18);
+            color: #14b8a6;
+            box-shadow: 0 0 8px rgba(20, 184, 166, 0.28);
+        }
+        .prompt-action-icon.refresh.spinning {
+            pointer-events: none;
+            color: #14b8a6;
+            background: rgba(20, 184, 166, 0.1);
+        }
+        .prompt-action-icon.refresh.spinning i {
+            animation: refreshSpin 0.65s linear infinite;
+        }
+        @keyframes refreshSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
         }
 
         /* ═══════ Static Prompt Template (Read the Application) ═══════ */
@@ -42824,6 +42864,9 @@ in each section carefully and maintain proper connections between components.
                             <button type="button" class="prompt-action-icon edit" onclick="openEditTemplateModal(${prompt.id})" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            <button type="button" class="prompt-action-icon refresh" id="refresh-btn-${prompt.id}" onclick="refreshTemplate(${prompt.id})" title="Refresh from DB">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                             <button type="button" class="prompt-action-icon delete" onclick="confirmDeleteTemplate(${prompt.id})" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -43177,6 +43220,43 @@ in each section carefully and maintain proper connections between components.
             }
         }
         
+        // Refresh a single template record from the database
+        async function refreshTemplate(id) {
+            const btn = document.getElementById(`refresh-btn-${id}`);
+            if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'get_template');
+                formData.append('id', id);
+
+                const response = await fetch(window.location.href, { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (data.success) {
+                    const t = data.template;
+                    const idx = promptTemplates.findIndex(p => p.id === id);
+                    if (idx !== -1) {
+                        const nameChanged    = promptTemplates[idx].name    !== t.name;
+                        const contentChanged = promptTemplates[idx].content !== t.content;
+                        promptTemplates[idx] = { id: parseInt(t.id), name: t.name, content: t.content };
+                        if (activePrompts.has(id) && contentChanged) rebuildEditor();
+                        renderPromptList(document.getElementById('promptSearchInput')?.value || '');
+                        showToast(
+                            (nameChanged || contentChanged) ? `🔄 "${t.name}" refreshed from DB` : `✅ "${t.name}" is already up to date`,
+                            (nameChanged || contentChanged) ? 'success' : 'info'
+                        );
+                    }
+                } else {
+                    showToast('Refresh failed: ' + data.message, 'error');
+                    if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+                }
+            } catch (err) {
+                showToast('Error refreshing template', 'error');
+                if (btn) { btn.classList.remove('spinning'); btn.disabled = false; }
+            }
+        }
+
         // Copy Template Content
         function copyTemplate(id) {
             const template = promptTemplates.find(t => t.id === id);
