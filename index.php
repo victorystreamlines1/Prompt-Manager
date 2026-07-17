@@ -76284,6 +76284,543 @@ window.addEventListener('load', function() {
 });
 </script>
 
+<!-- ═══════════════════ Notepad Widget (PHP/Vanilla port) ═══════════════════ -->
+<style>
+:root {
+  --apn-gold: #d4a853; --apn-gold-light: #f0d78c; --apn-gold-dim: #c9963c;
+  --apn-violet: #7289f5; --apn-bg-panel: rgba(10,11,24,0.88);
+  --apn-border-gold: rgba(212,168,83,0.28); --apn-text: #e8eaf8;
+  --apn-text-dim: #9da0bf; --apn-green: #4ade80;
+  --apn-z-bubble: 99800; --apn-z-panel: 99801;
+}
+#apn-bubble {
+  position:fixed; bottom:32px; right:32px; z-index:var(--apn-z-bubble);
+  width:52px; height:52px; border-radius:50%; border:none; cursor:grab;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; color:#0a0b14; user-select:none; touch-action:none;
+  background:linear-gradient(145deg,var(--apn-gold-light) 0%,var(--apn-gold) 45%,var(--apn-gold-dim) 75%,#a8782e 100%);
+  box-shadow:0 0 0 1px rgba(212,168,83,0.35),0 8px 28px rgba(0,0,0,0.55),0 0 40px rgba(212,168,83,0.18);
+  transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.2s ease;
+}
+#apn-bubble::before {
+  content:''; position:absolute; inset:4px; border-radius:50%;
+  border:1px solid rgba(255,255,255,0.35); pointer-events:none;
+}
+#apn-bubble::after {
+  content:''; position:absolute; inset:-6px; border-radius:50%;
+  border:1.5px solid rgba(212,168,83,0.3);
+  animation:apn-pulse 2.8s ease-out infinite; pointer-events:none;
+}
+@keyframes apn-pulse {
+  0%{opacity:0.9;transform:scale(1)} 70%{opacity:0;transform:scale(1.35)} 100%{opacity:0;transform:scale(1.35)}
+}
+#apn-bubble:hover {
+  transform:scale(1.12) translateY(-2px);
+  box-shadow:0 0 0 1px rgba(212,168,83,0.55),0 12px 36px rgba(0,0,0,0.6),0 0 60px rgba(212,168,83,0.32);
+}
+#apn-bubble:active { cursor:grabbing; transform:scale(1.04); }
+#apn-bubble .apn-dot {
+  display:none; position:absolute; top:4px; right:4px;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--apn-green); border:2px solid #080912;
+  box-shadow:0 0 8px rgba(74,222,128,0.8); pointer-events:none;
+}
+#apn-bubble.apn-has-notes .apn-dot { display:block; }
+#apn-panel {
+  position:fixed; z-index:var(--apn-z-panel); width:340px;
+  display:flex; flex-direction:column; overflow:hidden;
+  background:var(--apn-bg-panel); backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+  border-radius:20px; border:1px solid var(--apn-border-gold);
+  box-shadow:0 0 0 1px rgba(212,168,83,0.18),0 24px 64px rgba(0,0,0,0.7);
+  opacity:0; transform:translateY(14px) scale(0.96); pointer-events:none;
+  transition:opacity 0.26s cubic-bezier(0.16,1,0.3,1),transform 0.26s cubic-bezier(0.16,1,0.3,1);
+}
+#apn-panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,168,83,0.7) 30%,rgba(240,215,140,0.9) 50%,rgba(212,168,83,0.7) 70%,transparent);
+  pointer-events:none; z-index:1;
+}
+#apn-panel.apn-open { opacity:1; transform:translateY(0) scale(1); pointer-events:all; }
+.apn-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px 12px;
+  background:linear-gradient(135deg,rgba(212,168,83,0.09) 0%,rgba(114,137,245,0.05) 100%);
+  border-bottom:1px solid var(--apn-border-gold); flex-shrink:0;
+}
+.apn-title { display:flex; align-items:center; gap:10px; }
+.apn-title-icon {
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(135deg,var(--apn-gold),var(--apn-gold-dim));
+  display:flex; align-items:center; justify-content:center;
+  color:#0a0b14; font-size:0.82rem;
+  box-shadow:0 2px 8px rgba(212,168,83,0.4),inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.apn-title-text {
+  font-size:0.72rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+  background:linear-gradient(90deg,var(--apn-gold-light),var(--apn-gold));
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.apn-close-btn {
+  width:30px; height:30px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.05);
+  color:var(--apn-text-dim); cursor:pointer; font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.18s,color 0.18s,border-color 0.18s;
+}
+.apn-close-btn:hover { background:rgba(248,113,113,0.15); color:#fca5a5; border-color:rgba(248,113,113,0.3); }
+.apn-counter-row {
+  display:flex; align-items:center; gap:10px; padding:7px 18px 5px;
+  background:rgba(0,0,0,0.12); border-bottom:1px solid rgba(212,168,83,0.06); flex-shrink:0;
+}
+.apn-counter-label { font-size:0.66rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--apn-text-dim); white-space:nowrap; }
+.apn-counter-bar-wrap { flex:1; height:3px; border-radius:999px; background:rgba(255,255,255,0.06); overflow:hidden; }
+.apn-counter-bar { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--apn-gold-dim),var(--apn-gold-light)); transition:width 0.3s ease; }
+.apn-textarea {
+  flex:1; min-height:180px; max-height:240px; resize:vertical;
+  background:rgba(6,7,18,0.5); border:none; border-bottom:1px solid rgba(212,168,83,0.1);
+  color:var(--apn-text); font-size:0.875rem; line-height:1.7;
+  padding:16px 18px; outline:none;
+  scrollbar-width:thin; scrollbar-color:rgba(212,168,83,0.35) rgba(15,16,28,0.5);
+  font-family:system-ui,sans-serif;
+}
+.apn-textarea::placeholder { color:rgba(157,160,191,0.5); font-style:italic; font-size:0.84rem; }
+.apn-textarea:focus { background:rgba(8,10,24,0.7); box-shadow:inset 0 0 0 1px rgba(212,168,83,0.12); }
+.apn-footer {
+  display:flex; gap:8px; padding:12px 14px 8px; flex-shrink:0;
+  background:linear-gradient(180deg,rgba(10,11,24,0.4),rgba(10,11,24,0.7));
+  border-top:1px solid rgba(212,168,83,0.08);
+}
+.apn-btn {
+  flex:1; padding:8px 6px; border-radius:10px; border:1px solid transparent;
+  font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;
+  transition:transform 0.15s,box-shadow 0.15s,background 0.18s;
+}
+.apn-btn:hover { transform:translateY(-2px); }
+.apn-btn:active { transform:scale(0.97); }
+.apn-btn-save {
+  background:linear-gradient(135deg,var(--apn-gold-light),var(--apn-gold),var(--apn-gold-dim));
+  color:#0a0b14; box-shadow:0 2px 12px rgba(212,168,83,0.3);
+}
+.apn-btn-copy { background:rgba(114,137,245,0.12); color:#a5b4ff; border-color:rgba(114,137,245,0.25); }
+.apn-btn-copy:hover { background:rgba(114,137,245,0.22); }
+.apn-btn-copy.apn-copied { background:rgba(74,222,128,0.15); color:#86efac; border-color:rgba(74,222,128,0.35); }
+.apn-btn-clear { background:rgba(239,68,68,0.08); color:#fca5a5; border-color:rgba(239,68,68,0.2); }
+.apn-btn-clear:hover { background:rgba(239,68,68,0.18); }
+.apn-save-all-row { padding:0 14px 10px; background:rgba(0,0,0,0.18); }
+.apn-btn-save-all {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:9px;
+  padding:10px 16px; border-radius:12px;
+  border:1px solid rgba(212,168,83,0.28);
+  background:linear-gradient(135deg,rgba(212,168,83,0.09),rgba(201,150,60,0.06));
+  color:rgba(212,168,83,0.85); font-size:0.71rem; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+  transition:background 0.22s,border-color 0.22s,transform 0.18s;
+}
+.apn-btn-save-all:hover {
+  background:linear-gradient(135deg,rgba(212,168,83,0.18),rgba(201,150,60,0.12));
+  border-color:rgba(212,168,83,0.55); color:#f0d78c; transform:translateY(-1px);
+}
+.apn-inspect-row { padding:0 14px 12px; background:rgba(0,0,0,0.18); display:none; }
+.apn-inspect-row.apn-admin { display:block; }
+.apn-btn-inspect {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:9px;
+  padding:10px 16px; border-radius:12px;
+  border:1px solid rgba(114,137,245,0.3);
+  background:linear-gradient(135deg,rgba(114,137,245,0.10),rgba(74,93,212,0.08));
+  color:rgba(165,180,255,0.9); font-size:0.71rem; font-weight:700;
+  letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+  transition:background 0.22s,border-color 0.22s,transform 0.18s;
+}
+.apn-btn-inspect:hover { background:rgba(114,137,245,0.20); border-color:rgba(114,137,245,0.6); color:#d2dbff; transform:translateY(-1px); }
+.apn-btn-inspect.apn-inspect-on {
+  background:linear-gradient(135deg,rgba(250,204,21,0.20),rgba(217,119,6,0.16));
+  border-color:rgba(250,204,21,0.6); color:#fde68a;
+  animation:apn-inspect-pulse 1.8s ease-in-out infinite;
+}
+@keyframes apn-inspect-pulse {
+  0%,100%{box-shadow:0 0 18px rgba(250,204,21,0.20)} 50%{box-shadow:0 0 32px rgba(250,204,21,0.42)}
+}
+.apn-inspect-hint {
+  margin-left:auto; font-size:0.6rem; padding:2px 7px; border-radius:6px;
+  background:rgba(114,137,245,0.18); color:rgba(210,219,255,0.85);
+  text-transform:lowercase; border:1px solid rgba(114,137,245,0.3); font-weight:600;
+}
+.apn-btn-inspect.apn-inspect-on .apn-inspect-hint { background:rgba(250,204,21,0.22); border-color:rgba(250,204,21,0.45); color:#fef3c7; }
+#apn-inspect-overlay {
+  position:fixed; pointer-events:none; z-index:99700;
+  border:2px dashed #facc15; border-radius:4px;
+  background:rgba(250,204,21,0.08);
+  box-shadow:0 0 18px rgba(250,204,21,0.30),inset 0 0 0 1px rgba(250,204,21,0.35);
+  display:none;
+}
+#apn-inspect-overlay.apn-active { display:block; }
+#apn-inspect-label {
+  position:fixed; pointer-events:none; z-index:99701;
+  background:linear-gradient(135deg,#facc15,#f59e0b); color:#0a0b14;
+  padding:3px 10px; border-radius:6px;
+  font-family:'Roboto Mono',Consolas,monospace; font-size:0.7rem; font-weight:800;
+  white-space:nowrap; max-width:70vw; overflow:hidden; text-overflow:ellipsis;
+  box-shadow:0 4px 14px rgba(0,0,0,0.5); display:none;
+}
+#apn-inspect-label.apn-active { display:block; }
+body.apn-inspect-mode,
+body.apn-inspect-mode *:not(#apn-bubble):not(#apn-bubble *):not(#apn-panel):not(#apn-panel *) {
+  cursor:crosshair !important;
+}
+#apn-toast {
+  position:fixed; z-index:99802; left:50%; bottom:96px; transform:translateX(-50%) translateY(6px);
+  background:rgba(10,11,24,0.92); backdrop-filter:blur(12px);
+  border:1px solid var(--apn-border-gold); color:var(--apn-green);
+  font-size:0.74rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+  padding:7px 16px; border-radius:999px;
+  box-shadow:0 4px 22px rgba(0,0,0,0.5);
+  opacity:0; transition:opacity 0.22s ease,transform 0.22s ease; pointer-events:none;
+}
+#apn-toast.apn-visible { opacity:1; transform:translateX(-50%) translateY(0); }
+@media(max-width:520px){
+  #apn-panel { width:calc(100vw - 20px)!important; right:10px!important; left:10px!important; border-radius:16px; }
+  .apn-inspect-hint { display:none; }
+}
+@media(prefers-reduced-motion:reduce){
+  #apn-bubble,#apn-bubble::after,#apn-panel,#apn-toast,.apn-btn,.apn-counter-bar,
+  .apn-btn-inspect,#apn-inspect-overlay { transition:none!important; animation:none!important; }
+}
+</style>
+
+<button id="apn-bubble" aria-label="Open page notes" title="Page Notes">✏️<span class="apn-dot" aria-hidden="true"></span></button>
+<div id="apn-panel" role="dialog" aria-label="Page Notes" aria-modal="false">
+  <div class="apn-header">
+    <span class="apn-title">
+      <span class="apn-title-icon">📜</span>
+      <span class="apn-title-text">Page Notes</span>
+    </span>
+    <button class="apn-close-btn" id="apn-close" aria-label="Close">✕</button>
+  </div>
+  <div class="apn-counter-row" aria-hidden="true">
+    <span class="apn-counter-label" id="apn-counter-label">0 chars</span>
+    <div class="apn-counter-bar-wrap"><div class="apn-counter-bar" id="apn-counter-bar"></div></div>
+  </div>
+  <textarea id="apn-textarea" class="apn-textarea" placeholder="Type your notes here… auto-saved as you write." aria-label="Page notes" spellcheck="true"></textarea>
+  <div class="apn-footer">
+    <button class="apn-btn apn-btn-save" id="apn-save">💾 Save</button>
+    <button class="apn-btn apn-btn-copy" id="apn-copy">📋 Copy</button>
+    <button class="apn-btn apn-btn-clear" id="apn-clear">🗑 Clear</button>
+  </div>
+  <div class="apn-save-all-row">
+    <button class="apn-btn-save-all" id="apn-save-all">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      Save to All Pages
+    </button>
+  </div>
+  <div class="apn-inspect-row" id="apn-inspect-row">
+    <button class="apn-btn-inspect" id="apn-inspect-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+        <circle cx="11" cy="11" r="8"/><path d="M13 13l6 6"/>
+      </svg>
+      <span id="apn-inspect-text">Inspect Element</span>
+      <span class="apn-inspect-hint">middle-click</span>
+    </button>
+  </div>
+</div>
+<div id="apn-inspect-overlay" aria-hidden="true"></div>
+<div id="apn-inspect-label" aria-hidden="true"></div>
+<div id="apn-toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  if (window.__apnNotepadInit) return; window.__apnNotepadInit = true;
+
+  const MAX_CHARS = 2000;
+  const GLOBAL_KEY = "pageNotes:__global__";
+  const storageKey = () => "pageNotes:" + window.location.pathname;
+  const posKey     = () => "pageNotesBubblePos:" + window.location.pathname;
+
+  const bubble   = document.getElementById('apn-bubble');
+  const panel    = document.getElementById('apn-panel');
+  const closeBtn = document.getElementById('apn-close');
+  const textarea = document.getElementById('apn-textarea');
+  const counterLabel = document.getElementById('apn-counter-label');
+  const counterBar   = document.getElementById('apn-counter-bar');
+  const saveBtn    = document.getElementById('apn-save');
+  const copyBtn    = document.getElementById('apn-copy');
+  const clearBtn   = document.getElementById('apn-clear');
+  const saveAllBtn = document.getElementById('apn-save-all');
+  const inspectRow = document.getElementById('apn-inspect-row');
+  const inspectBtn = document.getElementById('apn-inspect-btn');
+  const inspectText= document.getElementById('apn-inspect-text');
+  const overlay = document.getElementById('apn-inspect-overlay');
+  const label   = document.getElementById('apn-inspect-label');
+  const toast   = document.getElementById('apn-toast');
+
+  let open = false, inspectOn = false;
+  let autoSaveTimer = null, toastTimer = null, copiedTimer = null;
+  const drag = { dragging:false, offX:0, offY:0, didDrag:false, pointerId:null };
+  let lastHovered = null;
+
+  function isAdminLogged(){
+    try { if (localStorage.getItem("gl_admin_auth") === "1") return true; } catch(_){}
+    try { if (sessionStorage.getItem("gl_admin_session") === "1") return true; } catch(_){}
+    return false;
+  }
+
+  function buildSelectorPath(el){
+    const path = []; let cur = el; const max = 6;
+    while (cur && cur.nodeType === 1 && path.length < max && cur.tagName !== "HTML") {
+      let part = cur.tagName.toLowerCase();
+      if (cur.id) { part += "#" + cur.id; path.unshift(part); break; }
+      if (typeof cur.className === "string" && cur.className.trim()) {
+        const cls = cur.className.trim().split(/\s+/).slice(0, 3).join(".");
+        if (cls) part += "." + cls;
+      }
+      const parent = cur.parentElement;
+      if (parent) {
+        const same = Array.from(parent.children).filter(c => c.tagName === cur.tagName);
+        if (same.length > 1) part += ":nth-of-type(" + (same.indexOf(cur) + 1) + ")";
+      }
+      path.unshift(part);
+      cur = parent;
+    }
+    return path.join(" > ");
+  }
+
+  function getOpeningTag(el){
+    if (!el || !el.outerHTML) return "";
+    const html = el.outerHTML;
+    const idx = html.indexOf(">");
+    let opentag = idx > -1 ? html.substring(0, idx + 1) : html;
+    if (opentag.length > 320) opentag = opentag.substring(0, 317) + "…>";
+    return opentag;
+  }
+
+  function isWidgetElement(el){
+    if (!el || el.nodeType !== 1 || !el.closest) return true;
+    return !!(
+      el.closest("#apn-bubble") || el.closest("#apn-panel") ||
+      el.closest("#apn-toast") || el.closest("#apn-inspect-overlay") ||
+      el.closest("#apn-inspect-label") || el === document.body || el === document.documentElement
+    );
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("apn-visible");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("apn-visible"), 2000);
+  }
+
+  function updateCounter(){
+    const len = textarea.value.length;
+    counterLabel.textContent = len + " char" + (len !== 1 ? "s" : "");
+    const pct = Math.min(100, (len / MAX_CHARS) * 100);
+    counterBar.style.width = pct + "%";
+    counterBar.style.background = pct > 85
+      ? "linear-gradient(90deg,#f97316,#ef4444)"
+      : "linear-gradient(90deg,var(--apn-gold-dim),var(--apn-gold-light))";
+    bubble.classList.toggle("apn-has-notes", textarea.value.trim().length > 0);
+  }
+
+  function setNotes(val){ textarea.value = val; updateCounter(); }
+  function saveNotes(text){ try { localStorage.setItem(storageKey(), text); } catch(_){} }
+
+  textarea.addEventListener("input", () => {
+    updateCounter();
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => saveNotes(textarea.value), 600);
+  });
+
+  saveBtn.addEventListener("click", () => { saveNotes(textarea.value); showToast("✓ Saved for this page"); });
+
+  saveAllBtn.addEventListener("click", () => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("pageNotes:") && k !== GLOBAL_KEY) keys.push(k);
+    }
+    if (!keys.includes(storageKey())) keys.push(storageKey());
+    keys.forEach(k => localStorage.setItem(k, textarea.value));
+    localStorage.setItem(GLOBAL_KEY, textarea.value);
+    showToast("✓ Saved to " + keys.length + " page" + (keys.length !== 1 ? "s" : "") + " + global");
+  });
+
+  copyBtn.addEventListener("click", () => {
+    if (!textarea.value.trim()) { showToast("Nothing to copy"); return; }
+    const markCopied = () => {
+      copyBtn.classList.add("apn-copied"); copyBtn.textContent = "✓ Copied";
+      showToast("Copied to clipboard");
+      clearTimeout(copiedTimer);
+      copiedTimer = setTimeout(() => { copyBtn.classList.remove("apn-copied"); copyBtn.textContent = "📋 Copy"; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textarea.value).then(markCopied).catch(fallbackCopy);
+    } else { fallbackCopy(); }
+    function fallbackCopy(){
+      const ta = document.createElement("textarea");
+      ta.value = textarea.value; ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand("copy"); markCopied(); } catch(_){}
+      document.body.removeChild(ta);
+    }
+  });
+
+  clearBtn.addEventListener("click", () => {
+    setNotes(""); try { localStorage.removeItem(storageKey()); } catch(_){} showToast("Cleared");
+  });
+
+  function positionPanel(){
+    const br = bubble.getBoundingClientRect();
+    const pw = panel.offsetWidth || 340; const ph = panel.offsetHeight || 480;
+    const vw = window.innerWidth; const vh = window.innerHeight;
+    let top = br.top - ph - 12; let left = br.right - pw;
+    if (top < 8) top = br.bottom + 12;
+    if (left < 8) left = 8;
+    if (left + pw > vw - 8) left = vw - pw - 8;
+    if (top + ph > vh - 8) top = vh - ph - 8;
+    panel.style.top = top + "px"; panel.style.left = left + "px";
+    panel.style.bottom = "auto"; panel.style.right = "auto";
+  }
+
+  function setOpen(v){
+    open = v;
+    panel.classList.toggle("apn-open", open);
+    if (open) setTimeout(positionPanel, 10);
+  }
+
+  bubble.addEventListener("click", () => {
+    if (drag.didDrag) { drag.didDrag = false; return; }
+    setOpen(!open);
+  });
+  closeBtn.addEventListener("click", () => setOpen(false));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { if (inspectOn) stopInspect(); else setOpen(false); }
+  });
+
+  // Restore saved bubble position
+  (function restorePos(){
+    try {
+      const raw = localStorage.getItem(posKey()); if (!raw) return;
+      const pos = JSON.parse(raw);
+      const vw = window.innerWidth - bubble.offsetWidth; const vh = window.innerHeight - bubble.offsetHeight;
+      bubble.style.left = Math.max(0, Math.min(pos.x, vw)) + "px";
+      bubble.style.top  = Math.max(0, Math.min(pos.y, vh)) + "px";
+      bubble.style.right = "auto"; bubble.style.bottom = "auto";
+    } catch(_){}
+  })();
+
+  // Draggable bubble
+  bubble.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault(); drag.pointerId = e.pointerId;
+    const r = bubble.getBoundingClientRect();
+    drag.offX = e.clientX - r.left; drag.offY = e.clientY - r.top;
+    drag.dragging = true; drag.didDrag = false;
+    bubble.style.transition = "none"; bubble.style.cursor = "grabbing";
+    try { bubble.setPointerCapture(e.pointerId); } catch(_){}
+  });
+  bubble.addEventListener("pointermove", (e) => {
+    if (!drag.dragging || e.pointerId !== drag.pointerId) return;
+    const x = Math.max(0, Math.min(e.clientX - drag.offX, window.innerWidth - bubble.offsetWidth));
+    const y = Math.max(0, Math.min(e.clientY - drag.offY, window.innerHeight - bubble.offsetHeight));
+    bubble.style.left = x + "px"; bubble.style.top = y + "px";
+    bubble.style.right = "auto"; bubble.style.bottom = "auto";
+    drag.didDrag = true; if (open) positionPanel();
+  });
+  function endDrag(e){
+    if (e.pointerId !== drag.pointerId) return;
+    try { bubble.releasePointerCapture(e.pointerId); } catch(_){}
+    drag.dragging = false; drag.pointerId = null;
+    bubble.style.transition = ""; bubble.style.cursor = "grab";
+    try { localStorage.setItem(posKey(), JSON.stringify({ x: parseInt(bubble.style.left,10), y: parseInt(bubble.style.top,10) })); } catch(_){}
+  }
+  bubble.addEventListener("pointerup", endDrag);
+  bubble.addEventListener("pointercancel", endDrag);
+
+  // Middle-click capture (always active)
+  document.addEventListener("mousemove", (e) => {
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    if (t && !isWidgetElement(t)) lastHovered = t;
+  }, true);
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 1) return;
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    if (!t || isWidgetElement(t)) return;
+    e.preventDefault(); e.stopPropagation();
+  }, true);
+  document.addEventListener("auxclick", (e) => {
+    if (e.button !== 1) return;
+    const target = lastHovered || document.elementFromPoint(e.clientX, e.clientY);
+    if (!target || isWidgetElement(target)) return;
+    e.preventDefault(); e.stopPropagation();
+    const ref =
+      "\n─── REFERENCE ───\n" +
+      "📄 Page: " + (window.location.pathname || "/") + "\n" +
+      "📍 Path: " + buildSelectorPath(target) + "\n" +
+      "🏷️  HTML: " + getOpeningTag(target) + "\n" +
+      "─────────────────\n";
+    const prev = textarea.value;
+    const sep = (!prev || /\n$/.test(prev)) ? "" : "\n";
+    const next = prev + sep + ref;
+    setNotes(next);
+    saveNotes(next);
+    showToast("✓ Reference captured");
+    setTimeout(() => { textarea.scrollTop = textarea.scrollHeight; }, 50);
+  }, true);
+
+  // Inspector mode
+  function handleInspectMove(e){
+    const t = document.elementFromPoint(e.clientX, e.clientY);
+    if (!t || isWidgetElement(t)) {
+      overlay.classList.remove("apn-active"); label.classList.remove("apn-active"); return;
+    }
+    const r = t.getBoundingClientRect();
+    overlay.style.top = r.top + "px"; overlay.style.left = r.left + "px";
+    overlay.style.width = r.width + "px"; overlay.style.height = r.height + "px";
+    overlay.classList.add("apn-active");
+    let tag = t.tagName.toLowerCase();
+    if (t.id) tag += "#" + t.id;
+    else if (typeof t.className === "string" && t.className.trim())
+      tag += "." + t.className.trim().split(/\s+/).slice(0, 2).join(".");
+    label.textContent = tag;
+    label.style.top = Math.max(4, r.top - 22) + "px";
+    label.style.left = Math.max(4, r.left) + "px";
+    label.classList.add("apn-active");
+  }
+  function startInspect(){
+    inspectOn = true;
+    inspectBtn.classList.add("apn-inspect-on"); inspectText.textContent = "Stop Inspector";
+    document.body.classList.add("apn-inspect-mode");
+    document.addEventListener("mousemove", handleInspectMove, true);
+    showToast("🎯 Visual inspector ON — middle-click any element to capture");
+    setOpen(false);
+  }
+  function stopInspect(){
+    inspectOn = false;
+    inspectBtn.classList.remove("apn-inspect-on"); inspectText.textContent = "Inspect Element";
+    document.body.classList.remove("apn-inspect-mode");
+    overlay.classList.remove("apn-active"); label.classList.remove("apn-active");
+    document.removeEventListener("mousemove", handleInspectMove, true);
+  }
+  inspectBtn.addEventListener("click", () => { if (inspectOn) stopInspect(); else startInspect(); });
+
+  // Admin gate polling
+  function refreshAdmin(){ inspectRow.classList.toggle("apn-admin", isAdminLogged()); }
+  refreshAdmin();
+  setInterval(refreshAdmin, 1500);
+
+  // Load saved notes (page key → global fallback)
+  setNotes(localStorage.getItem(storageKey()) || localStorage.getItem(GLOBAL_KEY) || "");
+  window.addEventListener("popstate", () => {
+    setNotes(localStorage.getItem(storageKey()) || localStorage.getItem(GLOBAL_KEY) || "");
+  });
+})();
+</script>
+<!-- ═══════════════════ End Notepad Widget ═══════════════════ -->
+
 </body>
 </html>
 
