@@ -1136,7 +1136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $title && $content) {
+        if ($pdo && $title) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->prepare("INSERT INTO reporter_prompt_saved_prompts (title, content) VALUES (?, ?)");
@@ -1154,7 +1154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Title and content are required']);
+            echo json_encode(['success' => false, 'message' => 'Title is required']);
         }
         exit;
     }
@@ -1165,7 +1165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = $_POST['title'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $id && $title && $content) {
+        if ($pdo && $id && $title) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_saved_prompts SET title = ?, content = ? WHERE id = ?");
@@ -1275,7 +1275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $name && $content) {
+        if ($pdo && $name) {
             try {
                 $startTime = microtime(true);
                 // Get max sort_order
@@ -1300,7 +1300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Name and content are required']);
+            echo json_encode(['success' => false, 'message' => 'Name is required']);
         }
         exit;
     }
@@ -1311,7 +1311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $id && $name && $content) {
+        if ($pdo && $id && $name) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_templates SET name = ?, content = ? WHERE id = ?");
@@ -1328,7 +1328,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'ID, name and content are required']);
+            echo json_encode(['success' => false, 'message' => 'ID and name are required']);
         }
         exit;
     }
@@ -1404,7 +1404,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $name && $content) {
+        if ($pdo && $name) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->query("SELECT MAX(sort_order) as max_order FROM reporter_prompt_design_templates");
@@ -1428,7 +1428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'Name and content are required']);
+            echo json_encode(['success' => false, 'message' => 'Name is required']);
         }
         exit;
     }
@@ -1439,7 +1439,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = $_POST['name'] ?? '';
         $content = $_POST['content'] ?? '';
         
-        if ($pdo && $id && $name && $content) {
+        if ($pdo && $id && $name) {
             try {
                 $startTime = microtime(true);
                 $stmt = $pdo->prepare("UPDATE reporter_prompt_design_templates SET name = ?, content = ? WHERE id = ?");
@@ -43257,8 +43257,8 @@ in each section carefully and maintain proper connections between components.
             const content = contentInput.value.trim();
             const id = editId.value;
             
-            if (!name || !content) {
-                showToast('Please fill in both name and content', 'error');
+            if (!name) {
+                showToast('Please fill in the name', 'error');
                 return;
             }
             
@@ -52687,8 +52687,8 @@ in each section carefully and maintain proper connections between components.
             const content = document.getElementById('promptContent').value.trim();
             const editId = document.getElementById('editPromptId').value;
             
-            if (!title || !content) {
-                showToast('Title and content required!', 'error');
+            if (!title) {
+                showToast('Title is required!', 'error');
                 return;
             }
             
@@ -52745,8 +52745,8 @@ in each section carefully and maintain proper connections between components.
             const name = document.getElementById('stmNameInput').value.trim();
             const content = document.getElementById('stmContentInput').value.trim();
             
-            if (!name || !content) {
-                showToast('Name and content required!', 'error');
+            if (!name) {
+                showToast('Name is required!', 'error');
                 return;
             }
             
@@ -70351,8 +70351,8 @@ async function dtSaveTemplate() {
     const content = contentInput ? contentInput.value.trim() : '';
     const id = editId ? editId.value : '';
     
-    if (!name || !content) {
-        showToast('Please fill in both name and content', 'warning');
+    if (!name) {
+        showToast('Please fill in the name', 'warning');
         return;
     }
     
