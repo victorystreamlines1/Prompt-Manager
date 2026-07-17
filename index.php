@@ -3378,6 +3378,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.85rem;
         }
 
+        /* ===== Sidebar Section Toggle (Files / Templates) ===== */
+        .sidebar-section-toggle {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.25rem;
+            padding: 0.3rem;
+            margin-bottom: 1.1rem;
+            border-radius: 14px;
+            background: linear-gradient(145deg, rgba(0,0,0,0.18), rgba(255,255,255,0.03));
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+
+        .sidebar-section-toggle .sst-indicator {
+            position: absolute;
+            top: 0.3rem;
+            left: 0.3rem;
+            width: calc(50% - 0.4rem);
+            height: calc(100% - 0.6rem);
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+        }
+
+        .sidebar-section-toggle.templates-active .sst-indicator {
+            transform: translateX(calc(100% + 0.5rem));
+        }
+
+        .sst-btn {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.6rem 0.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 11px;
+            transition: color 0.3s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .sst-btn i {
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+        }
+
+        .sst-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .sst-btn:hover i {
+            transform: scale(1.15);
+        }
+
+        .sst-btn.active {
+            color: #fff;
+        }
+
+        /* ===== Sidebar Sections (animated switch) ===== */
+        .sidebar-section {
+            display: none;
+            animation: sidebarSectionFade 0.4s ease;
+        }
+
+        .sidebar-section.active {
+            display: block;
+        }
+
+        @keyframes sidebarSectionFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Section Title Row */
         .section-title-row {
             display: flex;
@@ -32933,6 +33016,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="sidebar-content">
+                <!-- Section Toggle: File Upload vs Prompt Templates -->
+                <div class="sidebar-section-toggle" role="tablist" aria-label="Sidebar section switch">
+                    <span class="sst-indicator" id="sstIndicator"></span>
+                    <button type="button" class="sst-btn active" id="sstBtnFiles" role="tab" aria-selected="true" onclick="switchSidebarSection('files')">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>File Upload</span>
+                    </button>
+                    <button type="button" class="sst-btn" id="sstBtnTemplates" role="tab" aria-selected="false" onclick="switchSidebarSection('templates')">
+                        <i class="fas fa-list-check"></i>
+                        <span>Templates</span>
+                    </button>
+                </div>
+
+                <!-- ===== Section 1: File Upload ===== -->
+                <div class="sidebar-section active" id="sectionFileUpload">
                 <!-- File Upload -->
                 <div class="section-title"><i class="fas fa-cloud-upload-alt"></i> File Upload</div>
                 
@@ -32989,7 +33087,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="uploaded-files" id="uploadedFiles">
                     <!-- Files will be loaded here -->
                 </div>
-                
+                </div><!-- /#sectionFileUpload -->
+
+                <!-- ===== Section 2: Prompt Templates ===== -->
+                <div class="sidebar-section" id="sectionTemplates">
                 <!-- Prompt Templates -->
                 <div class="section-title-row">
                     <div class="section-title"><i class="fas fa-list-check"></i> Prompt Templates</div>
@@ -33102,6 +33203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-search"></i>
                     <p>No templates found</p>
                 </div>
+                </div><!-- /#sectionTemplates -->
             </div>
             
             <div class="db-status <?php echo $pdo ? 'connected' : 'disconnected'; ?>">
@@ -50461,6 +50563,38 @@ in each section carefully and maintain proper connections between components.
         function toggleSidebar() {
             toggleLeftPanel();
         }
+
+        // Switch between sidebar sections: File Upload <-> Prompt Templates
+        function switchSidebarSection(section) {
+            const toggle = document.querySelector('.sidebar-section-toggle');
+            const btnFiles = document.getElementById('sstBtnFiles');
+            const btnTemplates = document.getElementById('sstBtnTemplates');
+            const secFiles = document.getElementById('sectionFileUpload');
+            const secTemplates = document.getElementById('sectionTemplates');
+            if (!toggle || !secFiles || !secTemplates) return;
+
+            const isTemplates = section === 'templates';
+
+            toggle.classList.toggle('templates-active', isTemplates);
+
+            btnFiles.classList.toggle('active', !isTemplates);
+            btnFiles.setAttribute('aria-selected', String(!isTemplates));
+            btnTemplates.classList.toggle('active', isTemplates);
+            btnTemplates.setAttribute('aria-selected', String(isTemplates));
+
+            secFiles.classList.toggle('active', !isTemplates);
+            secTemplates.classList.toggle('active', isTemplates);
+
+            try { localStorage.setItem('sidebarSection', section); } catch (e) {}
+        }
+
+        // Restore last selected sidebar section on load
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const saved = localStorage.getItem('sidebarSection');
+                if (saved === 'templates') switchSidebarSection('templates');
+            } catch (e) {}
+        });
         
         // Load panel states on page load
         function loadPanelStates() {
